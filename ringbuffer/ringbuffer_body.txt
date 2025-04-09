@@ -1,0 +1,73 @@
+{#ifndef RingBufferItemType}
+	{#error require RingBufferItemType macro.}
+{#endif}
+
+{#define RingBuffer_init    RINGBUFFER_INIT(RingBufferItemType)}
+{#define RingBuffer_enqueue RINGBUFFER_ENQUEUE(RingBufferItemType)}
+{#define RingBuffer_dequeue RINGBUFFER_DEQUEUE(RingBufferItemType)}
+
+function RingBuffer_init: bool
+	var_in_out self: RingBuffer_t; end
+	var_input
+		buf_size: dint;
+		overwrite: bool;
+	end
+	{st}
+	self.w_idx := 0;
+	self.r_idx := 0;
+	self.buf_size := buf_size;
+	self.overwrite := overwrite;
+
+	RingBuffer_init := true;
+	{end}
+end
+
+function RingBuffer_enqueue: bool
+	var_in_out self: RingBuffer_t; end
+	var_in_out
+		buf: array[*] of RingBufferItemType;
+	end
+	var_input
+		item: RingBufferItemType;
+	end
+	{st}
+	if self.w_idx - self.r_idx = self.buf_size then
+		if self.overwrite then
+			self.r_idx := self.r_idx + 1; // dequeue -> enqueue
+		else
+			RingBuffer_enqueue := false;
+			return;
+		end_if;
+	end_if;
+
+	buf[self.w_idx mod self.buf_size] := item;
+	self.w_idx := self.w_idx + 1;
+
+	RingBuffer_enqueue := true;
+	{end}
+end
+
+function RingBuffer_dequeue: bool
+	var_in_out self: RingBuffer_t; end
+	var_in_out
+		buf: array[*] of RingBufferItemType;
+	end
+	var_output
+		item: RingBufferItemType;
+	end
+	{st}
+	if self.w_idx = self.r_idx then
+		RingBuffer_dequeue := false;
+		return;
+	end_if;
+
+	item := buf[self.r_idx mod self.buf_size];
+	self.r_idx := self.r_idx + 1;
+
+	RingBuffer_dequeue := true;
+	{end}
+end
+
+{#undef  RingBuffer_init}
+{#undef  RingBuffer_enqueue}
+{#undef  RingBuffer_dequeue}

@@ -1,0 +1,9 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./ringbuffer/ringbuffer.txt -t omron -o ./ringbuffer/ringbuffer.xml
+ *)
+
+{#include "./ringbuffer_int.txt"}
+{#include "./ringbuffer_dint.txt"}
+{#include "./ringbuffer_lreal.txt"}
+{#include "./ringbuffer_bool.txt"}

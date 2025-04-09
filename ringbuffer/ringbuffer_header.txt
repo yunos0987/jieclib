@@ -1,0 +1,21 @@
+{#ifndef __RINGBUFFER_HEADER_TXT__}
+{#define __RINGBUFFER_HEADER_TXT__}
+
+{#define _RINGBUFFER_INIT_(T)    RingBuffer_@@T@@_init}
+{#define _RINGBUFFER_ENQUEUE_(T) RingBuffer_@@T@@_enqueue}
+{#define _RINGBUFFER_DEQUEUE_(T) RingBuffer_@@T@@_dequeue}
+
+{#define RINGBUFFER_INIT(T)    _RINGBUFFER_INIT_(T)}
+{#define RINGBUFFER_ENQUEUE(T) _RINGBUFFER_ENQUEUE_(T)}
+{#define RINGBUFFER_DEQUEUE(T) _RINGBUFFER_DEQUEUE_(T)}
+
+type
+	RingBuffer_t: struct
+		w_idx: dint;
+		r_idx: dint;
+		buf_size: dint;
+		overwrite: bool;
+	end
+end
+
+{#endif}

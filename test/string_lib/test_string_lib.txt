@@ -1,0 +1,533 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/string_lib/test_string_lib.txt -I../jiecunit -I../jiecunit/sys -t omron -o ./test/string_lib/test_string_lib.xml
+ *)
+{#include <jiecunit.txt>}
+
+{#include "./../../string_lib/string_lib.txt"}
+
+configuration MainConfiguration resource MainResource on PLC
+	_DEFINE_SYS_IN_RESOURCE_();
+	// List test program names.
+	_JIEC_TESTNAMES_LIST_(
+		'test_charAt',
+		'test_asciiCharCodeAt',
+		'test_fromAsciiCharCode',
+		'test_lower_upper',
+		'test_remove',
+		'test_reverse',
+		'test_startswith',
+		'test_endswith',
+		'test_split',
+		'test_trim',
+		'test_join',
+		'test_substitute'
+	);
+end end
+
+TEST_S(test_charAt)
+	{st}
+	//
+	EXPECT_EQ_STRING('', charAt('aAb', 0));
+	EXPECT_EQ_STRING('a', charAt('aAb', 1));
+	EXPECT_EQ_STRING('A', charAt('aAb', 2));
+	EXPECT_EQ_STRING('b', charAt('aAb', 3));
+	EXPECT_EQ_STRING('', charAt('aAb', 4));
+	//
+	EXPECT_EQ_STRING('', charAt('', 0));
+	EXPECT_EQ_STRING('', charAt('', 1));
+	//
+	EXPECT_EQ_STRING('$T', charAt('$T$N$$', 1));
+	EXPECT_EQ_STRING('$N', charAt('$T$N$$', 2));
+	EXPECT_EQ_STRING('$$', charAt('$T$N$$', 3));
+	// note:
+	//EXPECT_EQ_STRING('⬅➡', charAt('⬅➡', 1));
+	//EXPECT_EQ_STRING('', charAt('⬅➡', 2));
+	{end}
+END_TEST_S
+
+TEST_S(test_asciiCharCodeAt)
+	{st}
+	//
+	EXPECT_EQ_INT32(-1, asciiCharCodeAt('aAb', 0));
+	EXPECT_EQ_INT32(16#61, asciiCharCodeAt('aAb', 1));
+	EXPECT_EQ_INT32(16#41, asciiCharCodeAt('aAb', 2));
+	EXPECT_EQ_INT32(16#62, asciiCharCodeAt('aAb', 3));
+	EXPECT_EQ_INT32(-1, asciiCharCodeAt('aAb', 4));
+	//
+	EXPECT_EQ_INT32(-1, asciiCharCodeAt('', 0));
+	EXPECT_EQ_INT32(-1, asciiCharCodeAt('', 1));
+	//
+	EXPECT_EQ_INT32(16#09, asciiCharCodeAt('$T$N$$', 1));
+	EXPECT_EQ_INT32(16#0a, asciiCharCodeAt('$T$N$$', 2));
+	EXPECT_EQ_INT32(16#24, asciiCharCodeAt('$T$N$$', 3));
+	// note: $00
+	EXPECT_EQ_INT32(16#01, asciiCharCodeAt('$01$1f$20$21$7e$7f', 1));
+	EXPECT_EQ_INT32(16#1f, asciiCharCodeAt('$01$1f$20$21$7e$7f', 2));
+	EXPECT_EQ_INT32(16#20, asciiCharCodeAt('$01$1f$20$21$7e$7f', 3));
+	EXPECT_EQ_INT32(16#21, asciiCharCodeAt('$01$1f$20$21$7e$7f', 4));
+	EXPECT_EQ_INT32(16#7e, asciiCharCodeAt('$01$1f$20$21$7e$7f', 5));
+	EXPECT_EQ_INT32(16#7f, asciiCharCodeAt('$01$1f$20$21$7e$7f', 6));
+	// note:
+	//EXPECT_EQ_INT32(16#e29c8aefb88f, asciiCharCodeAt('✊️', 1));
+	//EXPECT_EQ_INT32(-1, asciiCharCodeAt('✊️', 2));
+	{end}
+END_TEST_S
+
+TEST_S(test_fromAsciiCharCode)
+	var
+		o: bool;
+	end
+	{st}
+	EXPECT_EQ_STRING('$00', fromAsciiCharCode(16#00));
+	EXPECT_EQ_STRING('$01', fromAsciiCharCode(16#01));
+	EXPECT_EQ_STRING('$02', fromAsciiCharCode(16#02));
+	EXPECT_EQ_STRING('$03', fromAsciiCharCode(16#03));
+	EXPECT_EQ_STRING('$04', fromAsciiCharCode(16#04));
+	EXPECT_EQ_STRING('$05', fromAsciiCharCode(16#05));
+	EXPECT_EQ_STRING('$06', fromAsciiCharCode(16#06));
+	EXPECT_EQ_STRING('$07', fromAsciiCharCode(16#07));
+	EXPECT_EQ_STRING('$08', fromAsciiCharCode(16#08));
+	EXPECT_EQ_STRING('$09', fromAsciiCharCode(16#09));
+	EXPECT_EQ_STRING('$0A', fromAsciiCharCode(16#0A));
+	EXPECT_EQ_STRING('$0B', fromAsciiCharCode(16#0B));
+	EXPECT_EQ_STRING('$0C', fromAsciiCharCode(16#0C));
+	EXPECT_EQ_STRING('$0D', fromAsciiCharCode(16#0D));
+	EXPECT_EQ_STRING('$0E', fromAsciiCharCode(16#0E));
+	EXPECT_EQ_STRING('$0F', fromAsciiCharCode(16#0F));
+	EXPECT_EQ_STRING('$10', fromAsciiCharCode(16#10));
+	EXPECT_EQ_STRING('$11', fromAsciiCharCode(16#11));
+	EXPECT_EQ_STRING('$12', fromAsciiCharCode(16#12));
+	EXPECT_EQ_STRING('$13', fromAsciiCharCode(16#13));
+	EXPECT_EQ_STRING('$14', fromAsciiCharCode(16#14));
+	EXPECT_EQ_STRING('$15', fromAsciiCharCode(16#15));
+	EXPECT_EQ_STRING('$16', fromAsciiCharCode(16#16));
+	EXPECT_EQ_STRING('$17', fromAsciiCharCode(16#17));
+	EXPECT_EQ_STRING('$18', fromAsciiCharCode(16#18));
+	EXPECT_EQ_STRING('$19', fromAsciiCharCode(16#19));
+	EXPECT_EQ_STRING('$1A', fromAsciiCharCode(16#1A));
+	EXPECT_EQ_STRING('$1B', fromAsciiCharCode(16#1B));
+	EXPECT_EQ_STRING('$1C', fromAsciiCharCode(16#1C));
+	EXPECT_EQ_STRING('$1D', fromAsciiCharCode(16#1D));
+	EXPECT_EQ_STRING('$1E', fromAsciiCharCode(16#1E));
+	EXPECT_EQ_STRING('$1F', fromAsciiCharCode(16#1F));
+	EXPECT_EQ_STRING(' ', fromAsciiCharCode(16#20));
+	EXPECT_EQ_STRING('!', fromAsciiCharCode(16#21));
+	EXPECT_EQ_STRING('"', fromAsciiCharCode(16#22));
+	EXPECT_EQ_STRING('#', fromAsciiCharCode(16#23));
+	EXPECT_EQ_STRING('$$', fromAsciiCharCode(16#24));
+	EXPECT_EQ_STRING('%', fromAsciiCharCode(16#25));
+	EXPECT_EQ_STRING('&', fromAsciiCharCode(16#26));
+	EXPECT_EQ_STRING('$'', fromAsciiCharCode(16#27));
+	EXPECT_EQ_STRING('(', fromAsciiCharCode(16#28));
+	EXPECT_EQ_STRING(')', fromAsciiCharCode(16#29));
+	EXPECT_EQ_STRING('*', fromAsciiCharCode(16#2A));
+	EXPECT_EQ_STRING('+', fromAsciiCharCode(16#2B));
+	EXPECT_EQ_STRING(',', fromAsciiCharCode(16#2C));
+	EXPECT_EQ_STRING('-', fromAsciiCharCode(16#2D));
+	EXPECT_EQ_STRING('.', fromAsciiCharCode(16#2E));
+	EXPECT_EQ_STRING('/', fromAsciiCharCode(16#2F));
+	EXPECT_EQ_STRING('0', fromAsciiCharCode(16#30));
+	EXPECT_EQ_STRING('1', fromAsciiCharCode(16#31));
+	EXPECT_EQ_STRING('2', fromAsciiCharCode(16#32));
+	EXPECT_EQ_STRING('3', fromAsciiCharCode(16#33));
+	EXPECT_EQ_STRING('4', fromAsciiCharCode(16#34));
+	EXPECT_EQ_STRING('5', fromAsciiCharCode(16#35));
+	EXPECT_EQ_STRING('6', fromAsciiCharCode(16#36));
+	EXPECT_EQ_STRING('7', fromAsciiCharCode(16#37));
+	EXPECT_EQ_STRING('8', fromAsciiCharCode(16#38));
+	EXPECT_EQ_STRING('9', fromAsciiCharCode(16#39));
+	EXPECT_EQ_STRING(':', fromAsciiCharCode(16#3A));
+	EXPECT_EQ_STRING(';', fromAsciiCharCode(16#3B));
+	EXPECT_EQ_STRING('<', fromAsciiCharCode(16#3C));
+	EXPECT_EQ_STRING('=', fromAsciiCharCode(16#3D));
+	EXPECT_EQ_STRING('>', fromAsciiCharCode(16#3E));
+	EXPECT_EQ_STRING('?', fromAsciiCharCode(16#3F));
+	EXPECT_EQ_STRING('@', fromAsciiCharCode(16#40));
+	EXPECT_EQ_STRING('A', fromAsciiCharCode(16#41));
+	EXPECT_EQ_STRING('B', fromAsciiCharCode(16#42));
+	EXPECT_EQ_STRING('C', fromAsciiCharCode(16#43));
+	EXPECT_EQ_STRING('D', fromAsciiCharCode(16#44));
+	EXPECT_EQ_STRING('E', fromAsciiCharCode(16#45));
+	EXPECT_EQ_STRING('F', fromAsciiCharCode(16#46));
+	EXPECT_EQ_STRING('G', fromAsciiCharCode(16#47));
+	EXPECT_EQ_STRING('H', fromAsciiCharCode(16#48));
+	EXPECT_EQ_STRING('I', fromAsciiCharCode(16#49));
+	EXPECT_EQ_STRING('J', fromAsciiCharCode(16#4A));
+	EXPECT_EQ_STRING('K', fromAsciiCharCode(16#4B));
+	EXPECT_EQ_STRING('L', fromAsciiCharCode(16#4C));
+	EXPECT_EQ_STRING('M', fromAsciiCharCode(16#4D));
+	EXPECT_EQ_STRING('N', fromAsciiCharCode(16#4E));
+	EXPECT_EQ_STRING('O', fromAsciiCharCode(16#4F));
+	EXPECT_EQ_STRING('P', fromAsciiCharCode(16#50));
+	EXPECT_EQ_STRING('Q', fromAsciiCharCode(16#51));
+	EXPECT_EQ_STRING('R', fromAsciiCharCode(16#52));
+	EXPECT_EQ_STRING('S', fromAsciiCharCode(16#53));
+	EXPECT_EQ_STRING('T', fromAsciiCharCode(16#54));
+	EXPECT_EQ_STRING('U', fromAsciiCharCode(16#55));
+	EXPECT_EQ_STRING('V', fromAsciiCharCode(16#56));
+	EXPECT_EQ_STRING('W', fromAsciiCharCode(16#57));
+	EXPECT_EQ_STRING('X', fromAsciiCharCode(16#58));
+	EXPECT_EQ_STRING('Y', fromAsciiCharCode(16#59));
+	EXPECT_EQ_STRING('Z', fromAsciiCharCode(16#5A));
+	EXPECT_EQ_STRING('[', fromAsciiCharCode(16#5B));
+	EXPECT_EQ_STRING('\', fromAsciiCharCode(16#5C));
+	EXPECT_EQ_STRING(']', fromAsciiCharCode(16#5D));
+	EXPECT_EQ_STRING('^', fromAsciiCharCode(16#5E));
+	EXPECT_EQ_STRING('_', fromAsciiCharCode(16#5F));
+	EXPECT_EQ_STRING('`', fromAsciiCharCode(16#60));
+	EXPECT_EQ_STRING('a', fromAsciiCharCode(16#61));
+	EXPECT_EQ_STRING('b', fromAsciiCharCode(16#62));
+	EXPECT_EQ_STRING('c', fromAsciiCharCode(16#63));
+	EXPECT_EQ_STRING('d', fromAsciiCharCode(16#64));
+	EXPECT_EQ_STRING('e', fromAsciiCharCode(16#65));
+	EXPECT_EQ_STRING('f', fromAsciiCharCode(16#66));
+	EXPECT_EQ_STRING('g', fromAsciiCharCode(16#67));
+	EXPECT_EQ_STRING('h', fromAsciiCharCode(16#68));
+	EXPECT_EQ_STRING('i', fromAsciiCharCode(16#69));
+	EXPECT_EQ_STRING('j', fromAsciiCharCode(16#6A));
+	EXPECT_EQ_STRING('k', fromAsciiCharCode(16#6B));
+	EXPECT_EQ_STRING('l', fromAsciiCharCode(16#6C));
+	EXPECT_EQ_STRING('m', fromAsciiCharCode(16#6D));
+	EXPECT_EQ_STRING('n', fromAsciiCharCode(16#6E));
+	EXPECT_EQ_STRING('o', fromAsciiCharCode(16#6F));
+	EXPECT_EQ_STRING('p', fromAsciiCharCode(16#70));
+	EXPECT_EQ_STRING('q', fromAsciiCharCode(16#71));
+	EXPECT_EQ_STRING('r', fromAsciiCharCode(16#72));
+	EXPECT_EQ_STRING('s', fromAsciiCharCode(16#73));
+	EXPECT_EQ_STRING('t', fromAsciiCharCode(16#74));
+	EXPECT_EQ_STRING('u', fromAsciiCharCode(16#75));
+	EXPECT_EQ_STRING('v', fromAsciiCharCode(16#76));
+	EXPECT_EQ_STRING('w', fromAsciiCharCode(16#77));
+	EXPECT_EQ_STRING('x', fromAsciiCharCode(16#78));
+	EXPECT_EQ_STRING('y', fromAsciiCharCode(16#79));
+	EXPECT_EQ_STRING('z', fromAsciiCharCode(16#7A));
+	EXPECT_EQ_STRING('{', fromAsciiCharCode(16#7B));
+	EXPECT_EQ_STRING('|', fromAsciiCharCode(16#7C));
+	EXPECT_EQ_STRING('}', fromAsciiCharCode(16#7D));
+	EXPECT_EQ_STRING('~', fromAsciiCharCode(16#7E));
+	EXPECT_EQ_STRING('$7F', fromAsciiCharCode(16#7F));
+	//
+	EXPECT_EQ_STRING('$61', fromAsciiCharCode(charcode:=16#61, eno=>o));
+	EXPECT_TRUE(o);
+	EXPECT_EQ_STRING('', fromAsciiCharCode(charcode:=-1, eno=>o));
+	EXPECT_FALSE(o);
+	EXPECT_EQ_STRING('', fromAsciiCharCode(charcode:=128, eno=>o));
+	EXPECT_FALSE(o);
+	{end}
+END_TEST_S
+
+TEST_S(test_lower_upper)
+	{st}
+	//
+	EXPECT_EQ_STRING('0', lower('0'));
+	EXPECT_EQ_STRING('a', lower('a'));
+	EXPECT_EQ_STRING('b', lower('b'));
+	EXPECT_EQ_STRING('y', lower('y'));
+	EXPECT_EQ_STRING('z', lower('z'));
+	EXPECT_EQ_STRING('a', lower('A'));
+	EXPECT_EQ_STRING('b', lower('B'));
+	EXPECT_EQ_STRING('y', lower('Y'));
+	EXPECT_EQ_STRING('z', lower('Z'));
+	EXPECT_EQ_STRING('$00', lower('$00'));
+	EXPECT_EQ_STRING('cx', lower('Cx'));
+	EXPECT_EQ_STRING('cx', lower('cX'));
+	// memo: $41~$5A
+	EXPECT_EQ_STRING(
+		   '$01$02$03$04$05$06$07$08$09$0A$0B$0C$0D$0E$0F'
+		'$10$11$12$13$14$15$16$17$18$19$1A$1B$1C$1D$1E$1F'
+		'$20$21$22$23$24$25$26$27$28$29$2A$2B$2C$2D$2E$2F'
+		'$30$31$32$33$34$35$36$37$38$39$3A$3B$3C$3D$3E$3F'
+		'$40$61$62$63$64$65$66$67$68$69$6A$6B$6C$6D$6E$6F'
+		'$70$71$72$73$74$75$76$77$78$79$7A$5B$5C$5D$5E$5F'
+		'$60$61$62$63$64$65$66$67$68$69$6A$6B$6C$6D$6E$6F'
+		'$70$71$72$73$74$75$76$77$78$79$7A$7B$7C$7D$7E$7F',
+		lower(
+		   '$01$02$03$04$05$06$07$08$09$0A$0B$0C$0D$0E$0F'
+		'$10$11$12$13$14$15$16$17$18$19$1A$1B$1C$1D$1E$1F'
+		'$20$21$22$23$24$25$26$27$28$29$2A$2B$2C$2D$2E$2F'
+		'$30$31$32$33$34$35$36$37$38$39$3A$3B$3C$3D$3E$3F'
+		'$40$41$42$43$44$45$46$47$48$49$4A$4B$4C$4D$4E$4F'
+		'$50$51$52$53$54$55$56$57$58$59$5A$5B$5C$5D$5E$5F'
+		'$60$61$62$63$64$65$66$67$68$69$6A$6B$6C$6D$6E$6F'
+		'$70$71$72$73$74$75$76$77$78$79$7A$7B$7C$7D$7E$7F'));
+	//
+	EXPECT_EQ_STRING('0', upper('0'));
+	EXPECT_EQ_STRING('A', upper('a'));
+	EXPECT_EQ_STRING('B', upper('b'));
+	EXPECT_EQ_STRING('Y', upper('y'));
+	EXPECT_EQ_STRING('Z', upper('z'));
+	EXPECT_EQ_STRING('A', upper('A'));
+	EXPECT_EQ_STRING('B', upper('B'));
+	EXPECT_EQ_STRING('Y', upper('Y'));
+	EXPECT_EQ_STRING('Z', upper('Z'));
+	EXPECT_EQ_STRING('$00', upper('$00'));
+	EXPECT_EQ_STRING('CX', upper('cX'));
+	EXPECT_EQ_STRING('CX', upper('Cx'));
+	// memo: $61~$7A
+	EXPECT_EQ_STRING(
+		   '$01$02$03$04$05$06$07$08$09$0A$0B$0C$0D$0E$0F'
+		'$10$11$12$13$14$15$16$17$18$19$1A$1B$1C$1D$1E$1F'
+		'$20$21$22$23$24$25$26$27$28$29$2A$2B$2C$2D$2E$2F'
+		'$30$31$32$33$34$35$36$37$38$39$3A$3B$3C$3D$3E$3F'
+		'$40$41$42$43$44$45$46$47$48$49$4A$4B$4C$4D$4E$4F'
+		'$50$51$52$53$54$55$56$57$58$59$5A$5B$5C$5D$5E$5F'
+		'$60$41$42$43$44$45$46$47$48$49$4A$4B$4C$4D$4E$4F'
+		'$50$51$52$53$54$55$56$57$58$59$5A$7B$7C$7D$7E$7F',
+		upper(
+		   '$01$02$03$04$05$06$07$08$09$0A$0B$0C$0D$0E$0F'
+		'$10$11$12$13$14$15$16$17$18$19$1A$1B$1C$1D$1E$1F'
+		'$20$21$22$23$24$25$26$27$28$29$2A$2B$2C$2D$2E$2F'
+		'$30$31$32$33$34$35$36$37$38$39$3A$3B$3C$3D$3E$3F'
+		'$40$41$42$43$44$45$46$47$48$49$4A$4B$4C$4D$4E$4F'
+		'$50$51$52$53$54$55$56$57$58$59$5A$5B$5C$5D$5E$5F'
+		'$60$61$62$63$64$65$66$67$68$69$6A$6B$6C$6D$6E$6F'
+		'$70$71$72$73$74$75$76$77$78$79$7A$7B$7C$7D$7E$7F'));
+	{end}
+END_TEST_S
+
+TEST_S(test_remove)
+	{st}
+	//
+	EXPECT_EQ_STRING('adad', remove('abcdabcd', 'bc', -1));
+	EXPECT_EQ_STRING('abcdabcd', remove('abcdabcd', 'bc', 0));
+	EXPECT_EQ_STRING('adabcd', remove('abcdabcd', 'bc', 1));
+	EXPECT_EQ_STRING('adad', remove('abcdabcd', 'bc', 2));
+	EXPECT_EQ_STRING('adad', remove('abcdabcd', 'bc', 3));
+	//
+	EXPECT_EQ_STRING('abc', remove('a$Lb$lc$L', '$L', -1));
+	//
+	EXPECT_EQ_STRING('abcdabcd', remove('abcdabcd', '', -1));
+	EXPECT_EQ_STRING('bcdbcd', remove('abcdabcd', 'a', -1));
+	EXPECT_EQ_STRING('cdcd', remove('abcdabcd', 'ab', -1));
+	EXPECT_EQ_STRING('dd', remove('abcdabcd', 'abc', -1));
+	EXPECT_EQ_STRING('', remove('abcdabcd', 'abcd', -1));
+	EXPECT_EQ_STRING('bcd', remove('abcdabcd', 'abcda', -1));
+	EXPECT_EQ_STRING('cd', remove('abcdabcd', 'abcdab', -1));
+	EXPECT_EQ_STRING('d', remove('abcdabcd', 'abcdabc', -1));
+	EXPECT_EQ_STRING('', remove('abcdabcd', 'abcdabcd', -1));
+	// note:
+	EXPECT_EQ_STRING('ab', remove('abaabb', 'ab', -1));
+	//
+	EXPECT_EQ_STRING('Abcd', remove('Abcd', 'a', -1));
+	{end}
+END_TEST_S
+
+TEST_S(test_reverse)
+	{st}
+	EXPECT_EQ_STRING('DCBAdcba', reverse('abcdABCD'));
+	EXPECT_EQ_STRING('', reverse(''));
+	EXPECT_EQ_STRING('a', reverse('a'));
+	EXPECT_EQ_STRING('➡⬅', reverse('⬅➡'));
+	{end}
+END_TEST_S
+
+TEST_S(test_startswith)
+	{st}
+	EXPECT_EQ_BOOL(true, startswith('abcdabCD', 'a'));
+	EXPECT_EQ_BOOL(true, startswith('abcdabCD', 'ab'));
+	EXPECT_EQ_BOOL(true, startswith('abcdabCD', 'abcdabCD'));
+	EXPECT_EQ_BOOL(false, startswith('abcdabCD', 'abcdabCDE'));
+	EXPECT_EQ_BOOL(false, startswith('abcdabCD', 'b'));
+	EXPECT_EQ_BOOL(false, startswith('abcdabCD', 'bc'));
+	EXPECT_EQ_BOOL(false, startswith('abcdabCD', 'bcdabCD'));
+	EXPECT_EQ_BOOL(false, startswith('abcdabCD', 'D'));
+	EXPECT_EQ_BOOL(false, startswith('abcdabCD', 'CD'));
+	EXPECT_EQ_BOOL(false, startswith('abcdabCD', '0abcdabCD'));
+	EXPECT_EQ_BOOL(true, startswith('abcdabCD', ''));
+	EXPECT_EQ_BOOL(true, startswith('a', 'a'));
+	EXPECT_EQ_BOOL(true, startswith('', ''));
+	//
+	//EXPECT_EQ_BOOL(true, startswith('⬅', '⬅⬅➡➡'));
+	//EXPECT_EQ_BOOL(false, startswith('➡', '⬅⬅➡➡'));
+	{end}
+END_TEST_S
+
+TEST_S(test_endswith)
+	{st}
+	EXPECT_EQ_BOOL(false, endswith('abcdabCD', 'a'));
+	EXPECT_EQ_BOOL(false, endswith('abcdabCD', 'ab'));
+	EXPECT_EQ_BOOL(true, endswith('abcdabCD', 'abcdabCD'));
+	EXPECT_EQ_BOOL(false, endswith('abcdabCD', 'abcdabCDE'));
+	EXPECT_EQ_BOOL(false, endswith('abcdabCD', 'b'));
+	EXPECT_EQ_BOOL(false, endswith('abcdabCD', 'bc'));
+	EXPECT_EQ_BOOL(true, endswith('abcdabCD', 'bcdabCD'));
+	EXPECT_EQ_BOOL(true, endswith('abcdabCD', 'D'));
+	EXPECT_EQ_BOOL(true, endswith('abcdabCD', 'CD'));
+	EXPECT_EQ_BOOL(false, endswith('abcdabCD', '0abcdabCD'));
+	EXPECT_EQ_BOOL(true, endswith('abcdabCD', ''));
+	EXPECT_EQ_BOOL(true, endswith('a', 'a'));
+	EXPECT_EQ_BOOL(true, endswith('', ''));
+	//
+	//EXPECT_EQ_BOOL(false, endswith('⬅', '⬅⬅➡➡'));
+	//EXPECT_EQ_BOOL(true, endswith('➡', '⬅⬅➡➡'));
+	{end}
+END_TEST_S
+
+TEST_S(test_split)
+	var
+		out: array[0..3] of STRING;
+		l: dint;
+	end_var
+	{st}
+	l := split('abcd,xyz,kl', ',', out);
+	EXPECT_EQ_INT32(3, l);
+	EXPECT_EQ_STRING('abcd', out[0]);
+	EXPECT_EQ_STRING('xyz', out[1]);
+	EXPECT_EQ_STRING('kl', out[2]);
+
+	l := split('abcd::xyz::kl', '::', out);
+	EXPECT_EQ_INT32(3, l);
+	EXPECT_EQ_STRING('abcd', out[0]);
+	EXPECT_EQ_STRING('xyz', out[1]);
+	EXPECT_EQ_STRING('kl', out[2]);
+
+	l := split('x,y', ',', out);
+	EXPECT_EQ_INT32(2, l);
+	EXPECT_EQ_STRING('x', out[0]);
+	EXPECT_EQ_STRING('y', out[1]);
+
+	l := split('', ',', out);
+	EXPECT_EQ_INT32(1, l);
+	EXPECT_EQ_STRING('', out[0]);
+	l := split('a', ',', out);
+	EXPECT_EQ_INT32(1, l);
+	EXPECT_EQ_STRING('a', out[0]);
+	l := split('ab', ',', out);
+	EXPECT_EQ_INT32(1, l);
+	EXPECT_EQ_STRING('ab', out[0]);
+
+	l := split(',', ',', out);
+	EXPECT_EQ_INT32(2, l);
+	EXPECT_EQ_STRING('', out[0]);
+	EXPECT_EQ_STRING('', out[1]);
+	l := split('::', '::', out);
+	EXPECT_EQ_INT32(2, l);
+	EXPECT_EQ_STRING('', out[0]);
+	EXPECT_EQ_STRING('', out[1]);
+
+	l := split('a,b,c,d', ',', out);
+	EXPECT_EQ_INT32(4, l);
+	EXPECT_EQ_STRING('a', out[0]);
+	EXPECT_EQ_STRING('b', out[1]);
+	EXPECT_EQ_STRING('c', out[2]);
+	EXPECT_EQ_STRING('d', out[3]);
+
+	l := split('a,b,c,d,e', ',', out);
+	EXPECT_EQ_INT32(4, l);
+	EXPECT_EQ_STRING('a', out[0]);
+	EXPECT_EQ_STRING('b', out[1]);
+	EXPECT_EQ_STRING('c', out[2]);
+	EXPECT_EQ_STRING('d', out[3]);
+
+	l := split(',,,,', ',', out);
+	EXPECT_EQ_INT32(4, l);
+	EXPECT_EQ_STRING('', out[0]);
+	EXPECT_EQ_STRING('', out[1]);
+	EXPECT_EQ_STRING('', out[2]);
+	EXPECT_EQ_STRING('', out[3]);
+
+	l := split('abcd', '', out);
+	EXPECT_EQ_INT32(4, l);
+	EXPECT_EQ_STRING('a', out[0]);
+	EXPECT_EQ_STRING('b', out[1]);
+	EXPECT_EQ_STRING('c', out[2]);
+	EXPECT_EQ_STRING('d', out[3]);
+
+	l := split('abcde', '', out);
+	EXPECT_EQ_INT32(4, l);
+	EXPECT_EQ_STRING('a', out[0]);
+	EXPECT_EQ_STRING('b', out[1]);
+	EXPECT_EQ_STRING('c', out[2]);
+	EXPECT_EQ_STRING('d', out[3]);
+	{end}
+END_TEST_S
+
+TEST_S(test_trim)
+	{st}
+	EXPECT_EQ_STRING('abc', trim('abc'));
+	EXPECT_EQ_STRING('abc', ltrim('abc'));
+	EXPECT_EQ_STRING('abc', rtrim('abc'));
+
+	EXPECT_EQ_STRING('abc', trim(' abc'));
+	EXPECT_EQ_STRING('abc', ltrim(' abc'));
+	EXPECT_EQ_STRING(' abc', rtrim(' abc'));
+
+	EXPECT_EQ_STRING('abc', trim('  abc'));
+	EXPECT_EQ_STRING('abc', ltrim('  abc'));
+	EXPECT_EQ_STRING('  abc', rtrim('  abc'));
+
+	EXPECT_EQ_STRING('abc', trim('$t$n abc'));
+	EXPECT_EQ_STRING('abc', ltrim('$t$n abc'));
+	EXPECT_EQ_STRING('$t$n abc', rtrim('$t$n abc'));
+
+	EXPECT_EQ_STRING('a bc', trim('  a bc'));
+	EXPECT_EQ_STRING('a bc', ltrim('  a bc'));
+	EXPECT_EQ_STRING('  a bc', rtrim('  a bc'));
+
+	EXPECT_EQ_STRING('abc', trim('abc '));
+	EXPECT_EQ_STRING('abc ', ltrim('abc '));
+	EXPECT_EQ_STRING('abc', rtrim('abc '));
+
+	EXPECT_EQ_STRING('abc', trim('abc  '));
+	EXPECT_EQ_STRING('abc  ', ltrim('abc  '));
+	EXPECT_EQ_STRING('abc', rtrim('abc  '));
+
+	EXPECT_EQ_STRING('a bc', trim('a bc  '));
+	EXPECT_EQ_STRING('a bc  ', ltrim('a bc  '));
+	EXPECT_EQ_STRING('a bc', rtrim('a bc  '));
+
+	EXPECT_EQ_STRING('abc', trim('  abc  '));
+	EXPECT_EQ_STRING('abc  ', ltrim('  abc  '));
+	EXPECT_EQ_STRING('  abc', rtrim('  abc  '));
+
+	EXPECT_EQ_STRING('', trim(''));
+	EXPECT_EQ_STRING('', ltrim(''));
+	EXPECT_EQ_STRING('', rtrim(''));
+
+	EXPECT_EQ_STRING('', trim(' '));
+	EXPECT_EQ_STRING('', ltrim(' '));
+	EXPECT_EQ_STRING('', rtrim(' '));
+
+	EXPECT_EQ_STRING('', trim('  '));
+	EXPECT_EQ_STRING('', ltrim('  '));
+	EXPECT_EQ_STRING('', rtrim('  '));
+	{end}
+END_TEST_S
+
+TEST_S(test_join)
+	var
+		v: array[3] of STRING := ['time', 'type', 'data'];
+		e: array[2] of STRING := ['', ''];
+		a: array[1] of STRING := ['xyz'];
+	end_var
+	{st}
+	EXPECT_EQ_STRING('time,type,data', join(',', v));
+	EXPECT_EQ_STRING('time + type + data', join(' + ', v));
+	//
+	EXPECT_EQ_STRING(',', join(',', e));
+	//
+	EXPECT_EQ_STRING('xyz', join(',', a));
+	EXPECT_EQ_STRING('xyz', join('', a));
+	{end}
+END_TEST_S
+
+TEST_S(test_substitute)
+	{st}
+	//
+	EXPECT_EQ_STRING('adad', substitute(self:='abcdabcd', old:='bc', new:=''));
+	EXPECT_EQ_STRING('a*da*d', substitute(self:='abcdabcd', old:='bc', new:='*'));
+	EXPECT_EQ_STRING('a**da**d', substitute(self:='abcdabcd', old:='bc', new:='**'));
+	EXPECT_EQ_STRING('a***da***d', substitute(self:='abcdabcd', old:='bc', new:='***'));
+	//
+	EXPECT_EQ_STRING('a*da*d', substitute(self:='abcdabcd', old:='bc', new:='*', count:=-1));
+	EXPECT_EQ_STRING('abcdabcd', substitute(self:='abcdabcd', old:='bc', new:='*', count:=0));
+	EXPECT_EQ_STRING('a*dabcd', substitute(self:='abcdabcd', old:='bc', new:='*', count:=1));
+	EXPECT_EQ_STRING('a*da*d', substitute(self:='abcdabcd', old:='bc', new:='*', count:=2));
+	EXPECT_EQ_STRING('a*da*d', substitute(self:='abcdabcd', old:='bc', new:='*', count:=3));
+	//
+	EXPECT_EQ_STRING('abcdabcd', substitute(self:='abcdabcd', old:='A', new:='*', count:=-1));
+	//
+	EXPECT_EQ_STRING('abcdabcd', substitute(self:='abcdabcd', old:='', new:='*', count:=-1));
+	{end}
+END_TEST_S

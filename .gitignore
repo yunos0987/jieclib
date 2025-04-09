@@ -1,0 +1,12 @@
+#
+__pycache__
+\.vscode
+/*.bak
+
+#
+/test/**/*.xml
+/base64/*.xml
+/mersenne_twister/*.xml
+/ringbuffer/*.xml
+/string_lib/*.xml
+/xorshift32/*.xml

@@ -1,0 +1,122 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./xorshift32/xorshift32.txt -t omron -o ./xorshift32/xorshift32.xml
+ *)
+
+{#ifndef __XORSHIFT32_TXT__}
+{#define __XORSHIFT32_TXT__}
+
+(**
+ * This file contains the implementation of the Xorshift32 algorithm.
+ * Xorshift32 is a simple and fast pseudorandom number generator.
+ * It is based on the XOR and bit-shifting operations.
+ *)
+
+type
+	Xorshift32_t: struct
+		state: dword;
+	end
+end
+
+(**
+ * Initializes the Xorshift32 pseudorandom number generator.
+ * @param seed The initial seed value for the Xorshift32 algorithm. It must be a 32-bit bits value and non-zero.
+ *)
+function Xorshift32_init
+	var_in_out self: Xorshift32_t; end
+	var_input seed: dword; end
+	{st}
+	self.state := seed;
+	{end}
+end
+
+(**
+ * Generates a pseudo-random number.
+ * @param bits The number of significant bits in the output value; 0 < bits <= 32.
+ * @return A pseudo-random number.
+ *)
+function Xorshift32_next: dword
+	var_in_out self: Xorshift32_t; end
+	var_input
+		bits: dint := 32;
+	end
+	var_temp
+		x: dword;
+	end
+	{st}
+	x := self.state;
+	x := x xor shl(x, 13);
+	x := x xor shr(x, 17);
+	x := x xor shl(x, 5);
+	self.state := x;
+	Xorshift32_next := shr(x, 32 - bits);
+	{end}
+end
+
+(**
+ * Generates a uniformly distributed boolean pseudo-random number.
+ * @return true or false.
+ *)
+function Xorshift32_nextBOOL: bool
+	var_in_out self: Xorshift32_t; end
+	{st}
+	Xorshift32_nextBOOL := Xorshift32_next(self, 1) = dword#1;
+	{end}
+end
+
+(**
+ * Generates a uniformly distributed unsigned 32-bit integer pseudo-random number.
+ * @return An unsigned 32-bit integer pseudo-random number, between 0 and 4294967295.
+ *)
+function Xorshift32_nextUDINT: udint
+	var_in_out self: Xorshift32_t; end
+	{st}
+	Xorshift32_nextUDINT := dword_to_udint(Xorshift32_next(self, 32));
+	{end}
+end
+
+(**
+ * Generates a uniformly distributed unsigned 64-bit integer pseudo-random number.
+ * @return An unsigned 64-bit integer pseudo-random number, between 0 and 18446744073709551615.
+ *)
+function Xorshift32_nextULINT: ulint
+	var_in_out self: Xorshift32_t; end
+	var_temp
+		h, l: lword;
+	end
+	{st}
+	h := Xorshift32_next(self, 32);
+	l := Xorshift32_next(self, 32);
+	Xorshift32_nextULINT := lword_to_ulint(shl(h, 32) or l);
+	{end}
+end
+
+(**
+ * Generates a 32-bit floating-point pseudo-random number with uniform distribution in the range 0.0 to 1.0.
+ * @return [0.0, 1.0) of the half-open interval.
+ *)
+function Xorshift32_nextREAL: real
+var_in_out self: Xorshift32_t; end
+	{st}
+	Xorshift32_nextREAL := lreal_to_real(
+		udint_to_lreal(dword_to_udint(Xorshift32_next(self, 32))) / lreal#4294967296.0); // 2^32
+	{end}
+end
+
+(**
+ * Generates a 53-bit floating-point pseudo-random number with uniform distribution in the range 0.0 to 1.0.
+ * @return [0.0, 1.0) of the half-open interval.
+ *)
+function Xorshift32_nextLREAL: lreal
+	var_in_out self: Xorshift32_t; end
+	var_temp
+		a, b: lreal;
+	end
+	{st}
+	a := udint_to_lreal(dword_to_udint(Xorshift32_next(self, 32 - 5)));
+	b := udint_to_lreal(dword_to_udint(Xorshift32_next(self, 32 - 6)));
+	Xorshift32_nextLREAL := (a * lreal#67108864.0 + b) / lreal#9007199254740992.0;
+	{end}
+end
+
+{#endif}

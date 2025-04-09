@@ -1,0 +1,184 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/ringbuffer/test_ringbuffer.txt -I../jiecunit -I../jiecunit/sys -t omron -o ./test/ringbuffer/test_ringbuffer.xml
+ *)
+{#include <jiecunit.txt>}
+
+{#include "./../../ringbuffer/ringbuffer.txt"}
+
+configuration MainConfiguration resource MainResource on PLC
+	_DEFINE_SYS_IN_RESOURCE_();
+	// List test program names.
+	_JIEC_TESTNAMES_LIST_(
+		'test_ringbuffer_init',
+		'test_ringbuffer_enqueue',
+		'test_ringbuffer_dequeue',
+		'test_ringbuffer_enqueue_dequeue',
+		'test_ringbuffer_full',
+		'test_ringbuffer_overwrite'
+	);
+end end
+
+TEST_S(test_ringbuffer_init)
+	{#define BUF_SIZE 3}
+	var
+		x1, x2, x3: RingBuffer_t;
+		buf: array[BUF_SIZE] of int;
+		value: int;
+	end
+	{st}
+	//
+	ASSERT_TRUE(RingBuffer_int_init(x1, 0, false));
+	ASSERT_FALSE(RingBuffer_int_enqueue(x1, buf, 2));
+	//
+	ASSERT_TRUE(RingBuffer_int_init(x2, BUF_SIZE, false));
+	ASSERT_TRUE(RingBuffer_int_enqueue(x2, buf, 2));
+	//
+	ASSERT_TRUE(RingBuffer_int_init(x3, BUF_SIZE + 1, false));
+	ASSERT_TRUE(RingBuffer_int_enqueue(x3, buf, 2)); // note
+	{end}
+	{#undef BUF_SIZE}
+END_TEST_S
+
+TEST_S(test_ringbuffer_enqueue)
+	var
+		x1: RingBuffer_t;
+		buf: array[100] of int;
+		value: int;
+	end
+	{st}
+	//
+	ASSERT_TRUE(RingBuffer_int_init(x1, 3, false));
+	ASSERT_TRUE(RingBuffer_int_enqueue(x1, buf, 2));
+	ASSERT_TRUE(RingBuffer_int_enqueue(x1, buf, 3));
+	ASSERT_TRUE(RingBuffer_int_enqueue(x1, buf, 5));
+	ASSERT_FALSE(RingBuffer_int_enqueue(x1, buf, 7)); // failed to enqueue.
+	ASSERT_FALSE(RingBuffer_int_enqueue(x1, buf, 11)); // failed to enqueue.
+	{end}
+END_TEST_S
+
+TEST_S(test_ringbuffer_dequeue)
+	var
+		x1, x2: RingBuffer_t;
+		buf: array[100] of int;
+		value: int;
+	end
+	{st}
+	//
+	ASSERT_TRUE(RingBuffer_int_init(x1, 3, false));
+	ASSERT_TRUE(RingBuffer_int_enqueue(x1, buf, 2));
+
+	ASSERT_TRUE(RingBuffer_int_dequeue(x1, buf, value));
+	EXPECT_EQ_INT32(2, value);
+	ASSERT_FALSE(RingBuffer_int_dequeue(x1, buf, value)); // empty
+	ASSERT_FALSE(RingBuffer_int_dequeue(x1, buf, value)); // empty
+	//
+	ASSERT_TRUE(RingBuffer_int_init(x2, 3, false));
+	ASSERT_TRUE(RingBuffer_int_enqueue(x2, buf, 2));
+	ASSERT_TRUE(RingBuffer_int_enqueue(x2, buf, 3));
+	ASSERT_TRUE(RingBuffer_int_enqueue(x2, buf, 5));
+
+	ASSERT_TRUE(RingBuffer_int_dequeue(x2, buf, value));
+	EXPECT_EQ_INT32(2, value);
+	ASSERT_TRUE(RingBuffer_int_dequeue(x2, buf, value));
+	EXPECT_EQ_INT32(3, value);
+	ASSERT_TRUE(RingBuffer_int_dequeue(x2, buf, value));
+	EXPECT_EQ_INT32(5, value);
+	ASSERT_FALSE(RingBuffer_int_dequeue(x2, buf, value)); // empty
+	ASSERT_FALSE(RingBuffer_int_dequeue(x2, buf, value)); // empty
+	{end}
+END_TEST_S
+
+TEST_S(test_ringbuffer_enqueue_dequeue)
+	{#define BUF_SIZE 3}
+	var
+		x1, x2: RingBuffer_t;
+		buf: array[BUF_SIZE] of int;
+		value: int;
+	end
+	{st}
+	//
+	ASSERT_TRUE(RingBuffer_int_init(x1, BUF_SIZE, false));
+	ASSERT_TRUE(RingBuffer_int_enqueue(x1, buf, 2));
+	ASSERT_TRUE(RingBuffer_int_enqueue(x1, buf, 3));
+
+	ASSERT_TRUE(RingBuffer_int_dequeue(x1, buf, value));
+	EXPECT_EQ_INT32(2, value);
+	ASSERT_TRUE(RingBuffer_int_dequeue(x1, buf, value));
+	EXPECT_EQ_INT32(3, value);
+	ASSERT_FALSE(RingBuffer_int_dequeue(x1, buf, value)); // empty
+	//
+	ASSERT_TRUE(RingBuffer_int_init(x2, BUF_SIZE, false));
+	ASSERT_TRUE(RingBuffer_int_enqueue(x2, buf, 2));
+	ASSERT_TRUE(RingBuffer_int_enqueue(x2, buf, 3));
+	ASSERT_TRUE(RingBuffer_int_enqueue(x2, buf, 5));
+
+	ASSERT_TRUE(RingBuffer_int_dequeue(x2, buf, value));
+	EXPECT_EQ_INT32(2, value);
+	ASSERT_TRUE(RingBuffer_int_dequeue(x2, buf, value));
+	EXPECT_EQ_INT32(3, value);
+	ASSERT_TRUE(RingBuffer_int_dequeue(x2, buf, value));
+	EXPECT_EQ_INT32(5, value);
+	ASSERT_FALSE(RingBuffer_int_dequeue(x2, buf, value)); // empty
+	{end}
+	{#undef BUF_SIZE}
+END_TEST_S
+
+TEST_S(test_ringbuffer_full)
+	{#define BUF_SIZE 4}
+	var
+		x: RingBuffer_t;
+		buf: array[BUF_SIZE] of int;
+		value: int;
+	end
+	{st}
+	ASSERT_TRUE(RingBuffer_int_init(x, BUF_SIZE, false));
+
+	ASSERT_TRUE(RingBuffer_int_enqueue(x, buf, 11));
+	ASSERT_TRUE(RingBuffer_int_enqueue(x, buf, 13));
+	ASSERT_TRUE(RingBuffer_int_enqueue(x, buf, 17));
+	ASSERT_TRUE(RingBuffer_int_enqueue(x, buf, 19)); // full.
+	ASSERT_FALSE(RingBuffer_int_enqueue(x, buf, 23)); // failed to enqueue.
+
+	ASSERT_TRUE(RingBuffer_int_dequeue(x, buf, value));
+	EXPECT_EQ_INT32(11, value);
+	ASSERT_TRUE(RingBuffer_int_dequeue(x, buf, value));
+	EXPECT_EQ_INT32(13, value);
+	ASSERT_TRUE(RingBuffer_int_dequeue(x, buf, value));
+	EXPECT_EQ_INT32(17, value);
+	ASSERT_TRUE(RingBuffer_int_dequeue(x, buf, value));
+	EXPECT_EQ_INT32(19, value);
+	ASSERT_FALSE(RingBuffer_int_dequeue(x, buf, value)); // failed to dequeue.
+	{end}
+	{#undef BUF_SIZE}
+END_TEST_S
+
+TEST_S(test_ringbuffer_overwrite)
+	{#define BUF_SIZE 4}
+	var
+		x: RingBuffer_t;
+		buf: array[BUF_SIZE] of int;
+		value: int;
+	end
+	{st}
+	ASSERT_TRUE(RingBuffer_int_init(x, BUF_SIZE, true));
+
+	ASSERT_TRUE(RingBuffer_int_enqueue(x, buf, 2));
+	ASSERT_TRUE(RingBuffer_int_enqueue(x, buf, 3));
+	ASSERT_TRUE(RingBuffer_int_enqueue(x, buf, 5));
+	ASSERT_TRUE(RingBuffer_int_enqueue(x, buf, 7));
+	ASSERT_TRUE(RingBuffer_int_enqueue(x, buf, 11)); // success to enqueue, but happened to overwrite the oldest data 2.
+	ASSERT_TRUE(RingBuffer_int_enqueue(x, buf, 13)); // success to enqueue, but happened to overwrite the oldest data 3.
+
+	ASSERT_TRUE(RingBuffer_int_dequeue(x, buf, value));
+	EXPECT_EQ_INT32(5, value);
+	ASSERT_TRUE(RingBuffer_int_dequeue(x, buf, value));
+	EXPECT_EQ_INT32(7, value);
+	ASSERT_TRUE(RingBuffer_int_dequeue(x, buf, value));
+	EXPECT_EQ_INT32(11, value);
+	ASSERT_TRUE(RingBuffer_int_dequeue(x, buf, value)); // empty
+	EXPECT_EQ_INT32(13, value);
+	ASSERT_FALSE(RingBuffer_int_dequeue(x, buf, value)); // failed to dequeue.
+	{end}
+	{#undef BUF_SIZE}
+END_TEST_S
