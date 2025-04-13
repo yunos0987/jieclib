@@ -45,20 +45,20 @@ $ jiecc ./string_lib/string_lib.txt -t omron -o ./string_lib/string_lib.xml
 JiecLibに含まれるライブラリとIEC 61131-10 XMLを生成するためのコマンドを示します。
 
 * [base64](./base64)
-** メール等で使用されているエンコード方式Base64です。
-** `jiecc ./base64/base64.txt -Istring_lib -t omron -o ./base64/base64.xml`
+  * メール等で使用されているエンコード方式Base64です。
+  * `jiecc ./base64/base64.txt -Istring_lib -t omron -o ./base64/base64.xml`
 * [mersenne_twister](./mersenne_twister)
-** 疑似乱数生成アルゴリズムメルセンヌ・ツイスタです。
-** `jiecc ./mersenne_twister/mersenne_twister.txt -t omron -o ./mersenne_twister/mersenne_twister.xml`
+  * 疑似乱数生成アルゴリズムメルセンヌ・ツイスタです。
+  * `jiecc ./mersenne_twister/mersenne_twister.txt -t omron -o ./mersenne_twister/mersenne_twister.xml`
 * [ringbuffer](./ringbuffer)
-** リングバッファです。バッファのデータ型を簡単に拡張できます。
-** `jiecc ./ringbuffer/ringbuffer.txt -t omron -o ./ringbuffer/ringbuffer.xml`
+  * リングバッファです。バッファのデータ型を簡単に拡張できます。
+  * `jiecc ./ringbuffer/ringbuffer.txt -t omron -o ./ringbuffer/ringbuffer.xml`
 * [string_lib](./string_lib)
-** 基本的な文字列操作ライブラリです。
-** `jiecc ./string_lib/string_lib.txt -t omron -o ./string_lib/string_lib.xml`
+  * 基本的な文字列操作ライブラリです。
+  * `jiecc ./string_lib/string_lib.txt -t omron -o ./string_lib/string_lib.xml`
 * [xorshift32](./xorshift32)
-** 疑似乱数生成アルゴリズムxorshiftです。
-** `jiecc ./xorshift32/xorshift32.txt -t omron -o ./xorshift32/xorshift32.xml`
+  * 疑似乱数生成アルゴリズムxorshiftです。
+  * `jiecc ./xorshift32/xorshift32.txt -t omron -o ./xorshift32/xorshift32.xml`
 
 ## JiecLib開発者向け
 
@@ -73,6 +73,9 @@ jieclib/
   string_lib/
   :
   test/
+    base64/
+    string_lib/
+    :
   :
 ```
 
