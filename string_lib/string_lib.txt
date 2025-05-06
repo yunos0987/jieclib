@@ -158,9 +158,12 @@ end
 function remove: STRING
 	var_input en: bool; end var_output eno: bool; end
 	var_input
-		self: STRING; {doc: 入力文字列}
-		del: STRING; {doc: 削除文字列}
-		count: dint := -1; {doc: 最大削除回数}
+		{doc: 入力文字列}
+		self: STRING;
+		{doc: 削除文字列}
+		del: STRING;
+		{doc: 最大削除回数}
+		count: dint := -1;
 	end
 	var_temp
 		del_len: dint;
