@@ -1,0 +1,3 @@
+[submodule "vendor/jiecunit"]
+	path = vendor/jiecunit
+	url = https://github.com/yunos0987/jiecunit.git
