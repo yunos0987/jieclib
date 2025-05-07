@@ -1,6 +1,7 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./mersenne_twister/mersenne_twister.txt -t omron -o ./mersenne_twister/mersenne_twister.xml
+ * $ jiecc ./mersenne_twister/mersenne_twister.txt -I../jiecunit/sys -o ./mersenne_twister/mersenne_twister.xml -t omron
+ * $ jiecc ./mersenne_twister/mersenne_twister.txt -I../jiecunit/sys -o ./mersenne_twister/mersenne_twister.xml -t keyence
  *)
 
 {#ifndef __MERSENNE_TWISTER_TXT__}
@@ -29,8 +30,20 @@
  * random_num := MersenneTwister_nextUDINT(mt);
  *)
 
+{#include <sys_conv.txt>}
+
+// kludge
+{#if _KEYENCE}
+	{#define dword udint}
+	{#define udint_to_dword(...) udint_to_udint(__VA_ARGS__)}
+	{#define dword_to_udint(...) udint_to_udint(__VA_ARGS__)}
+	{#define dword_to_dint(...) udint_to_dint(__VA_ARGS__)}
+{#endif}
+
 {#define N 624}
 {#define M 397}
+{#define N_1 623} // for a omron bug.
+{#define M_1 396} // for a omron bug.
 {#define MATRIX_A dword#16#9908b0df}   (* constant vector a *)
 {#define UPPER_MASK dword#16#80000000} (* most significant w-r bits *)
 {#define LOWER_MASK dword#16#7fffffff} (* least significant r bits *)
@@ -47,6 +60,7 @@ end_type
  * @param seed Set the seed for the random number generator using a single bits.
  *)
 function MersenneTwister_init
+	_PROLOGUE_OF_FUNCTION_()
 	var_in_out self: MersenneTwister_t; end_var
 	var_input
 		seed: dword;
@@ -69,6 +83,7 @@ end_function
  * @param seeds_length Set a length of the param seeds.
  *)
 function MersenneTwister_initByArray
+	_PROLOGUE_OF_FUNCTION_()
 	var_in_out self: MersenneTwister_t; end_var
 	var_in_out
 		seeds: array[*] of dword;
@@ -95,7 +110,7 @@ function MersenneTwister_initByArray
 		i := i + 1;
 		j := j + 1;
 		if i >= N then
-			self.mt[0] := self.mt[N - 1];
+			self.mt[0] := self.mt[N_1];
 			i := 1;
 		end_if;
 		if j >= seeds_length then
@@ -108,7 +123,7 @@ function MersenneTwister_initByArray
 			- dint_to_udint(i));
 		i := i + 1;
 		if i >= N then
-			self.mt[0] := self.mt[N - 1];
+			self.mt[0] := self.mt[N_1];
 			i := 1;
 		end_if;
 	end_for;
@@ -123,6 +138,7 @@ end_function
  * @return A pseudo-random number.
  *)
 function MersenneTwister_next: dword
+	_PROLOGUE_OF_FUNCTION_()
 	var_in_out self: MersenneTwister_t; end_var
 	var_input
 		bits: dint := 32;
@@ -148,8 +164,8 @@ function MersenneTwister_next: dword
 			y := (self.mt[kk] and UPPER_MASK) or (self.mt[kk + 1] and LOWER_MASK);
 			self.mt[kk] := self.mt[kk + M - N] xor shr(y, 1) xor mag01[dword_to_dint(y and dword#16#1)];
 		end_for;
-		y := (self.mt[N - 1] and UPPER_MASK) or (self.mt[0] and LOWER_MASK);
-		self.mt[N - 1] := self.mt[M - 1] xor shr(y, 1) xor mag01[dword_to_dint(y and dword#16#1)];
+		y := (self.mt[N_1] and UPPER_MASK) or (self.mt[0] and LOWER_MASK);
+		self.mt[N_1] := self.mt[M_1] xor shr(y, 1) xor mag01[dword_to_dint(y and dword#16#1)];
 		self.mti := 0;
 	end_if;
 
@@ -170,6 +186,7 @@ end_function
  * @return true or false.
  *)
 function MersenneTwister_nextBOOL: bool
+	_PROLOGUE_OF_FUNCTION_()
 	var_in_out self: MersenneTwister_t; end_var
 	// {st}
 	MersenneTwister_nextBOOL := MersenneTwister_next(self, 1) = dword#1;
@@ -181,17 +198,20 @@ end_function
  * @return An unsigned 32-bit integer pseudo-random number, between 0 and 4294967295.
  *)
 function MersenneTwister_nextUDINT: udint
+	_PROLOGUE_OF_FUNCTION_()
 	var_in_out self: MersenneTwister_t; end_var
 	// {st}
 	MersenneTwister_nextUDINT := dword_to_udint(MersenneTwister_next(self, 32));
 	// {end}
 end_function
 
+{#if not (_KEYENCE)}
 (**
  * Generate a uniformly distributed unsigned 64-bit integer pseudo-random number.
  * @return An unsigned 64-bit integer pseudo-random number, between 0 and 18446744073709551615.
  *)
 function MersenneTwister_nextULINT: ulint
+	_PROLOGUE_OF_FUNCTION_()
 	var_in_out self: MersenneTwister_t; end_var
 	var_temp
 		h, l: lword;
@@ -202,12 +222,14 @@ function MersenneTwister_nextULINT: ulint
 	MersenneTwister_nextULINT := lword_to_ulint(shl(h, 32) or l);
 	// {end}
 end_function
+{#endif}
 
 (**
  * Generate a 32-bit floating-point pseudo-random number with uniform distribution in the range 0.0 to 1.0.
  * @return [0.0 1.0) of the half-open section.
  *)
 function MersenneTwister_nextREAL: real
+	_PROLOGUE_OF_FUNCTION_()
 	var_in_out self: MersenneTwister_t; end_var
 	// {st}
 	MersenneTwister_nextREAL := lreal_to_real(
@@ -220,6 +242,7 @@ end_function
  * @return [0.0 1.0) of the half-open section.
  *)
 function MersenneTwister_nextLREAL: lreal
+	_PROLOGUE_OF_FUNCTION_()
 	var_in_out self: MersenneTwister_t; end_var
 	var_temp
 		a, b: lreal;
@@ -230,31 +253,6 @@ function MersenneTwister_nextLREAL: lreal
 	MersenneTwister_nextLREAL := (a * lreal#67108864.0 + b) / lreal#9007199254740992.0;
 	// {end}
 end_function
-
-
-
-program Main
-	var mt: MersenneTwister_t; end_var
-	var
-		i: dint;
-		seeds: array[0..3] of dword := [16#123, 16#234, 16#345, 16#456];
-		seeds_length: dint := 4;
-
-		outputs_of_genrand_uint32: array[0..999] of udint;
-		outputs_of_genrand_double: array[0..999] of lreal;
-	end_var
-	// {st}
-	MersenneTwister_initByArray(mt, seeds, seeds_length);
-	// 1000 udint outputs.
-	for i:=0 to 999 by 1 do
-		outputs_of_genrand_uint32[i] := MersenneTwister_nextUDINT(mt);
-	end_for;
-	// 1000 lreal outputs.
-	for i:=0 to 999 by 1 do
-		outputs_of_genrand_double[i] := MersenneTwister_nextLREAL(mt);
-	end_for;
-	// {end}
-end_program
 
 {#undef N}
 {#undef M}

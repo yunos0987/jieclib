@@ -1,0 +1,58 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/mersenne_twister/test_mersenne_twister.txt -I../jiecunit -I../jiecunit/sys -o ./test/mersenne_twister/test_mersenne_twister.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+
+{#include "./../../mersenne_twister/mersenne_twister.txt"}
+
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_MersenneTwister_nextUDINT',
+		'test_MersenneTwister_nextLREAL'
+	)
+)
+
+TEST_S(test_MersenneTwister_nextUDINT)
+	var
+		mt: MersenneTwister_t;
+		seeds: array[0..3] of dword := [16#123, 16#234, 16#345, 16#456];
+		seeds_length: dint := 4;
+		temp: dint;
+	end
+	{st}
+	MersenneTwister_initByArray(mt, seeds, seeds_length);
+	// see https://www.math.sci.hiroshima-u.ac.jp/m-mat/MT/MT2002/mt19937ar.html
+	ASSERT_EQ_UDINT(udint#1067595299, MersenneTwister_nextUDINT(mt));
+	ASSERT_EQ_UDINT(udint#955945823, MersenneTwister_nextUDINT(mt));
+	for temp := 3 to 998 by 1 do
+		MersenneTwister_nextUDINT(mt);
+	end_for;
+	ASSERT_EQ_UDINT(udint#1397735321, MersenneTwister_nextUDINT(mt));
+	ASSERT_EQ_UDINT(udint#3460025646, MersenneTwister_nextUDINT(mt));
+	{end}
+END_TEST_S
+
+TEST_S(test_MersenneTwister_nextLREAL)
+	var
+		mt: MersenneTwister_t;
+		seeds: array[0..3] of dword := [16#123, 16#234, 16#345, 16#456];
+		seeds_length: dint := 4;
+		temp: dint;
+	end
+	{st}
+	MersenneTwister_initByArray(mt, seeds, seeds_length);
+	// see https://www.math.sci.hiroshima-u.ac.jp/m-mat/MT/MT2002/mt19937ar.html
+	// kludge
+	for temp := 1 to 1000 by 1 do
+		MersenneTwister_nextUDINT(mt);
+	end_for;
+	ASSERT_NEAR(0.76275443, MersenneTwister_nextREAL(mt), 1.0e-7);
+	ASSERT_NEAR(0.99000644, MersenneTwister_nextREAL(mt), 1.0e-7);
+	for temp := 3 to 998 by 1 do
+		MersenneTwister_nextREAL(mt);
+	end_for;
+	ASSERT_NEAR(0.74566046, MersenneTwister_nextREAL(mt), 1.0e-7);
+	ASSERT_NEAR(0.72157152, MersenneTwister_nextREAL(mt), 1.0e-7);
+	{end}
+END_TEST_S
