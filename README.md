@@ -85,7 +85,7 @@ $ git submodule update --init --recursive
 
 ```
 $ cd jieclib
-$ git submodule update --remope
+$ git submodule update --remote
 ```
 
 ### JiecLibのテスト方法
