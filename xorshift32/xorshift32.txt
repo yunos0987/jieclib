@@ -1,10 +1,19 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./xorshift32/xorshift32.txt -t omron -o ./xorshift32/xorshift32.xml
+ * $ jiecc ./xorshift32/xorshift32.txt -I../jiecunit/sys -o ./xorshift32/xorshift32.xml -t omron
+ * $ jiecc ./xorshift32/xorshift32.txt -I../jiecunit/sys -o ./xorshift32/xorshift32.xml -t keyence
  *)
 
 {#ifndef __XORSHIFT32_TXT__}
 {#define __XORSHIFT32_TXT__}
+
+{#include <sys_conv.txt>}
+
+// kludge
+{#if _KEYENCE}
+	{#define dword udint}
+	{#define dword_to_udint(...) udint_to_udint(__VA_ARGS__)}
+{#endif}
 
 (**
  * This file contains the implementation of the Xorshift32 algorithm.
@@ -23,6 +32,7 @@ end
  * @param seed The initial seed value for the Xorshift32 algorithm. It must be a 32-bit bits value and non-zero.
  *)
 function Xorshift32_init
+	_PROLOGUE_OF_FUNCTION_()
 	var_in_out self: Xorshift32_t; end
 	var_input seed: dword; end
 	{st}
@@ -36,6 +46,7 @@ end
  * @return A pseudo-random number.
  *)
 function Xorshift32_next: dword
+	_PROLOGUE_OF_FUNCTION_()
 	var_in_out self: Xorshift32_t; end
 	var_input
 		bits: dint := 32;
@@ -58,6 +69,7 @@ end
  * @return true or false.
  *)
 function Xorshift32_nextBOOL: bool
+	_PROLOGUE_OF_FUNCTION_()
 	var_in_out self: Xorshift32_t; end
 	{st}
 	Xorshift32_nextBOOL := Xorshift32_next(self, 1) = dword#1;
@@ -69,34 +81,39 @@ end
  * @return An unsigned 32-bit integer pseudo-random number, between 0 and 4294967295.
  *)
 function Xorshift32_nextUDINT: udint
+	_PROLOGUE_OF_FUNCTION_()
 	var_in_out self: Xorshift32_t; end
 	{st}
 	Xorshift32_nextUDINT := dword_to_udint(Xorshift32_next(self, 32));
 	{end}
 end
 
+{#if not (_KEYENCE)}
 (**
  * Generates a uniformly distributed unsigned 64-bit integer pseudo-random number.
  * @return An unsigned 64-bit integer pseudo-random number, between 0 and 18446744073709551615.
  *)
 function Xorshift32_nextULINT: ulint
+	_PROLOGUE_OF_FUNCTION_()
 	var_in_out self: Xorshift32_t; end
 	var_temp
-		h, l: lword;
+		hb, lb: lword;
 	end
 	{st}
-	h := Xorshift32_next(self, 32);
-	l := Xorshift32_next(self, 32);
-	Xorshift32_nextULINT := lword_to_ulint(shl(h, 32) or l);
+	hb := Xorshift32_next(self, 32);
+	lb := Xorshift32_next(self, 32);
+	Xorshift32_nextULINT := lword_to_ulint(shl(hb, 32) or lb);
 	{end}
 end
+{#endif}
 
 (**
  * Generates a 32-bit floating-point pseudo-random number with uniform distribution in the range 0.0 to 1.0.
  * @return [0.0, 1.0) of the half-open interval.
  *)
 function Xorshift32_nextREAL: real
-var_in_out self: Xorshift32_t; end
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out self: Xorshift32_t; end
 	{st}
 	Xorshift32_nextREAL := lreal_to_real(
 		udint_to_lreal(dword_to_udint(Xorshift32_next(self, 32))) / lreal#4294967296.0); // 2^32
@@ -108,14 +125,15 @@ end
  * @return [0.0, 1.0) of the half-open interval.
  *)
 function Xorshift32_nextLREAL: lreal
+	_PROLOGUE_OF_FUNCTION_()
 	var_in_out self: Xorshift32_t; end
 	var_temp
-		a, b: lreal;
+		av, bv: lreal;
 	end
 	{st}
-	a := udint_to_lreal(dword_to_udint(Xorshift32_next(self, 32 - 5)));
-	b := udint_to_lreal(dword_to_udint(Xorshift32_next(self, 32 - 6)));
-	Xorshift32_nextLREAL := (a * lreal#67108864.0 + b) / lreal#9007199254740992.0;
+	av := udint_to_lreal(dword_to_udint(Xorshift32_next(self, 32 - 5)));
+	bv := udint_to_lreal(dword_to_udint(Xorshift32_next(self, 32 - 6)));
+	Xorshift32_nextLREAL := (av * lreal#67108864.0 + bv) / lreal#9007199254740992.0;
 	{end}
 end
 

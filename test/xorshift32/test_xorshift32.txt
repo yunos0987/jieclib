@@ -1,18 +1,17 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/xorshift32/test_xorshift32.txt -I../jiecunit -I../jiecunit/sys -t omron -o ./test/xorshift32/test_xorshift32.xml
+ * $ jiecc ./test/xorshift32/test_xorshift32.txt -I../jiecunit -I../jiecunit/sys -o ./test/xorshift32/test_xorshift32.xml -t omron
+ * $ jiecc ./test/xorshift32/test_xorshift32.txt -I../jiecunit -I../jiecunit/sys -o ./test/xorshift32/test_xorshift32.xml -t keyence
  *)
 {#include <jiecunit.txt>}
 
 {#include "./../../xorshift32/xorshift32.txt"}
 
-configuration MainConfiguration resource MainResource on PLC
-	_DEFINE_SYS_IN_RESOURCE_();
-	// List test program names.
+DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
 		'test_xorshift32'
-	);
-end end
+	)
+)
 
 TEST_S(test_xorshift32)
 	var
@@ -24,8 +23,10 @@ TEST_S(test_xorshift32)
 	EXPECT_EQ_UDINT(udint#723471715, Xorshift32_nextUDINT(prng));
 	Xorshift32_init(prng, dword#16#92d68ca2);
 	EXPECT_EQ_BOOL(false, Xorshift32_nextBOOL(prng));
+{#if not (_KEYENCE)}
 	Xorshift32_init(prng, dword#16#92d68ca2);
 	EXPECT_EQ_ULINT(ulint#3107287358003399546, Xorshift32_nextULINT(prng));
+{#endif}
 	Xorshift32_init(prng, dword#16#92d68ca2);
 	EXPECT_NEAR(real#1.68446391820908e-01, Xorshift32_nextREAL(prng), 1.0e-7);
 	Xorshift32_init(prng, dword#16#92d68ca2);
