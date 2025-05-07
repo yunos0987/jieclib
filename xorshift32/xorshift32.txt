@@ -9,12 +9,6 @@
 
 {#include <sys_conv.txt>}
 
-// kludge
-{#if _KEYENCE}
-	{#define dword udint}
-	{#define dword_to_udint(...) udint_to_udint(__VA_ARGS__)}
-{#endif}
-
 (**
  * This file contains the implementation of the Xorshift32 algorithm.
  * Xorshift32 is a simple and fast pseudorandom number generator.
