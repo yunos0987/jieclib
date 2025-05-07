@@ -1,19 +1,20 @@
 (*
  * $ cd <JiecLib Project Root>
  * $ jiecc ./string_lib/string_lib.txt -t omron -o ./string_lib/string_lib.xml
+ * $ jiecc ./string_lib/string_lib.txt -t keyence -o ./string_lib/string_lib.xml
  *)
 
 {#ifndef __STRING_LIB_TXT__}
 {#define __STRING_LIB_TXT__}
 
 {#define CHAR_MAX_BYTE 4}
-{#define STRING_MAX_SIZE 1986} // OMRON's limit.
 {#define STRING string[STRING_MAX_SIZE]}
 
 function charAt: string[CHAR_MAX_BYTE + 1]
-	var_input en: bool; end var_output eno: bool; end
+	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
+		{doc: 1 origin.}
 		p: dint := 1;
 	end
 	var_temp
@@ -30,14 +31,14 @@ function charAt: string[CHAR_MAX_BYTE + 1]
 end
 
 function asciiCharCodeAt: dint
-	var_input en: bool; end var_output eno: bool; end
+	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
 		p: dint := 1;
 	end
 	var_temp
-		c: string[CHAR_MAX_BYTE + 1];
-		i: dint;
+		c_x: string[CHAR_MAX_BYTE + 1];
+		index: dint;
 		ASCIIs: string[16#7f + 1] := (*'$00'*)
 			'$01$02$03$04$05$06$07$08$09'
 			'$0A$0B$0C$0D$0E$0F$10$11$12$13'
@@ -48,10 +49,10 @@ function asciiCharCodeAt: dint
 	end
 	{st}
     // note: Poor performance. Should be optimize.
-	c := charAt(self, p);
-	for i := 1 to 127 by 1 do
-		if c = charAt(ASCIIs, i) then
-			asciiCharCodeAt := i;
+	c_x := charAt(self, p);
+	for index := 1 to 127 by 1 do
+		if c_x = charAt(ASCIIs, index) then
+			asciiCharCodeAt := index;
 			return;
 		end_if;
 	end_for;
@@ -62,11 +63,15 @@ end
 function fromAsciiCharCode: string[CHAR_MAX_BYTE + 1]
 	{#define CODE0 16#00}
 	{#define CODE1 16#7f}
-	var_input en: bool; end var_output eno: bool; end
+	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		charcode: dint;
 	end
+{#if not (_KEYENCE)}
+	var_temp constant
+{#else}
 	var_temp
+{#endif}
 		CODE2CHAR: array[CODE0..CODE1] of string[1 + 1] := [
 			'$00', '$01', '$02', '$03', '$04', '$05', '$06', '$07', '$08', '$09', '$0A', '$0B', '$0C', '$0D', '$0E', '$0F',
 			'$10', '$11', '$12', '$13', '$14', '$15', '$16', '$17', '$18', '$19', '$1A', '$1B', '$1C', '$1D', '$1E', '$1F',
@@ -75,7 +80,7 @@ function fromAsciiCharCode: string[CHAR_MAX_BYTE + 1]
 			'$40', '$41', '$42', '$43', '$44', '$45', '$46', '$47', '$48', '$49', '$4A', '$4B', '$4C', '$4D', '$4E', '$4F',
 			'$50', '$51', '$52', '$53', '$54', '$55', '$56', '$57', '$58', '$59', '$5A', '$5B', '$5C', '$5D', '$5E', '$5F',
 			'$60', '$61', '$62', '$63', '$64', '$65', '$66', '$67', '$68', '$69', '$6A', '$6B', '$6C', '$6D', '$6E', '$6F',
-			'$70', '$71', '$72', '$73', '$74', '$75', '$76', '$77', '$78', '$79', '$7A', '$7B', '$7C', '$7D', '$7E', '$7F',] constant;
+			'$70', '$71', '$72', '$73', '$74', '$75', '$76', '$77', '$78', '$79', '$7A', '$7B', '$7C', '$7D', '$7E', '$7F',];
 	end
 	{st}
 	if (CODE0 <= charcode) and (charcode <= CODE1) then
@@ -93,26 +98,26 @@ function lower: STRING
 	{#define CHARCODE_A 16#41}
 	{#define CHARCODE_Z 16#5a}
 	{#define DIFF_CHARCODE_U2L 16#20}
-	var_input en: bool; end var_output eno: bool; end
+	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
 	end
 	var_temp
 		p, l: dint;
-		c, d: string[CHAR_MAX_BYTE + 1];
+		c_x, d_x: string[CHAR_MAX_BYTE + 1];
 		code: dint;
 	end
 	{st}
 	lower := '';
 	l := len(self);
 	for p := 1 to l by 1 do
-		c := charAt(self, p);
-		code := asciiCharCodeAt(c, 1);
+		c_x := charAt(self, p);
+		code := asciiCharCodeAt(c_x, 1);
 		if (CHARCODE_A <= code) and (code <= CHARCODE_Z) then
-			d := fromAsciiCharCode(code + DIFF_CHARCODE_U2L);
-			lower := concat(lower, d);
+			d_x := fromAsciiCharCode(code + DIFF_CHARCODE_U2L);
+			lower := concat(lower, d_x);
 		else
-			lower := concat(lower, c);
+			lower := concat(lower, c_x);
 		end_if;
 	end_for;
 	{end}
@@ -126,26 +131,26 @@ function upper: STRING
 	{#define CHARCODE_a 16#61}
 	{#define CHARCODE_z 16#7a}
 	{#define DIFF_CHARCODE_U2L 16#20}
-	var_input en: bool; end var_output eno: bool; end
+	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
 	end
 	var_temp
 		p, l: dint;
-		c, d: string[CHAR_MAX_BYTE + 1];
+		c_x, d_x: string[CHAR_MAX_BYTE + 1];
 		code: dint;
 	end
 	{st}
 	upper := '';
 	l := len(self);
 	for p := 1 to l by 1 do
-		c := charAt(self, p);
-		code := asciiCharCodeAt(c, 1);
+		c_x := charAt(self, p);
+		code := asciiCharCodeAt(c_x, 1);
 		if (CHARCODE_a <= code) and (code <= CHARCODE_z) then
-			d := fromAsciiCharCode(code - DIFF_CHARCODE_U2L);
-			upper := concat(upper, d);
+			d_x := fromAsciiCharCode(code - DIFF_CHARCODE_U2L);
+			upper := concat(upper, d_x);
 		else
-			upper := concat(upper, c);
+			upper := concat(upper, c_x);
 		end_if;
 	end_for;
 	{end}
@@ -156,7 +161,7 @@ end
 {#define toUpperCase upper}
 
 function remove: STRING
-	var_input en: bool; end var_output eno: bool; end
+	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		{doc: 入力文字列}
 		self: STRING;
@@ -167,34 +172,38 @@ function remove: STRING
 	end
 	var_temp
 		del_len: dint;
-		c: dint;
+		c_x: dint;
 		p, l: dint;
-		h, t: STRING;
-		r: STRING;
+		h_str, t_str: STRING;
+		r_str: STRING;
 	end
 	{st}
 	del_len := len(del);
-	t := self;
-	l := len(t);
-	c := count;
-	while c <> 0 do
-		p := find(t, del);
+	t_str := self;
+	l := len(t_str);
+	c_x := count;
+	while c_x <> 0 do
+		p := find(t_str, del);
 		if p = 0 then
 			exit;
 		end_if;
-		// e.g. abcdef cd p=3 h=ab,cd,t=ef
-		h := mid(t, dint_to_uint(p - 1), 1);
+		// e.g. (t_str del)=(abcdef cd) --> p=3 h_str=ab, t_str=ef, l=2
+		h_str := mid(t_str, dint_to_uint(p - 1), 1);
 		l := l - (p + del_len) + 1;
-		t := mid(t, dint_to_uint(l), dint_to_uint(p + del_len));
-		r := concat(r, h);
-		c := c - 1;
+		if l <> 0 then
+			t_str := mid(t_str, dint_to_uint(l), dint_to_uint(p + del_len));
+		else
+			t_str := '';
+		end_if;
+		r_str := concat(r_str, h_str);
+		c_x := c_x - 1;
 	end_while;
-	remove := concat(r, t);
+	remove := concat(r_str, t_str);
 	{end}
 end
 
 function reverse: STRING
-	var_input en: bool; end var_output eno: bool; end
+	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
 	end
@@ -210,7 +219,7 @@ function reverse: STRING
 end
 
 function startswith: bool
-	var_input en: bool; end var_output eno: bool; end
+	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
 		prefix: STRING;
@@ -220,12 +229,20 @@ function startswith: bool
 	end
 	{st}
 	m := len(prefix);
-	startswith := (uint_to_dint(len(self)) >= m) and (prefix = left(self, dint_to_uint(m)));
+	if m <> 0 then
+		if uint_to_dint(len(self)) >= m then
+			startswith := prefix = left(self, dint_to_uint(m));
+		else
+			startswith := false;
+		end_if;
+	else
+		startswith := true;
+	end_if;
 	{end}
 end
 
 function endswith: bool
-	var_input en: bool; end var_output eno: bool; end
+	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
 		suffix: STRING;
@@ -235,75 +252,102 @@ function endswith: bool
 	end
 	{st}
 	m := len(suffix);
-	endswith := (uint_to_dint(len(self)) >= m) and (suffix = right(self, dint_to_uint(m)));
+	if m <> 0 then
+		if uint_to_dint(len(self)) >= m then
+			endswith := suffix = right(self, dint_to_uint(m));
+		else
+			endswith := false;
+		end_if;
+	else
+		endswith := true;
+	end_if;
 	{end}
 end
 
 function split: dint
-	var_input en: bool; end var_output eno: bool; end
+	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
 		delimiter: STRING := '';
 	end
 	var_in_out
-		out: array[*] of STRING;
+		outputs: array[*] of STRING;
 	end
 	var_temp
 		rem: STRING;
 		p: dint;
 		l, m: dint;
-		i0, i1, i: dint;
+		i_0, i_1, index: dint;
 	end
 	{st}
-	i0 := lower_bound(out, 1);
-	i1 := upper_bound(out, 1);
+	i_0 := lower_bound(outputs, 1);
+	i_1 := upper_bound(outputs, 1);
 	l := len(self);
 	m := len(delimiter);
 	if m = 0 then
 		for p := 1 to l by 1 do
-			i := i0 + p - 1;
-			if i > i1 then
-				split := i1 - i0 + 1;
+			index := i_0 + p - 1;
+			if index > i_1 then
+				split := i_1 - i_0 + 1;
 				return;
 			end_if;
-			out[i] := mid(self, 1, dint_to_uint(p));
+			outputs[index] := mid(self, 1, dint_to_uint(p));
 		end_for;
 		split := l;
 		return;
 	end_if;
 
-	i := i0;
+	index := i_0;
 	rem := self;
 	while true do
-		if i > i1 then
-			split := i1 - i0 + 1;
+		if index > i_1 then
+			split := i_1 - i_0 + 1;
 			return;
 		end_if;
 		p := find(rem, delimiter);
 		if p <> 0 then
-			out[i] := left(rem, dint_to_uint(p - 1));
+			if p <> 1 then
+				outputs[index] := left(rem, dint_to_uint(p - 1));
+			else
+				// note: for keyence. error on left(x, 0).
+				outputs[index] := '';
+			end_if;
 			l := l - p - m + 1;
-			rem := mid(rem, dint_to_uint(l), dint_to_uint(p + m));
-			i := i + 1;
+			if l <> 0 then
+				rem := mid(rem, dint_to_uint(l), dint_to_uint(p + m));
+			else
+				// note: for keyence. error on mid(x, 0, p).
+				rem := '';
+			end_if;
+			index := index + 1;
 		else
-			out[i] := rem;
-			split := i - i0 + 1;
+			outputs[index] := rem;
+			split := index - i_0 + 1;
 			return;
 		end_if;
 	end_while;
 	{end}
 end
 
+{#if _KEYENCE}
+{#define trim strip}
+{#endif}
 function trim: STRING
-	var_input en: bool; end var_output eno: bool; end
+	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
 	end
+{#if not (_KEYENCE)}
+	var_temp constant
+{#else}
 	var_temp
-		WHITESPACES: array[4] of string[2] constant := [' ', '$t', '$r', '$n'];
-		l, i0, i1: dint;
-		i, j: dint;
-		c: string[2];
+{#endif}
+		WHITESPACES: array[4] of string[2] := [' ', '$t', '$r', '$n'];
+	end
+	var_temp
+		l, i_0, i_1: dint;
+		index, jndex: dint;
+		c_x: string[2];
 		found: bool;
 	end
 	{st}
@@ -312,15 +356,15 @@ function trim: STRING
 		trim := '';
 		return;
 	end_if;
-	i0 := 1;
-	i1 := l;
+	i_0 := 1;
+	i_1 := l;
 
-	for i := 1 to l by 1 do
-		c := mid(self, 1, dint_to_uint(i));
+	for index := 1 to l by 1 do
+		c_x := mid(self, 1, dint_to_uint(index));
 		found := false;
-		for j := 0 to 3 by 1 do
-			if c = WHITESPACES[j] then
-				i0 := i + 1;
+		for jndex := 0 to 3 by 1 do
+			if c_x = WHITESPACES[jndex] then
+				i_0 := index + 1;
 				found := true;
 				exit;
 			end_if;
@@ -330,17 +374,17 @@ function trim: STRING
 		end_if;
 	end_for;
 
-	if i0 > l then
+	if i_0 > l then
 		trim := '';
 		return;
 	end_if;
 
-	for i := l to i0 by -1 do
-		c := mid(self, 1, dint_to_uint(i));
+	for index := l to i_0 by -1 do
+		c_x := mid(self, 1, dint_to_uint(index));
 		found := false;
-		for j := 0 to 3 by 1 do
-			if c = WHITESPACES[j] then
-				i1 := i - 1;
+		for jndex := 0 to 3 by 1 do
+			if c_x = WHITESPACES[jndex] then
+				i_1 := index - 1;
 				found := true;
 				exit;
 			end_if;
@@ -350,21 +394,27 @@ function trim: STRING
 		end_if;
 	end_for;
 
-	trim := mid(self, dint_to_uint(i1 - i0 + 1), dint_to_uint(i0));
+	trim := mid(self, dint_to_uint(i_1 - i_0 + 1), dint_to_uint(i_0));
 	{end}
 end
 
 function ltrim: STRING
-	var_input en: bool; end var_output eno: bool; end
+	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
 	end
+{#if not (_KEYENCE)}
+	var_temp constant
+{#else}
 	var_temp
-		WHITESPACES: array[4] of string[2] constant := [' ', '$t', '$r', '$n'];
+{#endif}
+		WHITESPACES: array[4] of string[2] := [' ', '$t', '$r', '$n'];
+	end
+	var_temp
 		l: dint;
 		p: dint:= 1;
-		i, j: dint;
-		c: string[2];
+		index, jndex: dint;
+		c_x: string[2];
 		found: bool;
 	end
 	{st}
@@ -374,12 +424,12 @@ function ltrim: STRING
 		return;
 	end_if;
 
-	for i := 1 to l by 1 do
-		c := mid(self, 1, dint_to_uint(i));
+	for index := 1 to l by 1 do
+		c_x := mid(self, 1, dint_to_uint(index));
 		found := false;
-		for j := 0 to 3 by 1 do
-			if c = WHITESPACES[j] then
-				p := i + 1;
+		for jndex := 0 to 3 by 1 do
+			if c_x = WHITESPACES[jndex] then
+				p := index + 1;
 				found := true;
 				exit;
 			end_if;
@@ -399,15 +449,21 @@ function ltrim: STRING
 end
 
 function rtrim: STRING
-	var_input en: bool; end var_output eno: bool; end
+	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
 	end
+{#if not (_KEYENCE)}
+	var_temp constant
+{#else}
 	var_temp
-		WHITESPACES: array[4] of string[2] constant := [' ', '$t', '$r', '$n'];
+{#endif}
+		WHITESPACES: array[4] of string[2] := [' ', '$t', '$r', '$n'];
+	end
+	var_temp
 		l, p: dint;
-		i, j: dint;
-		c: string[2];
+		index, jndex: dint;
+		c_x: string[2];
 		found: bool;
 	end
 	{st}
@@ -418,12 +474,12 @@ function rtrim: STRING
 	end_if;
 	p := l;
 
-	for i := l to 1 by -1 do
-		c := mid(self, 1, dint_to_uint(i));
+	for index := l to 1 by -1 do
+		c_x := mid(self, 1, dint_to_uint(index));
 		found := false;
-		for j := 0 to 3 by 1 do
-			if c = WHITESPACES[j] then
-				p := i - 1;
+		for jndex := 0 to 3 by 1 do
+			if c_x = WHITESPACES[jndex] then
+				p := index - 1;
 				found := true;
 				exit;
 			end_if;
@@ -443,7 +499,7 @@ function rtrim: STRING
 end
 
 function join: STRING
-	var_input en: bool; end var_output eno: bool; end
+	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING := '';
 	end
@@ -451,20 +507,20 @@ function join: STRING
 		a: array[*] of STRING;
 	end
 	var_temp
-		i, i0, i1: dint;
+		index, i_0, i_1: dint;
 	end
 	{st}
-	i0 := lower_bound(a, 1);
-	i1 := upper_bound(a, 1);
-	join := a[i0];
-	for i := i0 + 1 to i1 by 1 do
-		join := concat(join, self, a[i]);
+	i_0 := lower_bound(a, 1);
+	i_1 := upper_bound(a, 1);
+	join := a[i_0];
+	for index := i_0 + 1 to i_1 by 1 do
+		join := concat(join, self, a[index]);
 	end_for;
 	{end}
 end
 
 function substitute: STRING
-	var_input en: bool; end var_output eno: bool; end
+	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING; // 入力文字列
 		old: STRING; // 置換前文字列
@@ -473,29 +529,29 @@ function substitute: STRING
 	end
 	var_temp
 		old_len: dint;
-		c: dint;
+		c_x: dint;
 		p, l: dint;
-		h, t: STRING;
+		h_str, t_str: STRING;
 	end
 	{st}
 	substitute := '';
 	old_len := len(old);
-	t := self;
-	l := len(t);
-	c := count;
-	while c <> 0 do
-		p := find(t, old);
+	t_str := self;
+	l := len(t_str);
+	c_x := count;
+	while c_x <> 0 do
+		p := find(t_str, old);
 		if p = 0 then
 			exit;
 		end_if;
-		// e.g. abcdef cd p=3 h=ab,cd,t=ef
-		h := mid(t, dint_to_uint(p - 1), 1);
+		// e.g. abcdef cd p=3 h_str=ab,cd,t_str=ef
+		h_str := mid(t_str, dint_to_uint(p - 1), 1);
 		l := l - (p + old_len) + 1;
-		t := mid(t, dint_to_uint(l), dint_to_uint(p + old_len));
-		substitute := concat(substitute, h, new);
-		c := c - 1;
+		t_str := mid(t_str, dint_to_uint(l), dint_to_uint(p + old_len));
+		substitute := concat(substitute, h_str, new);
+		c_x := c_x - 1;
 	end_while;
-	substitute := concat(substitute, t);
+	substitute := concat(substitute, t_str);
 	{end}
 end
 
