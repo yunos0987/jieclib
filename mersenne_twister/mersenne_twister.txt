@@ -1,9 +1,8 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./mersenne_twister/mersenne_twister.txt -I../jiecunit/sys -o ./mersenne_twister/mersenne_twister.xml -t omron
- * $ jiecc ./mersenne_twister/mersenne_twister.txt -I../jiecunit/sys -o ./mersenne_twister/mersenne_twister.xml -t keyence
+ * $ jiecc ./mersenne_twister/mersenne_twister.txt -I./vendor/jiecunit/sys -o ./mersenne_twister/mersenne_twister.xml -t omron
+ * $ jiecc ./mersenne_twister/mersenne_twister.txt -I./vendor/jiecunit/sys -o ./mersenne_twister/mersenne_twister.xml -t keyence
  *)
-
 {#ifndef __MERSENNE_TWISTER_TXT__}
 {#define __MERSENNE_TWISTER_TXT__}
 
@@ -31,14 +30,6 @@
  *)
 
 {#include <sys_conv.txt>}
-
-// kludge
-{#if _KEYENCE}
-	{#define dword udint}
-	{#define udint_to_dword(...) udint_to_udint(__VA_ARGS__)}
-	{#define dword_to_udint(...) udint_to_udint(__VA_ARGS__)}
-	{#define dword_to_dint(...) udint_to_dint(__VA_ARGS__)}
-{#endif}
 
 {#define N 624}
 {#define M 397}
@@ -256,6 +247,8 @@ end_function
 
 {#undef N}
 {#undef M}
+{#undef N_1}
+{#undef M_1}
 {#undef MATRIX_A}
 {#undef UPPER_MASK}
 {#undef LOWER_MASK}

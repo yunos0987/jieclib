@@ -14,7 +14,7 @@ JiecLibは、<a href="https://www.graviness.com/iec_61131-3/">IEC 61131-3 ST言�
 
 オムロン社製のSysmac Studioを使用して、JiecLib内のライブラリを使用するために必要な環境は以下の通りです。
 
-* [Jiecc 4.22以降](https://www.graviness.com/iec_61131-3/jiecc.html#Header.Jiecc%E3%81%AE%E3%83%80%E3%82%A6%E3%83%B3%E3%83%AD%E3%83%BC%E3%83%89%E3%81%A8%E5%AE%9F%E8%A1%8C%E6%96%B9%E6%B3%95)
+* [Jiecc 5.6以降](https://www.graviness.com/iec_61131-3/jiecc.html#Header.Jiecc%E3%81%AE%E3%83%80%E3%82%A6%E3%83%B3%E3%83%AD%E3%83%BC%E3%83%89%E3%81%A8%E5%AE%9F%E8%A1%8C%E6%96%B9%E6%B3%95)
   * Jieccは、IEC 61131-3テキストをIEC 61131-10 XMLに変換するコマンドラインベースで無料のソフトウェアです。[Jieccのダウンロードと実行方法](https://www.graviness.com/iec_61131-3/jiecc.html#Header.Jiecc%E3%81%AE%E3%83%80%E3%82%A6%E3%83%B3%E3%83%AD%E3%83%BC%E3%83%89%E3%81%A8%E5%AE%9F%E8%A1%8C%E6%96%B9%E6%B3%95)から最新のJieccをダウンロードできます。
 * [Sysmac Studio](https://www.fa.omron.co.jp/products/family/3077/download/software.html)
   * 高価なソフトウェアですが、Sysmac Studioに同梱されているシミュレータでテストが可能です。必要に応じて、PLC本体も入手してください。
@@ -23,18 +23,25 @@ JiecLibは、<a href="https://www.graviness.com/iec_61131-3/">IEC 61131-3 ST言�
 
 Sysmac StudioでJiecLib内のライブラリを取り込む方法について、[string_lib](./string_lib/string_lib.txt)を例として示します。
 
-1. 次のコマンドを実行します。
-
-`<JiecLib Project Root>`は適宜プロジェクトをダウンロードしたディレクトリに変更してください。また、事前にjiecc.exeを`<JiecLib Project Root>`直下におくか、jieccがあるディレクトリへパスを通しておいてください。
+1. 次のコマンドを実行し、JiecLibプロジェクトをクローンとサブモジュールを初期化します。
 
 ```
-$ cd <JiecLib Project Root>
-$ jiecc ./string_lib/string_lib.txt -t omron -o ./string_lib/string_lib.xml
+$ git clone https://github.com/yunos0987/jieclib.git
+$ cd jieclib
+$ git submodule update --init --recursive
+```
+
+※一部のライブラリが、[JiecUnit](https://github.com/yunos0987/jiecunit)内のモジュールに依存しており、サブモジュールの初期化を必要とします。
+
+2. 次のコマンドを実行します。事前に[jiecc.exe](https://www.graviness.com/iec_61131-3/jiecc.html#Header.Jiecc%E3%81%AE%E3%83%80%E3%82%A6%E3%83%B3%E3%83%AD%E3%83%BC%E3%83%89%E3%81%A8%E5%AE%9F%E8%A1%8C%E6%96%B9%E6%B3%95)をjieclibディレクトリ直下におくか、jieccがあるディレクトリへパスを通しておいてください。
+
+```
+$ jiecc ./string_lib/string_lib.txt -o ./string_lib/string_lib.xml -t omron
 ```
 
 `./string_lib/string_lib.xml`が出力されます。
 
-2. 出力された`string_lib.xml`をSysmac StudioのIEC 61131-10インポート機能でインポートします（ツール|IEC 61131-10 XML|インポート）。
+3. 出力された`./string_lib/string_lib.xml`ををSysmac StudioのIEC 61131-10インポート機能 [ ツール | IEC 61131-10 XML | インポート ] でインポートします。
 
 ![string_lib.xmlインポート完了後の画面](./docs/screen_stringlib_import_completed.png)
 
@@ -42,53 +49,59 @@ $ jiecc ./string_lib/string_lib.txt -t omron -o ./string_lib/string_lib.xml
 
 ## JiecLibに含まれるライブラリ
 
-JiecLibに含まれるライブラリとIEC 61131-10 XMLを生成するためのコマンドを示します。
+JiecLibに含まれるライブラリと、IEC 61131-10 XMLを生成するためのコマンドを示します。
 
 * [base64](./base64)
   * メール等で使用されているエンコード方式Base64です。
-  * `jiecc ./base64/base64.txt -Istring_lib -t omron -o ./base64/base64.xml`
+  * `jiecc ./base64/base64.txt -Istring_lib -o ./base64/base64.xml -t omron`
 * [mersenne_twister](./mersenne_twister)
   * 疑似乱数生成アルゴリズムメルセンヌ・ツイスタです。
-  * `jiecc ./mersenne_twister/mersenne_twister.txt -t omron -o ./mersenne_twister/mersenne_twister.xml`
+  * `jiecc ./mersenne_twister/mersenne_twister.txt -I./vendor/jiecunit/sys -o ./mersenne_twister/mersenne_twister.xml -t omron`
 * [ringbuffer](./ringbuffer)
   * リングバッファです。バッファのデータ型を簡単に拡張できます。
-  * `jiecc ./ringbuffer/ringbuffer.txt -t omron -o ./ringbuffer/ringbuffer.xml`
+  * `jiecc ./ringbuffer/ringbuffer.txt -o ./ringbuffer/ringbuffer.xml -t omron`
 * [string_lib](./string_lib)
   * 基本的な文字列操作ライブラリです。
-  * `jiecc ./string_lib/string_lib.txt -t omron -o ./string_lib/string_lib.xml`
+  * `jiecc ./string_lib/string_lib.txt -o ./string_lib/string_lib.xml -t omron`
 * [xorshift32](./xorshift32)
   * 疑似乱数生成アルゴリズムxorshiftです。
-  * `jiecc ./xorshift32/xorshift32.txt -t omron -o ./xorshift32/xorshift32.xml`
+  * `jiecc ./xorshift32/xorshift32.txt -I./vendor/jiecunit/sys -o ./xorshift32/xorshift32.xml -t omron`
 
 ## JiecLib開発者向け
 
+JiecLibプロジェクトの一部のライブラリは、外部の[JiecUnit](https://github.com/yunos0987/jiecunit)に依存しています。JiecLibプロジェクトは、外部依存のライブラリ管理のため、Git submodule を使用します。
+
+### サブモジュール含むリポジトリのクローン方法
+
+JiecLibプロジェクトをクローンするときに、サブモジュールの初期化も必要です。
+
+```
+$ git clone https://github.com/yunos0987/jieclib.git
+$ cd jieclib
+$ git submodule update --init --recursive
+```
+
+サブモジュールをupdateするには、次のコマンドを実行します。
+
+```
+$ cd jieclib
+$ git submodule update --remope
+```
+
 ### JiecLibのテスト方法
 
-JiecLibの単体テストに[JiecUnit](https://github.com/yunos0987/jiecunit)を使用します。次のディレクトリ構成として説明します。テストコードは、[jieclib/test](./test)に含まれます。
+JiecLibの単体テストに[JiecUnit](https://github.com/yunos0987/jiecunit)を使用します。テストコードは、[jieclib/test](./test)ディレクトリに含まれます。
+
+1. 次のコマンドを実行します。事前に[jiecc.exe](https://www.graviness.com/iec_61131-3/jiecc.html#Header.Jiecc%E3%81%AE%E3%83%80%E3%82%A6%E3%83%B3%E3%83%AD%E3%83%BC%E3%83%89%E3%81%A8%E5%AE%9F%E8%A1%8C%E6%96%B9%E6%B3%95)をjieclibディレクトリ直下におくか、jieccがあるディレクトリへパスを通しておいてください。
 
 ```
-jiecunit/
-jieclib/
-  base64/
-  string_lib/
-  :
-  test/
-    base64/
-    string_lib/
-    :
-  :
-```
-
-1. 次のコマンドを実行します。
-
-```
-$ cd <JiecLib Project Root>
-$ jiecc ./test/string_lib/test_string_lib.txt -I../jiecunit -I../jiecunit/sys -t omron -o ./test/string_lib/test_string_lib.xml
+$ cd jieclib
+$ jiecc ./test/string_lib/test_string_lib.txt -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/string_lib/test_string_lib.xml -t omron
 ```
 
 `./test/string_lib/test_string_lib.xml`が生成されます。
 
-2. [単体テストのサンプルの実行方法の手順2](https://github.com/yunos0987/jiecunit#%E5%8D%98%E4%BD%93%E3%83%86%E3%82%B9%E3%83%88%E3%81%AE%E3%82%B5%E3%83%B3%E3%83%97%E3%83%AB%E3%81%AE%E5%AE%9F%E8%A1%8C%E6%96%B9%E6%B3%95)以降を実行します。
+2. [オムロン社製Sysmac Studioの場合の単体テストサンプルの実行方法](https://github.com/yunos0987/jiecunit#%E3%82%AA%E3%83%A0%E3%83%AD%E3%83%B3%E7%A4%BE%E8%A3%BDsysmac-studio%E3%81%AE%E5%A0%B4%E5%90%88%E3%81%AE%E5%8D%98%E4%BD%93%E3%83%86%E3%82%B9%E3%83%88%E3%82%B5%E3%83%B3%E3%83%97%E3%83%AB%E3%81%AE%E5%AE%9F%E8%A1%8C%E6%96%B9%E6%B3%95)の手順2以降を実行します。
 
 ## ライセンス
 

@@ -1,9 +1,8 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./xorshift32/xorshift32.txt -I../jiecunit/sys -o ./xorshift32/xorshift32.xml -t omron
- * $ jiecc ./xorshift32/xorshift32.txt -I../jiecunit/sys -o ./xorshift32/xorshift32.xml -t keyence
+ * $ jiecc ./xorshift32/xorshift32.txt -I./vendor/jiecunit/sys -o ./xorshift32/xorshift32.xml -t omron
+ * $ jiecc ./xorshift32/xorshift32.txt -I./vendor/jiecunit/sys -o ./xorshift32/xorshift32.xml -t keyence
  *)
-
 {#ifndef __XORSHIFT32_TXT__}
 {#define __XORSHIFT32_TXT__}
 
