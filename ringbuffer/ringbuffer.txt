@@ -1,6 +1,7 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./ringbuffer/ringbuffer.txt -t omron -o ./ringbuffer/ringbuffer.xml
+ * $ jiecc ./ringbuffer/ringbuffer.txt -o ./ringbuffer/ringbuffer.xml -t omron
+ * $ jiecc ./ringbuffer/ringbuffer.txt -o ./ringbuffer/ringbuffer.xml -t keyence
  *)
 
 {#include "./ringbuffer_int.txt"}

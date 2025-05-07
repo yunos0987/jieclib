@@ -7,6 +7,7 @@
 {#define RingBuffer_dequeue RINGBUFFER_DEQUEUE(RingBufferItemType)}
 
 function RingBuffer_init: bool
+	_PROLOGUE_OF_FUNCTION_()
 	var_in_out self: RingBuffer_t; end
 	var_input
 		buf_size: dint;
@@ -23,6 +24,7 @@ function RingBuffer_init: bool
 end
 
 function RingBuffer_enqueue: bool
+	_PROLOGUE_OF_FUNCTION_()
 	var_in_out self: RingBuffer_t; end
 	var_in_out
 		buf: array[*] of RingBufferItemType;
@@ -48,6 +50,7 @@ function RingBuffer_enqueue: bool
 end
 
 function RingBuffer_dequeue: bool
+	_PROLOGUE_OF_FUNCTION_()
 	var_in_out self: RingBuffer_t; end
 	var_in_out
 		buf: array[*] of RingBufferItemType;
