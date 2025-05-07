@@ -1,207 +1,205 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/base64/test_base64.txt -I../jiecunit -I../jiecunit/sys -Istring_lib -t omron -o ./test/base64/test_base64.xml
+ * $ jiecc ./test/base64/test_base64.txt -I../jiecunit -I../jiecunit/sys -Istring_lib -o ./test/base64/test_base64.xml -t omron
  *)
 {#include <jiecunit.txt>}
 
 {#include "./../../base64/base64.txt"}
 
-configuration MainConfiguration resource MainResource on PLC
-	_DEFINE_SYS_IN_RESOURCE_();
-	// List test program names.
+DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
 		'test_base64encode',
 		'test_base64decode'
-	);
-end end
+	)
+)
 
 TEST_S(test_base64encode)
 	var
-		x1: array[8] of byte := [byte#16#02, byte#16#03, byte#16#05, byte#16#07, byte#16#0B, byte#16#0D, byte#16#11, byte#16#17];
-		x2: array[3] of byte := [byte#16#00, byte#16#01, byte#16#02];
-		x3: array[3] of byte := [byte#16#FF, byte#16#EE, byte#16#DD];
-		x4: array[4] of byte := [byte#16#10, byte#16#20, byte#16#30, byte#16#40];
-		x5: array[3] of byte := [byte#16#AB, byte#16#CD, byte#16#EF];
-		x6: array[4] of byte := [byte#16#DE, byte#16#AD, byte#16#BE, byte#16#EF];
-		x7: array[5] of byte := [byte#16#12, byte#16#34, byte#16#56, byte#16#78, byte#16#9A];
-		x8: array[4] of byte := [byte#16#7F, byte#16#00, byte#16#01, byte#16#FF];
-		x9: array[1] of byte := [byte#16#00];
-		xa: array[1] of byte := [byte#16#FF];
-		xx: array[48] of byte := [byte#16#00, byte#16#10, byte#16#83, byte#16#10, byte#16#51, byte#16#87, byte#16#20, byte#16#92, byte#16#8b, byte#16#30, byte#16#d3, byte#16#8f, byte#16#41, byte#16#14, byte#16#93, byte#16#51, byte#16#55, byte#16#97, byte#16#61, byte#16#96, byte#16#9b, byte#16#71, byte#16#d7, byte#16#9f, byte#16#82, byte#16#18, byte#16#a3, byte#16#92, byte#16#59, byte#16#a7, byte#16#a2, byte#16#9a, byte#16#ab, byte#16#b2, byte#16#db, byte#16#af, byte#16#c3, byte#16#1c, byte#16#b3, byte#16#d3, byte#16#5d, byte#16#b7, byte#16#e3, byte#16#9e, byte#16#bb, byte#16#f3, byte#16#df, byte#16#bf];
+		x_1: array[8] of byte := [byte#16#02, byte#16#03, byte#16#05, byte#16#07, byte#16#0B, byte#16#0D, byte#16#11, byte#16#17];
+		x_2: array[3] of byte := [byte#16#00, byte#16#01, byte#16#02];
+		x_3: array[3] of byte := [byte#16#FF, byte#16#EE, byte#16#DD];
+		x_4: array[4] of byte := [byte#16#10, byte#16#20, byte#16#30, byte#16#40];
+		x_5: array[3] of byte := [byte#16#AB, byte#16#CD, byte#16#EF];
+		x_6: array[4] of byte := [byte#16#DE, byte#16#AD, byte#16#BE, byte#16#EF];
+		x_7: array[5] of byte := [byte#16#12, byte#16#34, byte#16#56, byte#16#78, byte#16#9A];
+		x_8: array[4] of byte := [byte#16#7F, byte#16#00, byte#16#01, byte#16#FF];
+		x_9: array[1] of byte := [byte#16#00];
+		x_a: array[1] of byte := [byte#16#FF];
+		x_x: array[48] of byte := [byte#16#00, byte#16#10, byte#16#83, byte#16#10, byte#16#51, byte#16#87, byte#16#20, byte#16#92, byte#16#8b, byte#16#30, byte#16#d3, byte#16#8f, byte#16#41, byte#16#14, byte#16#93, byte#16#51, byte#16#55, byte#16#97, byte#16#61, byte#16#96, byte#16#9b, byte#16#71, byte#16#d7, byte#16#9f, byte#16#82, byte#16#18, byte#16#a3, byte#16#92, byte#16#59, byte#16#a7, byte#16#a2, byte#16#9a, byte#16#ab, byte#16#b2, byte#16#db, byte#16#af, byte#16#c3, byte#16#1c, byte#16#b3, byte#16#d3, byte#16#5d, byte#16#b7, byte#16#e3, byte#16#9e, byte#16#bb, byte#16#f3, byte#16#df, byte#16#bf];
 		//
 		o: bool;
-		xn: array[8] of byte := [byte#16#02, byte#16#03, byte#16#05, byte#16#07, byte#16#0B, byte#16#0D, byte#16#11, byte#16#17];
+		x_n: array[8] of byte := [byte#16#02, byte#16#03, byte#16#05, byte#16#07, byte#16#0B, byte#16#0D, byte#16#11, byte#16#17];
 	end
 	{st}
-	EXPECT_EQ_STRING('AgMFBwsNERc=', base64encode(dat:=x1));
-	EXPECT_EQ_STRING('AAEC', base64encode(dat:=x2));
-	EXPECT_EQ_STRING('/+7d', base64encode(dat:=x3));
-	EXPECT_EQ_STRING('ECAwQA==', base64encode(dat:=x4));
-	EXPECT_EQ_STRING('q83v', base64encode(dat:=x5));
-	EXPECT_EQ_STRING('3q2+7w==', base64encode(dat:=x6));
-	EXPECT_EQ_STRING('EjRWeJo=', base64encode(dat:=x7));
-	EXPECT_EQ_STRING('fwAB/w==', base64encode(dat:=x8));
-	EXPECT_EQ_STRING('AA==', base64encode(dat:=x9));
-	EXPECT_EQ_STRING('/w==', base64encode(dat:=xa));
-	EXPECT_EQ_STRING('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/', base64encode(dat:=xx));
+	EXPECT_EQ_STRING('AgMFBwsNERc=', base64encode(dat:=x_1));
+	EXPECT_EQ_STRING('AAEC', base64encode(dat:=x_2));
+	EXPECT_EQ_STRING('/+7d', base64encode(dat:=x_3));
+	EXPECT_EQ_STRING('ECAwQA==', base64encode(dat:=x_4));
+	EXPECT_EQ_STRING('q83v', base64encode(dat:=x_5));
+	EXPECT_EQ_STRING('3q2+7w==', base64encode(dat:=x_6));
+	EXPECT_EQ_STRING('EjRWeJo=', base64encode(dat:=x_7));
+	EXPECT_EQ_STRING('fwAB/w==', base64encode(dat:=x_8));
+	EXPECT_EQ_STRING('AA==', base64encode(dat:=x_9));
+	EXPECT_EQ_STRING('/w==', base64encode(dat:=x_a));
+	EXPECT_EQ_STRING('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/', base64encode(dat:=x_x));
 	// offset
-	EXPECT_EQ_STRING('AgMFBwsNERc=', base64encode(dat:=xn, offset:=0, length:=-1, eno=>o));
+	EXPECT_EQ_STRING('AgMFBwsNERc=', base64encode(dat:=x_n, offset:=0, length:=-1, eno=>o));
 	EXPECT_TRUE(o);
-	EXPECT_EQ_STRING('AwUHCw0RFw==', base64encode(dat:=xn, offset:=1, length:=-1, eno=>o));
+	EXPECT_EQ_STRING('AwUHCw0RFw==', base64encode(dat:=x_n, offset:=1, length:=-1, eno=>o));
 	EXPECT_TRUE(o);
-	EXPECT_EQ_STRING('Fw==', base64encode(dat:=xn, offset:=7, length:=-1, eno=>o));
+	EXPECT_EQ_STRING('Fw==', base64encode(dat:=x_n, offset:=7, length:=-1, eno=>o));
 	EXPECT_TRUE(o);
-	base64encode(dat:=xn, offset:=8, length:=-1, eno=>o); // error
+	base64encode(dat:=x_n, offset:=8, length:=-1, eno=>o); // error
 	EXPECT_FALSE(o);
 	// length
-	EXPECT_EQ_STRING('', base64encode(dat:=xn, offset:=0, length:=0, eno=>o)); // note:
+	EXPECT_EQ_STRING('', base64encode(dat:=x_n, offset:=0, length:=0, eno=>o)); // note:
 	EXPECT_TRUE(o);
-	EXPECT_EQ_STRING('Ag==', base64encode(dat:=xn, offset:=0, length:=1, eno=>o));
+	EXPECT_EQ_STRING('Ag==', base64encode(dat:=x_n, offset:=0, length:=1, eno=>o));
 	EXPECT_TRUE(o);
-	EXPECT_EQ_STRING('AgM=', base64encode(dat:=xn, offset:=0, length:=2, eno=>o));
+	EXPECT_EQ_STRING('AgM=', base64encode(dat:=x_n, offset:=0, length:=2, eno=>o));
 	EXPECT_TRUE(o);
-	EXPECT_EQ_STRING('AgMFBwsNERc=', base64encode(dat:=xn, offset:=0, length:=8, eno=>o));
+	EXPECT_EQ_STRING('AgMFBwsNERc=', base64encode(dat:=x_n, offset:=0, length:=8, eno=>o));
 	EXPECT_TRUE(o);
-	base64encode(dat:=xn, offset:=0, length:=9, eno=>o); // error
+	base64encode(dat:=x_n, offset:=0, length:=9, eno=>o); // error
 	EXPECT_FALSE(o);
 	// offset and length
-	EXPECT_EQ_STRING('BQ==', base64encode(dat:=xn, offset:=2, length:=1, eno=>o));
+	EXPECT_EQ_STRING('BQ==', base64encode(dat:=x_n, offset:=2, length:=1, eno=>o));
 	EXPECT_TRUE(o);
-	EXPECT_EQ_STRING('BQcL', base64encode(dat:=xn, offset:=2, length:=3, eno=>o));
+	EXPECT_EQ_STRING('BQcL', base64encode(dat:=x_n, offset:=2, length:=3, eno=>o));
 	EXPECT_TRUE(o);
-	EXPECT_EQ_STRING('BQcLDREX', base64encode(dat:=xn, offset:=2, length:=6, eno=>o));
+	EXPECT_EQ_STRING('BQcLDREX', base64encode(dat:=x_n, offset:=2, length:=6, eno=>o));
 	EXPECT_TRUE(o);
-	base64encode(dat:=xn, offset:=2, length:=7, eno=>o); // error
+	base64encode(dat:=x_n, offset:=2, length:=7, eno=>o); // error
 	EXPECT_FALSE(o);
 	{end}
 END_TEST_S
 
 TEST_S(test_base64decode)
 	var
-		x4096: array[4096] of byte;
+		x_4096: array[4096] of byte;
 	end
 	{st}
 	//
-	EXPECT_EQ_INT32(2, base64decode(txt:='XYZ=', dat:=x4096));
-	EXPECT_EQ_BYTE(byte#16#5d, x4096[0]);
-	EXPECT_EQ_BYTE(byte#16#86, x4096[1]);
+	EXPECT_EQ_INT32(2, base64decode(txt:='XYZ=', dat:=x_4096));
+	EXPECT_EQ_BYTE(byte#16#5d, x_4096[0]);
+	EXPECT_EQ_BYTE(byte#16#86, x_4096[1]);
 	//
-	EXPECT_EQ_INT32(8, base64decode(txt:='AgMFBwsNERc=', dat:=x4096));
-	EXPECT_EQ_BYTE(byte#16#02, x4096[0]);
-	EXPECT_EQ_BYTE(byte#16#03, x4096[1]);
-	EXPECT_EQ_BYTE(byte#16#05, x4096[2]);
-	EXPECT_EQ_BYTE(byte#16#07, x4096[3]);
-	EXPECT_EQ_BYTE(byte#16#0b, x4096[4]);
-	EXPECT_EQ_BYTE(byte#16#0d, x4096[5]);
-	EXPECT_EQ_BYTE(byte#16#11, x4096[6]);
-	EXPECT_EQ_BYTE(byte#16#17, x4096[7]);
+	EXPECT_EQ_INT32(8, base64decode(txt:='AgMFBwsNERc=', dat:=x_4096));
+	EXPECT_EQ_BYTE(byte#16#02, x_4096[0]);
+	EXPECT_EQ_BYTE(byte#16#03, x_4096[1]);
+	EXPECT_EQ_BYTE(byte#16#05, x_4096[2]);
+	EXPECT_EQ_BYTE(byte#16#07, x_4096[3]);
+	EXPECT_EQ_BYTE(byte#16#0b, x_4096[4]);
+	EXPECT_EQ_BYTE(byte#16#0d, x_4096[5]);
+	EXPECT_EQ_BYTE(byte#16#11, x_4096[6]);
+	EXPECT_EQ_BYTE(byte#16#17, x_4096[7]);
 	//
-	EXPECT_EQ_INT32(1, base64decode(txt:='AA==', dat:=x4096));
-	EXPECT_EQ_BYTE(byte#16#00, x4096[0]);
+	EXPECT_EQ_INT32(1, base64decode(txt:='AA==', dat:=x_4096));
+	EXPECT_EQ_BYTE(byte#16#00, x_4096[0]);
 	//
-	EXPECT_EQ_INT32(2, base64decode(txt:='AAA=', dat:=x4096));
-	EXPECT_EQ_BYTE(byte#16#00, x4096[0]);
-	EXPECT_EQ_BYTE(byte#16#00, x4096[1]);
+	EXPECT_EQ_INT32(2, base64decode(txt:='AAA=', dat:=x_4096));
+	EXPECT_EQ_BYTE(byte#16#00, x_4096[0]);
+	EXPECT_EQ_BYTE(byte#16#00, x_4096[1]);
 	//
-	EXPECT_EQ_INT32(3, base64decode(txt:='AAAA', dat:=x4096));
-	EXPECT_EQ_BYTE(byte#16#00, x4096[0]);
-	EXPECT_EQ_BYTE(byte#16#00, x4096[1]);
-	EXPECT_EQ_BYTE(byte#16#00, x4096[2]);
+	EXPECT_EQ_INT32(3, base64decode(txt:='AAAA', dat:=x_4096));
+	EXPECT_EQ_BYTE(byte#16#00, x_4096[0]);
+	EXPECT_EQ_BYTE(byte#16#00, x_4096[1]);
+	EXPECT_EQ_BYTE(byte#16#00, x_4096[2]);
 	//
-	EXPECT_EQ_INT32(3, base64decode(txt:='AQID', dat:=x4096));
-	EXPECT_EQ_BYTE(byte#16#01, x4096[0]);
-	EXPECT_EQ_BYTE(byte#16#02, x4096[1]);
-	EXPECT_EQ_BYTE(byte#16#03, x4096[2]);
+	EXPECT_EQ_INT32(3, base64decode(txt:='AQID', dat:=x_4096));
+	EXPECT_EQ_BYTE(byte#16#01, x_4096[0]);
+	EXPECT_EQ_BYTE(byte#16#02, x_4096[1]);
+	EXPECT_EQ_BYTE(byte#16#03, x_4096[2]);
 	//
-	EXPECT_EQ_INT32(5, base64decode(txt:='AgMFBws=', dat:=x4096));
-	EXPECT_EQ_BYTE(byte#16#02, x4096[0]);
-	EXPECT_EQ_BYTE(byte#16#03, x4096[1]);
-	EXPECT_EQ_BYTE(byte#16#05, x4096[2]);
-	EXPECT_EQ_BYTE(byte#16#07, x4096[3]);
-	EXPECT_EQ_BYTE(byte#16#0b, x4096[4]);
+	EXPECT_EQ_INT32(5, base64decode(txt:='AgMFBws=', dat:=x_4096));
+	EXPECT_EQ_BYTE(byte#16#02, x_4096[0]);
+	EXPECT_EQ_BYTE(byte#16#03, x_4096[1]);
+	EXPECT_EQ_BYTE(byte#16#05, x_4096[2]);
+	EXPECT_EQ_BYTE(byte#16#07, x_4096[3]);
+	EXPECT_EQ_BYTE(byte#16#0b, x_4096[4]);
 	//
-	EXPECT_EQ_INT32(3, base64decode(txt:='q83v', dat:=x4096));
-	EXPECT_EQ_BYTE(byte#16#ab, x4096[0]);
-	EXPECT_EQ_BYTE(byte#16#cd, x4096[1]);
-	EXPECT_EQ_BYTE(byte#16#ef, x4096[2]);
+	EXPECT_EQ_INT32(3, base64decode(txt:='q83v', dat:=x_4096));
+	EXPECT_EQ_BYTE(byte#16#ab, x_4096[0]);
+	EXPECT_EQ_BYTE(byte#16#cd, x_4096[1]);
+	EXPECT_EQ_BYTE(byte#16#ef, x_4096[2]);
 	//
-	EXPECT_EQ_INT32(4, base64decode(txt:='3q2+7w==', dat:=x4096));
-	EXPECT_EQ_BYTE(byte#16#de, x4096[0]);
-	EXPECT_EQ_BYTE(byte#16#ad, x4096[1]);
-	EXPECT_EQ_BYTE(byte#16#be, x4096[2]);
-	EXPECT_EQ_BYTE(byte#16#ef, x4096[3]);
+	EXPECT_EQ_INT32(4, base64decode(txt:='3q2+7w==', dat:=x_4096));
+	EXPECT_EQ_BYTE(byte#16#de, x_4096[0]);
+	EXPECT_EQ_BYTE(byte#16#ad, x_4096[1]);
+	EXPECT_EQ_BYTE(byte#16#be, x_4096[2]);
+	EXPECT_EQ_BYTE(byte#16#ef, x_4096[3]);
 	//
-	EXPECT_EQ_INT32(4, base64decode(txt:='fwAB/w==', dat:=x4096));
-	EXPECT_EQ_BYTE(byte#16#7f, x4096[0]);
-	EXPECT_EQ_BYTE(byte#16#00, x4096[1]);
-	EXPECT_EQ_BYTE(byte#16#01, x4096[2]);
-	EXPECT_EQ_BYTE(byte#16#ff, x4096[3]);
+	EXPECT_EQ_INT32(4, base64decode(txt:='fwAB/w==', dat:=x_4096));
+	EXPECT_EQ_BYTE(byte#16#7f, x_4096[0]);
+	EXPECT_EQ_BYTE(byte#16#00, x_4096[1]);
+	EXPECT_EQ_BYTE(byte#16#01, x_4096[2]);
+	EXPECT_EQ_BYTE(byte#16#ff, x_4096[3]);
 	//
-	EXPECT_EQ_INT32(5, base64decode(txt:='SGVsbG8=', dat:=x4096)); // Hello
-	EXPECT_EQ_BYTE(byte#16#48, x4096[0]);
-	EXPECT_EQ_BYTE(byte#16#65, x4096[1]);
-	EXPECT_EQ_BYTE(byte#16#6c, x4096[2]);
-	EXPECT_EQ_BYTE(byte#16#6c, x4096[3]);
-	EXPECT_EQ_BYTE(byte#16#6f, x4096[4]);
+	EXPECT_EQ_INT32(5, base64decode(txt:='SGVsbG8=', dat:=x_4096)); // Hello
+	EXPECT_EQ_BYTE(byte#16#48, x_4096[0]);
+	EXPECT_EQ_BYTE(byte#16#65, x_4096[1]);
+	EXPECT_EQ_BYTE(byte#16#6c, x_4096[2]);
+	EXPECT_EQ_BYTE(byte#16#6c, x_4096[3]);
+	EXPECT_EQ_BYTE(byte#16#6f, x_4096[4]);
 	//
-	EXPECT_EQ_INT32(8, base64decode(txt:='U29mdHdhcmU=', dat:=x4096));
-	EXPECT_EQ_BYTE(byte#16#53, x4096[0]);
-	EXPECT_EQ_BYTE(byte#16#6f, x4096[1]);
-	EXPECT_EQ_BYTE(byte#16#66, x4096[2]);
-	EXPECT_EQ_BYTE(byte#16#74, x4096[3]);
-	EXPECT_EQ_BYTE(byte#16#77, x4096[4]);
-	EXPECT_EQ_BYTE(byte#16#61, x4096[5]);
-	EXPECT_EQ_BYTE(byte#16#72, x4096[6]);
-	EXPECT_EQ_BYTE(byte#16#65, x4096[7]);
+	EXPECT_EQ_INT32(8, base64decode(txt:='U29mdHdhcmU=', dat:=x_4096));
+	EXPECT_EQ_BYTE(byte#16#53, x_4096[0]);
+	EXPECT_EQ_BYTE(byte#16#6f, x_4096[1]);
+	EXPECT_EQ_BYTE(byte#16#66, x_4096[2]);
+	EXPECT_EQ_BYTE(byte#16#74, x_4096[3]);
+	EXPECT_EQ_BYTE(byte#16#77, x_4096[4]);
+	EXPECT_EQ_BYTE(byte#16#61, x_4096[5]);
+	EXPECT_EQ_BYTE(byte#16#72, x_4096[6]);
+	EXPECT_EQ_BYTE(byte#16#65, x_4096[7]);
 	//
-	EXPECT_EQ_INT32(48, base64decode(txt:='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/', dat:=x4096));
-	EXPECT_EQ_BYTE(byte#16#00, x4096[0]);
-	EXPECT_EQ_BYTE(byte#16#10, x4096[1]);
-	EXPECT_EQ_BYTE(byte#16#83, x4096[2]);
-	EXPECT_EQ_BYTE(byte#16#10, x4096[3]);
-	EXPECT_EQ_BYTE(byte#16#51, x4096[4]);
-	EXPECT_EQ_BYTE(byte#16#87, x4096[5]);
-	EXPECT_EQ_BYTE(byte#16#20, x4096[6]);
-	EXPECT_EQ_BYTE(byte#16#92, x4096[7]);
-	EXPECT_EQ_BYTE(byte#16#8b, x4096[8]);
-	EXPECT_EQ_BYTE(byte#16#30, x4096[9]);
-	EXPECT_EQ_BYTE(byte#16#d3, x4096[10]);
-	EXPECT_EQ_BYTE(byte#16#8f, x4096[11]);
-	EXPECT_EQ_BYTE(byte#16#41, x4096[12]);
-	EXPECT_EQ_BYTE(byte#16#14, x4096[13]);
-	EXPECT_EQ_BYTE(byte#16#93, x4096[14]);
-	EXPECT_EQ_BYTE(byte#16#51, x4096[15]);
-	EXPECT_EQ_BYTE(byte#16#55, x4096[16]);
-	EXPECT_EQ_BYTE(byte#16#97, x4096[17]);
-	EXPECT_EQ_BYTE(byte#16#61, x4096[18]);
-	EXPECT_EQ_BYTE(byte#16#96, x4096[19]);
-	EXPECT_EQ_BYTE(byte#16#9b, x4096[20]);
-	EXPECT_EQ_BYTE(byte#16#71, x4096[21]);
-	EXPECT_EQ_BYTE(byte#16#d7, x4096[22]);
-	EXPECT_EQ_BYTE(byte#16#9f, x4096[23]);
-	EXPECT_EQ_BYTE(byte#16#82, x4096[24]);
-	EXPECT_EQ_BYTE(byte#16#18, x4096[25]);
-	EXPECT_EQ_BYTE(byte#16#a3, x4096[26]);
-	EXPECT_EQ_BYTE(byte#16#92, x4096[27]);
-	EXPECT_EQ_BYTE(byte#16#59, x4096[28]);
-	EXPECT_EQ_BYTE(byte#16#a7, x4096[29]);
-	EXPECT_EQ_BYTE(byte#16#a2, x4096[30]);
-	EXPECT_EQ_BYTE(byte#16#9a, x4096[31]);
-	EXPECT_EQ_BYTE(byte#16#ab, x4096[32]);
-	EXPECT_EQ_BYTE(byte#16#b2, x4096[33]);
-	EXPECT_EQ_BYTE(byte#16#db, x4096[34]);
-	EXPECT_EQ_BYTE(byte#16#af, x4096[35]);
-	EXPECT_EQ_BYTE(byte#16#c3, x4096[36]);
-	EXPECT_EQ_BYTE(byte#16#1c, x4096[37]);
-	EXPECT_EQ_BYTE(byte#16#b3, x4096[38]);
-	EXPECT_EQ_BYTE(byte#16#d3, x4096[39]);
-	EXPECT_EQ_BYTE(byte#16#5d, x4096[40]);
-	EXPECT_EQ_BYTE(byte#16#b7, x4096[41]);
-	EXPECT_EQ_BYTE(byte#16#e3, x4096[42]);
-	EXPECT_EQ_BYTE(byte#16#9e, x4096[43]);
-	EXPECT_EQ_BYTE(byte#16#bb, x4096[44]);
-	EXPECT_EQ_BYTE(byte#16#f3, x4096[45]);
-	EXPECT_EQ_BYTE(byte#16#df, x4096[46]);
-	EXPECT_EQ_BYTE(byte#16#bf, x4096[47]);
+	EXPECT_EQ_INT32(48, base64decode(txt:='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/', dat:=x_4096));
+	EXPECT_EQ_BYTE(byte#16#00, x_4096[0]);
+	EXPECT_EQ_BYTE(byte#16#10, x_4096[1]);
+	EXPECT_EQ_BYTE(byte#16#83, x_4096[2]);
+	EXPECT_EQ_BYTE(byte#16#10, x_4096[3]);
+	EXPECT_EQ_BYTE(byte#16#51, x_4096[4]);
+	EXPECT_EQ_BYTE(byte#16#87, x_4096[5]);
+	EXPECT_EQ_BYTE(byte#16#20, x_4096[6]);
+	EXPECT_EQ_BYTE(byte#16#92, x_4096[7]);
+	EXPECT_EQ_BYTE(byte#16#8b, x_4096[8]);
+	EXPECT_EQ_BYTE(byte#16#30, x_4096[9]);
+	EXPECT_EQ_BYTE(byte#16#d3, x_4096[10]);
+	EXPECT_EQ_BYTE(byte#16#8f, x_4096[11]);
+	EXPECT_EQ_BYTE(byte#16#41, x_4096[12]);
+	EXPECT_EQ_BYTE(byte#16#14, x_4096[13]);
+	EXPECT_EQ_BYTE(byte#16#93, x_4096[14]);
+	EXPECT_EQ_BYTE(byte#16#51, x_4096[15]);
+	EXPECT_EQ_BYTE(byte#16#55, x_4096[16]);
+	EXPECT_EQ_BYTE(byte#16#97, x_4096[17]);
+	EXPECT_EQ_BYTE(byte#16#61, x_4096[18]);
+	EXPECT_EQ_BYTE(byte#16#96, x_4096[19]);
+	EXPECT_EQ_BYTE(byte#16#9b, x_4096[20]);
+	EXPECT_EQ_BYTE(byte#16#71, x_4096[21]);
+	EXPECT_EQ_BYTE(byte#16#d7, x_4096[22]);
+	EXPECT_EQ_BYTE(byte#16#9f, x_4096[23]);
+	EXPECT_EQ_BYTE(byte#16#82, x_4096[24]);
+	EXPECT_EQ_BYTE(byte#16#18, x_4096[25]);
+	EXPECT_EQ_BYTE(byte#16#a3, x_4096[26]);
+	EXPECT_EQ_BYTE(byte#16#92, x_4096[27]);
+	EXPECT_EQ_BYTE(byte#16#59, x_4096[28]);
+	EXPECT_EQ_BYTE(byte#16#a7, x_4096[29]);
+	EXPECT_EQ_BYTE(byte#16#a2, x_4096[30]);
+	EXPECT_EQ_BYTE(byte#16#9a, x_4096[31]);
+	EXPECT_EQ_BYTE(byte#16#ab, x_4096[32]);
+	EXPECT_EQ_BYTE(byte#16#b2, x_4096[33]);
+	EXPECT_EQ_BYTE(byte#16#db, x_4096[34]);
+	EXPECT_EQ_BYTE(byte#16#af, x_4096[35]);
+	EXPECT_EQ_BYTE(byte#16#c3, x_4096[36]);
+	EXPECT_EQ_BYTE(byte#16#1c, x_4096[37]);
+	EXPECT_EQ_BYTE(byte#16#b3, x_4096[38]);
+	EXPECT_EQ_BYTE(byte#16#d3, x_4096[39]);
+	EXPECT_EQ_BYTE(byte#16#5d, x_4096[40]);
+	EXPECT_EQ_BYTE(byte#16#b7, x_4096[41]);
+	EXPECT_EQ_BYTE(byte#16#e3, x_4096[42]);
+	EXPECT_EQ_BYTE(byte#16#9e, x_4096[43]);
+	EXPECT_EQ_BYTE(byte#16#bb, x_4096[44]);
+	EXPECT_EQ_BYTE(byte#16#f3, x_4096[45]);
+	EXPECT_EQ_BYTE(byte#16#df, x_4096[46]);
+	EXPECT_EQ_BYTE(byte#16#bf, x_4096[47]);
 	{end}
 END_TEST_S

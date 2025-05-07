@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./base64/base64.txt -Istring_lib -t omron -o ./base64/base64.xml
+ * $ jiecc ./base64/base64.txt -Istring_lib -o ./base64/base64.xml -t omron
  *)
 
 {#ifndef __BASE_64_TXT__}
@@ -9,11 +9,10 @@
 {#include <string_lib.txt>}
 
 {#define CHAR_MAX_BYTE 4}
-{#define STRING_MAX_SIZE 1986} // OMRON's limit.
 {#define STRING string[STRING_MAX_SIZE]}
 
 function base64encode: STRING
-	var_input en: bool; end var_output eno: bool; end
+	_PROLOGUE_OF_FUNCTION_()
 	var_in_out
 		dat: array[*] of byte;
 	end
@@ -100,7 +99,7 @@ end
  * @return number of data size.
  *)
 function base64decode: dint
-	var_input en: bool; end var_output eno: bool; end
+	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		txt: STRING (*{doc: input base64 text.}*);
 	end
