@@ -27,20 +27,22 @@ DEFINE_CONFIGURATION(
 TEST_S(test_charAt)
 	{st}
 	//
-	EXPECT_EQ_STRING('', charAt('aAb', 0));
-	EXPECT_EQ_STRING('a', charAt('aAb', 1));
-	EXPECT_EQ_STRING('A', charAt('aAb', 2));
-	EXPECT_EQ_STRING('b', charAt('aAb', 3));
-	EXPECT_EQ_STRING('', charAt('aAb', 4));
+	EXPECT_EQ_STRING('', charAt('aAb', -1));
+	EXPECT_EQ_STRING('a', charAt('aAb', 0));
+	EXPECT_EQ_STRING('A', charAt('aAb', 1));
+	EXPECT_EQ_STRING('b', charAt('aAb', 2));
+	EXPECT_EQ_STRING('', charAt('aAb', 3));
 	//
+	EXPECT_EQ_STRING('', charAt('', -1));
 	EXPECT_EQ_STRING('', charAt('', 0));
 	EXPECT_EQ_STRING('', charAt('', 1));
 	//
-	EXPECT_EQ_STRING('$T', charAt('$T$N$$', 1));
-	EXPECT_EQ_STRING('$N', charAt('$T$N$$', 2));
-	EXPECT_EQ_STRING('$$', charAt('$T$N$$', 3));
+	EXPECT_EQ_STRING('$T', charAt('$T$N$$', 0));
+	EXPECT_EQ_STRING('$N', charAt('$T$N$$', 1));
+	EXPECT_EQ_STRING('$$', charAt('$T$N$$', 2));
 	// note:
-	//EXPECT_EQ_STRING('⬅➡', charAt('⬅➡', 1));
+	//EXPECT_EQ_STRING('⬅', charAt('⬅➡', 0));
+	//EXPECT_EQ_STRING('➡', charAt('⬅➡', 1));
 	//EXPECT_EQ_STRING('', charAt('⬅➡', 2));
 	{end}
 END_TEST_S
@@ -48,28 +50,29 @@ END_TEST_S
 TEST_S(test_asciiCharCodeAt)
 	{st}
 	//
-	EXPECT_EQ_INT32(-1, asciiCharCodeAt('aAb', 0));
-	EXPECT_EQ_INT32(16#61, asciiCharCodeAt('aAb', 1));
-	EXPECT_EQ_INT32(16#41, asciiCharCodeAt('aAb', 2));
-	EXPECT_EQ_INT32(16#62, asciiCharCodeAt('aAb', 3));
-	EXPECT_EQ_INT32(-1, asciiCharCodeAt('aAb', 4));
+	EXPECT_EQ_INT32(-1, asciiCharCodeAt('aAb', -1));
+	EXPECT_EQ_INT32(16#61, asciiCharCodeAt('aAb', 0));
+	EXPECT_EQ_INT32(16#41, asciiCharCodeAt('aAb', 1));
+	EXPECT_EQ_INT32(16#62, asciiCharCodeAt('aAb', 2));
+	EXPECT_EQ_INT32(-1, asciiCharCodeAt('aAb', 3));
 	//
+	EXPECT_EQ_INT32(-1, asciiCharCodeAt('', -1));
 	EXPECT_EQ_INT32(-1, asciiCharCodeAt('', 0));
 	EXPECT_EQ_INT32(-1, asciiCharCodeAt('', 1));
 	//
-	EXPECT_EQ_INT32(16#09, asciiCharCodeAt('$T$N$$', 1));
-	EXPECT_EQ_INT32(16#0a, asciiCharCodeAt('$T$N$$', 2));
-	EXPECT_EQ_INT32(16#24, asciiCharCodeAt('$T$N$$', 3));
+	EXPECT_EQ_INT32(16#09, asciiCharCodeAt('$T$N$$', 0));
+	EXPECT_EQ_INT32(16#0a, asciiCharCodeAt('$T$N$$', 1));
+	EXPECT_EQ_INT32(16#24, asciiCharCodeAt('$T$N$$', 2));
 	// note: $00
-	EXPECT_EQ_INT32(16#01, asciiCharCodeAt('$01$1f$20$21$7e$7f', 1));
-	EXPECT_EQ_INT32(16#1f, asciiCharCodeAt('$01$1f$20$21$7e$7f', 2));
-	EXPECT_EQ_INT32(16#20, asciiCharCodeAt('$01$1f$20$21$7e$7f', 3));
-	EXPECT_EQ_INT32(16#21, asciiCharCodeAt('$01$1f$20$21$7e$7f', 4));
-	EXPECT_EQ_INT32(16#7e, asciiCharCodeAt('$01$1f$20$21$7e$7f', 5));
-	EXPECT_EQ_INT32(16#7f, asciiCharCodeAt('$01$1f$20$21$7e$7f', 6));
+	EXPECT_EQ_INT32(16#01, asciiCharCodeAt('$01$1f$20$21$7e$7f', 0));
+	EXPECT_EQ_INT32(16#1f, asciiCharCodeAt('$01$1f$20$21$7e$7f', 1));
+	EXPECT_EQ_INT32(16#20, asciiCharCodeAt('$01$1f$20$21$7e$7f', 2));
+	EXPECT_EQ_INT32(16#21, asciiCharCodeAt('$01$1f$20$21$7e$7f', 3));
+	EXPECT_EQ_INT32(16#7e, asciiCharCodeAt('$01$1f$20$21$7e$7f', 4));
+	EXPECT_EQ_INT32(16#7f, asciiCharCodeAt('$01$1f$20$21$7e$7f', 5));
 	// note:
-	//EXPECT_EQ_INT32(16#e29c8aefb88f, asciiCharCodeAt('✊️', 1));
-	//EXPECT_EQ_INT32(-1, asciiCharCodeAt('✊️', 2));
+	//EXPECT_EQ_INT32(16#e29c8aefb88f, asciiCharCodeAt('✊️', 0));
+	//EXPECT_EQ_INT32(-1, asciiCharCodeAt('✊️', 1));
 	{end}
 END_TEST_S
 

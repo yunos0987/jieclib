@@ -14,16 +14,16 @@ function charAt: string[CHAR_MAX_BYTE + 1]
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
-		{doc: 1 origin.}
-		p: dint := 1;
+		{doc: 0 origin.}
+		p: dint := 0;
 	end
 	var_temp
 		l: dint;
 	end
 	{st}
-	l := uint_to_dint(len(self));
-	if (1 <= p) and (p <= l) then
-		charAt := mid(self, 1, dint_to_uint(p));
+	l := len(self);
+	if (0 <= p) and (p < l) then
+		charAt := mid(self, 1, dint_to_uint(p + 1));
 	else
 		charAt := '';
 	end_if;
@@ -34,11 +34,12 @@ function asciiCharCodeAt: dint
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
-		p: dint := 1;
+		{doc: 0 origin.}
+		p: dint := 0;
 	end
 	var_temp
 		c_x: string[CHAR_MAX_BYTE + 1];
-		index: dint;
+		asciicode: dint;
 		ASCIIs: string[16#7f + 1] := (*'$00'*)
 			'$01$02$03$04$05$06$07$08$09'
 			'$0A$0B$0C$0D$0E$0F$10$11$12$13'
@@ -48,14 +49,16 @@ function asciiCharCodeAt: dint
 			'`abcdefghijklmnopqrstuvwxyz{|}~$7F' constant;
 	end
 	{st}
-    // note: Poor performance. Should be optimize.
 	c_x := charAt(self, p);
-	for index := 1 to 127 by 1 do
-		if c_x = charAt(ASCIIs, index) then
-			asciiCharCodeAt := index;
-			return;
-		end_if;
-	end_for;
+	if c_x <> '' then
+	    // note: Poor performance. Should be optimize.
+		for asciicode := 1 to 127 by 1 do
+			if c_x = charAt(ASCIIs, asciicode - 1) then
+				asciiCharCodeAt := asciicode;
+				return;
+			end_if;
+		end_for;
+	end_if;
 	asciiCharCodeAt := -1;
 	{end}
 end
@@ -103,16 +106,16 @@ function lower: STRING
 		self: STRING;
 	end
 	var_temp
-		p, l: dint;
+		index, l: dint;
 		c_x, d_x: string[CHAR_MAX_BYTE + 1];
 		code: dint;
 	end
 	{st}
 	lower := '';
 	l := len(self);
-	for p := 1 to l by 1 do
-		c_x := charAt(self, p);
-		code := asciiCharCodeAt(c_x, 1);
+	for index := 0 to l - 1 by 1 do
+		c_x := charAt(self, index);
+		code := asciiCharCodeAt(c_x, 0);
 		if (CHARCODE_A <= code) and (code <= CHARCODE_Z) then
 			d_x := fromAsciiCharCode(code + DIFF_CHARCODE_U2L);
 			lower := concat(lower, d_x);
@@ -136,16 +139,16 @@ function upper: STRING
 		self: STRING;
 	end
 	var_temp
-		p, l: dint;
+		index, l: dint;
 		c_x, d_x: string[CHAR_MAX_BYTE + 1];
 		code: dint;
 	end
 	{st}
 	upper := '';
 	l := len(self);
-	for p := 1 to l by 1 do
-		c_x := charAt(self, p);
-		code := asciiCharCodeAt(c_x, 1);
+	for index := 0 to l - 1 by 1 do
+		c_x := charAt(self, index);
+		code := asciiCharCodeAt(c_x, 0);
 		if (CHARCODE_a <= code) and (code <= CHARCODE_z) then
 			d_x := fromAsciiCharCode(code - DIFF_CHARCODE_U2L);
 			upper := concat(upper, d_x);
