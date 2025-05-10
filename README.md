@@ -55,25 +55,31 @@ JiecLibに含まれるライブラリと、IEC 61131-10 XMLを生成するため
 
 * [array](./array)
   * 基本的な配列操作ライブラリです。
-  * `jiecc ./array/array.txt -I. -I./vendor/jiecunit/sys -o ./array/array.xml -t omron`
+  * IEC 61131-10 XML生成コマンド: `jiecc ./array/array.txt -I. -I./vendor/jiecunit/sys -o ./array/array.xml -t omron`
 * [base64](./base64)
   * メール等で使用されているエンコード方式Base64です。
-  * `jiecc ./base64/base64.txt -I. -I./vendor/jiecunit/sys -o ./base64/base64.xml -t omron`
+  * IEC 61131-10 XML生成コマンド: `jiecc ./base64/base64.txt -I. -I./vendor/jiecunit/sys -o ./base64/base64.xml -t omron`
 * [mersenne_twister](./mersenne_twister)
-  * 疑似乱数生成アルゴリズムメルセンヌ・ツイスタです。
-  * `jiecc ./mersenne_twister/mersenne_twister.txt -I. -I./vendor/jiecunit/sys -o ./mersenne_twister/mersenne_twister.xml -t omron`
+  * 擬似乱数生成アルゴリズムの一つであるメルセンヌ・ツイスタのIEC 61131-3 ST言語の実装です。
+    * [Python言語のrandomモジュール](https://docs.python.org/ja/3.12/library/random.html)でも採用されている高速かつ超長周期の疑似乱数生成アルゴリズムです。その他の詳しい説明は、[メルセンヌ・ツイスタ考案者のウェブサイト](http://www.math.sci.hiroshima-u.ac.jp/m-mat/MT/mt.html)を参照してください。
+    * なお、[オリジナルに近いIEC 61131-3 ST言語ソースコードはこちら](http://blog.graviness.com/?eid=949297)にあります。
+  * IEC 61131-10 XML生成コマンド: `jiecc ./mersenne_twister/mersenne_twister.txt -I. -I./vendor/jiecunit/sys -o ./mersenne_twister/mersenne_twister.xml -t omron`
 * [ringbuffer](./ringbuffer)
-  * リングバッファです。バッファのデータ型を簡単に拡張できます。
-  * `jiecc ./ringbuffer/ringbuffer.txt -I. -I./vendor/jiecunit/sys -o ./ringbuffer/ringbuffer.xml -t omron`
+  * FIFO形式のリングバッファです。
+    * バッファのデータ型を簡単に拡張できます。
+    * バッファがいっぱいの状態でさらに追加しようとするときの振る舞いを指定できます。上書き（`overwrite=true`）を指定する場合、最も過去に加えたデータを上書きします。`overwrite=true`で初期化すると、最新のログを記録する目的で使用できます。
+  * IEC 61131-10 XML生成コマンド: `jiecc ./ringbuffer/ringbuffer.txt -I. -I./vendor/jiecunit/sys -o ./ringbuffer/ringbuffer.xml -t omron`
 * [stats](./stats)
   * 基本的な統計ライブラリです。
-  * `jiecc ./stats/stats.txt -I. -I./vendor/jiecunit/sys -o ./stats/stats.xml -t omron`
+  * IEC 61131-10 XML生成コマンド: `jiecc ./stats/stats.txt -I. -I./vendor/jiecunit/sys -o ./stats/stats.xml -t omron`
 * [string_lib](./string_lib)
   * 基本的な文字列操作ライブラリです。
-  * `jiecc ./string_lib/string_lib.txt -I. -I./vendor/jiecunit/sys -o ./string_lib/string_lib.xml -t omron`
+    * 文字列操作に関するIEC 61131-3の特徴として、文字のインデクスは0始まりではなく、1始まりです。例えば、FIND('abcde', 'cd') は3を得ます。本ライブラリは、0始まりに統一しています。
+    * ASCII範囲外の文字の操作については、IEC 61131-3規格の範囲では限りがあります。ASCII範囲内で運用することをお勧めします。ASCII範囲外の文字を操作するには、ベンダー提供の組み込みPOUを使用するか、ベンダーの文字列型の文字コードが明確であれば、自作することを検討してください。
+  * IEC 61131-10 XML生成コマンド: `jiecc ./string_lib/string_lib.txt -I. -I./vendor/jiecunit/sys -o ./string_lib/string_lib.xml -t omron`
 * [xorshift32](./xorshift32)
   * 疑似乱数生成アルゴリズムxorshiftです。
-  * `jiecc ./xorshift32/xorshift32.txt -I. -I./vendor/jiecunit/sys -o ./xorshift32/xorshift32.xml -t omron`
+  * IEC 61131-10 XML生成コマンド: `jiecc ./xorshift32/xorshift32.txt -I. -I./vendor/jiecunit/sys -o ./xorshift32/xorshift32.xml -t omron`
 
 ## JiecLib開発者向け
 
