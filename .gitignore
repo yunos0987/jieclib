@@ -8,5 +8,6 @@ __pycache__
 /base64/*.xml
 /mersenne_twister/*.xml
 /ringbuffer/*.xml
+/stats/*.xml
 /string_lib/*.xml
 /xorshift32/*.xml
