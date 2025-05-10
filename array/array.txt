@@ -1,8 +1,10 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./array/array.txt -o ./array/array.xml -t omron
- * $ jiecc ./array/array.txt -o ./array/array.xml -t keyence
+ * $ jiecc ./array/array.txt -I. -I./vendor/jiecunit/sys -o ./array/array.xml -t omron
+ * or
+ * $ jiecc ./array/array.txt -I. -I./vendor/jiecunit/sys -o ./array/array.xml -t keyence
  *)
+{#include <sys.txt>}
 
 {#define Array_size(self) (upper_bound(self, 1) - lower_bound(self, 1) + 1)}
 {#define Array_size_lreal(self) Array_size(self)}

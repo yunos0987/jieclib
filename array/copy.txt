@@ -1,10 +1,13 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./array/copy.txt -o ./array/copy.xml -t omron
- * $ jiecc ./array/copy.txt -o ./array/copy.xml -t keyence
+ * $ jiecc ./array/copy.txt -I. -I./vendor/jiecunit/sys -o ./array/copy.xml -t omron
+ * or
+ * $ jiecc ./array/copy.txt -I. -I./vendor/jiecunit/sys -o ./array/copy.xml -t keyence
  *)
 {#ifndef __ARRAY_COPY_TXT__}
 {#define __ARRAY_COPY_TXT__}
+
+{#include <sys.txt>}
 
 {#define _DEFINE_ARRAY_COPY_DATATYPE(datatype) $
 	function Array_copy_@@datatype $

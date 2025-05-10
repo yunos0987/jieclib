@@ -1,10 +1,13 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./mersenne_twister/mersenne_twister.txt -I./vendor/jiecunit/sys -o ./mersenne_twister/mersenne_twister.xml -t omron
- * $ jiecc ./mersenne_twister/mersenne_twister.txt -I./vendor/jiecunit/sys -o ./mersenne_twister/mersenne_twister.xml -t keyence
+ * $ jiecc ./mersenne_twister/mersenne_twister.txt -I. -I./vendor/jiecunit/sys -o ./mersenne_twister/mersenne_twister.xml -t omron
+ * or
+ * $ jiecc ./mersenne_twister/mersenne_twister.txt -I. -I./vendor/jiecunit/sys -o ./mersenne_twister/mersenne_twister.xml -t keyence
  *)
 {#ifndef __MERSENNE_TWISTER_TXT__}
 {#define __MERSENNE_TWISTER_TXT__}
+
+{#include <sys.txt>}
 
 (*
  * Mersenne Twister POUs

@@ -1,10 +1,9 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/base64/test_base64.txt -I./vendor/jiecunit -I./vendor/jiecunit/sys -I./string_lib -o ./test/base64/test_base64.xml -t omron
+ * $ jiecc ./test/base64/test_base64.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/base64/test_base64.xml -t omron
  *)
 {#include <jiecunit.txt>}
-
-{#include "./../../base64/base64.txt"}
+{#include <base64/base64.txt>}
 
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(

@@ -1,11 +1,11 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/mersenne_twister/test_mersenne_twister.txt -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/mersenne_twister/test_mersenne_twister.xml -t omron
- * $ jiecc ./test/mersenne_twister/test_mersenne_twister.txt -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/mersenne_twister/test_mersenne_twister.xml -t keyence
+ * $ jiecc ./test/mersenne_twister/test_mersenne_twister.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/mersenne_twister/test_mersenne_twister.xml -t omron
+ * or
+ * $ jiecc ./test/mersenne_twister/test_mersenne_twister.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/mersenne_twister/test_mersenne_twister.xml -t keyence
  *)
 {#include <jiecunit.txt>}
-
-{#include "./../../mersenne_twister/mersenne_twister.txt"}
+{#include <mersenne_twister/mersenne_twister.txt>}
 
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(

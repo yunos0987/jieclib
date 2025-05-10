@@ -1,10 +1,13 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./array/sort.txt -o ./array/sort.xml -t omron
- * $ jiecc ./array/sort.txt -o ./array/sort.xml -t keyence
+ * $ jiecc ./array/sort.txt -I. -I./vendor/jiecunit/sys -o ./array/sort.xml -t omron
+ * or
+ * $ jiecc ./array/sort.txt -I. -I./vendor/jiecunit/sys -o ./array/sort.xml -t keyence
  *)
 {#ifndef __ARRAY_SORT_TXT__}
 {#define __ARRAY_SORT_TXT__}
+
+{#include <sys.txt>}
 
 {#define _DEFINE_ARRAY_BUBBLESORT_DATATYPE(datatype) $
 	${doc バブルソート datatype$} $

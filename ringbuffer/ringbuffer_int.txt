@@ -1,5 +1,5 @@
-{#include "./ringbuffer_header.txt"}
+{#include "ringbuffer_header.txt"}
 
 {#define RingBufferItemType int}
-{#include "./ringbuffer_body.txt"}
+{#include "ringbuffer_body.txt"}
 {#undef  RingBufferItemType}

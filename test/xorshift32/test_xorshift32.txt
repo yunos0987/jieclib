@@ -1,11 +1,11 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/xorshift32/test_xorshift32.txt -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/xorshift32/test_xorshift32.xml -t omron
- * $ jiecc ./test/xorshift32/test_xorshift32.txt -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/xorshift32/test_xorshift32.xml -t keyence
+ * $ jiecc ./test/xorshift32/test_xorshift32.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/xorshift32/test_xorshift32.xml -t omron
+ * or
+ * $ jiecc ./test/xorshift32/test_xorshift32.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/xorshift32/test_xorshift32.xml -t keyence
  *)
 {#include <jiecunit.txt>}
-
-{#include "./../../xorshift32/xorshift32.txt"}
+{#include <xorshift32/xorshift32.txt>}
 
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(

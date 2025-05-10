@@ -1,11 +1,12 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./stats/stats.txt -I. -o ./stats/stats.xml -t omron
- * $ jiecc ./stats/stats.txt -I. -o ./stats/stats.xml -t keyence
+ * $ jiecc ./stats/stats.txt -I. -I./vendor/jiecunit/sys -o ./stats/stats.xml -t omron
+ * $ jiecc ./stats/stats.txt -I. -I./vendor/jiecunit/sys -o ./stats/stats.xml -t keyence
  *)
 {#ifndef __STATS_STATS_TXT__}
 {#define __STATS_STATS_TXT__}
 
+{#include <sys.txt>}
 {#include <array/array.txt>}
 
 {doc サンプルサイズ}

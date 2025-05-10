@@ -1,11 +1,11 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/string_lib/test_string_lib.txt -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/string_lib/test_string_lib.xml -t omron
- * $ jiecc ./test/string_lib/test_string_lib.txt -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/string_lib/test_string_lib.xml -t keyence
+ * $ jiecc ./test/string_lib/test_string_lib.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/string_lib/test_string_lib.xml -t omron
+ * or
+ * $ jiecc ./test/string_lib/test_string_lib.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/string_lib/test_string_lib.xml -t keyence
  *)
 {#include <jiecunit.txt>}
-
-{#include "./../../string_lib/string_lib.txt"}
+{#include <string_lib/string_lib.txt>}
 
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(

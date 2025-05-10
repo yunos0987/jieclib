@@ -1,6 +1,8 @@
 {#ifndef __RINGBUFFER_HEADER_TXT__}
 {#define __RINGBUFFER_HEADER_TXT__}
 
+{#include <sys.txt>}
+
 {#define _RINGBUFFER_INIT_(T)    RingBuffer_@@T@@_init}
 {#define _RINGBUFFER_ENQUEUE_(T) RingBuffer_@@T@@_enqueue}
 {#define _RINGBUFFER_DEQUEUE_(T) RingBuffer_@@T@@_dequeue}

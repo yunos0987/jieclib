@@ -1,11 +1,13 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./string_lib/string_lib.txt -o ./string_lib/string_lib.xml -t omron
- * $ jiecc ./string_lib/string_lib.txt -o ./string_lib/string_lib.xml -t keyence
+ * $ jiecc ./string_lib/string_lib.txt -I. -I./vendor/jiecunit/sys -o ./string_lib/string_lib.xml -t omron
+ * or
+ * $ jiecc ./string_lib/string_lib.txt -I. -I./vendor/jiecunit/sys -o ./string_lib/string_lib.xml -t keyence
  *)
-
 {#ifndef __STRING_LIB_TXT__}
 {#define __STRING_LIB_TXT__}
+
+{#include <sys.txt>}
 
 {#define CHAR_MAX_BYTE 4}
 {#define STRING string[STRING_MAX_SIZE]}

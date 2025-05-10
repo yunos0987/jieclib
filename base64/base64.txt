@@ -1,12 +1,12 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./base64/base64.txt -Istring_lib -o ./base64/base64.xml -t omron
+ * $ jiecc ./base64/base64.txt -I. -I./vendor/jiecunit/sys -o ./base64/base64.xml -t omron
  *)
-
 {#ifndef __BASE_64_TXT__}
 {#define __BASE_64_TXT__}
 
-{#include <string_lib.txt>}
+{#include <sys.txt>}
+{#include <string_lib/string_lib.txt>}
 
 {#define CHAR_MAX_BYTE 4}
 {#define STRING string[STRING_MAX_SIZE]}

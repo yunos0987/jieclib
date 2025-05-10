@@ -41,6 +41,8 @@ $ jiecc ./string_lib/string_lib.txt -o ./string_lib/string_lib.xml -t omron
 
 `./string_lib/string_lib.xml`が出力されます。
 
+※xmlを生成するためのコマンドは、ライブラリごとに違います。各ライブラリ（*.txt）の先頭にxmlを生成するためのコマンドを記載しています。
+
 3. 出力された`./string_lib/string_lib.xml`ををSysmac StudioのIEC 61131-10インポート機能 [ ツール | IEC 61131-10 XML | インポート ] でインポートします。
 
 ![string_lib.xmlインポート完了後の画面](./docs/screen_stringlib_import_completed.png)
@@ -51,21 +53,27 @@ $ jiecc ./string_lib/string_lib.txt -o ./string_lib/string_lib.xml -t omron
 
 JiecLibに含まれるライブラリと、IEC 61131-10 XMLを生成するためのコマンドを示します。
 
+* [array](./array)
+  * 基本的な配列操作ライブラリです。
+  * `jiecc ./array/array.txt -I. -I./vendor/jiecunit/sys -o ./array/array.xml -t omron`
 * [base64](./base64)
   * メール等で使用されているエンコード方式Base64です。
-  * `jiecc ./base64/base64.txt -Istring_lib -o ./base64/base64.xml -t omron`
+  * `jiecc ./base64/base64.txt -I. -I./vendor/jiecunit/sys -o ./base64/base64.xml -t omron`
 * [mersenne_twister](./mersenne_twister)
   * 疑似乱数生成アルゴリズムメルセンヌ・ツイスタです。
-  * `jiecc ./mersenne_twister/mersenne_twister.txt -I./vendor/jiecunit/sys -o ./mersenne_twister/mersenne_twister.xml -t omron`
+  * `jiecc ./mersenne_twister/mersenne_twister.txt -I. -I./vendor/jiecunit/sys -o ./mersenne_twister/mersenne_twister.xml -t omron`
 * [ringbuffer](./ringbuffer)
   * リングバッファです。バッファのデータ型を簡単に拡張できます。
-  * `jiecc ./ringbuffer/ringbuffer.txt -o ./ringbuffer/ringbuffer.xml -t omron`
+  * `jiecc ./ringbuffer/ringbuffer.txt -I. -I./vendor/jiecunit/sys -o ./ringbuffer/ringbuffer.xml -t omron`
+* [stats](./stats)
+  * 基本的な統計ライブラリです。
+  * `jiecc ./stats/stats.txt -I. -I./vendor/jiecunit/sys -o ./stats/stats.xml -t omron`
 * [string_lib](./string_lib)
   * 基本的な文字列操作ライブラリです。
-  * `jiecc ./string_lib/string_lib.txt -o ./string_lib/string_lib.xml -t omron`
+  * `jiecc ./string_lib/string_lib.txt -I. -I./vendor/jiecunit/sys -o ./string_lib/string_lib.xml -t omron`
 * [xorshift32](./xorshift32)
   * 疑似乱数生成アルゴリズムxorshiftです。
-  * `jiecc ./xorshift32/xorshift32.txt -I./vendor/jiecunit/sys -o ./xorshift32/xorshift32.xml -t omron`
+  * `jiecc ./xorshift32/xorshift32.txt -I. -I./vendor/jiecunit/sys -o ./xorshift32/xorshift32.xml -t omron`
 
 ## JiecLib開発者向け
 
@@ -96,7 +104,7 @@ JiecLibの単体テストに[JiecUnit](https://github.com/yunos0987/jiecunit)を
 
 ```
 $ cd jieclib
-$ jiecc ./test/string_lib/test_string_lib.txt -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/string_lib/test_string_lib.xml -t omron
+$ jiecc ./string_lib/string_lib.txt -I. -I./vendor/jiecunit/sys -o ./string_lib/string_lib.xml -t omron
 ```
 
 `./test/string_lib/test_string_lib.xml`が生成されます。
