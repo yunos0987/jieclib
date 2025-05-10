@@ -1,0 +1,156 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/test_stats.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -o ./test/stats/test_stats.xml -t omron
+ * or
+ * $ jiecc ./test/stats/test_stats.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -o ./test/stats/test_stats.xml -t keyence
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/stats.txt>}
+
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_sampleSize',
+		'test_sum',
+		'test_mean',
+		'test_variance',
+		'test_standardDeviation',
+		'test_coefficientOfVariation',
+		'test_skewness',
+		'test_kurtosis',
+		'test_geometricMean',
+		'test_harmonicMean',
+		'test_sampleVariance',
+		'test_standardError',
+		'test_median'
+	)
+)
+
+{#define EPS 1.0e-6}
+
+TEST_S(test_sampleSize)
+	var
+		x_5: array[0..4] of lreal;
+	end
+	{st}
+	EXPECT_EQ_INT32(5, sampleSize(x_5));
+	{end}
+END_TEST_S
+
+TEST_S(test_sum)
+	var
+		x_5: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
+	end
+	{st}
+	EXPECT_NEAR(20.0, sum(x_5), EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_mean)
+	var
+		x_5: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
+	end
+	{st}
+	EXPECT_NEAR(4.0, mean(x_5), EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_variance)
+	var
+		x_5: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
+	end
+	{st}
+	EXPECT_NEAR(10.0, variance(x_5), EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_standardDeviation)
+	var
+		x_5: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
+	end
+	{st}
+	EXPECT_NEAR(3.162278, standardDeviation(x_5), EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_coefficientOfVariation)
+	var
+		x_5: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
+	end
+	{st}
+	EXPECT_NEAR(0.7905694, coefficientOfVariation(x_5), EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_skewness)
+	var
+		x_5: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
+	end
+	{st}
+	EXPECT_NEAR(1.138420, skewness(x_5), EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_kurtosis)
+	var
+		x_5: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
+	end
+	{st}
+	EXPECT_NEAR(-0.2120000, kurtosis(x_5), EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_geometricMean)
+	var
+		x_5: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
+	end
+	{st}
+	EXPECT_NEAR(2.992556, geometricMean(x_5), EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_harmonicMean)
+	var
+		x_5: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
+	end
+	{st}
+	EXPECT_NEAR(2.290076, harmonicMean(x_5), EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_sampleVariance)
+	var
+		x_5: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
+	end
+	{st}
+	EXPECT_NEAR(12.50000, sampleVariance(x_5), EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_standardError)
+	var
+		x_5: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
+	end
+	{st}
+	EXPECT_NEAR(1.581139, standardError(x_5), EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_median)
+	var
+		x_5_1: array[0..4] of lreal := [5.0, 7.0, 11.0, 3.0, 2.0];
+		x_5_2: array[0..4] of lreal := [5.0, 7.0, 5.0, 3.0, 2.0];
+		x_6_1: array[0..5] of lreal := [5.0, 7.0, 11.0, 3.0, 2.0, 2.0];
+		x_6_2: array[0..5] of lreal := [5.0, 7.0, 5.0, 3.0, 2.0, 2.0];
+		//
+		w_5: array[0..4] of lreal;
+		w_6: array[0..5] of lreal;
+	end
+	{st}
+	EXPECT_EQ_LREAL(5.0, median(x_5_1, w_5));
+	EXPECT_EQ_LREAL(5.0, median(x_5_2, w_5));
+	EXPECT_EQ_LREAL(4.0, median(x_6_1, w_6));
+	EXPECT_EQ_LREAL(4.0, median(x_6_2, w_6));
+	{end}
+END_TEST_S
+
+{#undef EPS}
