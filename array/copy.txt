@@ -1,0 +1,41 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./array/copy.txt -o ./array/copy.xml -t omron
+ * $ jiecc ./array/copy.txt -o ./array/copy.xml -t keyence
+ *)
+{#ifndef __ARRAY_COPY_TXT__}
+{#define __ARRAY_COPY_TXT__}
+
+{#define _DEFINE_ARRAY_COPY_DATATYPE(datatype) $
+	function Array_copy_@@datatype $
+		_PROLOGUE_OF_FUNCTION_() $
+		var_in_out $
+			src: array[*] of datatype; $
+			dst: array[*] of datatype; $
+		end $
+		var_temp $
+			src_i_0, src_i_1: dint; $
+			dst_i_0, dst_i_1: dint; $
+			src_index, dst_index: dint; $
+		end $
+		${st$} $
+		src_i_0 := lower_bound(src, 1); $
+		src_i_1 := upper_bound(src, 1); $
+		dst_i_0 := lower_bound(dst, 1); $
+		dst_i_1 := upper_bound(dst, 1); $
+		if dst_i_1 - dst_i_0 + 1>= src_i_1 - src_i_0 + 1 then $
+			dst_index := dst_i_0; $
+			for src_index := src_i_0 to src_i_1 by 1 do $
+				dst[dst_index] := src[src_index]; $
+				dst_index := dst_index + 1; $
+			end_for; $
+		else $
+			eno := false; $
+		end_if; $
+		${end$} $
+	end $
+}
+_DEFINE_ARRAY_COPY_DATATYPE(lreal)
+_DEFINE_ARRAY_COPY_DATATYPE(dint)
+
+{#endif}

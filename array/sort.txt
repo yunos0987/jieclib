@@ -1,0 +1,49 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./array/sort.txt -o ./array/sort.xml -t omron
+ * $ jiecc ./array/sort.txt -o ./array/sort.xml -t keyence
+ *)
+{#ifndef __ARRAY_SORT_TXT__}
+{#define __ARRAY_SORT_TXT__}
+
+{#define _DEFINE_ARRAY_BUBBLESORT_DATATYPE(datatype) $
+	${doc バブルソート datatype$} $
+	function Array_bubblesort_@@datatype $
+		_PROLOGUE_OF_FUNCTION_() $
+		var_in_out $
+			self: array[*] of datatype; $
+		end $
+		var_input $
+			${doc 昇順のとき真$} $
+			ascending: bool := true; $
+		end $
+		var_temp $
+			i_0, i_1: dint; $
+			index, jndex: dint; $
+			cond: bool; $
+			tmp: datatype; $
+		end $
+		${st$} $
+		i_0 := lower_bound(self, 1); $
+		i_1 := upper_bound(self, 1); $
+		for index := i_0 to i_1 - 1 by +1 do $
+			for jndex := i_1 to index + 1 by -1 do $
+				if ascending then $
+					cond := self[jndex - 1] > self[jndex]; $
+				else $
+					cond := self[jndex - 1] < self[jndex]; $
+				end_if; $
+				if cond then $
+					tmp := self[jndex - 1]; $
+					self[jndex - 1] := self[jndex]; $
+					self[jndex] := tmp; $
+				end_if; $
+			end_for; $
+		end_for; $
+		${end$} $
+	end $
+}
+_DEFINE_ARRAY_BUBBLESORT_DATATYPE(lreal)
+_DEFINE_ARRAY_BUBBLESORT_DATATYPE(dint)
+
+{#endif}

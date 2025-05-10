@@ -1,0 +1,127 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/array/test_array.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -o ./test/array/test_array.xml -t omron
+ * or
+ * $ jiecc ./test/array/test_array.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -o ./test/array/test_array.xml -t keyence
+ *)
+{#include <jiecunit.txt>}
+{#include <array/array.txt>}
+
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_array_size',
+		'test_array_sort',
+		'test_array_copy'
+	)
+)
+
+TEST_S(test_array_size)
+	var
+		x_1: array[0..0] of lreal;
+		x_2: array[0..1] of lreal;
+		x_3: array[0..2] of lreal;
+		y_1: array[4..4] of lreal;
+		y_2: array[4..5] of lreal;
+		y_3: array[4..6] of lreal;
+	end
+	{st}
+	EXPECT_EQ_INT32(1, Array_size_lreal(x_1));
+	EXPECT_EQ_INT32(2, Array_size_lreal(x_2));
+	EXPECT_EQ_INT32(3, Array_size_lreal(x_3));
+	EXPECT_EQ_INT32(1, Array_size_lreal(y_1));
+	EXPECT_EQ_INT32(2, Array_size_lreal(y_2));
+	EXPECT_EQ_INT32(3, Array_size_lreal(y_3));
+	{end}
+END_TEST_S
+
+TEST_S(test_array_sort)
+	var
+		index: dint;
+		//
+		x_5_1: array[0..4] of lreal := [3.0, 2.0, 7.0, 2.0, 1.0];
+		x_5_2: array[0..4] of lreal := [7.0, 3.0, 2.0, 2.0, 1.0];
+		x_5_3: array[0..4] of lreal := [1.0, 2.0, 2.0, 7.0, 3.0];
+		x_5_4: array[0..4] of lreal := [2.0, 1.0, 2.0, 3.0, 7.0];
+		y_5: array[0..4] of lreal := [1.0, 2.0, 2.0, 3.0, 7.0];
+		//
+		x_5_1_reverse: array[0..4] of lreal := [3.0, 2.0, 7.0, 2.0, 1.0];
+		x_5_2_reverse: array[0..4] of lreal := [7.0, 3.0, 2.0, 2.0, 1.0];
+		x_5_3_reverse: array[0..4] of lreal := [1.0, 2.0, 2.0, 7.0, 3.0];
+		x_5_4_reverse: array[0..4] of lreal := [2.0, 1.0, 2.0, 3.0, 7.0];
+		y_5_reverse: array[0..4] of lreal := [7.0, 3.0, 2.0, 2.0, 1.0];
+		//
+		x_3: array[0..2] of lreal := [2.0, 2.0, 2.0];
+		y_3: array[0..2] of lreal := [2.0, 2.0, 2.0];
+		//
+		x_1: array[0..0] of lreal := [2.0];
+		y_1: array[0..0] of lreal := [2.0];
+		//
+		x_2: array[0..1] of lreal := [-2.0, -3.0];
+		x_2_reverse: array[0..1] of lreal := [-3.0, -2.0];
+		y_2: array[0..1] of lreal := [-3.0, -2.0];
+		y_2_reverse: array[0..1] of lreal := [-2.0, -3.0];
+	end
+	{st}
+	Array_bubblesort_lreal(x_5_1, true);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5[index], x_5_1[index]); end_for;
+	Array_bubblesort_lreal(x_5_2, true);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5[index], x_5_2[index]); end_for;
+	Array_bubblesort_lreal(x_5_3, true);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5[index], x_5_3[index]); end_for;
+	Array_bubblesort_lreal(x_5_4, true);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5[index], x_5_4[index]); end_for;
+	// reverse
+	Array_bubblesort_lreal(x_5_1_reverse, false);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5_reverse[index], x_5_1_reverse[index]); end_for;
+	Array_bubblesort_lreal(x_5_2_reverse, false);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5_reverse[index], x_5_2_reverse[index]); end_for;
+	Array_bubblesort_lreal(x_5_3_reverse, false);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5_reverse[index], x_5_3_reverse[index]); end_for;
+	Array_bubblesort_lreal(x_5_4_reverse, false);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5_reverse[index], x_5_4_reverse[index]); end_for;
+	//
+	Array_bubblesort_lreal(x_3, true);
+	for index := 0 to 2 by 1 do EXPECT_EQ_LREAL(y_3[index], x_3[index]); end_for;
+	Array_bubblesort_lreal(x_3, false);
+	for index := 0 to 2 by 1 do EXPECT_EQ_LREAL(y_3[index], x_3[index]); end_for;
+	//
+	Array_bubblesort_lreal(x_1, true);
+	for index := 0 to 0 by 1 do EXPECT_EQ_LREAL(y_1[index], x_1[index]); end_for;
+	Array_bubblesort_lreal(x_1, false);
+	for index := 0 to 0 by 1 do EXPECT_EQ_LREAL(y_1[index], x_1[index]); end_for;
+	//
+	Array_bubblesort_lreal(x_2, true);
+	for index := 0 to 1 by 1 do EXPECT_EQ_LREAL(y_2[index], x_2[index]); end_for;
+	Array_bubblesort_lreal(x_2_reverse, false);
+	for index := 0 to 1 by 1 do EXPECT_EQ_LREAL(y_2_reverse[index], x_2_reverse[index]); end_for;
+	{end}
+END_TEST_S
+
+TEST_S(test_array_copy)
+	var
+		index: dint;
+		success: bool;
+		//
+		x_3: array[0..2] of lreal := [2.0, 3.0, 5.0];
+		y_3: array[0..2] of lreal;
+		y_4: array[0..3] of lreal;
+		y_2: array[0..1] of lreal;
+	end
+	{st}
+	//
+	Array_copy_lreal(src:=x_3, dst:=y_3, eno=>success);
+	ASSERT_TRUE(success);
+	EXPECT_EQ_LREAL(2.0, y_3[0]);
+	EXPECT_EQ_LREAL(3.0, y_3[1]);
+	EXPECT_EQ_LREAL(5.0, y_3[2]);
+	//
+	Array_copy_lreal(src:=x_3, dst:=y_4, eno=>success);
+	ASSERT_TRUE(success);
+	EXPECT_EQ_LREAL(2.0, y_4[0]);
+	EXPECT_EQ_LREAL(3.0, y_4[1]);
+	EXPECT_EQ_LREAL(5.0, y_4[2]);
+	//
+	Array_copy_lreal(src:=x_3, dst:=y_2, eno=>success);
+	ASSERT_FALSE(success);
+	{end}
+END_TEST_S

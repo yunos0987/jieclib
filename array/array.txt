@@ -1,0 +1,12 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./array/array.txt -o ./array/array.xml -t omron
+ * $ jiecc ./array/array.txt -o ./array/array.xml -t keyence
+ *)
+
+{#define Array_size(self) (upper_bound(self, 1) - lower_bound(self, 1) + 1)}
+{#define Array_size_lreal(self) Array_size(self)}
+{#define Array_size_dint(self) Array_size(self)}
+
+{#include "copy.txt"}
+{#include "sort.txt"}
