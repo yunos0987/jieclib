@@ -12,6 +12,7 @@ DEFINE_CONFIGURATION(
 		'test_String_length',
 		'test_String_charAt',
 		'test_String_empty',
+		'test_String_concat',
 		'test_String_asciiCharCodeAt',
 		'test_String_fromAsciiCharCode',
 		'test_String_lower_upper',
@@ -60,6 +61,14 @@ TEST_S(test_String_empty)
 	{st}
 	EXPECT_EQ_BOOL(false, String_empty('hello'));
 	EXPECT_EQ_BOOL(true, String_empty(''));
+	{end}
+END_TEST_S
+
+TEST_S(test_String_concat)
+	{st}
+	EXPECT_EQ_STRING('abcdefghijklmnopqrstuvwxyz', String_concat('a', 'bc', 'def', 'ghij', 'klmn', 'opqrs', 'tuvwxyz'));
+	EXPECT_EQ_STRING('ab', String_concat('a', 'b'));
+	EXPECT_EQ_STRING('a', String_concat('a'));
 	{end}
 END_TEST_S
 
