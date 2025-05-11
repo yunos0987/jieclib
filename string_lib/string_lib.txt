@@ -103,18 +103,33 @@ function String_asciiCharCodeAt: dint
 	{end}
 end
 
-function String_fromAsciiCharCode: string[CHAR_MAX_BYTE + 1]
+{#define String_fromAsciiCharCode(...) _String_fromAsciiCharCode_n(__VA_ARGC__, __VA_ARGS__)}
+	{#define String_fromAsciiCharCode_1(c1) String_fromAsciiCharCode1(c1)}
+	{#define String_fromAsciiCharCode_2(c1, c2) String_concat(String_fromAsciiCharCode_1(c1), String_fromAsciiCharCode1(c2))}
+	{#define String_fromAsciiCharCode_3(c1, c2, c3) String_concat(String_fromAsciiCharCode_2(c1, c2), String_fromAsciiCharCode1(c3))}
+	{#define String_fromAsciiCharCode_4(c1, c2, c3, c4) String_concat(String_fromAsciiCharCode_3(c1, c2, c3), String_fromAsciiCharCode1(c4))}
+	{#define String_fromAsciiCharCode_5(c1, c2, c3, c4, c5) String_concat(String_fromAsciiCharCode_4(c1, c2, c3, c4), String_fromAsciiCharCode1(c5))}
+	{#define String_fromAsciiCharCode_6(c1, c2, c3, c4, c5, c6) String_concat(String_fromAsciiCharCode_5(c1, c2, c3, c4, c5), String_fromAsciiCharCode1(c6))}
+	{#define String_fromAsciiCharCode_7(c1, c2, c3, c4, c5, c6, c7) String_concat(String_fromAsciiCharCode_6(c1, c2, c3, c4, c5, c6), String_fromAsciiCharCode1(c7))}
+	{#define String_fromAsciiCharCode_8(c1, c2, c3, c4, c5, c6, c7, c8) String_concat(String_fromAsciiCharCode_7(c1, c2, c3, c4, c5, c6, c7), String_fromAsciiCharCode1(c8))}
+	{#define String_fromAsciiCharCode_9(c1, c2, c3, c4, c5, c6, c7, c8, c9) String_concat(String_fromAsciiCharCode_8(c1, c2, c3, c4, c5, c6, c7, c8), String_fromAsciiCharCode1(c9))}
+	{#define String_fromAsciiCharCode_10(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10) String_concat(String_fromAsciiCharCode_9(c1, c2, c3, c4, c5, c6, c7, c8, c9), String_fromAsciiCharCode1(c10))}
+	{#define String_fromAsciiCharCode_11(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11) String_concat(String_fromAsciiCharCode_10(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10), String_fromAsciiCharCode1(c11))}
+	{#define String_fromAsciiCharCode_12(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12) String_concat(String_fromAsciiCharCode_11(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11), String_fromAsciiCharCode1(c12))}
+	{#define String_fromAsciiCharCode_13(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13) String_concat(String_fromAsciiCharCode_12(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12), String_fromAsciiCharCode1(c13))}
+	{#define String_fromAsciiCharCode_14(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14) String_concat(String_fromAsciiCharCode_13(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13), String_fromAsciiCharCode1(c14))}
+	{#define String_fromAsciiCharCode_15(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15) String_concat(String_fromAsciiCharCode_14(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14), String_fromAsciiCharCode1(c15))}
+	{#define String_fromAsciiCharCode_16(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16) String_concat(String_fromAsciiCharCode_15(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15), String_fromAsciiCharCode1(c16))}
+	{#define _String_fromAsciiCharCode_n(n, ...) String_fromAsciiCharCode_@@n(__VA_ARGS__)}
+{doc 指定するASCII文字コードの文字を取得する}
+function String_fromAsciiCharCode1: string[CHAR_MAX_BYTE + 1]
 	{#define CODE0 16#00}
 	{#define CODE1 16#7f}
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		charcode: dint;
 	end
-{#if not (_KEYENCE)}
-	var_temp constant
-{#else}
 	var_temp
-{#endif}
 		CODE2CHAR: array[CODE0..CODE1] of string[1 + 1] := [
 			'$00', '$01', '$02', '$03', '$04', '$05', '$06', '$07', '$08', '$09', '$0A', '$0B', '$0C', '$0D', '$0E', '$0F',
 			'$10', '$11', '$12', '$13', '$14', '$15', '$16', '$17', '$18', '$19', '$1A', '$1B', '$1C', '$1D', '$1E', '$1F',
@@ -126,12 +141,7 @@ function String_fromAsciiCharCode: string[CHAR_MAX_BYTE + 1]
 			'$70', '$71', '$72', '$73', '$74', '$75', '$76', '$77', '$78', '$79', '$7A', '$7B', '$7C', '$7D', '$7E', '$7F',];
 	end
 	{st}
-	if (CODE0 <= charcode) and (charcode <= CODE1) then
-		String_fromAsciiCharCode := CODE2CHAR[charcode];
-	else
-		eno := false;
-		String_fromAsciiCharCode := '';
-	end_if;
+	String_fromAsciiCharCode1 := CODE2CHAR[charcode mod (CODE1 + 1)];
 	{end}
 	{#undef CODE0}
 	{#undef CODE1}

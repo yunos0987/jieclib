@@ -102,9 +102,6 @@ TEST_S(test_String_asciiCharCodeAt)
 END_TEST_S
 
 TEST_S(test_String_fromAsciiCharCode)
-	var
-		o: bool;
-	end
 	{st}
 	EXPECT_EQ_STRING('$00', String_fromAsciiCharCode(16#00));
 	EXPECT_EQ_STRING('$01', String_fromAsciiCharCode(16#01));
@@ -235,12 +232,8 @@ TEST_S(test_String_fromAsciiCharCode)
 	EXPECT_EQ_STRING('~', String_fromAsciiCharCode(16#7E));
 	EXPECT_EQ_STRING('$7F', String_fromAsciiCharCode(16#7F));
 	//
-	EXPECT_EQ_STRING('$61', String_fromAsciiCharCode(charcode:=16#61, eno=>o));
-	EXPECT_TRUE(o);
-	EXPECT_EQ_STRING('', String_fromAsciiCharCode(charcode:=-1, eno=>o));
-	EXPECT_FALSE(o);
-	EXPECT_EQ_STRING('', String_fromAsciiCharCode(charcode:=128, eno=>o));
-	EXPECT_FALSE(o);
+	EXPECT_EQ_STRING('ab', String_fromAsciiCharCode(16#61, 16#62));
+	EXPECT_EQ_STRING('abcdefg', String_fromAsciiCharCode(16#61, 16#62, 16#63, 16#64, 16#65, 16#66, 16#67));
 	{end}
 END_TEST_S
 
