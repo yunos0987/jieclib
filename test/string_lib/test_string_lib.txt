@@ -21,6 +21,8 @@ DEFINE_CONFIGURATION(
 		'test_String_reverse',
 		'test_String_startswith',
 		'test_String_endswith',
+		'test_String_indexOf',
+		'test_String_includes',
 		'test_String_split',
 		'test_String_substring',
 		'test_String_trim',
@@ -404,6 +406,460 @@ TEST_S(test_String_endswith)
 	//
 	//EXPECT_EQ_BOOL(false, String_endswith('⬅', '⬅⬅➡➡'));
 	//EXPECT_EQ_BOOL(true, String_endswith('➡', '⬅⬅➡➡'));
+	{end}
+END_TEST_S
+
+TEST_S(test_String_indexOf)
+	{st}
+	// 0
+	EXPECT_EQ_INT32(0, String_indexOf('hello', '', 0));
+	//
+	EXPECT_EQ_INT32(0, String_indexOf('hello', 'h', 0));
+	EXPECT_EQ_INT32(1, String_indexOf('hello', 'e', 0));
+	EXPECT_EQ_INT32(2, String_indexOf('hello', 'l', 0));
+	EXPECT_EQ_INT32(4, String_indexOf('hello', 'o', 0));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'H', 0));
+	//
+	EXPECT_EQ_INT32(0, String_indexOf('hello', 'he', 0));
+	EXPECT_EQ_INT32(1, String_indexOf('hello', 'el', 0));
+	EXPECT_EQ_INT32(2, String_indexOf('hello', 'll', 0));
+	EXPECT_EQ_INT32(3, String_indexOf('hello', 'lo', 0));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'le', 0));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'He', 0));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hE', 0));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'lO', 0));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'Lo', 0));
+	//
+	EXPECT_EQ_INT32(0, String_indexOf('hello', 'hel', 0));
+	EXPECT_EQ_INT32(1, String_indexOf('hello', 'ell', 0));
+	EXPECT_EQ_INT32(2, String_indexOf('hello', 'llo', 0));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'oll', 0));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'heL', 0));
+	//
+	EXPECT_EQ_INT32(0, String_indexOf('hello', 'hell', 0));
+	EXPECT_EQ_INT32(1, String_indexOf('hello', 'ello', 0));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'olle', 0));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'helL', 0));
+	//
+	EXPECT_EQ_INT32(0, String_indexOf('hello', 'hello', 0));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'olleh', 0));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hellO', 0));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'Hello', 0));
+	//
+	EXPECT_EQ_INT32(0, String_indexOf('', '', 0));
+	EXPECT_EQ_INT32(-1, String_indexOf('', 'a', 0));
+	// 1
+	EXPECT_EQ_INT32(1, String_indexOf('hello', '', 1));
+	//
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'h', 1));
+	EXPECT_EQ_INT32(1, String_indexOf('hello', 'e', 1));
+	EXPECT_EQ_INT32(2, String_indexOf('hello', 'l', 1));
+	EXPECT_EQ_INT32(4, String_indexOf('hello', 'o', 1));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'H', 1));
+	//
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'he', 1));
+	EXPECT_EQ_INT32(1, String_indexOf('hello', 'el', 1));
+	EXPECT_EQ_INT32(2, String_indexOf('hello', 'll', 1));
+	EXPECT_EQ_INT32(3, String_indexOf('hello', 'lo', 1));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'le', 1));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'He', 1));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hE', 1));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'lO', 1));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'Lo', 1));
+	//
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hel', 1));
+	EXPECT_EQ_INT32(1, String_indexOf('hello', 'ell', 1));
+	EXPECT_EQ_INT32(2, String_indexOf('hello', 'llo', 1));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'oll', 1));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'heL', 1));
+	//
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hell', 1));
+	EXPECT_EQ_INT32(1, String_indexOf('hello', 'ello', 1));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'olle', 1));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'helL', 1));
+	//
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hello', 1));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'olleh', 1));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hellO', 1));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'Hello', 1));
+	//
+	EXPECT_EQ_INT32(1, String_indexOf('', '', 1));
+	EXPECT_EQ_INT32(-1, String_indexOf('', 'a', 1));
+	// 2
+	EXPECT_EQ_INT32(2, String_indexOf('hello', '', 2));
+	//
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'h', 2));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'e', 2));
+	EXPECT_EQ_INT32(2, String_indexOf('hello', 'l', 2));
+	EXPECT_EQ_INT32(4, String_indexOf('hello', 'o', 2));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'H', 2));
+	//
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'he', 2));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'el', 2));
+	EXPECT_EQ_INT32(2, String_indexOf('hello', 'll', 2));
+	EXPECT_EQ_INT32(3, String_indexOf('hello', 'lo', 2));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'le', 2));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'He', 2));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hE', 2));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'lO', 2));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'Lo', 2));
+	//
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hel', 2));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'ell', 2));
+	EXPECT_EQ_INT32(2, String_indexOf('hello', 'llo', 2));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'oll', 2));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'heL', 2));
+	//
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hell', 2));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'ello', 2));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'olle', 2));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'helL', 2));
+	//
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hello', 2));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'olleh', 2));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hellO', 2));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'Hello', 2));
+	//
+	EXPECT_EQ_INT32(2, String_indexOf('', '', 2));
+	EXPECT_EQ_INT32(-1, String_indexOf('', 'a', 2));
+	// 3
+	EXPECT_EQ_INT32(3, String_indexOf('hello', '', 3));
+	//
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'h', 3));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'e', 3));
+	EXPECT_EQ_INT32(3, String_indexOf('hello', 'l', 3));
+	EXPECT_EQ_INT32(4, String_indexOf('hello', 'o', 3));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'H', 3));
+	//
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'he', 3));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'el', 3));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'll', 3));
+	EXPECT_EQ_INT32(3, String_indexOf('hello', 'lo', 3));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'le', 3));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'He', 3));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hE', 3));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'lO', 3));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'Lo', 3));
+	//
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hel', 3));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'ell', 3));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'llo', 3));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'oll', 3));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'heL', 3));
+	//
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hell', 3));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'ello', 3));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'olle', 3));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'helL', 3));
+	//
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hello', 3));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'olleh', 3));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hellO', 3));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'Hello', 3));
+	//
+	EXPECT_EQ_INT32(3, String_indexOf('', '', 3));
+	EXPECT_EQ_INT32(-1, String_indexOf('', 'a', 3));
+	// 4
+	EXPECT_EQ_INT32(4, String_indexOf('hello', '', 4));
+	//
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'h', 4));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'e', 4));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'l', 4));
+	EXPECT_EQ_INT32(4, String_indexOf('hello', 'o', 4));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'H', 4));
+	//
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'he', 4));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'el', 4));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'll', 4));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'lo', 4));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'le', 4));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'He', 4));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hE', 4));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'lO', 4));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'Lo', 4));
+	//
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hel', 4));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'ell', 4));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'llo', 4));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'oll', 4));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'heL', 4));
+	//
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hell', 4));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'ello', 4));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'olle', 4));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'helL', 4));
+	//
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hello', 4));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'olleh', 4));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hellO', 4));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'Hello', 4));
+	//
+	EXPECT_EQ_INT32(4, String_indexOf('', '', 4));
+	EXPECT_EQ_INT32(-1, String_indexOf('', 'a', 4));
+	// 5
+	EXPECT_EQ_INT32(5, String_indexOf('hello', '', 5));
+	//
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'h', 5));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'e', 5));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'l', 5));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'o', 5));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'H', 5));
+	//
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'he', 5));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'el', 5));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'll', 5));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'lo', 5));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'le', 5));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'He', 5));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hE', 5));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'lO', 5));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'Lo', 5));
+	//
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hel', 5));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'ell', 5));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'llo', 5));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'oll', 5));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'heL', 5));
+	//
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hell', 5));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'ello', 5));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'olle', 5));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'helL', 5));
+	//
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hello', 5));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'olleh', 5));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'hellO', 5));
+	EXPECT_EQ_INT32(-1, String_indexOf('hello', 'Hello', 5));
+	//
+	EXPECT_EQ_INT32(5, String_indexOf('', '', 5));
+	EXPECT_EQ_INT32(-1, String_indexOf('', 'a', 5));
+	{end}
+END_TEST_S
+
+TEST_S(test_String_includes)
+	{st}
+	// 0
+	EXPECT_EQ_BOOL(true, String_includes('hello', '', 0));
+	//
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'h', 0));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'e', 0));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'l', 0));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'o', 0));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'H', 0));
+	//
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'he', 0));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'el', 0));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'll', 0));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'lo', 0));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'le', 0));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'He', 0));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hE', 0));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'lO', 0));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'Lo', 0));
+	//
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'hel', 0));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'ell', 0));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'llo', 0));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'oll', 0));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'heL', 0));
+	//
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'hell', 0));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'ello', 0));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'olle', 0));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'helL', 0));
+	//
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'hello', 0));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'olleh', 0));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hellO', 0));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'Hello', 0));
+	//
+	EXPECT_EQ_BOOL(true, String_includes('', '', 0));
+	EXPECT_EQ_BOOL(false, String_includes('', 'a', 0));
+	// 1
+	EXPECT_EQ_BOOL(true, String_includes('hello', '', 1));
+	//
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'h', 1));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'e', 1));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'l', 1));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'o', 1));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'H', 1));
+	//
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'he', 1));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'el', 1));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'll', 1));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'lo', 1));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'le', 1));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'He', 1));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hE', 1));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'lO', 1));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'Lo', 1));
+	//
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hel', 1));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'ell', 1));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'llo', 1));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'oll', 1));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'heL', 1));
+	//
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hell', 1));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'ello', 1));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'olle', 1));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'helL', 1));
+	//
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hello', 1));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'olleh', 1));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hellO', 1));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'Hello', 1));
+	//
+	EXPECT_EQ_BOOL(true, String_includes('', '', 1));
+	EXPECT_EQ_BOOL(false, String_includes('', 'a', 1));
+	// 2
+	EXPECT_EQ_BOOL(true, String_includes('hello', '', 2));
+	//
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'h', 2));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'e', 2));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'l', 2));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'o', 2));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'H', 2));
+	//
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'he', 2));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'el', 2));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'll', 2));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'lo', 2));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'le', 2));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'He', 2));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hE', 2));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'lO', 2));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'Lo', 2));
+	//
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hel', 2));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'ell', 2));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'llo', 2));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'oll', 2));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'heL', 2));
+	//
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hell', 2));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'ello', 2));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'olle', 2));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'helL', 2));
+	//
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hello', 2));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'olleh', 2));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hellO', 2));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'Hello', 2));
+	//
+	EXPECT_EQ_BOOL(true, String_includes('', '', 2));
+	EXPECT_EQ_BOOL(false, String_includes('', 'a', 2));
+	// 3
+	EXPECT_EQ_BOOL(true, String_includes('hello', '', 3));
+	//
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'h', 3));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'e', 3));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'l', 3));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'o', 3));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'H', 3));
+	//
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'he', 3));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'el', 3));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'll', 3));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'lo', 3));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'le', 3));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'He', 3));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hE', 3));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'lO', 3));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'Lo', 3));
+	//
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hel', 3));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'ell', 3));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'llo', 3));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'oll', 3));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'heL', 3));
+	//
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hell', 3));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'ello', 3));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'olle', 3));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'helL', 3));
+	//
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hello', 3));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'olleh', 3));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hellO', 3));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'Hello', 3));
+	//
+	EXPECT_EQ_BOOL(true, String_includes('', '', 3));
+	EXPECT_EQ_BOOL(false, String_includes('', 'a', 3));
+	// 4
+	EXPECT_EQ_BOOL(true, String_includes('hello', '', 4));
+	//
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'h', 4));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'e', 4));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'l', 4));
+	EXPECT_EQ_BOOL(true, String_includes('hello', 'o', 4));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'H', 4));
+	//
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'he', 4));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'el', 4));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'll', 4));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'lo', 4));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'le', 4));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'He', 4));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hE', 4));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'lO', 4));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'Lo', 4));
+	//
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hel', 4));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'ell', 4));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'llo', 4));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'oll', 4));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'heL', 4));
+	//
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hell', 4));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'ello', 4));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'olle', 4));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'helL', 4));
+	//
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hello', 4));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'olleh', 4));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hellO', 4));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'Hello', 4));
+	//
+	EXPECT_EQ_BOOL(true, String_includes('', '', 4));
+	EXPECT_EQ_BOOL(false, String_includes('', 'a', 4));
+	// 5
+	EXPECT_EQ_BOOL(true, String_includes('hello', '', 5));
+	//
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'h', 5));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'e', 5));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'l', 5));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'o', 5));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'H', 5));
+	//
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'he', 5));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'el', 5));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'll', 5));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'lo', 5));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'le', 5));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'He', 5));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hE', 5));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'lO', 5));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'Lo', 5));
+	//
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hel', 5));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'ell', 5));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'llo', 5));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'oll', 5));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'heL', 5));
+	//
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hell', 5));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'ello', 5));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'olle', 5));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'helL', 5));
+	//
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hello', 5));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'olleh', 5));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'hellO', 5));
+	EXPECT_EQ_BOOL(false, String_includes('hello', 'Hello', 5));
+	//
+	EXPECT_EQ_BOOL(true, String_includes('', '', 5));
+	EXPECT_EQ_BOOL(false, String_includes('', 'a', 5));
 	{end}
 END_TEST_S
 

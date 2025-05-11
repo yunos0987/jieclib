@@ -351,6 +351,62 @@ function String_endswith: bool
 	{end}
 end
 
+{doc 指定の文字列を含む位置を取得する}
+function String_indexOf: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: STRING;
+		searchString: STRING;
+		position: dint := 0;
+	end
+	var_temp
+		p, q: dint;
+		l: dint;
+		str: STRING;
+	end
+	{st}
+	p := max(0, position);
+	if searchString <> '' then
+		l := len(self);
+		if (0 <= p) and (p < l) then
+			if p = 0 then
+				q := find(self, searchString);
+				if q <> 0 then
+					String_indexOf := q - 1;
+				else
+					String_indexOf := -1;
+				end_if;
+			else
+				str := mid(self, dint_to_uint(l - p), dint_to_uint(p + 1));
+				q := find(str, searchString);
+				if q <> 0 then
+					String_indexOf := p + q - 1;
+				else
+					String_indexOf := -1;
+				end_if;
+			end_if;
+		else
+			String_indexOf := -1;
+		end_if;
+	else
+		String_indexOf := p;
+	end_if;
+	{end}
+end
+
+{doc 指定の文字列を含むか調べる}
+function String_includes: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: STRING;
+		searchString: STRING;
+		position: dint := 0;
+	end
+	{st}
+	String_includes := String_indexOf(self, searchString, position) <> -1;
+	{end}
+end
+
 {doc 文字列を指定文字列で分割する}
 function String_split: dint
 	_PROLOGUE_OF_FUNCTION_()
