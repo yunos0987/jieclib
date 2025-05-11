@@ -12,6 +12,17 @@
 {#define CHAR_MAX_BYTE 4}
 {#define STRING string[STRING_MAX_SIZE]}
 
+{doc 文字列の長さを取得する}
+function String_length: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: STRING;
+	end
+	{st}
+	String_length := len(self);
+	{end}
+end
+
 function String_charAt: string[CHAR_MAX_BYTE + 1]
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
