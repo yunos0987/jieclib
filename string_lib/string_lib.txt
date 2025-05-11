@@ -31,7 +31,7 @@ function String_charAt: string[CHAR_MAX_BYTE + 1]
 		p: dint := 0;
 	end
 	{st}
-	if (0 <= p) and (p < len(self)) then
+	if (0 <= p) and (p < uint_to_dint(len(self))) then
 		String_charAt := mid(self, 1, dint_to_uint(p + 1));
 	else
 		String_charAt := '';
