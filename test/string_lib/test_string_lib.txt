@@ -9,6 +9,7 @@
 
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
+		'test_String_length',
 		'test_String_charAt',
 		'test_String_asciiCharCodeAt',
 		'test_String_fromAsciiCharCode',
@@ -23,6 +24,13 @@ DEFINE_CONFIGURATION(
 		'test_String_substitute'
 	)
 )
+
+TEST_S(test_String_length)
+	{st}
+	EXPECT_EQ_INT32(5, String_length('hello'));
+	EXPECT_EQ_INT32(0, String_length(''));
+	{end}
+END_TEST_S
 
 TEST_S(test_String_charAt)
 	{st}
