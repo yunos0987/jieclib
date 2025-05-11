@@ -391,6 +391,38 @@ function String_split: dint
 	{end}
 end
 
+{doc 開始インデクスと終了インデクスを指定して、文字列の部分を取得する}
+function String_substring: STRING
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: STRING;
+		indexStart: dint;
+		indexEnd: dint := __DINT_MAX__;
+	end
+	var_temp
+		l: dint;
+		i_0, i_1: dint;
+		temp: dint;
+	end
+	{st}
+	l := len(self);
+	i_0 := max(0, indexStart);
+	i_0 := min(l, i_0); // memo: omron bug; min(l, max(0, indexStart));
+	i_1 := max(0, indexEnd);
+	i_1 := min(l, i_1); // memo: omron bug; min(l, max(0, indexEnd))
+	if i_0 > i_1 then
+		temp := i_0;
+		i_0 := i_1;
+		i_1 := temp;
+	end_if;
+	if i_0 <> i_1 then
+		String_substring := mid(self, dint_to_uint(i_1 - i_0), dint_to_uint(i_0 + 1));
+	else
+		String_substring := '';
+	end_if;
+	{end}
+end
+
 {doc 両端の空白を削除する}
 function String_trim: STRING
 	_PROLOGUE_OF_FUNCTION_()

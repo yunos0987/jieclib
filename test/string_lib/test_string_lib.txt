@@ -21,6 +21,7 @@ DEFINE_CONFIGURATION(
 		'test_String_startswith',
 		'test_String_endswith',
 		'test_String_split',
+		'test_String_substring',
 		'test_String_trim',
 		'test_String_join',
 		'test_String_substitute'
@@ -461,6 +462,29 @@ TEST_S(test_String_split)
 	EXPECT_EQ_STRING('b', outputs[1]);
 	EXPECT_EQ_STRING('c', outputs[2]);
 	EXPECT_EQ_STRING('d', outputs[3]);
+	{end}
+END_TEST_S
+
+TEST_S(test_String_substring)
+	{st}
+	EXPECT_EQ_STRING('h', String_substring('hello', 0, 1));
+	EXPECT_EQ_STRING('h', String_substring('hello', 1, 0));
+	EXPECT_EQ_STRING('hell', String_substring('hello', 0, 4));
+	EXPECT_EQ_STRING('llo', String_substring(self:='hello', indexStart:=2));
+	EXPECT_EQ_STRING('llo', String_substring('hello', 2, 5));
+	EXPECT_EQ_STRING('llo', String_substring('hello', 5, 2));
+	EXPECT_EQ_STRING('hello', String_substring('hello', 0, 5));
+	EXPECT_EQ_STRING('hello', String_substring('hello', 0, 8));
+	//
+	EXPECT_EQ_STRING('he', String_substring('hello', -5, 2)); // -5 -> 0
+	EXPECT_EQ_STRING('he', String_substring('hello', 2, -5)); // -5 -> 0
+	//
+	EXPECT_EQ_STRING('', String_substring('hello', 0, 0));
+	EXPECT_EQ_STRING('', String_substring('hello', 1, 1));
+	EXPECT_EQ_STRING('', String_substring('hello', 5, 5));
+	//
+	EXPECT_EQ_STRING('', String_substring('', 0, 1));
+	EXPECT_EQ_STRING('', String_substring('', 0, 0));
 	{end}
 END_TEST_S
 
