@@ -50,6 +50,26 @@ function String_empty: bool
 	{end}
 end
 
+// 文字列を結合する
+{#define String_concat(...) _String_concat_n(__VA_ARGC__, __VA_ARGS__)}
+	{#define String_concat_1(s1) s1}
+	{#define String_concat_2(s1, s2) concat(s1, s2)}
+	{#define String_concat_3(s1, s2, s3) concat(String_concat_2(s1, s2), s3)}
+	{#define String_concat_4(s1, s2, s3, s4) concat(String_concat_3(s1, s2, s3), s4)}
+	{#define String_concat_5(s1, s2, s3, s4, s5) concat(String_concat_4(s1, s2, s3, s4), s5)}
+	{#define String_concat_6(s1, s2, s3, s4, s5, s6) concat(String_concat_5(s1, s2, s3, s4, s5), s6)}
+	{#define String_concat_7(s1, s2, s3, s4, s5, s6, s7) concat(String_concat_6(s1, s2, s3, s4, s5, s6), s7)}
+	{#define String_concat_8(s1, s2, s3, s4, s5, s6, s7, s8) concat(String_concat_7(s1, s2, s3, s4, s5, s6, s7), s8)}
+	{#define String_concat_9(s1, s2, s3, s4, s5, s6, s7, s8, s9) concat(String_concat_8(s1, s2, s3, s4, s5, s6, s7, s8), s9)}
+	{#define String_concat_10(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10) concat(String_concat_9(s1, s2, s3, s4, s5, s6, s7, s8, s9), s10)}
+	{#define String_concat_11(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11) concat(String_concat_10(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10), s11)}
+	{#define String_concat_12(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12) concat(String_concat_11(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11), s12)}
+	{#define String_concat_13(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13) concat(String_concat_12(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12), s13)}
+	{#define String_concat_14(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14) concat(String_concat_13(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13), s14)}
+	{#define String_concat_15(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15) concat(String_concat_14(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14), s15)}
+	{#define String_concat_16(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16) concat(String_concat_15(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15), s16)}
+	{#define _String_concat_n(n, ...) String_concat_@@n(__VA_ARGS__)}
+
 function String_asciiCharCodeAt: dint
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
