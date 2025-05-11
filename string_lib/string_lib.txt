@@ -39,6 +39,17 @@ function String_charAt: string[CHAR_MAX_BYTE + 1]
 	{end}
 end
 
+{doc 空文字列か調べる}
+function String_empty: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: STRING;
+	end
+	{st}
+	String_empty := self = ''; // eq('', self), len(self) = 0
+	{end}
+end
+
 function String_asciiCharCodeAt: dint
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
