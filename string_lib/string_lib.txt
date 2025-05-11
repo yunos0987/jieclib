@@ -23,6 +23,7 @@ function String_length: dint
 	{end}
 end
 
+{doc 指定位置の文字を取得する}
 function String_charAt: string[CHAR_MAX_BYTE + 1]
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
@@ -70,6 +71,7 @@ end
 	{#define String_concat_16(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16) concat(String_concat_15(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15), s16)}
 	{#define _String_concat_n(n, ...) String_concat_@@n(__VA_ARGS__)}
 
+{doc 指定位置のASCII文字コードを取得する}
 function String_asciiCharCodeAt: dint
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
@@ -91,7 +93,7 @@ function String_asciiCharCodeAt: dint
 	{st}
 	c_x := String_charAt(self, p);
 	if c_x <> '' then
-	    // note: Poor performance. Should be optimize.
+		// note: Poor performance. Should be optimize.
 		for asciicode := 1 to 127 by 1 do
 			if c_x = String_charAt(ASCIIs, asciicode - 1) then
 				String_asciiCharCodeAt := asciicode;
@@ -147,6 +149,7 @@ function String_fromAsciiCharCode1: string[CHAR_MAX_BYTE + 1]
 	{#undef CODE1}
 end
 
+{doc 小文字へ変換する}
 function String_lower: STRING
 	{#define CHARCODE_A 16#41}
 	{#define CHARCODE_Z 16#5a}
@@ -180,6 +183,7 @@ function String_lower: STRING
 end
 {#define String_toLowerCase String_lower}
 
+{doc 大文字へ変換する}
 function String_upper: STRING
 	{#define CHARCODE_a 16#61}
 	{#define CHARCODE_z 16#7a}
@@ -213,6 +217,7 @@ function String_upper: STRING
 end
 {#define String_toUpperCase String_upper}
 
+{doc 指定の文字列を削除する}
 function String_remove: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
@@ -255,6 +260,7 @@ function String_remove: STRING
 	{end}
 end
 
+{doc 文字列を逆順に並び替える}
 function String_reverse: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
@@ -271,6 +277,7 @@ function String_reverse: STRING
 	{end}
 end
 
+{doc 指定の文字列で始まるか調べる}
 function String_startswith: bool
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
@@ -294,6 +301,7 @@ function String_startswith: bool
 	{end}
 end
 
+{doc 指定の文字列で終わるか調べる}
 function String_endswith: bool
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
@@ -317,6 +325,7 @@ function String_endswith: bool
 	{end}
 end
 
+{doc 文字列を指定文字列で分割する}
 function String_split: dint
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
@@ -382,19 +391,14 @@ function String_split: dint
 	{end}
 end
 
+{doc 両端の空白を削除する}
 function String_trim: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
 	end
-{#if not (_KEYENCE)}
-	var_temp constant
-{#else}
 	var_temp
-{#endif}
 		WHITESPACES: array[4] of string[2] := [' ', '$t', '$r', '$n'];
-	end
-	var_temp
 		l, i_0, i_1: dint;
 		index, jndex: dint;
 		c_x: string[2];
@@ -448,19 +452,14 @@ function String_trim: STRING
 	{end}
 end
 
+{doc 左端の空白を削除する}
 function String_ltrim: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
 	end
-{#if not (_KEYENCE)}
-	var_temp constant
-{#else}
 	var_temp
-{#endif}
 		WHITESPACES: array[4] of string[2] := [' ', '$t', '$r', '$n'];
-	end
-	var_temp
 		l: dint;
 		p: dint:= 1;
 		index, jndex: dint;
@@ -498,19 +497,14 @@ function String_ltrim: STRING
 	{end}
 end
 
+{doc 右端の空白を削除する}
 function String_rtrim: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
 	end
-{#if not (_KEYENCE)}
-	var_temp constant
-{#else}
 	var_temp
-{#endif}
 		WHITESPACES: array[4] of string[2] := [' ', '$t', '$r', '$n'];
-	end
-	var_temp
 		l, p: dint;
 		index, jndex: dint;
 		c_x: string[2];
@@ -548,6 +542,7 @@ function String_rtrim: STRING
 	{end}
 end
 
+{doc 文字列型配列を指定文字列で結合する}
 function String_join: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
@@ -569,13 +564,18 @@ function String_join: STRING
 	{end}
 end
 
+{doc 指定の文字列を置換する}
 function String_substitute: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
-		self: STRING; // 入力文字列
-		old: STRING; // 置換前文字列
-		new: STRING; // 置換後文字列
-		count: dint := -1; // 最大置換回数
+		{doc 入力文字列}
+		self: STRING;
+		{doc 置換前文字列}
+		old: STRING;
+		{doc 置換後文字列}
+		new: STRING;
+		{doc 最大置換回数。-1: 制限なし}
+		count: dint := -1;
 	end
 	var_temp
 		old_len: dint;
