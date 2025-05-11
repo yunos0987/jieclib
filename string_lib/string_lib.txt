@@ -12,27 +12,23 @@
 {#define CHAR_MAX_BYTE 4}
 {#define STRING string[STRING_MAX_SIZE]}
 
-function charAt: string[CHAR_MAX_BYTE + 1]
+function String_charAt: string[CHAR_MAX_BYTE + 1]
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
 		{doc: 0 origin.}
 		p: dint := 0;
 	end
-	var_temp
-		l: dint;
-	end
 	{st}
-	l := len(self);
-	if (0 <= p) and (p < l) then
-		charAt := mid(self, 1, dint_to_uint(p + 1));
+	if (0 <= p) and (p < len(self)) then
+		String_charAt := mid(self, 1, dint_to_uint(p + 1));
 	else
-		charAt := '';
+		String_charAt := '';
 	end_if;
 	{end}
 end
 
-function asciiCharCodeAt: dint
+function String_asciiCharCodeAt: dint
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
@@ -51,21 +47,21 @@ function asciiCharCodeAt: dint
 			'`abcdefghijklmnopqrstuvwxyz{|}~$7F' constant;
 	end
 	{st}
-	c_x := charAt(self, p);
+	c_x := String_charAt(self, p);
 	if c_x <> '' then
 	    // note: Poor performance. Should be optimize.
 		for asciicode := 1 to 127 by 1 do
-			if c_x = charAt(ASCIIs, asciicode - 1) then
-				asciiCharCodeAt := asciicode;
+			if c_x = String_charAt(ASCIIs, asciicode - 1) then
+				String_asciiCharCodeAt := asciicode;
 				return;
 			end_if;
 		end_for;
 	end_if;
-	asciiCharCodeAt := -1;
+	String_asciiCharCodeAt := -1;
 	{end}
 end
 
-function fromAsciiCharCode: string[CHAR_MAX_BYTE + 1]
+function String_fromAsciiCharCode: string[CHAR_MAX_BYTE + 1]
 	{#define CODE0 16#00}
 	{#define CODE1 16#7f}
 	_PROLOGUE_OF_FUNCTION_()
@@ -89,17 +85,17 @@ function fromAsciiCharCode: string[CHAR_MAX_BYTE + 1]
 	end
 	{st}
 	if (CODE0 <= charcode) and (charcode <= CODE1) then
-		fromAsciiCharCode := CODE2CHAR[charcode];
+		String_fromAsciiCharCode := CODE2CHAR[charcode];
 	else
 		eno := false;
-		fromAsciiCharCode := '';
+		String_fromAsciiCharCode := '';
 	end_if;
 	{end}
 	{#undef CODE0}
 	{#undef CODE1}
 end
 
-function lower: STRING
+function String_lower: STRING
 	{#define CHARCODE_A 16#41}
 	{#define CHARCODE_Z 16#5a}
 	{#define DIFF_CHARCODE_U2L 16#20}
@@ -113,16 +109,16 @@ function lower: STRING
 		code: dint;
 	end
 	{st}
-	lower := '';
+	String_lower := '';
 	l := len(self);
 	for index := 0 to l - 1 by 1 do
-		c_x := charAt(self, index);
-		code := asciiCharCodeAt(c_x, 0);
+		c_x := String_charAt(self, index);
+		code := String_asciiCharCodeAt(c_x, 0);
 		if (CHARCODE_A <= code) and (code <= CHARCODE_Z) then
-			d_x := fromAsciiCharCode(code + DIFF_CHARCODE_U2L);
-			lower := concat(lower, d_x);
+			d_x := String_fromAsciiCharCode(code + DIFF_CHARCODE_U2L);
+			String_lower := concat(String_lower, d_x);
 		else
-			lower := concat(lower, c_x);
+			String_lower := concat(String_lower, c_x);
 		end_if;
 	end_for;
 	{end}
@@ -130,9 +126,9 @@ function lower: STRING
 	{#undef CHARCODE_Z}
 	{#undef DIFF_CHARCODE_U2L}
 end
-{#define toLowerCase lower}
+{#define String_toLowerCase String_lower}
 
-function upper: STRING
+function String_upper: STRING
 	{#define CHARCODE_a 16#61}
 	{#define CHARCODE_z 16#7a}
 	{#define DIFF_CHARCODE_U2L 16#20}
@@ -146,16 +142,16 @@ function upper: STRING
 		code: dint;
 	end
 	{st}
-	upper := '';
+	String_upper := '';
 	l := len(self);
 	for index := 0 to l - 1 by 1 do
-		c_x := charAt(self, index);
-		code := asciiCharCodeAt(c_x, 0);
+		c_x := String_charAt(self, index);
+		code := String_asciiCharCodeAt(c_x, 0);
 		if (CHARCODE_a <= code) and (code <= CHARCODE_z) then
-			d_x := fromAsciiCharCode(code - DIFF_CHARCODE_U2L);
-			upper := concat(upper, d_x);
+			d_x := String_fromAsciiCharCode(code - DIFF_CHARCODE_U2L);
+			String_upper := concat(String_upper, d_x);
 		else
-			upper := concat(upper, c_x);
+			String_upper := concat(String_upper, c_x);
 		end_if;
 	end_for;
 	{end}
@@ -163,9 +159,9 @@ function upper: STRING
 	{#undef CHARCODE_z}
 	{#undef DIFF_CHARCODE_U2L}
 end
-{#define toUpperCase upper}
+{#define String_toUpperCase String_upper}
 
-function remove: STRING
+function String_remove: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		{doc: 入力文字列}
@@ -203,11 +199,11 @@ function remove: STRING
 		r_str := concat(r_str, h_str);
 		c_x := c_x - 1;
 	end_while;
-	remove := concat(r_str, t_str);
+	String_remove := concat(r_str, t_str);
 	{end}
 end
 
-function reverse: STRING
+function String_reverse: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
@@ -216,14 +212,14 @@ function reverse: STRING
 		p: dint;
 	end
 	{st}
-	reverse := '';
+	String_reverse := '';
 	for p := len(self) to 1 by -1 do
-		reverse := concat(reverse, mid(self, 1, dint_to_uint(p)));
+		String_reverse := concat(String_reverse, mid(self, 1, dint_to_uint(p)));
 	end_for;
 	{end}
 end
 
-function startswith: bool
+function String_startswith: bool
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
@@ -236,17 +232,17 @@ function startswith: bool
 	m := len(prefix);
 	if m <> 0 then
 		if uint_to_dint(len(self)) >= m then
-			startswith := prefix = left(self, dint_to_uint(m));
+			String_startswith := prefix = left(self, dint_to_uint(m));
 		else
-			startswith := false;
+			String_startswith := false;
 		end_if;
 	else
-		startswith := true;
+		String_startswith := true;
 	end_if;
 	{end}
 end
 
-function endswith: bool
+function String_endswith: bool
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
@@ -259,17 +255,17 @@ function endswith: bool
 	m := len(suffix);
 	if m <> 0 then
 		if uint_to_dint(len(self)) >= m then
-			endswith := suffix = right(self, dint_to_uint(m));
+			String_endswith := suffix = right(self, dint_to_uint(m));
 		else
-			endswith := false;
+			String_endswith := false;
 		end_if;
 	else
-		endswith := true;
+		String_endswith := true;
 	end_if;
 	{end}
 end
 
-function split: dint
+function String_split: dint
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
@@ -293,12 +289,12 @@ function split: dint
 		for p := 1 to l by 1 do
 			index := i_0 + p - 1;
 			if index > i_1 then
-				split := i_1 - i_0 + 1;
+				String_split := i_1 - i_0 + 1;
 				return;
 			end_if;
 			outputs[index] := mid(self, 1, dint_to_uint(p));
 		end_for;
-		split := l;
+		String_split := l;
 		return;
 	end_if;
 
@@ -306,7 +302,7 @@ function split: dint
 	rem := self;
 	while true do
 		if index > i_1 then
-			split := i_1 - i_0 + 1;
+			String_split := i_1 - i_0 + 1;
 			return;
 		end_if;
 		p := find(rem, delimiter);
@@ -327,17 +323,14 @@ function split: dint
 			index := index + 1;
 		else
 			outputs[index] := rem;
-			split := index - i_0 + 1;
+			String_split := index - i_0 + 1;
 			return;
 		end_if;
 	end_while;
 	{end}
 end
 
-{#if _KEYENCE}
-{#define trim strip}
-{#endif}
-function trim: STRING
+function String_trim: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
@@ -358,7 +351,7 @@ function trim: STRING
 	{st}
 	l := len(self);
 	if l = 0 then
-		trim := '';
+		String_trim := '';
 		return;
 	end_if;
 	i_0 := 1;
@@ -380,7 +373,7 @@ function trim: STRING
 	end_for;
 
 	if i_0 > l then
-		trim := '';
+		String_trim := '';
 		return;
 	end_if;
 
@@ -399,11 +392,11 @@ function trim: STRING
 		end_if;
 	end_for;
 
-	trim := mid(self, dint_to_uint(i_1 - i_0 + 1), dint_to_uint(i_0));
+	String_trim := mid(self, dint_to_uint(i_1 - i_0 + 1), dint_to_uint(i_0));
 	{end}
 end
 
-function ltrim: STRING
+function String_ltrim: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
@@ -425,7 +418,7 @@ function ltrim: STRING
 	{st}
 	l := len(self);
 	if l = 0 then
-		ltrim := '';
+		String_ltrim := '';
 		return;
 	end_if;
 
@@ -445,15 +438,15 @@ function ltrim: STRING
 	end_for;
 
 	if p > l then
-		ltrim := '';
+		String_ltrim := '';
 		return;
 	end_if;
 
-	ltrim := mid(self, dint_to_uint(l - p + 1), dint_to_uint(p));
+	String_ltrim := mid(self, dint_to_uint(l - p + 1), dint_to_uint(p));
 	{end}
 end
 
-function rtrim: STRING
+function String_rtrim: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
@@ -474,7 +467,7 @@ function rtrim: STRING
 	{st}
 	l := len(self);
 	if l = 0 then
-		rtrim := '';
+		String_rtrim := '';
 		return;
 	end_if;
 	p := l;
@@ -495,15 +488,15 @@ function rtrim: STRING
 	end_for;
 
 	if p < 1 then
-		rtrim := '';
+		String_rtrim := '';
 		return;
 	end_if;
 
-	rtrim := mid(self, dint_to_uint(p), 1);
+	String_rtrim := mid(self, dint_to_uint(p), 1);
 	{end}
 end
 
-function join: STRING
+function String_join: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING := '';
@@ -517,14 +510,14 @@ function join: STRING
 	{st}
 	i_0 := lower_bound(a, 1);
 	i_1 := upper_bound(a, 1);
-	join := a[i_0];
+	String_join := a[i_0];
 	for index := i_0 + 1 to i_1 by 1 do
-		join := concat(join, self, a[index]);
+		String_join := concat(String_join, self, a[index]);
 	end_for;
 	{end}
 end
 
-function substitute: STRING
+function String_substitute: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING; // 入力文字列
@@ -539,7 +532,7 @@ function substitute: STRING
 		h_str, t_str: STRING;
 	end
 	{st}
-	substitute := '';
+	String_substitute := '';
 	old_len := len(old);
 	t_str := self;
 	l := len(t_str);
@@ -553,10 +546,10 @@ function substitute: STRING
 		h_str := mid(t_str, dint_to_uint(p - 1), 1);
 		l := l - (p + old_len) + 1;
 		t_str := mid(t_str, dint_to_uint(l), dint_to_uint(p + old_len));
-		substitute := concat(substitute, h_str, new);
+		String_substitute := concat(String_substitute, h_str, new);
 		c_x := c_x - 1;
 	end_while;
-	substitute := concat(substitute, t_str);
+	String_substitute := concat(String_substitute, t_str);
 	{end}
 end
 
