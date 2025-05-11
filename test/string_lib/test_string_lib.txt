@@ -10,6 +10,7 @@
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
 		'test_String_length',
+		'test_String_at',
 		'test_String_charAt',
 		'test_String_empty',
 		'test_String_concat',
@@ -32,6 +33,26 @@ TEST_S(test_String_length)
 	{st}
 	EXPECT_EQ_INT32(5, String_length('hello'));
 	EXPECT_EQ_INT32(0, String_length(''));
+	{end}
+END_TEST_S
+
+TEST_S(test_String_at)
+	{st}
+	//
+	EXPECT_EQ_STRING('', String_at('aAb', -5));
+	EXPECT_EQ_STRING('', String_at('aAb', -4));
+	EXPECT_EQ_STRING('a', String_at('aAb', -3));
+	EXPECT_EQ_STRING('A', String_at('aAb', -2));
+	EXPECT_EQ_STRING('b', String_at('aAb', -1));
+	EXPECT_EQ_STRING('a', String_at('aAb', 0));
+	EXPECT_EQ_STRING('A', String_at('aAb', 1));
+	EXPECT_EQ_STRING('b', String_at('aAb', 2));
+	EXPECT_EQ_STRING('', String_at('aAb', 3));
+	EXPECT_EQ_STRING('', String_at('aAb', 4));
+	//
+	EXPECT_EQ_STRING('', String_at('', -1));
+	EXPECT_EQ_STRING('', String_at('', 0));
+	EXPECT_EQ_STRING('', String_at('', 1));
 	{end}
 END_TEST_S
 

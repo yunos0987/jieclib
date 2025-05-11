@@ -24,6 +24,32 @@ function String_length: dint
 end
 
 {doc 指定位置の文字を取得する}
+function String_at: string[CHAR_MAX_BYTE + 1]
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: STRING;
+		{doc: 0 origin.}
+		p: dint;
+	end
+	var_temp
+		q, l: dint;
+	end
+	{st}
+	l := len(self);
+	if p >= 0 then
+		q := p;
+	else
+		q := p + l;
+	end_if;
+	if (0 <= q) and (q < l) then
+		String_at := mid(self, 1, dint_to_uint(q + 1));
+	else
+		String_at := '';
+	end_if;
+	{end}
+end
+
+{doc 指定位置の文字を取得する}
 function String_charAt: string[CHAR_MAX_BYTE + 1]
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
