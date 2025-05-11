@@ -528,6 +528,8 @@ function String_ltrim: STRING
 	String_ltrim := mid(self, dint_to_uint(l - p + 1), dint_to_uint(p));
 	{end}
 end
+{#define String_trimStart String_ltrim}
+{#define String_trimLeft String_ltrim}
 
 {doc 右端の空白を削除する}
 function String_rtrim: STRING
@@ -573,6 +575,8 @@ function String_rtrim: STRING
 	String_rtrim := mid(self, dint_to_uint(p), 1);
 	{end}
 end
+{#define String_trimEnd String_rtrim}
+{#define String_trimRight String_rtrim}
 
 {doc 文字列型配列を指定文字列で結合する}
 function String_join: STRING
