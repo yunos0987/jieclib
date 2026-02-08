@@ -394,6 +394,50 @@ function String_indexOf: dint
 	{end}
 end
 
+{doc 指定の文字列を後ろから検索する}
+function String_lastIndexOf: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: STRING;
+		searchString: STRING;
+		position: dint := __DINT_MAX__;
+	end
+	var_temp
+		i: dint;
+		l, m: dint;
+		start_pos: dint;
+		segment: STRING;
+	end
+	{st}
+	// empty needle: 既定は末尾、position指定時はその値
+	l := len(self);
+	m := len(searchString);
+	if m = 0 then
+		if position = __DINT_MAX__ then
+			String_lastIndexOf := l;
+		else
+			String_lastIndexOf := position;
+		end_if;
+		return;
+	end_if;
+	// 探索開始位置を決定（末尾側から）
+	start_pos := min(position, l - m);
+	if start_pos < 0 then
+		String_lastIndexOf := -1;
+		return;
+	end_if;
+	// 右から左へ走査
+	for i := start_pos to 0 by -1 do
+		segment := mid(self, dint_to_uint(m), dint_to_uint(i + 1));
+		if segment = searchString then
+			String_lastIndexOf := i;
+			return;
+		end_if;
+	end_for;
+	String_lastIndexOf := -1;
+	{end}
+end
+
 {doc 指定の文字列を含むか調べる}
 function String_includes: bool
 	_PROLOGUE_OF_FUNCTION_()
@@ -720,6 +764,95 @@ function String_substitute: STRING
 		c_x := c_x - 1;
 	end_while;
 	String_substitute := concat(String_substitute, t_str);
+	{end}
+end
+
+{doc 指定の文字列を指定回数繰り返す}
+function String_repeat: STRING
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: STRING;
+		{doc: 繰り返し回数（0以上）}
+		count: dint := 1;
+	end
+	var_temp
+		c: dint;
+	end
+	{st}
+	String_repeat := '';
+	c := count;
+	while c > 0 do
+		String_repeat := concat(String_repeat, self);
+		c := c - 1;
+	end_while;
+	{end}
+end
+
+{doc 左側にパディング文字列を追加する}
+function String_padStart: STRING
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: STRING;
+		{doc: 目標の文字列長}
+		targetLength: dint := 0;
+		{doc: パディング文字列（デフォルト: スペース）}
+		padString: STRING := ' ';
+	end
+	var_temp
+		current_len: dint;
+		pad_len: dint;
+		repeat_count: dint;
+		padded: STRING;
+	end
+	{st}
+	current_len := len(self);
+	if current_len >= targetLength then
+		String_padStart := self;
+	else
+		if len(padString) = 0 then
+			String_padStart := self;
+			return;
+		end_if;
+		pad_len := targetLength - current_len;
+		repeat_count := (pad_len + len(padString) - 1) / len(padString);
+		padded := String_repeat(padString, repeat_count);
+		padded := left(padded, dint_to_uint(pad_len));
+		String_padStart := concat(padded, self);
+	end_if;
+	{end}
+end
+
+{doc 右側にパディング文字列を追加する}
+function String_padEnd: STRING
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: STRING;
+		{doc: 目標の文字列長}
+		targetLength: dint := 0;
+		{doc: パディング文字列（デフォルト: スペース）}
+		padString: STRING := ' ';
+	end
+	var_temp
+		current_len: dint;
+		pad_len: dint;
+		repeat_count: dint;
+		padded: STRING;
+	end
+	{st}
+	current_len := len(self);
+	if current_len >= targetLength then
+		String_padEnd := self;
+	else
+		if len(padString) = 0 then
+			String_padEnd := self;
+			return;
+		end_if;
+		pad_len := targetLength - current_len;
+		repeat_count := (pad_len + len(padString) - 1) / len(padString);
+		padded := String_repeat(padString, repeat_count);
+		padded := left(padded, dint_to_uint(pad_len));
+		String_padEnd := concat(self, padded);
+	end_if;
 	{end}
 end
 

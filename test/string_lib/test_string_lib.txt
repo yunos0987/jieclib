@@ -27,7 +27,11 @@ DEFINE_CONFIGURATION(
 		'test_String_substring',
 		'test_String_trim',
 		'test_String_join',
-		'test_String_substitute'
+		'test_String_substitute',
+		'test_String_repeat',
+		'test_String_padStart',
+		'test_String_padEnd',
+		'test_String_lastIndexOf'
 	)
 )
 
@@ -636,6 +640,122 @@ TEST_S(test_String_indexOf)
 	{end}
 END_TEST_S
 
+TEST_S(test_String_lastIndexOf)
+	{st}
+	// 9
+	EXPECT_EQ_INT32(5, String_lastIndexOf(self:='hello', searchString:=''));
+	//
+	EXPECT_EQ_INT32(4, String_lastIndexOf(self:='hello', searchString:='o'));
+	EXPECT_EQ_INT32(3, String_lastIndexOf(self:='hello', searchString:='l'));
+	EXPECT_EQ_INT32(1, String_lastIndexOf(self:='hello', searchString:='e'));
+	EXPECT_EQ_INT32(0, String_lastIndexOf(self:='hello', searchString:='h'));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='H'));
+	//
+	EXPECT_EQ_INT32(3, String_lastIndexOf(self:='hello', searchString:='lo'));
+	EXPECT_EQ_INT32(2, String_lastIndexOf(self:='hello', searchString:='ll'));
+	EXPECT_EQ_INT32(1, String_lastIndexOf(self:='hello', searchString:='el'));
+	EXPECT_EQ_INT32(0, String_lastIndexOf(self:='hello', searchString:='he'));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='le'));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='He'));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='hE'));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='lO'));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='Lo'));
+	//
+	EXPECT_EQ_INT32(2, String_lastIndexOf(self:='hello', searchString:='llo'));
+	EXPECT_EQ_INT32(1, String_lastIndexOf(self:='hello', searchString:='ell'));
+	EXPECT_EQ_INT32(0, String_lastIndexOf(self:='hello', searchString:='hel'));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='oll'));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='heL'));
+	//
+	EXPECT_EQ_INT32(1, String_lastIndexOf(self:='hello', searchString:='ello'));
+	EXPECT_EQ_INT32(0, String_lastIndexOf(self:='hello', searchString:='hell'));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='olle'));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='helL'));
+	//
+	EXPECT_EQ_INT32(0, String_lastIndexOf(self:='hello', searchString:='hello'));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='olleh'));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='hellO'));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='Hello'));
+	//
+	EXPECT_EQ_INT32(0, String_lastIndexOf(self:='', searchString:=''));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='', searchString:='a'));
+	// 4
+	EXPECT_EQ_INT32(4, String_lastIndexOf(self:='hello', searchString:='', position:=4));
+	//
+	EXPECT_EQ_INT32(4, String_lastIndexOf(self:='hello', searchString:='o', position:=4));
+	EXPECT_EQ_INT32(3, String_lastIndexOf(self:='hello', searchString:='l', position:=4));
+	EXPECT_EQ_INT32(1, String_lastIndexOf(self:='hello', searchString:='e', position:=4));
+	EXPECT_EQ_INT32(0, String_lastIndexOf(self:='hello', searchString:='h', position:=4));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='H', position:=4));
+	//
+	EXPECT_EQ_INT32(3, String_lastIndexOf(self:='hello', searchString:='lo', position:=4));
+	EXPECT_EQ_INT32(2, String_lastIndexOf(self:='hello', searchString:='ll', position:=4));
+	EXPECT_EQ_INT32(1, String_lastIndexOf(self:='hello', searchString:='el', position:=4));
+	EXPECT_EQ_INT32(0, String_lastIndexOf(self:='hello', searchString:='he', position:=4));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='le', position:=4));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='He', position:=4));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='hE', position:=4));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='lO', position:=4));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='Lo', position:=4));
+	//
+	EXPECT_EQ_INT32(2, String_lastIndexOf(self:='hello', searchString:='llo', position:=4));
+	EXPECT_EQ_INT32(1, String_lastIndexOf(self:='hello', searchString:='ell', position:=4));
+	EXPECT_EQ_INT32(0, String_lastIndexOf(self:='hello', searchString:='hel', position:=4));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='oll', position:=4));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='heL', position:=4));
+	//
+	EXPECT_EQ_INT32(1, String_lastIndexOf(self:='hello', searchString:='ello', position:=4));
+	EXPECT_EQ_INT32(0, String_lastIndexOf(self:='hello', searchString:='hell', position:=4));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='olle', position:=4));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='helL', position:=4));
+	//
+	EXPECT_EQ_INT32(0, String_lastIndexOf(self:='hello', searchString:='hello', position:=4));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='olleh', position:=4));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='hellO', position:=4));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='Hello', position:=4));
+	//
+	EXPECT_EQ_INT32(4, String_lastIndexOf(self:='', searchString:='', position:=4));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='', searchString:='a', position:=4));
+	// 2
+	EXPECT_EQ_INT32(2, String_lastIndexOf(self:='hello', searchString:='', position:=2));
+	//
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='o', position:=2));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='e', position:=2));
+	EXPECT_EQ_INT32(2, String_lastIndexOf(self:='hello', searchString:='l', position:=2));
+	EXPECT_EQ_INT32(0, String_lastIndexOf(self:='hello', searchString:='h', position:=2));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='H', position:=2));
+	//
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='lo', position:=2));
+	EXPECT_EQ_INT32(2, String_lastIndexOf(self:='hello', searchString:='ll', position:=2));
+	EXPECT_EQ_INT32(1, String_lastIndexOf(self:='hello', searchString:='el', position:=2));
+	EXPECT_EQ_INT32(0, String_lastIndexOf(self:='hello', searchString:='he', position:=2));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='le', position:=2));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='He', position:=2));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='hE', position:=2));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='lO', position:=2));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='Lo', position:=2));
+	//
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='llo', position:=2));
+	EXPECT_EQ_INT32(1, String_lastIndexOf(self:='hello', searchString:='ell', position:=2));
+	EXPECT_EQ_INT32(0, String_lastIndexOf(self:='hello', searchString:='hel', position:=2));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='oll', position:=2));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='heL', position:=2));
+	//
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='ello', position:=2));
+	EXPECT_EQ_INT32(0, String_lastIndexOf(self:='hello', searchString:='hell', position:=2));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='olle', position:=2));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='helL', position:=2));
+	//
+	EXPECT_EQ_INT32(0, String_lastIndexOf(self:='hello', searchString:='hello', position:=2));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='olleh', position:=2));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='hellO', position:=2));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='hello', searchString:='Hello', position:=2));
+	//
+	EXPECT_EQ_INT32(2, String_lastIndexOf(self:='', searchString:='', position:=2));
+	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='', searchString:='a', position:=2));
+	{end}
+END_TEST_S
+
 TEST_S(test_String_includes)
 	{st}
 	// 0
@@ -1051,5 +1171,70 @@ TEST_S(test_String_substitute)
 	EXPECT_EQ_STRING('abcdabcd', String_substitute(self:='abcdabcd', old:='A', new:='*', count:=-1));
 	//
 	EXPECT_EQ_STRING('abcdabcd', String_substitute(self:='abcdabcd', old:='', new:='*', count:=-1));
+	{end}
+END_TEST_S
+
+TEST_S(test_String_repeat)
+	{st}
+	//
+	EXPECT_EQ_STRING('', String_repeat(self:='abc', count:=0));
+	EXPECT_EQ_STRING('abc', String_repeat(self:='abc', count:=1));
+	EXPECT_EQ_STRING('abcabc', String_repeat(self:='abc', count:=2));
+	EXPECT_EQ_STRING('abcabcabc', String_repeat(self:='abc', count:=3));
+	//
+	EXPECT_EQ_STRING('a', String_repeat(self:='a', count:=1));
+	EXPECT_EQ_STRING('aaaa', String_repeat(self:='a', count:=4));
+	//
+	EXPECT_EQ_STRING('', String_repeat(self:='', count:=5));
+	//
+	EXPECT_EQ_STRING('', String_repeat(self:='abc', count:=-1));
+	{end}
+END_TEST_S
+
+TEST_S(test_String_padStart)
+	{st}
+	//
+	EXPECT_EQ_STRING('hello', String_padStart(self:='hello', targetLength:=5));
+	EXPECT_EQ_STRING(' hello', String_padStart(self:='hello', targetLength:=6));
+	EXPECT_EQ_STRING('  hello', String_padStart(self:='hello', targetLength:=7));
+	//
+	EXPECT_EQ_STRING('***hello', String_padStart(self:='hello', targetLength:=8, padString:='*'));
+	EXPECT_EQ_STRING('0000hello', String_padStart(self:='hello', targetLength:=9, padString:='0'));
+	//
+	EXPECT_EQ_STRING('xyhello', String_padStart(self:='hello', targetLength:=7, padString:='xy'));
+	EXPECT_EQ_STRING('xyxhello', String_padStart(self:='hello', targetLength:=8, padString:='xy'));
+	EXPECT_EQ_STRING('xyxyhello', String_padStart(self:='hello', targetLength:=9, padString:='xy'));
+	EXPECT_EQ_STRING('xyxyxhello', String_padStart(self:='hello', targetLength:=10, padString:='xy'));
+	EXPECT_EQ_STRING('abchello', String_padStart(self:='hello', targetLength:=8, padString:='abc'));
+	EXPECT_EQ_STRING('abcahello', String_padStart(self:='hello', targetLength:=9, padString:='abc'));
+	EXPECT_EQ_STRING('abcabhello', String_padStart(self:='hello', targetLength:=10, padString:='abc'));
+	//
+	EXPECT_EQ_STRING('hello', String_padStart(self:='hello', targetLength:=3));
+	//
+	EXPECT_EQ_STRING('hello', String_padStart(self:='hello', targetLength:=10, padString:=''));
+	{end}
+END_TEST_S
+
+TEST_S(test_String_padEnd)
+	{st}
+	//
+	EXPECT_EQ_STRING('hello', String_padEnd(self:='hello', targetLength:=5));
+	EXPECT_EQ_STRING('hello ', String_padEnd(self:='hello', targetLength:=6));
+	EXPECT_EQ_STRING('hello  ', String_padEnd(self:='hello', targetLength:=7));
+	//
+	EXPECT_EQ_STRING('hello***', String_padEnd(self:='hello', targetLength:=8, padString:='*'));
+	EXPECT_EQ_STRING('hello0000', String_padEnd(self:='hello', targetLength:=9, padString:='0'));
+	//
+	EXPECT_EQ_STRING('helloxy', String_padEnd(self:='hello', targetLength:=7, padString:='xy'));
+	EXPECT_EQ_STRING('helloxyx', String_padEnd(self:='hello', targetLength:=8, padString:='xy'));
+	EXPECT_EQ_STRING('helloxyxy', String_padEnd(self:='hello', targetLength:=9, padString:='xy'));
+	EXPECT_EQ_STRING('helloxyxyх', String_padEnd(self:='hello', targetLength:=10, padString:='xy'));
+	EXPECT_EQ_STRING('helloabc', String_padEnd(self:='hello', targetLength:=8, padString:='abc'));
+	EXPECT_EQ_STRING('helloabca', String_padEnd(self:='hello', targetLength:=9, padString:='abc'));
+	EXPECT_EQ_STRING('helloabcab', String_padEnd(self:='hello', targetLength:=10, padString:='abc'));
+	//
+	EXPECT_EQ_STRING('hello', String_padEnd(self:='hello', targetLength:=3));
+	//
+	EXPECT_EQ_STRING('hello', String_padEnd(self:='hello', targetLength:=10, padString:=''));
 	{end}
 END_TEST_S
