@@ -4,11 +4,50 @@
  * or
  * $ jiecc ./array/array.txt -I. -I./vendor/jiecunit/sys -o ./array/array.xml -t keyence
  *)
+{#ifndef __ARRAY_TXT__}
+{#define __ARRAY_TXT__}
+
 {#include <sys.txt>}
 
 {#define Array_size(self) (upper_bound(self, 1) - lower_bound(self, 1) + 1)}
 {#define Array_size_lreal(self) Array_size(self)}
+{#define Array_size_real(self) Array_size(self)}
 {#define Array_size_dint(self) Array_size(self)}
+
+{#if _OMRON}
+{#define _DEFINE_ARRAY_IS_REGULAR_DATATYPE(datatype)
+    ${doc 配列が正規配列かどうかを返す。
+正規配列: lower_bound = 0, size >= 1のとき、sizeを返す。そうでないとき、0を返す。$}
+    function Array_isRegular_@@datatype: dint
+        _PROLOGUE_OF_FUNCTION_()
+        var_in_out
+            self: array[*] of datatype;
+        end
+        var_temp
+            lb, ub: dint;
+        end
+        ${st$}
+        lb := lower_bound(self, 1);
+        ub := upper_bound(self, 1);
+        if lb = 0 then
+            Array_isRegular_@@datatype := max(ub - lb + 1, 0);
+        else
+            Array_isRegular_@@datatype := 0;
+        end_if;
+        ${end$}
+    end
+}
+_DEFINE_ARRAY_IS_REGULAR_DATATYPE(lreal)
+_DEFINE_ARRAY_IS_REGULAR_DATATYPE(dint)
+{#undef _DEFINE_ARRAY_IS_REGULAR_DATATYPE}
+
+{#else}
+{#warning Array_isRegular_xxx functions are not supported on Keyence and Mitsubishi PLCs.}
+{#define Array_isRegular_lreal(self) 0}
+{#define Array_isRegular_dint(self) 0}
+{#endif}
 
 {#include "copy.txt"}
 {#include "sort.txt"}
+
+{#endif}
