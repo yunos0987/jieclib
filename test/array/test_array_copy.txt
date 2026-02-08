@@ -1,0 +1,336 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/array/test_array_copy.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -o ./test/array/test_array_copy.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <array/array.txt>}
+
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_array_copy',
+		'test_array_copy_offset',
+		'test_array_copy_x_index_0',
+		'test_array_copy_x_partial'
+	)
+)
+
+TEST_S(test_array_copy)
+	var
+        x_1: array[0..0] of lreal := [1.0];
+		x_3: array[0..2] of lreal := [2.0, 3.0, 5.0];
+        //
+		y_1: array[0..0] of lreal := [-1.0];
+		y_2: array[0..1] of lreal := [-1.0, -1.0];
+		y_3: array[0..2] of lreal := [-1.0, -1.0, -1.0];
+		y_4: array[0..3] of lreal := [-1.0, -1.0, -1.0, -1.0];
+        //
+        copied: dint;
+        result_eno: bool;
+	end
+	{st}
+	// 正常ケース：同じサイズへのコピー
+	copied := Array_copy_lreal(src:=x_3, dst:=y_3);
+	EXPECT_EQ_INT32(3, copied);
+	EXPECT_EQ_LREAL(2.0, y_3[0]);
+	EXPECT_EQ_LREAL(3.0, y_3[1]);
+	EXPECT_EQ_LREAL(5.0, y_3[2]);
+
+	copied := Array_copy_lreal(src:=x_1, dst:=y_1);
+	EXPECT_EQ_INT32(1, copied);
+	EXPECT_EQ_LREAL(1.0, y_1[0]);
+	
+	// 正常ケース：より大きいサイズへのコピー
+	copied := Array_copy_lreal(src:=x_3, dst:=y_4);
+	EXPECT_EQ_INT32(3, copied);
+	EXPECT_EQ_LREAL(2.0, y_4[0]);
+	EXPECT_EQ_LREAL(3.0, y_4[1]);
+	EXPECT_EQ_LREAL(5.0, y_4[2]);
+	EXPECT_EQ_LREAL(-1.0, y_4[3]);
+	
+	// 異常ケース：より小さいサイズへのコピー
+	copied := Array_copy_lreal(src:=x_3, dst:=y_2, eno=>result_eno);
+	EXPECT_FALSE(result_eno);
+	{end}
+END_TEST_S
+
+TEST_S(test_array_copy_offset)
+	var
+		copied: dint;
+		result_eno: bool;
+		x_3: array[13..15] of lreal := [2.0, 3.0, 5.0];
+        //
+		y_3_1: array[10..12] of lreal := [-1.0, -1.0, -1.0];
+		y_3_2: array[11..13] of lreal := [-1.0, -1.0, -1.0];
+		y_3_3: array[12..14] of lreal := [-1.0, -1.0, -1.0];
+		y_3_4: array[13..15] of lreal := [-1.0, -1.0, -1.0];
+		y_3_5: array[14..16] of lreal := [-1.0, -1.0, -1.0];
+		y_3_6: array[15..17] of lreal := [-1.0, -1.0, -1.0];
+		y_3_7: array[16..18] of lreal := [-1.0, -1.0, -1.0];
+		//
+		y_4_1: array[ 9..12] of lreal := [-1.0, -1.0, -1.0, -1.0];
+		y_4_2: array[10..13] of lreal := [-1.0, -1.0, -1.0, -1.0];
+		y_4_3: array[11..14] of lreal := [-1.0, -1.0, -1.0, -1.0];
+        y_4_4: array[12..15] of lreal := [-1.0, -1.0, -1.0, -1.0];
+		y_4_5: array[13..16] of lreal := [-1.0, -1.0, -1.0, -1.0];
+		y_4_6: array[14..17] of lreal := [-1.0, -1.0, -1.0, -1.0];
+		y_4_7: array[15..18] of lreal := [-1.0, -1.0, -1.0, -1.0];
+        y_4_8: array[16..19] of lreal := [-1.0, -1.0, -1.0, -1.0];
+        //
+		y_2_1: array[11..12] of lreal := [-1.0, -1.0];
+		y_2_2: array[12..13] of lreal := [-1.0, -1.0];
+		y_2_3: array[13..14] of lreal := [-1.0, -1.0];
+		y_2_4: array[14..15] of lreal := [-1.0, -1.0];
+		y_2_5: array[15..16] of lreal := [-1.0, -1.0];
+		y_2_6: array[16..17] of lreal := [-1.0, -1.0];
+	end
+	{st}
+	// 正常ケース：オフセット配列で同じサイズへのコピー
+	copied := Array_copy_lreal(src:=x_3, dst:=y_3_1);
+	EXPECT_EQ_INT32(3, copied);
+	EXPECT_EQ_LREAL(2.0, y_3_1[10]);
+	EXPECT_EQ_LREAL(3.0, y_3_1[11]);
+	EXPECT_EQ_LREAL(5.0, y_3_1[12]);
+
+	copied := Array_copy_lreal(src:=x_3, dst:=y_3_2);
+	EXPECT_EQ_INT32(3, copied);
+	EXPECT_EQ_LREAL(2.0, y_3_2[11]);
+	EXPECT_EQ_LREAL(3.0, y_3_2[12]);
+	EXPECT_EQ_LREAL(5.0, y_3_2[13]);
+
+	copied := Array_copy_lreal(src:=x_3, dst:=y_3_3);
+	EXPECT_EQ_INT32(3, copied);
+	EXPECT_EQ_LREAL(2.0, y_3_3[12]);
+	EXPECT_EQ_LREAL(3.0, y_3_3[13]);
+	EXPECT_EQ_LREAL(5.0, y_3_3[14]);
+
+	copied := Array_copy_lreal(src:=x_3, dst:=y_3_4);
+	EXPECT_EQ_INT32(3, copied);
+	EXPECT_EQ_LREAL(2.0, y_3_4[13]);
+	EXPECT_EQ_LREAL(3.0, y_3_4[14]);
+	EXPECT_EQ_LREAL(5.0, y_3_4[15]);
+
+	copied := Array_copy_lreal(src:=x_3, dst:=y_3_5);
+	EXPECT_EQ_INT32(3, copied);
+	EXPECT_EQ_LREAL(2.0, y_3_5[14]);
+	EXPECT_EQ_LREAL(3.0, y_3_5[15]);
+	EXPECT_EQ_LREAL(5.0, y_3_5[16]);
+
+	copied := Array_copy_lreal(src:=x_3, dst:=y_3_6);
+	EXPECT_EQ_INT32(3, copied);
+	EXPECT_EQ_LREAL(2.0, y_3_6[15]);
+	EXPECT_EQ_LREAL(3.0, y_3_6[16]);
+	EXPECT_EQ_LREAL(5.0, y_3_6[17]);
+
+	copied := Array_copy_lreal(src:=x_3, dst:=y_3_7);
+	EXPECT_EQ_INT32(3, copied);
+	EXPECT_EQ_LREAL(2.0, y_3_7[16]);
+	EXPECT_EQ_LREAL(3.0, y_3_7[17]);
+	EXPECT_EQ_LREAL(5.0, y_3_7[18]);
+
+	// 正常ケース：異なるオフセットの配列へのコピー
+	copied := Array_copy_lreal(src:=x_3, dst:=y_4_1);
+	EXPECT_EQ_INT32(3, copied);
+	EXPECT_EQ_LREAL(2.0, y_4_1[ 9]);
+	EXPECT_EQ_LREAL(3.0, y_4_1[10]);
+	EXPECT_EQ_LREAL(5.0, y_4_1[11]);
+	EXPECT_EQ_LREAL(-1.0, y_4_1[12]);
+
+    copied := Array_copy_lreal(src:=x_3, dst:=y_4_2);
+    EXPECT_EQ_INT32(3, copied);
+    EXPECT_EQ_LREAL(2.0, y_4_2[10]);
+    EXPECT_EQ_LREAL(3.0, y_4_2[11]);
+    EXPECT_EQ_LREAL(5.0, y_4_2[12]);
+	EXPECT_EQ_LREAL(-1.0, y_4_2[13]);
+
+    copied := Array_copy_lreal(src:=x_3, dst:=y_4_3);
+    EXPECT_EQ_INT32(3, copied);
+    EXPECT_EQ_LREAL(2.0, y_4_3[11]);
+    EXPECT_EQ_LREAL(3.0, y_4_3[12]);
+    EXPECT_EQ_LREAL(5.0, y_4_3[13]);
+	EXPECT_EQ_LREAL(-1.0, y_4_3[14]);
+
+    copied := Array_copy_lreal(src:=x_3, dst:=y_4_4);
+    EXPECT_EQ_INT32(3, copied);
+    EXPECT_EQ_LREAL(2.0, y_4_4[12]);
+    EXPECT_EQ_LREAL(3.0, y_4_4[13]);
+    EXPECT_EQ_LREAL(5.0, y_4_4[14]);
+	EXPECT_EQ_LREAL(-1.0, y_4_4[15]);
+
+    copied := Array_copy_lreal(src:=x_3, dst:=y_4_5);
+    EXPECT_EQ_INT32(3, copied);
+    EXPECT_EQ_LREAL(2.0, y_4_5[13]);
+    EXPECT_EQ_LREAL(3.0, y_4_5[14]);
+    EXPECT_EQ_LREAL(5.0, y_4_5[15]);
+	EXPECT_EQ_LREAL(-1.0, y_4_5[16]);
+
+    copied := Array_copy_lreal(src:=x_3, dst:=y_4_6);
+    EXPECT_EQ_INT32(3, copied);
+    EXPECT_EQ_LREAL(2.0, y_4_6[14]);
+    EXPECT_EQ_LREAL(3.0, y_4_6[15]);
+    EXPECT_EQ_LREAL(5.0, y_4_6[16]);
+	EXPECT_EQ_LREAL(-1.0, y_4_6[17]);
+
+    copied := Array_copy_lreal(src:=x_3, dst:=y_4_7);
+    EXPECT_EQ_INT32(3, copied);
+    EXPECT_EQ_LREAL(2.0, y_4_7[15]);
+    EXPECT_EQ_LREAL(3.0, y_4_7[16]);
+    EXPECT_EQ_LREAL(5.0, y_4_7[17]);
+	EXPECT_EQ_LREAL(-1.0, y_4_7[18]);
+
+    copied := Array_copy_lreal(src:=x_3, dst:=y_4_8);
+    EXPECT_EQ_INT32(3, copied);
+    EXPECT_EQ_LREAL(2.0, y_4_8[16]);
+    EXPECT_EQ_LREAL(3.0, y_4_8[17]);
+    EXPECT_EQ_LREAL(5.0, y_4_8[18]);
+	EXPECT_EQ_LREAL(-1.0, y_4_8[19]);
+
+	// 異常ケース：サイズ不足へのコピー
+	copied := Array_copy_lreal(src:=x_3, dst:=y_2_1, eno=>result_eno);
+	EXPECT_FALSE(result_eno);
+
+	copied := Array_copy_lreal(src:=x_3, dst:=y_2_2, eno=>result_eno);
+	EXPECT_FALSE(result_eno);
+
+	copied := Array_copy_lreal(src:=x_3, dst:=y_2_3, eno=>result_eno);
+	EXPECT_FALSE(result_eno);
+
+	copied := Array_copy_lreal(src:=x_3, dst:=y_2_4, eno=>result_eno);
+	EXPECT_FALSE(result_eno);
+
+	copied := Array_copy_lreal(src:=x_3, dst:=y_2_5, eno=>result_eno);
+	EXPECT_FALSE(result_eno);
+
+	copied := Array_copy_lreal(src:=x_3, dst:=y_2_6, eno=>result_eno);
+	EXPECT_FALSE(result_eno);
+	{end}
+END_TEST_S
+
+TEST_S(test_array_copy_x_index_0)
+	var
+		copied: dint;
+		result_eno: bool;
+		//
+		x_5: array[0..4] of lreal := [1.0, 2.0, 3.0, 5.0, 7.0];
+		y_5_m1: array[0..4] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0];
+		y_5_5: array[0..4] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0];
+		y_5_0: array[0..4] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0];
+		//
+		y_6_m1: array[0..5] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0, -1.0];
+		y_6_5: array[0..5] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0, -1.0];
+		//
+		y_4_m1: array[0..3] of lreal := [-1.0, -1.0, -1.0, -1.0];
+		y_4_4: array[0..3] of lreal := [-1.0, -1.0, -1.0, -1.0];
+		y_4_5: array[0..3] of lreal := [-1.0, -1.0, -1.0, -1.0];
+	end
+	{st}
+	// 正常ケース：先頭からsrc要素分コピー（n=-1）
+	copied := Array_copy_x_lreal(src:=x_5, src_index:=0, dst:=y_5_m1, dst_index:=0, n:=-1);
+	EXPECT_EQ_INT32(5, copied);
+	EXPECT_EQ_LREAL(1.0, y_5_m1[0]);
+	EXPECT_EQ_LREAL(2.0, y_5_m1[1]);
+	EXPECT_EQ_LREAL(3.0, y_5_m1[2]);
+	EXPECT_EQ_LREAL(5.0, y_5_m1[3]);
+	EXPECT_EQ_LREAL(7.0, y_5_m1[4]);
+
+	// 正常ケース：先頭からsrc要素分コピー（n=5）
+	copied := Array_copy_x_lreal(src:=x_5, src_index:=0, dst:=y_5_5, dst_index:=0, n:=5);
+	EXPECT_EQ_INT32(5, copied);
+	EXPECT_EQ_LREAL(1.0, y_5_5[0]);
+	EXPECT_EQ_LREAL(2.0, y_5_5[1]);
+	EXPECT_EQ_LREAL(3.0, y_5_5[2]);
+	EXPECT_EQ_LREAL(5.0, y_5_5[3]);
+	EXPECT_EQ_LREAL(7.0, y_5_5[4]);
+
+	// 正常ケース：転送サイズ０の場合、成功する。
+	copied := Array_copy_x_lreal(src:=x_5, src_index:=0, dst:=y_5_0, dst_index:=0, n:=0);
+	EXPECT_EQ_INT32(0, copied);
+	EXPECT_EQ_LREAL(-1.0, y_5_0[0]);
+	EXPECT_EQ_LREAL(-1.0, y_5_0[1]);
+	EXPECT_EQ_LREAL(-1.0, y_5_0[2]);
+	EXPECT_EQ_LREAL(-1.0, y_5_0[3]);
+	EXPECT_EQ_LREAL(-1.0, y_5_0[4]);
+
+	// 正常ケース：転送先のサイズが異なる場合でも、転送要素数が転送先サイズ以内なら成功（n=-1）
+	copied := Array_copy_x_lreal(src:=x_5, src_index:=0, dst:=y_6_m1, dst_index:=0, n:=-1);
+	EXPECT_EQ_INT32(5, copied);
+	EXPECT_EQ_LREAL(1.0, y_6_m1[0]);
+	EXPECT_EQ_LREAL(2.0, y_6_m1[1]);
+	EXPECT_EQ_LREAL(3.0, y_6_m1[2]);
+	EXPECT_EQ_LREAL(5.0, y_6_m1[3]);
+	EXPECT_EQ_LREAL(7.0, y_6_m1[4]);
+	EXPECT_EQ_LREAL(-1.0, y_6_m1[5]);
+
+	// 正常ケース：転送先のサイズが異なる場合でも、転送要素数が転送先サイズ以内なら成功（n=5）
+	copied := Array_copy_x_lreal(src:=x_5, src_index:=0, dst:=y_6_5, dst_index:=0, n:=5);
+	EXPECT_EQ_INT32(5, copied);
+	EXPECT_EQ_LREAL(1.0, y_6_5[0]);
+	EXPECT_EQ_LREAL(2.0, y_6_5[1]);
+	EXPECT_EQ_LREAL(3.0, y_6_5[2]);
+	EXPECT_EQ_LREAL(5.0, y_6_5[3]);
+	EXPECT_EQ_LREAL(7.0, y_6_5[4]);
+	EXPECT_EQ_LREAL(-1.0, y_6_5[5]);
+
+	// 正常ケース：転送先のサイズが小さい場合でも、転送要素数が転送先サイズ以内なら成功（n=4）
+	copied := Array_copy_x_lreal(src:=x_5, src_index:=0, dst:=y_4_4, dst_index:=0, n:=4);
+	EXPECT_EQ_INT32(4, copied);
+	EXPECT_EQ_LREAL(1.0, y_4_4[0]);
+	EXPECT_EQ_LREAL(2.0, y_4_4[1]);
+	EXPECT_EQ_LREAL(3.0, y_4_4[2]);
+	EXPECT_EQ_LREAL(5.0, y_4_4[3]);
+
+	// 異常ケース：src配列サイズ不足
+	copied := Array_copy_x_lreal(src:=x_5, src_index:=0, dst:=y_6_m1, dst_index:=0, n:=6, eno=>result_eno);
+	EXPECT_FALSE(result_eno);
+
+	// 異常ケース：dst配列サイズ不足
+	copied := Array_copy_x_lreal(src:=x_5, src_index:=0, dst:=y_4_m1, dst_index:=0, n:=-1, eno=>result_eno);
+	EXPECT_FALSE(result_eno);
+	copied := Array_copy_x_lreal(src:=x_5, src_index:=0, dst:=y_4_5, dst_index:=0, n:=5, eno=>result_eno);
+	EXPECT_FALSE(result_eno);
+	{end}
+END_TEST_S
+
+TEST_S(test_array_copy_x_partial)
+	var
+		copied: dint;
+		result_eno: bool;
+		//
+		x_5: array[0..4] of lreal := [1.0, 2.0, 3.0, 5.0, 7.0];
+		y_5_m1: array[0..4] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0];
+		y_5_2: array[0..4] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0];
+		y_5_3: array[0..4] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0];
+		y_5_4: array[0..4] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0];
+	end
+	{st}
+	// 正常ケース
+	copied := Array_copy_x_lreal(src:=x_5, src_index:=1, dst:=y_5_m1, dst_index:=1, n:=-1);
+	EXPECT_EQ_INT32(4, copied);
+	EXPECT_EQ_LREAL(-1.0, y_5_m1[0]);
+	EXPECT_EQ_LREAL(2.0, y_5_m1[1]);
+	EXPECT_EQ_LREAL(3.0, y_5_m1[2]);
+	EXPECT_EQ_LREAL(5.0, y_5_m1[3]);
+	EXPECT_EQ_LREAL(7.0, y_5_m1[4]);
+
+	// 正常ケース
+	copied := Array_copy_x_lreal(src:=x_5, src_index:=1, dst:=y_5_2, dst_index:=2, n:=2);
+	EXPECT_EQ_INT32(2, copied);
+	EXPECT_EQ_LREAL(-1.0, y_5_2[0]);
+	EXPECT_EQ_LREAL(-1.0, y_5_2[1]);
+	EXPECT_EQ_LREAL(2.0, y_5_2[2]);
+	EXPECT_EQ_LREAL(3.0, y_5_2[3]);
+	EXPECT_EQ_LREAL(-1.0, y_5_2[4]);
+
+	// 正常ケース
+	copied := Array_copy_x_lreal(src:=x_5, src_index:=1, dst:=y_5_3, dst_index:=2, n:=3);
+	EXPECT_EQ_INT32(3, copied);
+	EXPECT_EQ_LREAL(-1.0, y_5_3[0]);
+	EXPECT_EQ_LREAL(-1.0, y_5_3[1]);
+	EXPECT_EQ_LREAL(2.0, y_5_3[2]);
+	EXPECT_EQ_LREAL(3.0, y_5_3[3]);
+	EXPECT_EQ_LREAL(5.0, y_5_3[4]);
+
+	// 異常ケース：dst配列サイズ不足
+	copied := Array_copy_x_lreal(src:=x_5, src_index:=1, dst:=y_5_4, dst_index:=2, n:=4, eno=>result_eno);
+	EXPECT_FALSE(result_eno);
+	{end}
+END_TEST_S

@@ -1,0 +1,544 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/array/test_array_sort.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -o ./test/array/test_array_sort.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <array/array.txt>}
+
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_array_bubblesort',
+		'test_array_bubblesort_offset',
+		'test_array_bubblesort_n',
+		'test_array_mergesort',
+		'test_array_mergesort_offset',
+		'test_array_mergesort_n',
+		'test_array_quicksort',
+		'test_array_quicksort_offset',
+		'test_array_quicksort_n'
+	)
+)
+
+TEST_S(test_array_bubblesort)
+	var
+		index: dint;
+		//
+		x_5_1: array[0..4] of lreal := [3.0, 2.0, 7.0, 2.0, 1.0];
+		x_5_2: array[0..4] of lreal := [7.0, 3.0, 2.0, 2.0, 1.0];
+		x_5_3: array[0..4] of lreal := [1.0, 2.0, 2.0, 7.0, 3.0];
+		x_5_4: array[0..4] of lreal := [2.0, 1.0, 2.0, 3.0, 7.0];
+		y_5: array[0..4] of lreal := [1.0, 2.0, 2.0, 3.0, 7.0];
+		//
+		x_5_1_reverse: array[0..4] of lreal := [3.0, 2.0, 7.0, 2.0, 1.0];
+		x_5_2_reverse: array[0..4] of lreal := [7.0, 3.0, 2.0, 2.0, 1.0];
+		x_5_3_reverse: array[0..4] of lreal := [1.0, 2.0, 2.0, 7.0, 3.0];
+		x_5_4_reverse: array[0..4] of lreal := [2.0, 1.0, 2.0, 3.0, 7.0];
+		y_5_reverse: array[0..4] of lreal := [7.0, 3.0, 2.0, 2.0, 1.0];
+		//
+		x_3: array[0..2] of lreal := [2.0, 2.0, 2.0];
+		y_3: array[0..2] of lreal := [2.0, 2.0, 2.0];
+		//
+		x_1: array[0..0] of lreal := [2.0];
+		y_1: array[0..0] of lreal := [2.0];
+		//
+		x_2: array[0..1] of lreal := [-2.0, -3.0];
+		x_2_reverse: array[0..1] of lreal := [-3.0, -2.0];
+		y_2: array[0..1] of lreal := [-3.0, -2.0];
+		y_2_reverse: array[0..1] of lreal := [-2.0, -3.0];
+	end
+	{st}
+	Array_bubblesort_lreal(x_5_1, true);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5[index], x_5_1[index]); end_for;
+	Array_bubblesort_lreal(x_5_2, true);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5[index], x_5_2[index]); end_for;
+	Array_bubblesort_lreal(x_5_3, true);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5[index], x_5_3[index]); end_for;
+	Array_bubblesort_lreal(x_5_4, true);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5[index], x_5_4[index]); end_for;
+	// reverse
+	Array_bubblesort_lreal(x_5_1_reverse, false);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5_reverse[index], x_5_1_reverse[index]); end_for;
+	Array_bubblesort_lreal(x_5_2_reverse, false);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5_reverse[index], x_5_2_reverse[index]); end_for;
+	Array_bubblesort_lreal(x_5_3_reverse, false);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5_reverse[index], x_5_3_reverse[index]); end_for;
+	Array_bubblesort_lreal(x_5_4_reverse, false);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5_reverse[index], x_5_4_reverse[index]); end_for;
+	//
+	Array_bubblesort_lreal(x_3, true);
+	for index := 0 to 2 by 1 do EXPECT_EQ_LREAL(y_3[index], x_3[index]); end_for;
+	Array_bubblesort_lreal(x_3, false);
+	for index := 0 to 2 by 1 do EXPECT_EQ_LREAL(y_3[index], x_3[index]); end_for;
+	//
+	Array_bubblesort_lreal(x_1, true);
+	for index := 0 to 0 by 1 do EXPECT_EQ_LREAL(y_1[index], x_1[index]); end_for;
+	Array_bubblesort_lreal(x_1, false);
+	for index := 0 to 0 by 1 do EXPECT_EQ_LREAL(y_1[index], x_1[index]); end_for;
+	//
+	Array_bubblesort_lreal(x_2, true);
+	for index := 0 to 1 by 1 do EXPECT_EQ_LREAL(y_2[index], x_2[index]); end_for;
+	Array_bubblesort_lreal(x_2_reverse, false);
+	for index := 0 to 1 by 1 do EXPECT_EQ_LREAL(y_2_reverse[index], x_2_reverse[index]); end_for;
+	{end}
+END_TEST_S
+
+TEST_S(test_array_bubblesort_offset)
+	var
+		index: dint;
+		//
+		x_5_1: array[5..9] of lreal := [3.0, 2.0, 7.0, 2.0, 1.0];
+		y_5: array[5..9] of lreal := [1.0, 2.0, 2.0, 3.0, 7.0];
+		//
+		x_5_reverse: array[10..14] of lreal := [3.0, 2.0, 7.0, 2.0, 1.0];
+		y_5_reverse: array[10..14] of lreal := [7.0, 3.0, 2.0, 2.0, 1.0];
+		//
+		x_3: array[1..3] of lreal := [2.0, 2.0, 2.0];
+		y_3: array[1..3] of lreal := [2.0, 2.0, 2.0];
+		//
+		x_1: array[100..100] of lreal := [2.0];
+		y_1: array[100..100] of lreal := [2.0];
+	end
+	{st}
+	Array_bubblesort_lreal(x_5_1, true);
+	for index := 5 to 9 by 1 do EXPECT_EQ_LREAL(y_5[index], x_5_1[index]); end_for;
+	
+	Array_bubblesort_lreal(x_5_reverse, false);
+	for index := 10 to 14 by 1 do EXPECT_EQ_LREAL(y_5_reverse[index], x_5_reverse[index]); end_for;
+	
+	Array_bubblesort_lreal(x_3, true);
+	for index := 1 to 3 by 1 do EXPECT_EQ_LREAL(y_3[index], x_3[index]); end_for;
+	
+	Array_bubblesort_lreal(x_1, true);
+	for index := 100 to 100 by 1 do EXPECT_EQ_LREAL(y_1[index], x_1[index]); end_for;
+	{end}
+END_TEST_S
+
+TEST_S(test_array_bubblesort_n)
+	var
+		result_eno: bool;
+		//
+		x_4_m1: array[5..8] of lreal := [2.0, 1.0, 3.0, 2.0];
+		x_4_4: array[5..8] of lreal := [2.0, 1.0, 3.0, 2.0];
+		x_4_2: array[5..8] of lreal := [2.0, 1.0, 3.0, 2.0];
+		x_4_1: array[5..8] of lreal := [2.0, 1.0, 3.0, 2.0];
+		x_4_0: array[5..8] of lreal := [2.0, 1.0, 3.0, 2.0];
+		//
+		x_4_reverse: array[10..13] of lreal := [2.0, 1.0, 3.0, 2.0];
+		//
+		x_1_1: array[100..100] of lreal := [2.0];
+		x_1_0: array[100..100] of lreal := [2.0];
+		// abnormal cases
+		x_3: array[3..5] of lreal := [2.0, 1.0, 3.0];
+	end
+	{st}
+	Array_bubblesort_n_lreal(self:=x_4_m1, ascending:=true, n:=-1);
+	EXPECT_EQ_LREAL(1.0, x_4_m1[5]);
+	EXPECT_EQ_LREAL(2.0, x_4_m1[6]);
+	EXPECT_EQ_LREAL(2.0, x_4_m1[7]);
+	EXPECT_EQ_LREAL(3.0, x_4_m1[8]);
+
+	Array_bubblesort_n_lreal(self:=x_4_4, ascending:=true, n:=4);
+	EXPECT_EQ_LREAL(1.0, x_4_4[5]);
+	EXPECT_EQ_LREAL(2.0, x_4_4[6]);
+	EXPECT_EQ_LREAL(2.0, x_4_4[7]);
+	EXPECT_EQ_LREAL(3.0, x_4_4[8]);
+
+	Array_bubblesort_n_lreal(self:=x_4_2, ascending:=true, n:=2);
+	EXPECT_EQ_LREAL(1.0, x_4_2[5]);
+	EXPECT_EQ_LREAL(2.0, x_4_2[6]);
+	EXPECT_EQ_LREAL(3.0, x_4_2[7]);
+	EXPECT_EQ_LREAL(2.0, x_4_2[8]);
+
+	Array_bubblesort_n_lreal(self:=x_4_1, ascending:=true, n:=1);
+	EXPECT_EQ_LREAL(2.0, x_4_1[5]);
+	EXPECT_EQ_LREAL(1.0, x_4_1[6]);
+	EXPECT_EQ_LREAL(3.0, x_4_1[7]);
+	EXPECT_EQ_LREAL(2.0, x_4_1[8]);
+
+	Array_bubblesort_n_lreal(self:=x_4_0, ascending:=true, n:=0);
+	EXPECT_EQ_LREAL(2.0, x_4_0[5]);
+	EXPECT_EQ_LREAL(1.0, x_4_0[6]);
+	EXPECT_EQ_LREAL(3.0, x_4_0[7]);
+	EXPECT_EQ_LREAL(2.0, x_4_0[8]);
+
+	Array_bubblesort_n_lreal(self:=x_4_reverse, ascending:=false, n:=3);
+	EXPECT_EQ_LREAL(3.0, x_4_reverse[10]);
+	EXPECT_EQ_LREAL(2.0, x_4_reverse[11]);
+	EXPECT_EQ_LREAL(1.0, x_4_reverse[12]);
+	EXPECT_EQ_LREAL(2.0, x_4_reverse[13]);
+
+	Array_bubblesort_n_lreal(self:=x_1_1, ascending:=false, n:=1);
+	EXPECT_EQ_LREAL(2.0, x_1_1[100]);
+	Array_bubblesort_n_lreal(self:=x_1_0, ascending:=false, n:=0);
+	EXPECT_EQ_LREAL(2.0, x_1_0[100]);
+
+	Array_bubblesort_n_lreal(self:=x_3, ascending:=true, n:=4, eno=>result_eno);
+	EXPECT_EQ_BOOL(false, result_eno);
+	{end}
+END_TEST_S
+
+TEST_S(test_array_mergesort)
+	var
+		index: dint;
+		
+		x_5_1: array[0..4] of lreal := [3.0, 2.0, 7.0, 2.0, 1.0];
+		x_5_2: array[0..4] of lreal := [7.0, 3.0, 2.0, 2.0, 1.0];
+		x_5_3: array[0..4] of lreal := [1.0, 2.0, 2.0, 7.0, 3.0];
+		x_5_4: array[0..4] of lreal := [2.0, 1.0, 2.0, 3.0, 7.0];
+		y_5: array[0..4] of lreal := [1.0, 2.0, 2.0, 3.0, 7.0];
+		w_5_1: array[0..4] of lreal;
+		w_5_2: array[0..4] of lreal;
+		w_5_3: array[0..4] of lreal;
+		w_5_4: array[0..4] of lreal;
+		
+		x_5_1_reverse: array[0..4] of lreal := [3.0, 2.0, 7.0, 2.0, 1.0];
+		x_5_2_reverse: array[0..4] of lreal := [7.0, 3.0, 2.0, 2.0, 1.0];
+		x_5_3_reverse: array[0..4] of lreal := [1.0, 2.0, 2.0, 7.0, 3.0];
+		x_5_4_reverse: array[0..4] of lreal := [2.0, 1.0, 2.0, 3.0, 7.0];
+		y_5_reverse: array[0..4] of lreal := [7.0, 3.0, 2.0, 2.0, 1.0];
+		w_5_1_reverse: array[0..4] of lreal;
+		w_5_2_reverse: array[0..4] of lreal;
+		w_5_3_reverse: array[0..4] of lreal;
+		w_5_4_reverse: array[0..4] of lreal;
+		
+		x_3: array[0..2] of lreal := [2.0, 2.0, 2.0];
+		y_3: array[0..2] of lreal := [2.0, 2.0, 2.0];
+		w_3: array[0..2] of lreal;
+		
+		x_1: array[0..0] of lreal := [2.0];
+		y_1: array[0..0] of lreal := [2.0];
+		w_1: array[0..0] of lreal;
+		
+		x_d5: array[0..4] of dint := [5, -1, 3, -2, 0];
+		y_d5: array[0..4] of dint := [-2, -1, 0, 3, 5];
+		w_d5: array[0..4] of dint;
+		
+		x_d5_reverse: array[0..4] of dint := [5, -1, 3, -2, 0];
+		y_d5_reverse: array[0..4] of dint := [5, 3, 0, -1, -2];
+		w_d5_reverse: array[0..4] of dint;
+	end
+	{st}
+	Array_mergesort_lreal(self:=x_5_1, work:=w_5_1, ascending:=true);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5[index], x_5_1[index]); end_for;
+	Array_mergesort_lreal(self:=x_5_2, work:=w_5_2, ascending:=true);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5[index], x_5_2[index]); end_for;
+	Array_mergesort_lreal(self:=x_5_3, work:=w_5_3, ascending:=true);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5[index], x_5_3[index]); end_for;
+	Array_mergesort_lreal(self:=x_5_4, work:=w_5_4, ascending:=true);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5[index], x_5_4[index]); end_for;
+	
+	Array_mergesort_lreal(self:=x_5_1_reverse, work:=w_5_1_reverse, ascending:=false);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5_reverse[index], x_5_1_reverse[index]); end_for;
+	Array_mergesort_lreal(self:=x_5_2_reverse, work:=w_5_2_reverse, ascending:=false);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5_reverse[index], x_5_2_reverse[index]); end_for;
+	Array_mergesort_lreal(self:=x_5_3_reverse, work:=w_5_3_reverse, ascending:=false);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5_reverse[index], x_5_3_reverse[index]); end_for;
+	Array_mergesort_lreal(self:=x_5_4_reverse, work:=w_5_4_reverse, ascending:=false);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5_reverse[index], x_5_4_reverse[index]); end_for;
+	
+	Array_mergesort_lreal(self:=x_3, work:=w_3, ascending:=true);
+	for index := 0 to 2 by 1 do EXPECT_EQ_LREAL(y_3[index], x_3[index]); end_for;
+	Array_mergesort_lreal(self:=x_3, work:=w_3, ascending:=false);
+	for index := 0 to 2 by 1 do EXPECT_EQ_LREAL(y_3[index], x_3[index]); end_for;
+	
+	Array_mergesort_lreal(self:=x_1, work:=w_1, ascending:=true);
+	for index := 0 to 0 by 1 do EXPECT_EQ_LREAL(y_1[index], x_1[index]); end_for;
+	Array_mergesort_lreal(self:=x_1, work:=w_1, ascending:=false);
+	for index := 0 to 0 by 1 do EXPECT_EQ_LREAL(y_1[index], x_1[index]); end_for;
+	
+	Array_mergesort_dint(self:=x_d5, work:=w_d5, ascending:=true);
+	for index := 0 to 4 by 1 do EXPECT_EQ_INT32(y_d5[index], x_d5[index]); end_for;
+	Array_mergesort_dint(self:=x_d5_reverse, work:=w_d5_reverse, ascending:=false);
+	for index := 0 to 4 by 1 do EXPECT_EQ_INT32(y_d5_reverse[index], x_d5_reverse[index]); end_for;
+	{end}
+END_TEST_S
+
+TEST_S(test_array_mergesort_offset)
+	var
+		index: dint;
+		
+		x_5_1: array[5..9] of lreal := [3.0, 2.0, 7.0, 2.0, 1.0];
+		y_5: array[5..9] of lreal := [1.0, 2.0, 2.0, 3.0, 7.0];
+		w_5_1: array[5..9] of lreal;
+		
+		x_5_reverse: array[10..14] of lreal := [3.0, 2.0, 7.0, 2.0, 1.0];
+		y_5_reverse: array[10..14] of lreal := [7.0, 3.0, 2.0, 2.0, 1.0];
+		w_5_reverse: array[10..14] of lreal;
+		
+		x_3: array[1..3] of lreal := [2.0, 2.0, 2.0];
+		y_3: array[1..3] of lreal := [2.0, 2.0, 2.0];
+		w_3: array[1..3] of lreal;
+		
+		x_1: array[100..100] of lreal := [2.0];
+		y_1: array[100..100] of lreal := [2.0];
+		w_1: array[100..100] of lreal;
+		
+		x_d5: array[20..24] of dint := [5, -1, 3, -2, 0];
+		y_d5: array[20..24] of dint := [-2, -1, 0, 3, 5];
+		w_d5: array[20..24] of dint;
+	end
+	{st}
+	Array_mergesort_lreal(self:=x_5_1, work:=w_5_1, ascending:=true);
+	for index := 5 to 9 by 1 do EXPECT_EQ_LREAL(y_5[index], x_5_1[index]); end_for;
+	
+	Array_mergesort_lreal(self:=x_5_reverse, work:=w_5_reverse, ascending:=false);
+	for index := 10 to 14 by 1 do EXPECT_EQ_LREAL(y_5_reverse[index], x_5_reverse[index]); end_for;
+	
+	Array_mergesort_lreal(self:=x_3, work:=w_3, ascending:=true);
+	for index := 1 to 3 by 1 do EXPECT_EQ_LREAL(y_3[index], x_3[index]); end_for;
+	
+	Array_mergesort_lreal(self:=x_1, work:=w_1, ascending:=true);
+	for index := 100 to 100 by 1 do EXPECT_EQ_LREAL(y_1[index], x_1[index]); end_for;
+	
+	Array_mergesort_dint(self:=x_d5, work:=w_d5, ascending:=true);
+	for index := 20 to 24 by 1 do EXPECT_EQ_INT32(y_d5[index], x_d5[index]); end_for;
+	{end}
+END_TEST_S
+
+TEST_S(test_array_mergesort_n)
+	var
+		result_eno: bool;
+		//
+		x_4_m1: array[5..8] of lreal := [2.0, 1.0, 3.0, 2.0];
+		work_4_m1: array[2..5] of lreal;
+		x_4_4: array[5..8] of lreal := [2.0, 1.0, 3.0, 2.0];
+		work_4_4: array[0..3] of lreal;
+		x_4_2: array[5..8] of lreal := [2.0, 1.0, 3.0, 2.0];
+		work_4_2: array[3..4] of lreal;
+		x_4_1: array[5..8] of lreal := [2.0, 1.0, 3.0, 2.0];
+		work_4_1: array[7..7] of lreal;
+		x_4_0: array[5..8] of lreal := [2.0, 1.0, 3.0, 2.0];
+		work_4_0: array[2..2] of lreal;
+		//
+		x_4_reverse: array[10..13] of lreal := [2.0, 1.0, 3.0, 2.0];
+		work_4_reverse: array[0..2] of lreal;
+		//
+		x_1_1: array[100..100] of lreal := [2.0];
+		work_1_1: array[3..3] of lreal;
+		x_1_0: array[100..100] of lreal := [2.0];
+		work_1_0: array[5..5] of lreal;
+		//
+		x_5: array[6..10] of lreal := [2.0, 5.0, 1.0, 3.0, 2.0];
+		work_7: array[2..8] of lreal;
+		// abnormal cases
+		x_3: array[3..5] of lreal := [2.0, 1.0, 3.0];
+		work_3: array[0..2] of lreal;
+	end
+	{st}
+	Array_mergesort_n_lreal(self:=x_4_m1, ascending:=true, n:=-1, work:=work_4_m1);
+	EXPECT_EQ_LREAL(1.0, x_4_m1[5]);
+	EXPECT_EQ_LREAL(2.0, x_4_m1[6]);
+	EXPECT_EQ_LREAL(2.0, x_4_m1[7]);
+	EXPECT_EQ_LREAL(3.0, x_4_m1[8]);
+
+	Array_mergesort_n_lreal(self:=x_4_4, ascending:=true, n:=4, work:=work_4_4);
+	EXPECT_EQ_LREAL(1.0, x_4_4[5]);
+	EXPECT_EQ_LREAL(2.0, x_4_4[6]);
+	EXPECT_EQ_LREAL(2.0, x_4_4[7]);
+	EXPECT_EQ_LREAL(3.0, x_4_4[8]);
+
+	Array_mergesort_n_lreal(self:=x_4_2, ascending:=true, n:=2, work:=work_4_2);
+	EXPECT_EQ_LREAL(1.0, x_4_2[5]);
+	EXPECT_EQ_LREAL(2.0, x_4_2[6]);
+	EXPECT_EQ_LREAL(3.0, x_4_2[7]);
+	EXPECT_EQ_LREAL(2.0, x_4_2[8]);
+
+	Array_mergesort_n_lreal(self:=x_4_1, ascending:=true, n:=1, work:=work_4_1);
+	EXPECT_EQ_LREAL(2.0, x_4_1[5]);
+	EXPECT_EQ_LREAL(1.0, x_4_1[6]);
+	EXPECT_EQ_LREAL(3.0, x_4_1[7]);
+	EXPECT_EQ_LREAL(2.0, x_4_1[8]);
+
+	Array_mergesort_n_lreal(self:=x_4_0, ascending:=true, n:=0, work:=work_4_0);
+	EXPECT_EQ_LREAL(2.0, x_4_0[5]);
+	EXPECT_EQ_LREAL(1.0, x_4_0[6]);
+	EXPECT_EQ_LREAL(3.0, x_4_0[7]);
+	EXPECT_EQ_LREAL(2.0, x_4_0[8]);
+
+	Array_mergesort_n_lreal(self:=x_4_reverse, ascending:=false, n:=3, work:=work_4_reverse);
+	EXPECT_EQ_LREAL(3.0, x_4_reverse[10]);
+	EXPECT_EQ_LREAL(2.0, x_4_reverse[11]);
+	EXPECT_EQ_LREAL(1.0, x_4_reverse[12]);
+	EXPECT_EQ_LREAL(2.0, x_4_reverse[13]);
+
+	Array_mergesort_n_lreal(self:=x_1_1, ascending:=false, n:=1, work:=work_1_1);
+	EXPECT_EQ_LREAL(2.0, x_1_1[100]);
+	Array_mergesort_n_lreal(self:=x_1_0, ascending:=false, n:=0, work:=work_1_0);
+	EXPECT_EQ_LREAL(2.0, x_1_0[100]);
+
+	Array_mergesort_n_lreal(self:=x_5, ascending:=true, n:=-1, work:=work_7);
+	EXPECT_EQ_LREAL(1.0, x_5[6]);
+	EXPECT_EQ_LREAL(2.0, x_5[7]);
+	EXPECT_EQ_LREAL(2.0, x_5[8]);
+	EXPECT_EQ_LREAL(3.0, x_5[9]);
+	EXPECT_EQ_LREAL(5.0, x_5[10]);
+
+	Array_mergesort_n_lreal(self:=x_3, ascending:=true, n:=4, work:=work_3, eno=>result_eno);
+	EXPECT_EQ_BOOL(false, result_eno);
+	{end}
+END_TEST_S
+
+TEST_S(test_array_quicksort)
+	var
+		index: dint;
+		
+		x_5_1: array[0..4] of lreal := [3.0, 2.0, 7.0, 2.0, 1.0];
+		x_5_2: array[0..4] of lreal := [7.0, 3.0, 2.0, 2.0, 1.0];
+		x_5_3: array[0..4] of lreal := [1.0, 2.0, 2.0, 7.0, 3.0];
+		x_5_4: array[0..4] of lreal := [2.0, 1.0, 2.0, 3.0, 7.0];
+		y_5: array[0..4] of lreal := [1.0, 2.0, 2.0, 3.0, 7.0];
+		
+		x_5_1_reverse: array[0..4] of lreal := [3.0, 2.0, 7.0, 2.0, 1.0];
+		x_5_2_reverse: array[0..4] of lreal := [7.0, 3.0, 2.0, 2.0, 1.0];
+		x_5_3_reverse: array[0..4] of lreal := [1.0, 2.0, 2.0, 7.0, 3.0];
+		x_5_4_reverse: array[0..4] of lreal := [2.0, 1.0, 2.0, 3.0, 7.0];
+		y_5_reverse: array[0..4] of lreal := [7.0, 3.0, 2.0, 2.0, 1.0];
+		
+		x_3: array[0..2] of lreal := [2.0, 2.0, 2.0];
+		y_3: array[0..2] of lreal := [2.0, 2.0, 2.0];
+		
+		x_1: array[0..0] of lreal := [2.0];
+		y_1: array[0..0] of lreal := [2.0];
+		
+		x_d5: array[0..4] of dint := [5, -1, 3, -2, 0];
+		y_d5: array[0..4] of dint := [-2, -1, 0, 3, 5];
+		
+		x_d5_reverse: array[0..4] of dint := [5, -1, 3, -2, 0];
+		y_d5_reverse: array[0..4] of dint := [5, 3, 0, -1, -2];
+	end
+	{st}
+	Array_quicksort_lreal(self:=x_5_1, ascending:=true);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5[index], x_5_1[index]); end_for;
+	Array_quicksort_lreal(self:=x_5_2, ascending:=true);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5[index], x_5_2[index]); end_for;
+	Array_quicksort_lreal(self:=x_5_3, ascending:=true);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5[index], x_5_3[index]); end_for;
+	Array_quicksort_lreal(self:=x_5_4, ascending:=true);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5[index], x_5_4[index]); end_for;
+	
+	Array_quicksort_lreal(self:=x_5_1_reverse, ascending:=false);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5_reverse[index], x_5_1_reverse[index]); end_for;
+	Array_quicksort_lreal(self:=x_5_2_reverse, ascending:=false);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5_reverse[index], x_5_2_reverse[index]); end_for;
+	Array_quicksort_lreal(self:=x_5_3_reverse, ascending:=false);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5_reverse[index], x_5_3_reverse[index]); end_for;
+	Array_quicksort_lreal(self:=x_5_4_reverse, ascending:=false);
+	for index := 0 to 4 by 1 do EXPECT_EQ_LREAL(y_5_reverse[index], x_5_4_reverse[index]); end_for;
+	
+	Array_quicksort_lreal(self:=x_3, ascending:=true);
+	for index := 0 to 2 by 1 do EXPECT_EQ_LREAL(y_3[index], x_3[index]); end_for;
+	Array_quicksort_lreal(self:=x_3, ascending:=false);
+	for index := 0 to 2 by 1 do EXPECT_EQ_LREAL(y_3[index], x_3[index]); end_for;
+	
+	Array_quicksort_lreal(self:=x_1, ascending:=true);
+	for index := 0 to 0 by 1 do EXPECT_EQ_LREAL(y_1[index], x_1[index]); end_for;
+	Array_quicksort_lreal(self:=x_1, ascending:=false);
+	for index := 0 to 0 by 1 do EXPECT_EQ_LREAL(y_1[index], x_1[index]); end_for;
+	
+	Array_quicksort_dint(self:=x_d5, ascending:=true);
+	for index := 0 to 4 by 1 do EXPECT_EQ_INT32(y_d5[index], x_d5[index]); end_for;
+	Array_quicksort_dint(self:=x_d5_reverse, ascending:=false);
+	for index := 0 to 4 by 1 do EXPECT_EQ_INT32(y_d5_reverse[index], x_d5_reverse[index]); end_for;
+	{end}
+END_TEST_S
+
+TEST_S(test_array_quicksort_offset)
+	var
+		index: dint;
+		
+		x_5_1: array[5..9] of lreal := [3.0, 2.0, 7.0, 2.0, 1.0];
+		y_5: array[5..9] of lreal := [1.0, 2.0, 2.0, 3.0, 7.0];
+		
+		x_5_reverse: array[10..14] of lreal := [3.0, 2.0, 7.0, 2.0, 1.0];
+		y_5_reverse: array[10..14] of lreal := [7.0, 3.0, 2.0, 2.0, 1.0];
+		
+		x_3: array[1..3] of lreal := [2.0, 2.0, 2.0];
+		y_3: array[1..3] of lreal := [2.0, 2.0, 2.0];
+		
+		x_1: array[100..100] of lreal := [2.0];
+		y_1: array[100..100] of lreal := [2.0];
+		
+		x_d5: array[20..24] of dint := [5, -1, 3, -2, 0];
+		y_d5: array[20..24] of dint := [-2, -1, 0, 3, 5];
+	end
+	{st}
+	Array_quicksort_lreal(self:=x_5_1, ascending:=true);
+	for index := 5 to 9 by 1 do EXPECT_EQ_LREAL(y_5[index], x_5_1[index]); end_for;
+	
+	Array_quicksort_lreal(self:=x_5_reverse, ascending:=false);
+	for index := 10 to 14 by 1 do EXPECT_EQ_LREAL(y_5_reverse[index], x_5_reverse[index]); end_for;
+	
+	Array_quicksort_lreal(self:=x_3, ascending:=true);
+	for index := 1 to 3 by 1 do EXPECT_EQ_LREAL(y_3[index], x_3[index]); end_for;
+	
+	Array_quicksort_lreal(self:=x_1, ascending:=true);
+	for index := 100 to 100 by 1 do EXPECT_EQ_LREAL(y_1[index], x_1[index]); end_for;
+	
+	Array_quicksort_dint(self:=x_d5, ascending:=true);
+	for index := 20 to 24 by 1 do EXPECT_EQ_INT32(y_d5[index], x_d5[index]); end_for;
+	{end}
+END_TEST_S
+
+TEST_S(test_array_quicksort_n)
+	var
+		result_eno: bool;
+		//
+		x_4_m1: array[5..8] of lreal := [2.0, 1.0, 3.0, 2.0];
+		x_4_4: array[5..8] of lreal := [2.0, 1.0, 3.0, 2.0];
+		x_4_2: array[5..8] of lreal := [2.0, 1.0, 3.0, 2.0];
+		x_4_1: array[5..8] of lreal := [2.0, 1.0, 3.0, 2.0];
+		x_4_0: array[5..8] of lreal := [2.0, 1.0, 3.0, 2.0];
+		//
+		x_4_reverse: array[10..13] of lreal := [2.0, 1.0, 3.0, 2.0];
+		//
+		x_1_1: array[100..100] of lreal := [2.0];
+		x_1_0: array[100..100] of lreal := [2.0];
+		// abnormal cases
+		x_3: array[3..5] of lreal := [2.0, 1.0, 3.0];
+	end
+	{st}
+	Array_quicksort_n_lreal(self:=x_4_m1, ascending:=true, n:=-1);
+	EXPECT_EQ_LREAL(1.0, x_4_m1[5]);
+	EXPECT_EQ_LREAL(2.0, x_4_m1[6]);
+	EXPECT_EQ_LREAL(2.0, x_4_m1[7]);
+	EXPECT_EQ_LREAL(3.0, x_4_m1[8]);
+
+	Array_quicksort_n_lreal(self:=x_4_4, ascending:=true, n:=4);
+	EXPECT_EQ_LREAL(1.0, x_4_4[5]);
+	EXPECT_EQ_LREAL(2.0, x_4_4[6]);
+	EXPECT_EQ_LREAL(2.0, x_4_4[7]);
+	EXPECT_EQ_LREAL(3.0, x_4_4[8]);
+
+	Array_quicksort_n_lreal(self:=x_4_2, ascending:=true, n:=2);
+	EXPECT_EQ_LREAL(1.0, x_4_2[5]);
+	EXPECT_EQ_LREAL(2.0, x_4_2[6]);
+	EXPECT_EQ_LREAL(3.0, x_4_2[7]);
+	EXPECT_EQ_LREAL(2.0, x_4_2[8]);
+
+	Array_quicksort_n_lreal(self:=x_4_1, ascending:=true, n:=1);
+	EXPECT_EQ_LREAL(2.0, x_4_1[5]);
+	EXPECT_EQ_LREAL(1.0, x_4_1[6]);
+	EXPECT_EQ_LREAL(3.0, x_4_1[7]);
+	EXPECT_EQ_LREAL(2.0, x_4_1[8]);
+
+	Array_quicksort_n_lreal(self:=x_4_0, ascending:=true, n:=0);
+	EXPECT_EQ_LREAL(2.0, x_4_0[5]);
+	EXPECT_EQ_LREAL(1.0, x_4_0[6]);
+	EXPECT_EQ_LREAL(3.0, x_4_0[7]);
+	EXPECT_EQ_LREAL(2.0, x_4_0[8]);
+
+	Array_quicksort_n_lreal(self:=x_4_reverse, ascending:=false, n:=3);
+	EXPECT_EQ_LREAL(3.0, x_4_reverse[10]);
+	EXPECT_EQ_LREAL(2.0, x_4_reverse[11]);
+	EXPECT_EQ_LREAL(1.0, x_4_reverse[12]);
+	EXPECT_EQ_LREAL(2.0, x_4_reverse[13]);
+
+	Array_quicksort_n_lreal(self:=x_1_1, ascending:=false, n:=1);
+	EXPECT_EQ_LREAL(2.0, x_1_1[100]);
+	Array_quicksort_n_lreal(self:=x_1_0, ascending:=false, n:=0);
+	EXPECT_EQ_LREAL(2.0, x_1_0[100]);
+
+	Array_quicksort_n_lreal(self:=x_3, ascending:=true, n:=4, eno=>result_eno);
+	EXPECT_EQ_BOOL(false, result_eno);
+	{end}
+END_TEST_S
