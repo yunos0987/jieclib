@@ -9,44 +9,366 @@
 
 {#include <sys.txt>}
 
-{#define _DEFINE_ARRAY_BUBBLESORT_DATATYPE(datatype) $
-	${doc バブルソート datatype$} $
-	function Array_bubblesort_@@datatype $
-		_PROLOGUE_OF_FUNCTION_() $
-		var_in_out $
-			self: array[*] of datatype; $
-		end $
-		var_input $
-			${doc 昇順のとき真$} $
-			ascending: bool := true; $
-		end $
-		var_temp $
-			i_0, i_1: dint; $
-			index, jndex: dint; $
-			cond: bool; $
-			tmp: datatype; $
-		end $
-		${st$} $
-		i_0 := lower_bound(self, 1); $
-		i_1 := upper_bound(self, 1); $
-		for index := i_0 to i_1 - 1 by +1 do $
-			for jndex := i_1 to index + 1 by -1 do $
-				if ascending then $
-					cond := self[jndex - 1] > self[jndex]; $
-				else $
-					cond := self[jndex - 1] < self[jndex]; $
-				end_if; $
-				if cond then $
-					tmp := self[jndex - 1]; $
-					self[jndex - 1] := self[jndex]; $
-					self[jndex] := tmp; $
-				end_if; $
-			end_for; $
-		end_for; $
-		${end$} $
-	end $
+{#define _DEFINE_ARRAY_BUBBLESORT_N_DATATYPE(datatype)
+	${doc バブルソート datatype$}
+	function Array_bubblesort_n_@@datatype
+		_PROLOGUE_OF_FUNCTION_()
+		var_in_out
+			self: array[*] of datatype;
+		end
+		var_input
+			${doc 昇順のとき真$}
+			ascending: bool := true;
+			n: dint := -1;
+		end
+		var_temp
+			actual_n: dint;
+			i_0, i_1: dint;
+			i, j: dint;
+			cond: bool;
+			tmp: datatype;
+		end
+		${st$}
+		i_0 := lower_bound(self, 1);
+		i_1 := upper_bound(self, 1);
+		if i_0 > i_1 then
+			eno := false;
+			return;
+		end_if;
+		actual_n := i_1 - i_0 + 1;
+		if n >= 0 then
+			if n > actual_n then
+				eno := false;
+				return;
+			end_if;
+			actual_n := n;
+		end_if;
+
+		for i := i_0 to i_0 + actual_n - 2 by +1 do
+			for j := i_0 + actual_n - 1 to i + 1 by -1 do
+				if ascending then
+					cond := self[j - 1] > self[j];
+				else
+					cond := self[j - 1] < self[j];
+				end_if;
+				if cond then
+					tmp := self[j - 1];
+					self[j - 1] := self[j];
+					self[j] := tmp;
+				end_if;
+			end_for;
+		end_for;
+		${end$}
+	end
+}
+_DEFINE_ARRAY_BUBBLESORT_N_DATATYPE(lreal)
+_DEFINE_ARRAY_BUBBLESORT_N_DATATYPE(dint)
+{#undef _DEFINE_ARRAY_BUBBLESORT_N_DATATYPE}
+
+{#define _DEFINE_ARRAY_BUBBLESORT_DATATYPE(datatype)
+	${doc バブルソート datatype$}
+	function Array_bubblesort_@@datatype
+		_PROLOGUE_OF_FUNCTION_()
+		var_in_out
+			self: array[*] of datatype;
+		end
+		var_input
+			${doc 昇順のとき真$}
+			ascending: bool := true;
+		end
+		${st$}
+		Array_bubblesort_n_@@datatype(self:=self, ascending:=ascending, n:=-1, eno=>eno);
+		${end$}
+	end
 }
 _DEFINE_ARRAY_BUBBLESORT_DATATYPE(lreal)
 _DEFINE_ARRAY_BUBBLESORT_DATATYPE(dint)
+{#undef _DEFINE_ARRAY_BUBBLESORT_DATATYPE}
+
+{#define _DEFINE_ARRAY_MERGESORT_N_DATATYPE(datatype)
+	${doc マージソート datatype$}
+	function Array_mergesort_n_@@datatype
+		_PROLOGUE_OF_FUNCTION_()
+		var_in_out
+			self: array[*] of datatype;
+		end
+		var_input
+			${doc 昇順のとき真$}
+			ascending: bool := true;
+			n: dint := -1;
+		end
+		var_in_out
+			work: array[*] of datatype;
+		end
+		var_temp
+			i_0, i_1: dint;
+			actual_n: dint;
+			nself, nwork, width: dint;
+			left_idx, mid_idx, right_idx: dint;
+			l_idx, r_idx, dest: dint;
+			w_i_0, w_i_1: dint;
+			cond: bool;
+		end
+		${st$}
+		i_0 := lower_bound(self, 1);
+		i_1 := upper_bound(self, 1);
+		if i_0 > i_1 then
+			eno := false;
+			return;
+		end_if;
+		actual_n := i_1 - i_0 + 1;
+		if n >= 0 then
+			if n > actual_n then
+				eno := false;
+				return;
+			end_if;
+			actual_n := n;
+		end_if;
+
+		w_i_0 := lower_bound(work, 1);
+		w_i_1 := upper_bound(work, 1);
+		if actual_n > w_i_1 - w_i_0 + 1 then
+			eno := false;
+			return;
+		end_if;
+		
+		if actual_n <= 1 then
+			return;
+		end_if;
+		
+		width := 1;
+		while width < actual_n do
+			left_idx := i_0;
+			while left_idx <= i_0 + actual_n - 1 do
+				mid_idx := left_idx + width - 1;
+				if mid_idx >= i_0 + actual_n - 1 then
+					exit;
+				end_if;
+				right_idx := left_idx + width + width - 1;
+				if right_idx > i_0 + actual_n - 1 then
+					right_idx := i_0 + actual_n - 1;
+				end_if;
+				l_idx := left_idx;
+				r_idx := mid_idx + 1;
+				dest := w_i_0 + (left_idx - i_0);
+				while (l_idx <= mid_idx) and (r_idx <= right_idx) do
+					if ascending then
+						cond := self[l_idx] <= self[r_idx];
+					else
+						cond := self[l_idx] >= self[r_idx];
+					end_if;
+					if cond then
+						work[dest] := self[l_idx];
+						l_idx := l_idx + 1;
+					else
+						work[dest] := self[r_idx];
+						r_idx := r_idx + 1;
+					end_if;
+					dest := dest + 1;
+				end_while;
+				while l_idx <= mid_idx do
+					work[dest] := self[l_idx];
+					dest := dest + 1;
+					l_idx := l_idx + 1;
+				end_while;
+				while r_idx <= right_idx do
+					work[dest] := self[r_idx];
+					dest := dest + 1;
+					r_idx := r_idx + 1;
+				end_while;
+				dest := w_i_0 + (left_idx - i_0);
+				for l_idx := left_idx to right_idx do
+					self[l_idx] := work[dest];
+					dest := dest + 1;
+				end_for;
+				left_idx := right_idx + 1;
+			end_while;
+			width := width + width;
+		end_while;
+		${end$}
+	end
+}
+_DEFINE_ARRAY_MERGESORT_N_DATATYPE(lreal)
+_DEFINE_ARRAY_MERGESORT_N_DATATYPE(dint)
+{#undef _DEFINE_ARRAY_MERGESORT_N_DATATYPE}
+
+{#define _DEFINE_ARRAY_MERGESORT_DATATYPE(datatype)
+	${doc マージソート datatype$}
+	function Array_mergesort_@@datatype
+		_PROLOGUE_OF_FUNCTION_()
+		var_in_out
+			self: array[*] of datatype;
+		end
+		var_input
+			${doc 昇順のとき真$}
+			ascending: bool := true;
+		end
+		var_in_out
+			work: array[*] of datatype;
+		end
+		${st$}
+		Array_mergesort_n_@@datatype(self:=self, ascending:=ascending, n:=-1, work:=work, eno=>eno);
+		${end$}
+	end
+}
+_DEFINE_ARRAY_MERGESORT_DATATYPE(lreal)
+_DEFINE_ARRAY_MERGESORT_DATATYPE(dint)
+{#undef _DEFINE_ARRAY_MERGESORT_DATATYPE}
+
+{#define _DEFINE_ARRAY_QUICKSORT_N_DATATYPE(datatype)
+	${doc クイックソート datatype$}
+	function Array_quicksort_n_@@datatype
+		_PROLOGUE_OF_FUNCTION_()
+		var_in_out
+			self: array[*] of datatype;
+		end
+		var_input
+			${doc 昇順のとき真$}
+			ascending: bool := true;
+			n: dint := -1;
+		end
+		var_temp
+			actual_n: dint;
+			i_0, i_1: dint;
+			left_idx, right_idx: dint;
+			l_ptr, r_ptr: dint;
+			pivot: datatype;
+			tmp: datatype;
+			stack_lo: array[0..63] of dint;
+			stack_hi: array[0..63] of dint;
+			sp: dint;
+			cond: bool;
+		end
+		${st$}
+		i_0 := lower_bound(self, 1);
+		i_1 := upper_bound(self, 1);
+		if i_0 > i_1 then
+			eno := false;
+			return;
+		end_if;
+		actual_n := i_1 - i_0 + 1;
+		if n >= 0 then
+			if n > actual_n then
+				eno := false;
+				return;
+			end_if;
+			actual_n := n;
+		end_if;
+
+		sp := 0;
+		stack_lo[0] := i_0;
+		stack_hi[0] := i_0 + actual_n - 1;
+		
+		while sp >= 0 do
+			left_idx := stack_lo[sp];
+			right_idx := stack_hi[sp];
+			sp := sp - 1;
+			
+			l_ptr := left_idx;
+			r_ptr := right_idx;
+			pivot := self[left_idx + (right_idx - left_idx) / 2];
+			
+			while l_ptr <= r_ptr do
+				while TRUE do
+					if ascending then
+						cond := self[l_ptr] < pivot;
+					else
+						cond := self[l_ptr] > pivot;
+					end_if;
+					if cond then
+						l_ptr := l_ptr + 1;
+					else
+						exit;
+					end_if;
+				end_while;
+				
+				while TRUE do
+					if ascending then
+						cond := self[r_ptr] > pivot;
+					else
+						cond := self[r_ptr] < pivot;
+					end_if;
+					if cond then
+						r_ptr := r_ptr - 1;
+					else
+						exit;
+					end_if;
+				end_while;
+				
+				if l_ptr <= r_ptr then
+					tmp := self[l_ptr];
+					self[l_ptr] := self[r_ptr];
+					self[r_ptr] := tmp;
+					l_ptr := l_ptr + 1;
+					r_ptr := r_ptr - 1;
+				end_if;
+			end_while;
+			
+			if left_idx < r_ptr then
+				if l_ptr < i_0 + actual_n - 1 then
+					if (r_ptr - left_idx) > (i_0 + actual_n - 1 - l_ptr) then
+						if sp < 63 then
+							sp := sp + 1;
+							stack_lo[sp] := left_idx;
+							stack_hi[sp] := r_ptr;
+						end_if;
+						if sp < 63 then
+							sp := sp + 1;
+							stack_lo[sp] := l_ptr;
+							stack_hi[sp] := right_idx;
+						end_if;
+					else
+						if sp < 63 then
+							sp := sp + 1;
+							stack_lo[sp] := l_ptr;
+							stack_hi[sp] := right_idx;
+						end_if;
+						if sp < 63 then
+							sp := sp + 1;
+							stack_lo[sp] := left_idx;
+							stack_hi[sp] := r_ptr;
+						end_if;
+					end_if;
+				else
+					if sp < 63 then
+						sp := sp + 1;
+						stack_lo[sp] := left_idx;
+						stack_hi[sp] := r_ptr;
+					end_if;
+				end_if;
+			elsif l_ptr < right_idx then
+				if sp < 63 then
+					sp := sp + 1;
+					stack_lo[sp] := l_ptr;
+					stack_hi[sp] := right_idx;
+				end_if;
+			end_if;
+		end_while;
+		${end$}
+	end
+}
+_DEFINE_ARRAY_QUICKSORT_N_DATATYPE(lreal)
+_DEFINE_ARRAY_QUICKSORT_N_DATATYPE(dint)
+{#undef _DEFINE_ARRAY_QUICKSORT_N_DATATYPE}
+
+{#define _DEFINE_ARRAY_QUICKSORT_DATATYPE(datatype)
+	${doc クイックソート datatype$}
+	function Array_quicksort_@@datatype
+		_PROLOGUE_OF_FUNCTION_()
+		var_in_out
+			self: array[*] of datatype;
+		end
+		var_input
+			${doc 昇順のとき真$}
+			ascending: bool := true;
+		end
+		${st$}
+		Array_quicksort_n_@@datatype(self:=self, ascending:=ascending, n:=-1, eno=>eno);
+		${end$}
+	end
+}
+_DEFINE_ARRAY_QUICKSORT_DATATYPE(lreal)
+_DEFINE_ARRAY_QUICKSORT_DATATYPE(dint)
+{#undef _DEFINE_ARRAY_QUICKSORT_DATATYPE}
 
 {#endif}

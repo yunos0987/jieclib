@@ -1,44 +1,97 @@
 (*
  * $ cd <JiecLib Project Root>
  * $ jiecc ./array/copy.txt -I. -I./vendor/jiecunit/sys -o ./array/copy.xml -t omron
- * or
- * $ jiecc ./array/copy.txt -I. -I./vendor/jiecunit/sys -o ./array/copy.xml -t keyence
  *)
 {#ifndef __ARRAY_COPY_TXT__}
 {#define __ARRAY_COPY_TXT__}
 
 {#include <sys.txt>}
 
-{#define _DEFINE_ARRAY_COPY_DATATYPE(datatype) $
-	function Array_copy_@@datatype $
-		_PROLOGUE_OF_FUNCTION_() $
-		var_in_out $
-			src: array[*] of datatype; $
-			dst: array[*] of datatype; $
-		end $
-		var_temp $
-			src_i_0, src_i_1: dint; $
-			dst_i_0, dst_i_1: dint; $
-			src_index, dst_index: dint; $
-		end $
-		${st$} $
-		src_i_0 := lower_bound(src, 1); $
-		src_i_1 := upper_bound(src, 1); $
-		dst_i_0 := lower_bound(dst, 1); $
-		dst_i_1 := upper_bound(dst, 1); $
-		if dst_i_1 - dst_i_0 + 1>= src_i_1 - src_i_0 + 1 then $
-			dst_index := dst_i_0; $
-			for src_index := src_i_0 to src_i_1 by 1 do $
-				dst[dst_index] := src[src_index]; $
-				dst_index := dst_index + 1; $
-			end_for; $
-		else $
-			eno := false; $
-		end_if; $
-		${end$} $
-	end $
+{#define _DEFINE_ARRAY_COPY_X_DATATYPE(datatype)
+	function Array_copy_x_@@datatype: dint
+		_PROLOGUE_OF_FUNCTION_()
+		var_in_out
+			src: array[*] of datatype;
+		end
+		var_input
+			src_index: dint;
+		end	
+		var_in_out
+			dst: array[*] of datatype;
+		end
+		var_input
+			dst_index: dint;
+			${doc コピーする要素数。-1 の場合は src 配列の要素数まで$}
+			n: dint := -1;
+		end
+		var_temp
+			src_i_0, src_i_1: dint;
+			dst_i_0, dst_i_1: dint;
+			src_i, dst_i, actual_n: dint;
+		end	
+		${st$}
+		src_i_0 := lower_bound(src, 1);
+		if src_index < src_i_0 then
+			eno := false;
+			return;
+		end_if;
+		src_i_1 := upper_bound(src, 1);
+		if n > src_i_1 - src_index + 1 then
+			eno := false;
+			return;
+		end_if;
+
+		dst_i_0 := lower_bound(dst, 1);
+		if dst_index < dst_i_0 then
+			eno := false;
+			return;
+		end_if;
+		dst_i_1 := upper_bound(dst, 1);
+		if n > dst_i_1 - dst_index + 1 then
+			eno := false;
+			return;
+		end_if;
+
+		if n >= 0 then
+			actual_n := n;
+		else
+			actual_n := src_i_1 - src_index + 1;
+			if actual_n > dst_i_1 - dst_index + 1 then
+				eno := false;
+				return;
+			end_if;
+		end_if;
+
+		dst_i := dst_index;
+		for src_i := src_index to src_index + actual_n - 1 by 1 do
+			dst[dst_i] := src[src_i];
+			dst_i := dst_i + 1;
+		end_for;
+
+		Array_copy_x_@@datatype := actual_n;
+		${end$}
+	end
+}
+_DEFINE_ARRAY_COPY_X_DATATYPE(lreal)
+_DEFINE_ARRAY_COPY_X_DATATYPE(dint)
+{#undef _DEFINE_ARRAY_COPY_X_DATATYPE}
+
+{#define _DEFINE_ARRAY_COPY_DATATYPE(datatype)
+	function Array_copy_@@datatype: dint
+		_PROLOGUE_OF_FUNCTION_()
+		var_in_out
+			src, dst: array[*] of datatype;
+		end
+		${st$}
+		Array_copy_@@datatype := Array_copy_x_@@datatype(
+			src:=src, src_index:=lower_bound(src, 1),
+			dst:=dst, dst_index:=lower_bound(dst, 1),
+			n:=-1, eno=>eno);
+		${end$}
+	end
 }
 _DEFINE_ARRAY_COPY_DATATYPE(lreal)
 _DEFINE_ARRAY_COPY_DATATYPE(dint)
+{#undef _DEFINE_ARRAY_COPY_DATATYPE}
 
 {#endif}
