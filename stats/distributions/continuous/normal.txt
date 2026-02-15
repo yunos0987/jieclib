@@ -1,0 +1,176 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./stats/distributions/continuous/normal.txt -I. -I./vendor/jiecunit/sys -o ./stats/distributions/continuous/normal.xml -t omron
+ *)
+{#ifndef __STATS_DISTRIBUTIONS_CONTINUOUS_NORMAL_TXT__}
+{#define __STATS_DISTRIBUTIONS_CONTINUOUS_NORMAL_TXT__}
+
+{#include <sys.txt>}
+{#include <stats/distributions/core/special_functions.txt>}
+
+(*{doc 正規分布の確率密度関数 Normal PDF。
+f(x) = (1/(sqrt(2*pi)*sigma))*exp(-0.5*((x-mu)/sigma)^2)
+@input x 入力値。
+@input mu 平均。
+@input sigma 標準偏差。
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_normal_pdf: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 入力値。}*)
+		x: lreal;
+		(*{doc 平均。}*)
+		mu: lreal;
+		(*{doc 標準偏差。}*)
+		sigma: lreal;
+	end
+	var_temp
+		z, coeff: lreal;
+	end
+	{st}
+		if sigma <= 0.0 then
+			eno := false;
+			return;
+		end_if;
+		z := (x - mu) / sigma;
+		coeff := 1.0 / (sqrt(2.0 * 3.14159265358979323846) * sigma);
+		Stats_normal_pdf := coeff * exp(-0.5 * z * z);
+	{end}
+end
+
+(*{doc 正規分布の累積分布関数 Normal CDF。
+Phi(x) = 0.5 * (1 + erf((x-mu)/(sigma*sqrt(2))))
+@input x 入力値。
+@input mu 平均。
+@input sigma 標準偏差。
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_normal_cdf: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 入力値。}*)
+		x: lreal;
+		(*{doc 平均。}*)
+		mu: lreal;
+		(*{doc 標準偏差。}*)
+		sigma: lreal;
+	end
+	var_temp
+		z: lreal;
+	end
+	{st}
+	if sigma <= 0.0 then
+		eno := false;
+		return;
+	end_if;
+	z := (x - mu) / (sigma * sqrt(2.0));
+	Stats_normal_cdf := 0.5 * (1.0 + Stats_erf(x:=z));
+	{end}
+end
+
+(*{doc 正規分布の分位関数。Newton-Raphson 法で求解。
+PPF(p) = mu + sigma * sqrt(2) * erfinv(2p-1)
+ただし、erfinv は誤差関数の逆関数。
+@input p 確率(0..1)。
+@input mu 平均。
+  デフォルト値: 0.0
+@input sigma 標準偏差。
+  デフォルト値: 1.0
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_normal_ppf: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 確率(0..1)。}*)
+		p: lreal;
+		(*{doc 平均。}*)
+		mu: lreal := 0.0;
+		(*{doc 標準偏差。}*)
+		sigma: lreal := 1.0;
+	end
+	var_temp
+		x, pdf_val, cdf_val, delta, iter: lreal;
+		i: dint;
+	end
+	{st}
+	if (sigma <= 0.0) or (p < 0.0) or (p > 1.0) then
+		eno := false;
+		return;
+	end_if;
+	if p = 0.0 then
+		Stats_normal_ppf := mu - sigma * 10.0;
+		return;
+	end_if;
+	if p = 1.0 then
+		Stats_normal_ppf := mu + sigma * 10.0;
+		return;
+	end_if;
+
+	// 初期推定値
+	x := mu + sigma * (p - 0.5) / 0.3989423;
+
+	// Newton-Raphson 反復。最大 10 回。
+	for i := 0 to 9 do
+		cdf_val := Stats_normal_cdf(x:=x, mu:=mu, sigma:=sigma);
+		pdf_val := Stats_normal_pdf(x:=x, mu:=mu, sigma:=sigma);
+		if pdf_val < 1e-10 then
+			exit;
+		end_if;
+		delta := (cdf_val - p) / pdf_val;
+		x := x - delta;
+		if abs(delta) < 1e-10 then
+			exit;
+		end_if;
+	end_for;
+
+	Stats_normal_ppf := x;
+	{end}
+end
+
+(*{doc 正規分布の平均（期待値）。
+@input mu 平均。
+@input sigma 標準偏差。
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_normal_mean: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 平均。}*)
+		mu: lreal;
+		(*{doc 標準偏差。}*)
+		sigma: lreal;
+	end
+	{st}
+	if sigma <= 0.0 then
+		eno := false;
+		return;
+	end_if;
+	Stats_normal_mean := mu;
+	{end}
+end
+
+(*{doc 正規分布の分散。
+@input mu 平均。
+@input sigma 標準偏差。
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_normal_variance: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 平均。}*)
+		mu: lreal;
+		(*{doc 標準偏差。}*)
+		sigma: lreal;
+	end
+	{st}
+	if sigma <= 0.0 then
+		eno := false;
+		return;
+	end_if;
+	Stats_normal_variance := sigma * sigma;
+	{end}
+end
+
+{#endif}
+

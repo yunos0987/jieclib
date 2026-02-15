@@ -1,0 +1,273 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/distributions/continuous/test_student_t.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/distributions/continuous/test_student_t.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/distributions/continuous/student_t.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_student_t_pdf',
+		'test_stats_student_t_cdf',
+		'test_stats_student_t_ppf',
+		'test_stats_student_t_mean',
+		'test_stats_student_t_variance'
+	)
+)
+{#endif}
+
+TEST_S(test_stats_student_t_pdf)
+	var result: lreal; end
+	var result1: lreal; end
+	var result2: lreal; end
+	{st}
+		// Various degrees of freedom at origin
+		result := Stats_student_t_pdf(t:=0.0, df:=1.0);
+		EXPECT_NEAR(0.318309886183791, result, 1e-6);
+
+		result := Stats_student_t_pdf(t:=0.0, df:=5.0);
+		EXPECT_NEAR(0.379606689822494, result, 1e-6);
+
+		result := Stats_student_t_pdf(t:=0.0, df:=10.0);
+		EXPECT_NEAR(0.389108383966031, result, 1e-6);
+
+		result := Stats_student_t_pdf(t:=0.0, df:=1000.0);
+		EXPECT_NEAR(0.398842557300000, result, 1e-6);
+
+		result := Stats_student_t_pdf(t:=0.0, df:=100.0);
+		EXPECT_NEAR(0.397946186935906, result, 1e-6);
+
+		// Various t values with different df
+		result := Stats_student_t_pdf(t:=1.0, df:=1.0);
+		EXPECT_NEAR(0.159154943091895, result, 1e-6);
+
+		result := Stats_student_t_pdf(t:=1.0, df:=5.0);
+		EXPECT_NEAR(0.219679797350981, result, 1e-6);
+
+		result := Stats_student_t_pdf(t:=1.0, df:=10.0);
+		EXPECT_NEAR(0.230361989229139, result, 1e-6);
+
+		result := Stats_student_t_pdf(t:=2.0, df:=5.0);
+		EXPECT_NEAR(0.065090310326216, result, 1e-6);
+
+		result := Stats_student_t_pdf(t:=0.5, df:=30.0);
+		EXPECT_NEAR(0.347878579697204, result, 1e-6);
+
+		result := Stats_student_t_pdf(t:=3.0, df:=2.0);
+		EXPECT_NEAR(0.027410122234342, result, 1e-6);
+
+		result := Stats_student_t_pdf(t:=1.0, df:=1000.0);
+		EXPECT_NEAR(0.241849789600000, result, 1e-6);
+
+		// Symmetry check
+		result1 := Stats_student_t_pdf(t:=1.0, df:=10.0);
+		result2 := Stats_student_t_pdf(t:=-1.0, df:=10.0);
+		EXPECT_NEAR(result1, result2, 1e-6);
+
+		result1 := Stats_student_t_pdf(t:=2.0, df:=5.0);
+		result2 := Stats_student_t_pdf(t:=-2.0, df:=5.0);
+		EXPECT_NEAR(result1, result2, 1e-6);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_student_t_cdf)
+	var result: lreal; end
+	{st}
+		// CDF at origin should be 0.5 for any df
+		result := Stats_student_t_cdf(t:=0.0, df:=1.0);
+		EXPECT_NEAR(0.500000000000000, result, 1e-6);
+
+		result := Stats_student_t_cdf(t:=0.0, df:=5.0);
+		EXPECT_NEAR(0.500000000000000, result, 1e-6);
+
+		result := Stats_student_t_cdf(t:=0.0, df:=10.0);
+		EXPECT_NEAR(0.500000000000000, result, 1e-6);
+
+		// Various CDF values
+		result := Stats_student_t_cdf(t:=1.0, df:=1.0);
+		EXPECT_NEAR(0.750000000000000, result, 1e-6);
+
+		result := Stats_student_t_cdf(t:=1.0, df:=5.0);
+		EXPECT_NEAR(0.818391266175439, result, 1e-6);
+
+		result := Stats_student_t_cdf(t:=1.0, df:=10.0);
+		EXPECT_NEAR(0.829553433848970, result, 1e-6);
+
+		result := Stats_student_t_cdf(t:=-1.0, df:=10.0);
+		EXPECT_NEAR(0.170446566151030, result, 1e-6);
+
+		result := Stats_student_t_cdf(t:=1.0, df:=1000.0);
+		EXPECT_NEAR(0.841344746100000, result, 1e-3);
+
+		result := Stats_student_t_cdf(t:=-1.0, df:=1000.0);
+		EXPECT_NEAR(0.158655253900000, result, 1e-3);
+
+		result := Stats_student_t_cdf(t:=2.0, df:=5.0);
+		EXPECT_NEAR(0.949030260585071, result, 1e-6);
+
+		result := Stats_student_t_cdf(t:=-2.0, df:=5.0);
+		EXPECT_NEAR(0.050969739414929, result, 1e-6);
+
+		result := Stats_student_t_cdf(t:=2.0, df:=1000.0);
+		EXPECT_NEAR(0.977249868100000, result, 1e-3);
+
+		result := Stats_student_t_cdf(t:=1.5, df:=10.0);
+		EXPECT_NEAR(0.917746336777280, result, 1e-6);
+
+		result := Stats_student_t_cdf(t:=2.5, df:=8.0);
+		EXPECT_NEAR(0.981528981143188, result, 1e-6);
+
+		result := Stats_student_t_cdf(t:=0.5, df:=30.0);
+		EXPECT_NEAR(0.689638497557436, result, 1e-6);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_student_t_ppf)
+	var result: lreal; end
+	var t_df10000: lreal; end
+	var normal: lreal; end
+	{st}
+		// Median should be 0 for any df
+		result := Stats_student_t_ppf(p:=0.5, df:=1.0);
+		EXPECT_NEAR(0.000000000000000, result, 1e-6);
+
+		result := Stats_student_t_ppf(p:=0.5, df:=5.0);
+		EXPECT_NEAR(0.000000000000000, result, 1e-6);
+
+		result := Stats_student_t_ppf(p:=0.5, df:=10.0);
+		EXPECT_NEAR(0.000000000000000, result, 1e-6);
+
+		// Various percentiles
+		result := Stats_student_t_ppf(p:=0.75, df:=5.0);
+		EXPECT_NEAR(0.726686843800423, result, 1e-3);
+
+		result := Stats_student_t_ppf(p:=0.9, df:=10.0);
+		EXPECT_NEAR(1.372183641110336, result, 1e-3);
+
+		result := Stats_student_t_ppf(p:=0.95, df:=1.0);
+		EXPECT_NEAR(6.313751514675037, result, 1e-2);
+
+		result := Stats_student_t_ppf(p:=0.95, df:=5.0);
+		EXPECT_NEAR(2.015048373333023, result, 1e-3);
+
+		result := Stats_student_t_ppf(p:=0.95, df:=10.0);
+		EXPECT_NEAR(1.812461122811675, result, 1e-3);
+
+		result := Stats_student_t_ppf(p:=0.95, df:=1000.0);
+		EXPECT_NEAR(1.646380000000000, result, 1e-3);
+
+		result := Stats_student_t_ppf(p:=0.975, df:=5.0);
+		EXPECT_NEAR(2.570581835636315, result, 1e-3);
+
+		result := Stats_student_t_ppf(p:=0.975, df:=10.0);
+		EXPECT_NEAR(2.228138851986274, result, 1e-3);
+
+		result := Stats_student_t_ppf(p:=0.99, df:=5.0);
+		EXPECT_NEAR(3.364929998907217, result, 1e-3);
+
+		result := Stats_student_t_ppf(p:=0.99, df:=10.0);
+		EXPECT_NEAR(2.763769458112696, result, 1e-3);
+
+		result := Stats_student_t_ppf(p:=0.25, df:=8.0);
+		EXPECT_NEAR(-0.706386612644839, result, 1e-3);
+
+		result := Stats_student_t_ppf(p:=0.1, df:=15.0);
+		EXPECT_NEAR(-1.340605607850456, result, 1e-3);
+
+		// As df increases, t approaches normal
+		t_df10000 := Stats_student_t_ppf(p:=0.95, df:=10000.0);
+		normal := Stats_normal_ppf(p:=0.95, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(t_df10000, normal, 1e-2);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_student_t_mean)
+	var mean_val: lreal; end
+	{st}
+		// Mean is 0 for df > 1
+		mean_val := Stats_student_t_mean(df:=3.0);
+		EXPECT_NEAR(0.000000000000000, mean_val, 1e-6);
+
+		mean_val := Stats_student_t_mean(df:=5.0);
+		EXPECT_NEAR(0.000000000000000, mean_val, 1e-6);
+
+		mean_val := Stats_student_t_mean(df:=10.0);
+		EXPECT_NEAR(0.000000000000000, mean_val, 1e-6);
+
+		mean_val := Stats_student_t_mean(df:=15.0);
+		EXPECT_NEAR(0.000000000000000, mean_val, 1e-6);
+
+		mean_val := Stats_student_t_mean(df:=20.0);
+		EXPECT_NEAR(0.000000000000000, mean_val, 1e-6);
+
+		mean_val := Stats_student_t_mean(df:=30.0);
+		EXPECT_NEAR(0.000000000000000, mean_val, 1e-6);
+
+		mean_val := Stats_student_t_mean(df:=50.0);
+		EXPECT_NEAR(0.000000000000000, mean_val, 1e-6);
+
+		mean_val := Stats_student_t_mean(df:=100.0);
+		EXPECT_NEAR(0.000000000000000, mean_val, 1e-6);
+
+		mean_val := Stats_student_t_mean(df:=1000.0);
+		EXPECT_NEAR(0.000000000000000, mean_val, 1e-6);
+
+		mean_val := Stats_student_t_mean(df:=2.5);
+		EXPECT_NEAR(0.000000000000000, mean_val, 1e-6);
+
+		mean_val := Stats_student_t_mean(df:=4.8);
+		EXPECT_NEAR(0.000000000000000, mean_val, 1e-6);
+
+		mean_val := Stats_student_t_mean(df:=8.2);
+		EXPECT_NEAR(0.000000000000000, mean_val, 1e-6);
+
+		mean_val := Stats_student_t_mean(df:=25.7);
+		EXPECT_NEAR(0.000000000000000, mean_val, 1e-6);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_student_t_variance)
+	var variance_val: lreal; end
+	{st}
+		// Variance = df/(df-2) for df > 2
+		variance_val := Stats_student_t_variance(df:=3.0);
+		EXPECT_NEAR(3.000000000000000, variance_val, 1e-6);
+
+		variance_val := Stats_student_t_variance(df:=4.0);
+		EXPECT_NEAR(2.000000000000000, variance_val, 1e-6);
+
+		variance_val := Stats_student_t_variance(df:=5.0);
+		EXPECT_NEAR(1.666666666666667, variance_val, 1e-6);
+
+		variance_val := Stats_student_t_variance(df:=6.0);
+		EXPECT_NEAR(1.500000000000000, variance_val, 1e-6);
+
+		variance_val := Stats_student_t_variance(df:=8.0);
+		EXPECT_NEAR(1.333333333333333, variance_val, 1e-6);
+
+		variance_val := Stats_student_t_variance(df:=10.0);
+		EXPECT_NEAR(1.250000000000000, variance_val, 1e-6);
+
+		variance_val := Stats_student_t_variance(df:=15.0);
+		EXPECT_NEAR(1.153846153846154, variance_val, 1e-6);
+
+		variance_val := Stats_student_t_variance(df:=20.0);
+		EXPECT_NEAR(1.111111111111111, variance_val, 1e-6);
+
+		variance_val := Stats_student_t_variance(df:=30.0);
+		EXPECT_NEAR(1.071428571428571, variance_val, 1e-6);
+
+		variance_val := Stats_student_t_variance(df:=50.0);
+		EXPECT_NEAR(1.041666666666667, variance_val, 1e-6);
+
+		variance_val := Stats_student_t_variance(df:=100.0);
+		EXPECT_NEAR(1.020408163265306, variance_val, 1e-6);
+
+		variance_val := Stats_student_t_variance(df:=1000.0);
+		EXPECT_NEAR(1.002004008016032, variance_val, 1e-6);
+
+		variance_val := Stats_student_t_variance(df:=2.1);
+		EXPECT_NEAR(21.0, variance_val, 1e-4);
+	{end}
+END_TEST_S

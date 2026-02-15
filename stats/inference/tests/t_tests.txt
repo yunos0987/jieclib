@@ -1,0 +1,198 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./stats/inference/tests/t_tests.txt -I. -I./vendor/jiecunit/sys -o ./stats/inference/tests/t_tests.xml -t omron
+ *)
+{#ifndef __STATS_INFERENCE_TESTS_T_TESTS_TXT__}
+{#define __STATS_INFERENCE_TESTS_T_TESTS_TXT__}
+
+{#include <sys.txt>}
+{#include <stats/descriptive/mean.txt>}
+{#include <stats/descriptive/variance.txt>}
+{#include <stats/descriptive/stddev.txt>}
+{#include <stats/inference/tests/test_core.txt>}
+
+(*{doc 1 サンプル t 検定。H0: mu = mu0
+@inout data サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout result 結果を格納する。
+@input mu0 平均。
+@error 入力値が不正な場合。}*)
+function Stats_t_test_1samp
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc サンプルデータ。}*)
+		data: array[*] of lreal;
+		(*{doc 検定結果。}*)
+		result: Stats_TestResult;
+	end
+	var_input
+		(*{doc 平均。}*)
+		mu0: lreal;
+	end
+	var_temp
+		n, mean_val, std_val, se, t_stat, pvalue: lreal;
+	end
+	{st}
+		n := dint_to_lreal(Array_size(data));
+		if n <= 1.0 then
+			eno := false;
+			return;
+		end_if;
+
+		mean_val := Stats_mean(data:=data);
+		std_val := Stats_sample_stddev(data:=data);
+		se := std_val / sqrt(n);
+
+		if se < 1e-15 then
+			// 標準偏差が0の場合。エラー
+			eno := false;
+			return;
+		end_if;
+
+		t_stat := (mean_val - mu0) / se;
+		pvalue := Stats_p_value_t_two_tailed(t:=t_stat, df:=n - 1.0);
+
+		result.statistic := t_stat;
+		result.pvalue := pvalue;
+		result.df := n - 1.0;
+		result.ci_lower := mean_val - 2.0 * se;
+		result.ci_upper := mean_val + 2.0 * se;
+		result.effect_size := t_stat / sqrt(n);
+	{end}
+end
+
+(*{doc 独立2 サンプル t 検定（等分散と Welch）。
+equal_var=true の場合は Student t、false の場合は Welch t。
+@inout x サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout y サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout result 結果を格納する。
+@input equal_var 等分散を仮定するか。
+@error 入力値が不正な場合。}*)
+function Stats_t_test_ind
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc グループ1 のデータ。}*)
+		x: array[*] of lreal;
+		(*{doc グループ2 のデータ。}*)
+		y: array[*] of lreal;
+		(*{doc 検定結果。}*)
+		result: Stats_TestResult;
+	end
+	var_input
+		(*{doc 等分散を仮定するか。}*)
+		equal_var: bool;
+	end
+	var_temp
+		n_x, n_y, mean_x, mean_y, var_x, var_y, t_stat, pvalue, se, df, s_p: lreal;
+	end
+	{st}
+		n_x := dint_to_lreal(Array_size(x));
+		n_y := dint_to_lreal(Array_size(y));
+
+		if n_x < 2.0 or n_y < 2.0 then
+			eno := false;
+			return;
+		end_if;
+
+		mean_x := Stats_mean(data:=x);
+		mean_y := Stats_mean(data:=y);
+		var_x := Stats_sample_variance(data:=x);
+		var_y := Stats_sample_variance(data:=y);
+
+		if equal_var then
+			// Student t: 等分散の仮定
+			s_p := sqrt(((n_x - 1.0) * var_x + (n_y - 1.0) * var_y) / (n_x + n_y - 2.0));
+			se := s_p * sqrt(1.0 / n_x + 1.0 / n_y);
+			df := n_x + n_y - 2.0;
+		else
+			// Welch t: 等分散を仮定しない
+			se := sqrt(var_x / n_x + var_y / n_y);
+			df := (var_x / n_x + var_y / n_y) ** 2 / ((var_x / n_x) ** 2 / (n_x - 1.0) + (var_y / n_y) ** 2 / (n_y - 1.0));
+		end_if;
+
+		if se < 1e-15 then
+			// 標準誤差が0の場合。エラー
+			eno := false;
+			return;
+		end_if;
+
+		t_stat := (mean_x - mean_y) / se;
+		pvalue := Stats_p_value_t_two_tailed(t:=t_stat, df:=df);
+
+		result.statistic := t_stat;
+		result.pvalue := pvalue;
+		result.df := df;
+		result.ci_lower := (mean_x - mean_y) - 2.0 * se;
+		result.ci_upper := (mean_x - mean_y) + 2.0 * se;
+		result.effect_size := (mean_x - mean_y) / sqrt((var_x + var_y) / 2.0);
+	{end}
+end
+
+(*{doc 対応あり 2 サンプル t 検定（paired）。
+@inout x サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout y サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout result 結果を格納する。
+@error 入力値が不正な場合。}*)
+function Stats_t_test_paired
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
+		x: array[*] of lreal;
+		(*{doc サンプルデータを含む配列。}*)
+		y: array[*] of lreal;
+		(*{doc 検定結果。}*)
+		result: Stats_TestResult;
+	end
+	var_temp
+		n, i: dint;
+		n_lreal, mean_diff, std_diff, se, t_stat, pvalue: lreal;
+		sum_diff, sum_sq_diff, variance_diff: lreal;
+	end
+	{st}
+	n := Array_size(x);
+	if n < 2 or Array_size(y) <> n then
+		eno := false;
+		return;
+	end_if;
+
+	// 差の平均計算
+	sum_diff := 0.0;
+	for i := 0 to n - 1 do
+		sum_diff := sum_diff + (x[i] - y[i]);
+	end_for;
+	n_lreal := dint_to_lreal(n);
+	mean_diff := sum_diff / n_lreal;
+
+	// 差の標準偏差を計算
+	sum_sq_diff := 0.0;
+	for i := 0 to n - 1 do
+		sum_sq_diff := sum_sq_diff + ((x[i] - y[i]) - mean_diff) ** 2.0;
+	end_for;
+	variance_diff := sum_sq_diff / (n_lreal - 1.0);
+	std_diff := sqrt(variance_diff);
+	se := std_diff / sqrt(n_lreal);
+
+	if se < 1e-15 then
+		// 差分の標準偏差が0の場合。エラー
+		eno := false;
+		return;
+	end_if;
+
+	t_stat := mean_diff / se;
+	pvalue := Stats_p_value_t_two_tailed(t:=t_stat, df:=n_lreal - 1.0);
+
+	result.statistic := t_stat;
+	result.pvalue := pvalue;
+	result.df := n_lreal - 1.0;
+	result.ci_lower := mean_diff - 2.0 * se;
+	result.ci_upper := mean_diff + 2.0 * se;
+	result.effect_size := t_stat / sqrt(n_lreal);
+	{end}
+end
+
+{#endif}
+

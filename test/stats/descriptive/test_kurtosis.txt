@@ -1,0 +1,81 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/descriptive/test_kurtosis.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/descriptive/test_kurtosis.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/descriptive/kurtosis.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_kurtosis'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_stats_kurtosis)
+	var
+		x_seq5: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		x_mixed1: array[0..6] of lreal := [1.0, 1.0, 2.0, 2.0, 3.0, 5.0, 10.0];
+		x_mixed2: array[0..6] of lreal := [1.0, 6.0, 8.0, 8.0, 9.0, 9.0, 10.0];
+		x_seq10: array[0..9] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
+		x_neg: array[0..4] of lreal := [-5.0, -3.0, -1.0, -7.0, -2.0];
+		x_decimals: array[0..9] of lreal := [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
+		x_large: array[0..4] of lreal := [100.0, 200.0, 300.0, 400.0, 500.0];
+		x_two: array[0..1] of lreal := [10.0, 20.0];
+		x_repeated1: array[0..6] of lreal := [1.0, 1.0, 1.0, 5.0, 9.0, 9.0, 9.0];
+		x_repeated2: array[0..8] of lreal := [1.0, 2.0, 2.0, 2.0, 5.0, 8.0, 8.0, 8.0, 9.0];
+		x_bimodal1: array[0..5] of lreal := [1.0, 1.0, 5.0, 5.0, 9.0, 9.0];
+		x_bimodal2: array[0..6] of lreal := [2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
+		x_uniform: array[0..9] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
+		x_peaked: array[0..4] of lreal := [5.0, 5.0, 5.0, 5.0, 5.1];
+	end
+	{st}
+		// Test with fisher_true=true, bias=true
+		EXPECT_NEAR(-1.300000000000, Stats_kurtosis(data:=x_seq5, fisher_true:=true, bias:=true), EPS);
+		EXPECT_NEAR(0.581854423868423868, Stats_kurtosis(data:=x_mixed1, fisher_true:=true, bias:=true), EPS);
+		EXPECT_NEAR(0.727149537677, Stats_kurtosis(data:=x_mixed2, fisher_true:=true, bias:=true), EPS);
+		EXPECT_NEAR(-1.224242424242424242, Stats_kurtosis(data:=x_seq10, fisher_true:=true, bias:=true), EPS);
+		EXPECT_NEAR(-1.236325802616, Stats_kurtosis(data:=x_neg, fisher_true:=true, bias:=true), EPS);
+		EXPECT_NEAR(-1.224242424242, Stats_kurtosis(data:=x_decimals, fisher_true:=true, bias:=true), EPS);
+		EXPECT_NEAR(-1.3000000000000000000000, Stats_kurtosis(data:=x_large, fisher_true:=true, bias:=true), EPS);
+		EXPECT_NEAR(-2.000000000000, Stats_kurtosis(data:=x_two, fisher_true:=true, bias:=true), EPS);
+		EXPECT_NEAR(-1.833333333333, Stats_kurtosis(data:=x_repeated1, fisher_true:=true, bias:=true), EPS);
+		EXPECT_NEAR(-1.785559762034, Stats_kurtosis(data:=x_repeated2, fisher_true:=true, bias:=true), EPS);
+		EXPECT_LT_LREAL(Stats_kurtosis(data:=x_bimodal1, fisher_true:=true, bias:=true), 0.0);
+		EXPECT_LT_LREAL(Stats_kurtosis(data:=x_bimodal2, fisher_true:=true, bias:=true), 0.0);
+		EXPECT_LT_LREAL(Stats_kurtosis(data:=x_uniform, fisher_true:=true, bias:=true), 0.0);
+		EXPECT_GT_LREAL(Stats_kurtosis(data:=x_peaked, fisher_true:=true, bias:=true), 0.0);
+
+		// Test with fisher_true=false, bias=true (Pearson's definition)
+		EXPECT_NEAR(1.700000000000, Stats_kurtosis(data:=x_seq5, fisher_true:=false, bias:=true), EPS);
+		EXPECT_NEAR(1.775757575758, Stats_kurtosis(data:=x_seq10, fisher_true:=false, bias:=true), EPS);
+		EXPECT_NEAR(1.763674197384, Stats_kurtosis(data:=x_neg, fisher_true:=false, bias:=true), EPS);
+		EXPECT_NEAR(1.775757575758, Stats_kurtosis(data:=x_decimals, fisher_true:=false, bias:=true), EPS);
+		EXPECT_NEAR(1.700000000000, Stats_kurtosis(data:=x_large, fisher_true:=false, bias:=true), EPS);
+		EXPECT_NEAR(3.581854423868, Stats_kurtosis(data:=x_mixed1, fisher_true:=false, bias:=true), EPS);
+		EXPECT_NEAR(3.250000000000, Stats_kurtosis(data:=x_peaked, fisher_true:=false, bias:=true), EPS);
+
+		// Test with fisher_true=true, bias=false (unbiased estimator)
+		EXPECT_NEAR(-1.200000000000, Stats_kurtosis(data:=x_seq5, fisher_true:=true, bias:=false), EPS);
+		EXPECT_NEAR(-1.200000000000, Stats_kurtosis(data:=x_seq10, fisher_true:=true, bias:=false), EPS);
+		EXPECT_NEAR(-0.945303210464, Stats_kurtosis(data:=x_neg, fisher_true:=true, bias:=false), EPS);
+		EXPECT_NEAR(-1.200000000000, Stats_kurtosis(data:=x_decimals, fisher_true:=true, bias:=false), EPS);
+		EXPECT_NEAR(-1.200000000000, Stats_kurtosis(data:=x_large, fisher_true:=true, bias:=false), EPS);
+		EXPECT_NEAR(3.196450617284, Stats_kurtosis(data:=x_mixed1, fisher_true:=true, bias:=false), EPS);
+		EXPECT_NEAR(5.000000000000, Stats_kurtosis(data:=x_peaked, fisher_true:=true, bias:=false), EPS);
+
+		// Test with fisher_true=false, bias=false (Pearson + unbiased)
+		EXPECT_NEAR(1.800000000000, Stats_kurtosis(data:=x_seq5, fisher_true:=false, bias:=false), EPS);
+		EXPECT_NEAR(1.800000000000, Stats_kurtosis(data:=x_seq10, fisher_true:=false, bias:=false), EPS);
+		EXPECT_NEAR(2.054696789536, Stats_kurtosis(data:=x_neg, fisher_true:=false, bias:=false), EPS);
+		EXPECT_NEAR(1.800000000000, Stats_kurtosis(data:=x_decimals, fisher_true:=false, bias:=false), EPS);
+		EXPECT_NEAR(1.800000000000, Stats_kurtosis(data:=x_large, fisher_true:=false, bias:=false), EPS);
+		EXPECT_NEAR(6.196450617284, Stats_kurtosis(data:=x_mixed1, fisher_true:=false, bias:=false), EPS);
+		EXPECT_NEAR(8.0, Stats_kurtosis(data:=x_peaked, fisher_true:=false, bias:=false), EPS);
+	{end}
+END_TEST_S
+
+{#undef EPS}

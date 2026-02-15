@@ -1,0 +1,184 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./stats/descriptive/correlation.txt -I. -I./vendor/jiecunit/sys -o ./stats/descriptive/correlation.xml -t omron
+ *)
+{#ifndef __STATS_DESCRIPTIVE_CORRELATION_TXT__}
+{#define __STATS_DESCRIPTIVE_CORRELATION_TXT__}
+
+{#include <sys.txt>}
+{#include <stats/descriptive/covariance.txt>}
+{#include <stats/descriptive/variance.txt>}
+{#include <stats/descriptive/stddev.txt>}
+{#include <stats/sequences/rank.txt>}
+
+(*{doc Pearson相関係数（線形相関）を得る。
+r = cov(x, y) / (std(x) * std(y))
+@inout x サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout y サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@input n 先頭n個を使用する。
+  デフォルト値: -1
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_pearson: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 第1のサンプルデータを含む配列。}*)
+		x: array[*] of lreal;
+		(*{doc 第2のサンプルデータを含む配列。}*)
+		y: array[*] of lreal;
+	end
+	var_input
+		(*{doc xとyの先頭n個を使用する。}*)
+		n: dint := -1;
+	end
+	var_temp
+		actual_nx, actual_ny, actual_n: dint;
+		cov_val, std_x, std_y: lreal;
+	end
+	{st}
+	actual_nx := Array_isRegular_lreal(x);
+	actual_ny := Array_isRegular_lreal(y);
+	if (actual_nx = 0) or (actual_ny = 0) or (n > actual_nx) or (n > actual_ny) then
+		eno := false;
+		return;
+	end_if;
+	if n < 0 then
+		if actual_nx <> actual_ny then
+			eno := false;
+			return;
+		end_if;
+		actual_n := actual_nx;
+	else
+		actual_n := n;
+	end_if;
+
+	cov_val := Stats_covariance(x:=x, y:=y, ddof:=1, n:=actual_n);
+	std_x := Stats_sample_stddev(data:=x, n:=actual_n);
+	std_y := Stats_sample_stddev(data:=y, n:=actual_n);
+
+	if std_x < 1e-15 or std_y < 1e-15 then
+		eno := false; // Flag undefined correlation when variance ~ 0
+		return;
+	end_if;
+
+	Stats_pearson := cov_val / (std_x * std_y);
+	{end}
+end
+
+(*{doc Spearman順位相関係数を得る。
+Pearson相関係数をランクに適用する。
+@inout x サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout y サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@input n 先頭n個を使用する。
+  デフォルト値: -1
+@inout idx_x 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout idx_y 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout x_work 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout y_work 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout rank_x_work 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout rank_y_work 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_spearman: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 第1のサンプルデータを含む配列。}*)
+		x: array[*] of lreal;
+		(*{doc 第2のサンプルデータを含む配列。}*)
+		y: array[*] of lreal;
+	end
+	var_input
+		(*{doc xとyの先頭n個を使用する。}*)
+		n: dint := -1;
+	end
+	var_in_out
+		(*{doc ランク計算用の作業配列。}*)
+		idx_x, idx_y: array[*] of dint;
+		(*{doc ランク計算用の作業配列。}*)
+		x_work, y_work: array[*] of lreal;
+		(*{doc ランクを格納する作業配列。}*)
+		rank_x_work, rank_y_work: array[*] of lreal;
+	end
+	var_temp
+		actual_nx, actual_ny, actual_n: dint;
+		i: dint;
+		mean_rx, mean_ry, sum_rx, sum_ry: lreal;
+		cov_val, std_rx, std_ry: lreal;
+		sum_prod, sum_sq_rx, sum_sq_ry: lreal;
+	end
+	{st}
+	actual_nx := Array_isRegular_lreal(x);
+	actual_ny := Array_isRegular_lreal(y);
+	if (actual_nx = 0) or (actual_ny = 0) or (n > actual_nx) or (n > actual_ny) then
+		eno := false;
+		return;
+	end_if;
+	if n < 0 then
+		if actual_nx <> actual_ny then
+			eno := false;
+			return;
+		end_if;
+		actual_n := actual_nx;
+	else
+		actual_n := n;
+	end_if;
+
+	if (actual_n > Array_size(rank_x_work)) or (actual_n > Array_size(rank_y_work)) then
+		eno := false;
+		return;
+	end_if;
+
+	if (actual_n > Array_size(idx_x)) or (actual_n > Array_size(idx_y)) then
+		eno := false;
+		return;
+	end_if;
+
+	Stats_rankdata(data:=x, n:=actual_n, rank:=rank_x_work, work1:=x_work, work2:=idx_x, rank_type:=0, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+
+	Stats_rankdata(data:=y, n:=actual_n, rank:=rank_y_work, work1:=y_work, work2:=idx_y, rank_type:=0, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+
+	// Calculate Pearson correlation on ranks using only actual_n elements
+	sum_rx := 0.0;
+	sum_ry := 0.0;
+	for i := 0 to actual_n - 1 do
+		sum_rx := sum_rx + rank_x_work[i];
+		sum_ry := sum_ry + rank_y_work[i];
+	end_for;
+	mean_rx := sum_rx / dint_to_lreal(actual_n);
+	mean_ry := sum_ry / dint_to_lreal(actual_n);
+
+	sum_prod := 0.0;
+	sum_sq_rx := 0.0;
+	sum_sq_ry := 0.0;
+	for i := 0 to actual_n - 1 do
+		sum_prod := sum_prod + (rank_x_work[i] - mean_rx) * (rank_y_work[i] - mean_ry);
+		sum_sq_rx := sum_sq_rx + (rank_x_work[i] - mean_rx) * (rank_x_work[i] - mean_rx);
+		sum_sq_ry := sum_sq_ry + (rank_y_work[i] - mean_ry) * (rank_y_work[i] - mean_ry);
+	end_for;
+
+	if sum_sq_rx < 1e-15 or sum_sq_ry < 1e-15 then
+		Stats_spearman := 0.0;
+	else
+		Stats_spearman := sum_prod / sqrt(sum_sq_rx * sum_sq_ry);
+	end_if;
+	{end}
+end
+
+{#endif}
+

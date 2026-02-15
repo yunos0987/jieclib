@@ -1,0 +1,100 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./stats/descriptive/mode.txt -I. -I./vendor/jiecunit/sys -o ./stats/descriptive/mode.xml -t omron
+ *)
+{#ifndef __STATS_DESCRIPTIVE_MODE_TXT__}
+{#define __STATS_DESCRIPTIVE_MODE_TXT__}
+
+{#include <sys.txt>}
+{#include <array/array.txt>}
+{#include <array/copy.txt>}
+
+(*{doc 最頻値（単一値。複数出現数が同じなら最小のもの）
+@inout data サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@input n 先頭n個を使用する。
+  デフォルト値: -1
+@inout work 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_mode: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
+		data: array[*] of lreal;
+	end
+	var_input
+		(*{doc 先頭n個を使用する。}*)
+		n: dint := -1;
+	end
+	var_in_out
+		(*{doc 作業配列。}*)
+		work: array[*] of lreal;
+	end
+	var_temp
+		actual_n: dint;
+		nwork: dint;
+		i: dint;
+		best_count: dint;
+		best_val: lreal;
+		cur_count: dint;
+		cur_val: lreal;
+		j: dint;
+		tmp: lreal;
+	end
+	{st}
+	actual_n := Array_isRegular_lreal(data);
+	if (actual_n = 0) or (n > actual_n) then
+		eno := false;
+		return;
+	end_if;
+	if n >= 0 then
+		actual_n := n;
+	end_if;
+	nwork := Array_isRegular_lreal(work);
+	if nwork < actual_n then
+		eno := false;
+		return;
+	end_if;
+
+	// ソートして連長を測る（単純な挿入ソート）
+	for i := 0 to actual_n - 1 do
+		work[i] := data[i];
+	end_for;
+	for i := 1 to actual_n - 1 do
+		tmp := work[i];
+		j := i - 1;
+		while (j >= 0) and (work[j] > tmp) do
+			work[j + 1] := work[j];
+			j := j - 1;
+		end_while;
+		work[j + 1] := tmp;
+	end_for;
+
+	best_count := 0;
+	best_val := work[0];
+	cur_val := work[0];
+	cur_count := 1;
+	for i := 1 to actual_n - 1 do
+		if work[i] = cur_val then
+			cur_count := cur_count + 1;
+		else
+			if (cur_count > best_count) or ((cur_count = best_count) and (cur_val < best_val)) then
+				best_count := cur_count;
+				best_val := cur_val;
+			end_if;
+			cur_val := work[i];
+			cur_count := 1;
+		end_if;
+	end_for;
+	if (cur_count > best_count) or ((cur_count = best_count) and (cur_val < best_val)) then
+		best_count := cur_count;
+		best_val := cur_val;
+	end_if;
+	Stats_mode := best_val;
+	{end}
+end
+
+{#endif}
+

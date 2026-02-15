@@ -1,0 +1,58 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/descriptive/test_harmonic_mean.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/descriptive/test_harmonic_mean.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/descriptive/harmonic_mean.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_harmonic_mean'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_stats_harmonic_mean)
+	var x_basic: array[0..2] of lreal := [1.0, 2.0, 4.0]; end
+	var x_unity: array[0..4] of lreal := [1.0, 1.0, 1.0, 1.0, 1.0]; end
+	var x_reciprocals: array[0..2] of lreal := [2.0, 3.0, 6.0]; end
+	var x_identical: array[0..3] of lreal := [5.0, 5.0, 5.0, 5.0]; end
+	var x_rates: array[0..2] of lreal := [30.0, 60.0, 90.0]; end
+	var x_add1: array[0..3] of lreal := [4.0, 8.0, 16.0, 32.0]; end
+	var x_add2: array[0..2] of lreal := [10.0, 20.0, 30.0]; end
+	var result: lreal; end
+	{st}
+		// Harmonic mean = 3/(1/1 + 1/2 + 1/4) = 3/1.75 = 1.714...
+		result := Stats_harmonic_mean(data:=x_basic);
+		EXPECT_NEAR(1.7142857142, result, 0.001);
+
+		// Harmonic mean of all 1s is 1
+		result := Stats_harmonic_mean(data:=x_unity);
+		EXPECT_NEAR(1.0, result, EPS);
+
+		// Harmonic mean = 3/(1/2 + 1/3 + 1/6) = 3/1 = 3
+		result := Stats_harmonic_mean(data:=x_reciprocals);
+		EXPECT_NEAR(3.0, result, EPS);
+
+		// Harmonic mean of identical values is the value itself
+		result := Stats_harmonic_mean(data:=x_identical);
+		EXPECT_NEAR(5.0, result, EPS);
+
+		// Test with rates/speeds: harmonic mean is appropriate
+		result := Stats_harmonic_mean(data:=x_rates);
+		EXPECT_NEAR(49.0909090909, result, 0.001);
+
+		// Python: scipy.stats.hmean([4,8,16,32]) ≈ 8.533
+		result := Stats_harmonic_mean(data:=x_add1);
+		EXPECT_NEAR(8.533, result, 0.01);
+
+		// Python: scipy.stats.hmean([10,20,30]) ≈ 16.364
+		result := Stats_harmonic_mean(data:=x_add2);
+		EXPECT_NEAR(16.364, result, 0.01);
+	{end}
+END_TEST_S
+
+{#undef EPS}

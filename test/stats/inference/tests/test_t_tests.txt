@@ -1,0 +1,321 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/inference/tests/test_t_tests.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/inference/tests/test_t_tests.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/inference/tests/t_tests.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_t_test_1samp',
+		'test_stats_t_test_ind',
+		'test_stats_t_test_paired'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-5}
+
+TEST_S(test_stats_t_test_1samp)
+	var
+		case1_x: array[0..9] of lreal := [100.0, 102.0, 101.0, 99.0, 103.0, 101.0, 100.0, 98.0, 102.0, 101.0];
+		result_standard: Stats_TestResult;
+		case2_x: array[0..9] of lreal := [10.0, 11.0, 12.0, 11.5, 10.5, 9.5, 10.8, 11.2, 11.0, 10.5];
+		result_small_values: Stats_TestResult;
+		case3_x: array[0..4] of lreal := [5.0, 5.0, 5.0, 5.0, 5.0];
+		result_equal: Stats_TestResult;
+		case4_x: array[0..7] of lreal := [50.0, 52.0, 48.0, 51.0, 49.0, 53.0, 50.0, 51.0];
+		result_varying: Stats_TestResult;
+		case5_x: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		result_small_sample: Stats_TestResult;
+		case6_x: array[0..5] of lreal := [0.0, 1.0, 2.0, 3.0, 4.0, 5.0];
+		result_sequential: Stats_TestResult;
+		case7_x: array[0..3] of lreal := [10.0, 10.0, 10.0, 10.0];
+		result_identical: Stats_TestResult;
+		case8_x: array[0..6] of lreal := [20.0, 21.0, 19.0, 20.5, 19.5, 20.2, 20.8];
+		result_fractional: Stats_TestResult;
+		case9_x: array[0..4] of lreal := [1000.0, 1001.0, 999.0, 1002.0, 998.0];
+		result_large: Stats_TestResult;
+		case10_x: array[0..8] of lreal := [0.1, 0.2, 0.15, 0.25, 0.18, 0.22, 0.19, 0.21, 0.17];
+		result_very_small: Stats_TestResult;
+		//
+		result_eno: bool;
+	end
+	{st}
+		// Case 1: Standard dataset with mean around 100
+		Stats_t_test_1samp(data:=case1_x, mu0:=100.0, result:=result_standard);
+		EXPECT_NEAR(result_standard.statistic, 1.4812257933030621, EPS);
+		EXPECT_NEAR(result_standard.pvalue, 0.1726850896295373, EPS);
+		EXPECT_NEAR(result_standard.df, 9.0, 0.0);
+
+		// Case 2: Small values dataset
+		Stats_t_test_1samp(data:=case2_x, mu0:=10.0, result:=result_small_values);
+		EXPECT_NEAR(result_small_values.statistic, 3.50823207722812, EPS);
+		EXPECT_NEAR(result_small_values.pvalue, 0.006637041365161076, EPS);
+		EXPECT_NEAR(result_small_values.df, 9.0, 0.0);
+
+		// Case 3: All equal values - should return error (stddev=0)
+		Stats_t_test_1samp(data:=case3_x, mu0:=5.0, result:=result_equal, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+
+		// Case 4: Slightly varying dataset
+		Stats_t_test_1samp(data:=case4_x, mu0:=50.0, result:=result_varying);
+		EXPECT_NEAR(result_varying.statistic, 0.8819171036881969, EPS);
+		EXPECT_NEAR(result_varying.pvalue, 0.4070838220655887, EPS);
+		EXPECT_NEAR(result_varying.df, 7.0, 0.0);
+
+		// Case 5: Small sample size
+		Stats_t_test_1samp(data:=case5_x, mu0:=2.0, result:=result_small_sample);
+		EXPECT_NEAR(result_small_sample.statistic, 0.0, EPS);
+		EXPECT_NEAR(result_small_sample.pvalue, 1.0, EPS);
+		EXPECT_NEAR(result_small_sample.df, 2.0, 0.0);
+
+		// Case 6: Sequential values
+		Stats_t_test_1samp(data:=case6_x, mu0:=2.5, result:=result_sequential);
+		EXPECT_NEAR(result_sequential.statistic, 0.0, EPS);
+		EXPECT_NEAR(result_sequential.pvalue, 1.0, EPS);
+		EXPECT_NEAR(result_sequential.df, 5.0, 0.0);
+
+		// Case 7: All identical values - should return error (stddev=0)
+		Stats_t_test_1samp(data:=case7_x, mu0:=10.0, result:=result_identical, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+
+		// Case 8: Fractional values
+		Stats_t_test_1samp(data:=case8_x, mu0:=20.0, result:=result_fractional);
+		EXPECT_NEAR(result_fractional.statistic, 0.5312439474504401, EPS);
+		EXPECT_NEAR(result_fractional.pvalue, 0.6143317491656828, EPS);
+		EXPECT_NEAR(result_fractional.df, 6.0, 0.0);
+
+		// Case 9: Large values
+		Stats_t_test_1samp(data:=case9_x, mu0:=1000.0, result:=result_large);
+		EXPECT_NEAR(result_large.statistic, 0.0, EPS);
+		EXPECT_NEAR(result_large.pvalue, 1.0, EPS);
+		EXPECT_NEAR(result_large.df, 4.0, 0.0);
+
+		// Case 10: Very small values
+		Stats_t_test_1samp(data:=case10_x, mu0:=0.19, result:=result_very_small);
+		EXPECT_NEAR(result_very_small.statistic, -0.3076923076923078, EPS);
+		EXPECT_NEAR(result_very_small.pvalue, 0.7661746657420653, EPS);
+		EXPECT_NEAR(result_very_small.df, 8.0, 0.0);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_t_test_ind)
+	var
+		case1_x: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		case1_y: array[0..4] of lreal := [2.0, 3.0, 4.0, 5.0, 6.0];
+		result_shifted: Stats_TestResult;
+		case2_x: array[0..4] of lreal := [5.0, 6.0, 7.0, 8.0, 9.0];
+		case2_y: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		result_different: Stats_TestResult;
+		case3_x: array[0..3] of lreal := [1.0, 2.0, 3.0, 4.0];
+		case3_y: array[0..3] of lreal := [5.0, 6.0, 7.0, 8.0];
+		result_welch: Stats_TestResult;
+		case4_x: array[0..2] of lreal := [10.0, 10.0, 10.0];
+		case4_y: array[0..2] of lreal := [10.0, 10.0, 10.0];
+		result_identical: Stats_TestResult;
+		case5_x: array[0..6] of lreal := [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+		case5_y: array[0..6] of lreal := [3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0];
+		result_larger: Stats_TestResult;
+		case6_x: array[0..3] of lreal := [100.0, 101.0, 99.0, 102.0];
+		case6_y: array[0..3] of lreal := [105.0, 106.0, 104.0, 107.0];
+		result_large: Stats_TestResult;
+		case7_x: array[0..5] of lreal := [1.5, 2.5, 3.5, 4.5, 5.5, 6.5];
+		case7_y: array[0..5] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+		result_fractional: Stats_TestResult;
+		case8_x: array[0..4] of lreal := [0.1, 0.2, 0.3, 0.4, 0.5];
+		case8_y: array[0..4] of lreal := [0.6, 0.7, 0.8, 0.9, 1.0];
+		result_small: Stats_TestResult;
+		case9_x: array[0..7] of lreal := [50.0, 51.0, 49.0, 52.0, 48.0, 53.0, 47.0, 54.0];
+		case9_y: array[0..7] of lreal := [45.0, 46.0, 44.0, 47.0, 43.0, 48.0, 42.0, 49.0];
+		result_wide: Stats_TestResult;
+		case10_x: array[0..2] of lreal := [7.0, 8.0, 9.0];
+		case10_y: array[0..2] of lreal := [10.0, 11.0, 12.0];
+		result_small_sample: Stats_TestResult;
+		//
+		result_eno: bool;
+	end
+	{st}
+		// Case 1: Equal variance - shifted by 1
+		Stats_t_test_ind(x:=case1_x, y:=case1_y, equal_var:=true, result:=result_shifted);
+		EXPECT_NEAR(result_shifted.statistic, -1.0, EPS);
+		EXPECT_NEAR(result_shifted.pvalue, 0.34659350708733416, EPS);
+		EXPECT_NEAR(result_shifted.df, 8.0, 0.0);
+
+		// Case 2: Equal variance - very different
+		Stats_t_test_ind(x:=case2_x, y:=case2_y, equal_var:=true, result:=result_different);
+		EXPECT_NEAR(result_different.statistic, 4.0, EPS);
+		EXPECT_NEAR(result_different.pvalue, 0.003949772803445322, EPS);
+		EXPECT_NEAR(result_different.df, 8.0, 0.0);
+
+		// Case 3: Welch t-test - unequal variances
+		Stats_t_test_ind(x:=case3_x, y:=case3_y, equal_var:=false, result:=result_welch);
+		EXPECT_NEAR(result_welch.statistic, -4.3817804600413295, EPS);
+		EXPECT_NEAR(result_welch.pvalue, 0.004659214943993928, EPS);
+		EXPECT_TRUE(result_welch.df > 0.0);
+
+		// Case 4: Identical groups - should return error (both stddev=0)
+		Stats_t_test_ind(x:=case4_x, y:=case4_y, equal_var:=true, result:=result_identical, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+
+		// Case 5: Larger samples
+		Stats_t_test_ind(x:=case5_x, y:=case5_y, equal_var:=true, result:=result_larger);
+		EXPECT_NEAR(result_larger.statistic, -2.5980762113533160, EPS);
+		EXPECT_NEAR(result_larger.pvalue, 0.0233084108800000, EPS);
+		EXPECT_NEAR(result_larger.df, 12.0, 0.0);
+
+		// Case 6: Large values
+		Stats_t_test_ind(x:=case6_x, y:=case6_y, equal_var:=true, result:=result_large);
+		EXPECT_NEAR(result_large.statistic, -5.4772255750516612, EPS);
+		EXPECT_NEAR(result_large.pvalue, 0.0015474212145409, EPS);
+		EXPECT_NEAR(result_large.df, 6.0, 0.0);
+
+		// Case 7: Fractional differences
+		Stats_t_test_ind(x:=case7_x, y:=case7_y, equal_var:=true, result:=result_fractional);
+		EXPECT_NEAR(result_fractional.statistic, 0.4629100498862758, EPS);
+		EXPECT_NEAR(result_fractional.pvalue, 0.6533385771243541, EPS);
+		EXPECT_NEAR(result_fractional.df, 10.0, 0.0);
+
+		// Case 8: Small values
+		Stats_t_test_ind(x:=case8_x, y:=case8_y, equal_var:=true, result:=result_small);
+		EXPECT_NEAR(result_small.statistic, -5.0, EPS);
+		EXPECT_NEAR(result_small.pvalue, 0.001052, EPS);
+		EXPECT_NEAR(result_small.df, 8.0, 0.0);
+
+		// Case 9: Wide range
+		Stats_t_test_ind(x:=case9_x, y:=case9_y, equal_var:=true, result:=result_wide);
+		EXPECT_NEAR(result_wide.statistic, 4.0824829046386304, EPS);
+		EXPECT_NEAR(result_wide.pvalue, 0.0011198065119445, EPS);
+		EXPECT_NEAR(result_wide.df, 14.0, 0.0);
+
+		// Case 10: Small sample
+		Stats_t_test_ind(x:=case10_x, y:=case10_y, equal_var:=true, result:=result_small_sample);
+		EXPECT_NEAR(result_small_sample.statistic, -3.6742346141747673, EPS);
+		EXPECT_NEAR(result_small_sample.pvalue, 0.0213116411287567, EPS);
+		EXPECT_NEAR(result_small_sample.df, 4.0, 0.0);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_t_test_paired)
+	var
+		case1_x: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		case1_y: array[0..4] of lreal := [1.1, 2.1, 2.9, 4.1, 4.9];
+		result1: Stats_TestResult;
+		case2_x: array[0..5] of lreal := [85.0, 90.0, 88.0, 92.0, 87.0, 91.0];
+		case2_y: array[0..5] of lreal := [88.0, 95.0, 90.0, 98.0, 89.0, 96.0];
+		result2: Stats_TestResult;
+		case3_x: array[0..4] of lreal := [120.0, 125.0, 130.0, 122.0, 128.0];
+		case3_y: array[0..4] of lreal := [118.0, 120.0, 125.0, 119.0, 124.0];
+		result3: Stats_TestResult;
+		case4_x: array[0..6] of lreal := [70.5, 82.3, 75.1, 68.9, 90.2, 77.8, 85.4];
+		case4_y: array[0..6] of lreal := [68.2, 80.1, 73.5, 67.8, 88.5, 76.0, 83.9];
+		result4: Stats_TestResult;
+		case5_x: array[0..7] of lreal := [65.0, 70.0, 75.0, 68.0, 72.0, 69.0, 74.0, 71.0];
+		case5_y: array[0..7] of lreal := [70.0, 75.0, 80.0, 72.0, 77.0, 73.0, 79.0, 76.0];
+		result5: Stats_TestResult;
+		case6_x: array[0..3] of lreal := [250.0, 260.0, 255.0, 265.0];
+		case6_y: array[0..3] of lreal := [245.0, 250.0, 248.0, 258.0];
+		result6: Stats_TestResult;
+		case7_x: array[0..5] of lreal := [20.5, 21.2, 19.8, 22.1, 20.9, 21.5];
+		case7_y: array[0..5] of lreal := [22.0, 23.5, 21.2, 24.0, 22.5, 23.2];
+		result7: Stats_TestResult;
+		case8_x: array[0..4] of lreal := [8.0, 7.5, 9.0, 8.5, 7.0];
+		case8_y: array[0..4] of lreal := [6.5, 5.0, 7.5, 7.0, 5.5];
+		result8: Stats_TestResult;
+		case9_x: array[0..6] of lreal := [180.0, 175.0, 185.0, 178.0, 182.0, 177.0, 183.0];
+		case9_y: array[0..6] of lreal := [120.0, 118.0, 125.0, 122.0, 123.0, 119.0, 124.0];
+		result9: Stats_TestResult;
+		case10_x: array[0..7] of lreal := [25.5, 26.8, 24.9, 27.2, 25.1, 26.5, 24.7, 27.0];
+		case10_y: array[0..7] of lreal := [27.0, 28.5, 26.2, 28.8, 26.8, 28.0, 26.0, 28.5];
+		result10: Stats_TestResult;
+		case11_x: array[0..3] of lreal := [100.0, 101.0, 102.0, 103.0];
+		case11_y: array[0..3] of lreal := [100.5, 102.0, 101.5, 104.0];
+		result11: Stats_TestResult;
+		case_error1_x: array[0..4] of lreal := [100.0, 102.0, 101.0, 99.0, 103.0];
+		case_error1_y: array[0..4] of lreal := [102.0, 104.0, 103.0, 101.0, 105.0];
+		result_error1: Stats_TestResult;
+		case_error2_x: array[0..2] of lreal := [10.0, 11.0, 12.0];
+		case_error2_y: array[0..2] of lreal := [10.0, 11.0, 12.0];
+		result_error2: Stats_TestResult;
+		//
+		result_eno: bool;
+	end
+	{st}
+		// Case 1: Small varying differences
+		Stats_t_test_paired(x:=case1_x, y:=case1_y, result:=result1);
+		EXPECT_NEAR(result1.statistic, -0.4082482904638638, EPS);
+		EXPECT_NEAR(result1.pvalue, 0.7039999999999995, EPS);
+		EXPECT_NEAR(result1.df, 4.0, 0.0);
+
+		// Case 2: Pre-post treatment with varying effects
+		Stats_t_test_paired(x:=case2_x, y:=case2_y, result:=result2);
+		EXPECT_NEAR(result2.statistic, -5.4515228261097386, EPS);
+		EXPECT_NEAR(result2.pvalue, 0.0028225448947137, EPS);
+		EXPECT_NEAR(result2.df, 5.0, 0.0);
+
+		// Case 3: Blood pressure before/after medication
+		Stats_t_test_paired(x:=case3_x, y:=case3_y, result:=result3);
+		EXPECT_NEAR(result3.statistic, 6.5169462354153360, EPS);
+		EXPECT_NEAR(result3.pvalue, 0.0028622148659137, EPS);
+		EXPECT_NEAR(result3.df, 4.0, 0.0);
+
+		// Case 4: Weight loss program results
+		Stats_t_test_paired(x:=case4_x, y:=case4_y, result:=result4);
+		EXPECT_NEAR(result4.statistic, 11.1994181229265752, EPS);
+		EXPECT_NEAR(result4.pvalue, 0.0000302572305558, 1.0e-7);
+		EXPECT_NEAR(result4.df, 6.0, 0.0);
+
+		// Case 5: Test scores before/after tutoring
+		Stats_t_test_paired(x:=case5_x, y:=case5_y, result:=result5);
+		EXPECT_NEAR(result5.statistic, -29.0229794013869906, EPS);
+		EXPECT_NEAR(result5.pvalue, 0.0000000148387874, 1.0e-10);
+		EXPECT_NEAR(result5.df, 7.0, 0.0);
+
+		// Case 6: Reaction time training effect
+		Stats_t_test_paired(x:=case6_x, y:=case6_y, result:=result6);
+		EXPECT_NEAR(result6.statistic, 7.0335331260536558, EPS);
+		EXPECT_NEAR(result6.pvalue, 0.0059049445891734, EPS);
+		EXPECT_NEAR(result6.df, 3.0, 0.0);
+
+		// Case 7: Temperature readings AM vs PM
+		Stats_t_test_paired(x:=case7_x, y:=case7_y, result:=result7);
+		EXPECT_NEAR(result7.statistic, -12.9999999999999858, EPS);
+		EXPECT_NEAR(result7.pvalue, 0.0000480220280102, 1.0e-7);
+		EXPECT_NEAR(result7.df, 5.0, 0.0);
+
+		// Case 8: Pain scale before/after treatment
+		Stats_t_test_paired(x:=case8_x, y:=case8_y, result:=result8);
+		EXPECT_NEAR(result8.statistic, 8.4999999999999982, EPS);
+		EXPECT_NEAR(result8.pvalue, 0.0010505780707893, EPS);
+		EXPECT_NEAR(result8.df, 4.0, 0.0);
+
+		// Case 9: Exercise heart rate recovery
+		Stats_t_test_paired(x:=case9_x, y:=case9_y, result:=result9);
+		EXPECT_NEAR(result9.statistic, 102.2500000000000142, EPS);
+		EXPECT_NEAR(result9.pvalue, 0.0000000000589753, 1.0e-12);
+		EXPECT_NEAR(result9.df, 6.0, 0.0);
+
+		// Case 10: Fuel efficiency improvement
+		Stats_t_test_paired(x:=case10_x, y:=case10_y, result:=result10);
+		EXPECT_NEAR(result10.statistic, -27.5529120595803292, EPS);
+		EXPECT_NEAR(result10.pvalue, 0.0000000212912019, 1.0e-10);
+		EXPECT_NEAR(result10.df, 7.0, 0.0);
+
+		// Case 11: Small varying differences (non-significant)
+		Stats_t_test_paired(x:=case11_x, y:=case11_y, result:=result11);
+		EXPECT_NEAR(result11.statistic, -1.4142135623730949, EPS);
+		EXPECT_NEAR(result11.pvalue, 0.2522154963555042, EPS);
+		EXPECT_NEAR(result11.df, 3.0, 0.0);
+
+		// Error Case 1: Constant difference - should return error (diff stddev=0)
+		Stats_t_test_paired(x:=case_error1_x, y:=case_error1_y, result:=result_error1, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+
+		// Error Case 2: No differences - should return error (diff stddev=0)
+		Stats_t_test_paired(x:=case_error2_x, y:=case_error2_y, result:=result_error2, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+	{end}
+END_TEST_S
+
+{#undef EPS}

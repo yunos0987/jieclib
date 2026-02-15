@@ -1,0 +1,139 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./stats/distributions/continuous/exponential.txt -I. -I./vendor/jiecunit/sys -o ./stats/distributions/continuous/exponential.xml -t omron
+ *)
+{#ifndef __STATS_DISTRIBUTIONS_CONTINUOUS_EXPONENTIAL_TXT__}
+{#define __STATS_DISTRIBUTIONS_CONTINUOUS_EXPONENTIAL_TXT__}
+
+{#include <sys.txt>}
+
+(*{doc 指数分布の確率密度関数
+f(x) = lambda * exp(-lambda * x) for x >= 0
+@input x 入力値。
+@input lambda レート。
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_exponential_pdf: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 入力値。}*)
+		x: lreal;
+		(*{doc レート。}*)
+		lambda: lreal;
+	end
+	{st}
+		if lambda <= 0.0 then
+			eno := false;
+			Stats_exponential_pdf := 0.0;
+			return;
+		end_if;
+
+		if x < 0.0 then
+			Stats_exponential_pdf := 0.0;
+		else
+			Stats_exponential_pdf := lambda * exp(-lambda * x);
+		end_if;
+	{end}
+end
+
+(*{doc 指数分布の累積分布関数
+F(x) = 1 - exp(-lambda * x) for x >= 0
+@input x 入力値。
+@input lambda レート。
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_exponential_cdf: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 入力値。}*)
+		x: lreal;
+		(*{doc レート。}*)
+		lambda: lreal;
+	end
+	{st}
+		if lambda <= 0.0 then
+			eno := false;
+			Stats_exponential_cdf := 0.0;
+			return;
+		end_if;
+
+		if x < 0.0 then
+			Stats_exponential_cdf := 0.0;
+		else
+			Stats_exponential_cdf := 1.0 - exp(-lambda * x);
+		end_if;
+	{end}
+end
+
+(*{doc 指数分布の分位関数。Q(p) = -ln(1 - p) / lambda
+@input p 確率(0..1)。
+@input lambda レート。
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_exponential_ppf: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 確率(0..1)。}*)
+		p: lreal;
+		(*{doc レート。}*)
+		lambda: lreal;
+	end
+	{st}
+		if p < 0.0 or p > 1.0 or lambda <= 0.0 then
+			eno := false;
+			Stats_exponential_ppf := 0.0;
+			return;
+		end_if;
+
+		if p = 0.0 then
+			Stats_exponential_ppf := 0.0;
+		elsif p = 1.0 then
+			Stats_exponential_ppf := 1e10;
+		else
+			Stats_exponential_ppf := -ln(1.0 - p) / lambda;
+		end_if;
+	{end}
+end
+
+(*{doc 指数分布の平均 = 1 / lambda
+@input lambda レート。
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_exponential_mean: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc レート。}*)
+		lambda: lreal;
+	end
+	{st}
+		if lambda <= 0.0 then
+			eno := false;
+			Stats_exponential_mean := 0.0;
+			return;
+		end_if;
+		Stats_exponential_mean := 1.0 / lambda;
+	{end}
+end
+
+(*{doc 指数分布の分散 = 1 / lambda^2
+@input lambda レート。
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_exponential_variance: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc レート。}*)
+		lambda: lreal;
+	end
+	{st}
+		if lambda <= 0.0 then
+			eno := false;
+			Stats_exponential_variance := 0.0;
+			return;
+		end_if;
+		Stats_exponential_variance := 1.0 / (lambda * lambda);
+	{end}
+end
+
+{#endif}
+

@@ -1,0 +1,390 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/descriptive/test_sums.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/descriptive/test_sums.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/descriptive/sums.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_sums_sum',
+		'test_stats_sums_sum_of_squares',
+		'test_stats_sums_sum_of_products',
+		'test_stats_sums_cumsum',
+		'test_stats_sums_fsum'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_stats_sums_sum)
+	var
+		x_basic: array[0..4] of lreal := [100.0, 102.0, 101.0, 99.0, 103.0];
+		x_neg: array[0..4] of lreal := [-10.0, -5.0, 0.0, 5.0, 10.0];
+		x_large: array[0..2] of lreal := [1000.0, 2000.0, 3000.0];
+		x_frac: array[0..3] of lreal := [0.1, 0.2, 0.3, 0.4];
+		x_single: array[0..0] of lreal := [42.0];
+		x_zero: array[0..3] of lreal := [0.0, 0.0, 0.0, 0.0];
+		x_alt: array[0..5] of lreal := [1.0, -1.0, 2.0, -2.0, 3.0, -3.0];
+		x_prec: array[0..4] of lreal := [1.11, 2.22, 3.33, 4.44, 5.55];
+		x_small: array[0..3] of lreal := [0.001, 0.002, 0.003, 0.004];
+		// Additional test cases
+		x_sum_two: array[0..1] of lreal := [25.0, 35.0];
+		x_sum_negative_only: array[0..3] of lreal := [-5.0, -10.0, -15.0, -20.0];
+		x_sum_mixed_large: array[0..5] of lreal := [1.0e6, -2.0e6, 3.0e6, -1.0e6, 5.0e6, -3.0e6];
+		x_sum_identical: array[0..6] of lreal := [7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0];
+		x_sum_ascending: array[0..7] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
+		result: lreal;
+	end
+	{st}
+		result := Stats_sums_sum(data:=x_basic);
+		EXPECT_NEAR(505.0, result, 0.001);
+		result := Stats_sums_sum(data:=x_neg);
+		EXPECT_NEAR(0.0, result, 0.001);
+		result := Stats_sums_sum(data:=x_large);
+		EXPECT_NEAR(6000.0, result, 0.001);
+		result := Stats_sums_sum(data:=x_frac);
+		EXPECT_NEAR(1.0, result, 0.001);
+		result := Stats_sums_sum(data:=x_single);
+		EXPECT_NEAR(42.0, result, EPS);
+		result := Stats_sums_sum(data:=x_zero);
+		EXPECT_NEAR(0.0, result, EPS);
+		result := Stats_sums_sum(data:=x_alt);
+		EXPECT_NEAR(0.0, result, EPS);
+		result := Stats_sums_sum(data:=x_prec);
+		EXPECT_NEAR(16.65, result, 0.001);
+		result := Stats_sums_sum(data:=x_small);
+		EXPECT_NEAR(0.010, result, 0.0001);
+
+		// Two elements
+		result := Stats_sums_sum(data:=x_sum_two);
+		EXPECT_NEAR(60.0, result, EPS);
+
+		// All negative
+		result := Stats_sums_sum(data:=x_sum_negative_only);
+		EXPECT_NEAR(-50.0, result, EPS);
+
+		// Mixed large values
+		result := Stats_sums_sum(data:=x_sum_mixed_large);
+		EXPECT_NEAR(3.0e6, result, 1.0);
+
+		// Identical values
+		result := Stats_sums_sum(data:=x_sum_identical);
+		EXPECT_NEAR(49.0, result, EPS);
+
+		// Ascending sequence
+		result := Stats_sums_sum(data:=x_sum_ascending);
+		EXPECT_NEAR(36.0, result, EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_sums_sum_of_squares)
+	var
+		x_sq_basic: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		x_sq_ones: array[0..4] of lreal := [1.0, 1.0, 1.0, 1.0, 1.0];
+		x_sq2: array[0..3] of lreal := [2.0, 4.0, 6.0, 8.0];
+		x_sq3: array[0..2] of lreal := [-3.0, -4.0, -5.0];
+		// Additional test cases
+		x_sq_single: array[0..0] of lreal := [7.0];
+		x_sq_zeros: array[0..3] of lreal := [0.0, 0.0, 0.0, 0.0];
+		x_sq_mixed: array[0..5] of lreal := [1.0, -2.0, 3.0, -4.0, 5.0, -6.0];
+		x_sq_decimal: array[0..3] of lreal := [0.5, 1.5, 2.5, 3.5];
+		x_sq_large: array[0..2] of lreal := [10.0, 20.0, 30.0];
+		x_sq_small: array[0..4] of lreal := [0.1, 0.2, 0.3, 0.4, 0.5];
+		x_sq_identical: array[0..5] of lreal := [3.0, 3.0, 3.0, 3.0, 3.0, 3.0];
+		x_sq_two: array[0..1] of lreal := [6.0, 8.0];
+		result: lreal;
+	end
+	{st}
+		result := Stats_sums_sum_of_squares(data:=x_sq_basic);
+		EXPECT_NEAR(55.0, result, 0.001);
+		result := Stats_sums_sum_of_squares(data:=x_sq_ones);
+		EXPECT_NEAR(5.0, result, 0.001);
+		result := Stats_sums_sum_of_squares(data:=x_sq2);
+		EXPECT_NEAR(120.0, result, EPS);
+		result := Stats_sums_sum_of_squares(data:=x_sq3);
+		EXPECT_NEAR(50.0, result, EPS);
+
+		// Single element: 7^2 = 49
+		result := Stats_sums_sum_of_squares(data:=x_sq_single);
+		EXPECT_NEAR(49.0, result, EPS);
+
+		// All zeros
+		result := Stats_sums_sum_of_squares(data:=x_sq_zeros);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// Mixed positive/negative: 1^2 + 2^2 + 3^2 + 4^2 + 5^2 + 6^2 = 91
+		result := Stats_sums_sum_of_squares(data:=x_sq_mixed);
+		EXPECT_NEAR(91.0, result, EPS);
+
+		// Decimal values: 0.25 + 2.25 + 6.25 + 12.25 = 21
+		result := Stats_sums_sum_of_squares(data:=x_sq_decimal);
+		EXPECT_NEAR(21.0, result, 0.001);
+
+		// Large values: 100 + 400 + 900 = 1400
+		result := Stats_sums_sum_of_squares(data:=x_sq_large);
+		EXPECT_NEAR(1400.0, result, EPS);
+
+		// Small values: 0.01 + 0.04 + 0.09 + 0.16 + 0.25 = 0.55
+		result := Stats_sums_sum_of_squares(data:=x_sq_small);
+		EXPECT_NEAR(0.55, result, 0.001);
+
+		// Identical values: 6 * 9 = 54
+		result := Stats_sums_sum_of_squares(data:=x_sq_identical);
+		EXPECT_NEAR(54.0, result, EPS);
+
+		// Two elements: 36 + 64 = 100
+		result := Stats_sums_sum_of_squares(data:=x_sq_two);
+		EXPECT_NEAR(100.0, result, EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_sums_sum_of_products)
+	var
+		x_prod1: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		y_prod1: array[0..4] of lreal := [2.0, 4.0, 6.0, 8.0, 10.0];
+		x1_prod: array[0..3] of lreal := [10.0, 20.0, 30.0, 40.0];
+		y1_prod: array[0..3] of lreal := [1.0, 2.0, 3.0, 4.0];
+		x2_prod: array[0..2] of lreal := [5.0, 10.0, 15.0];
+		y2_prod: array[0..2] of lreal := [2.0, 4.0, 6.0];
+		// Additional test cases
+		x_prod_single: array[0..0] of lreal := [7.0];
+		y_prod_single: array[0..0] of lreal := [3.0];
+		x_prod_zeros: array[0..3] of lreal := [0.0, 0.0, 0.0, 0.0];
+		y_prod_zeros: array[0..3] of lreal := [5.0, 10.0, 15.0, 20.0];
+		x_prod_mixed: array[0..4] of lreal := [1.0, -2.0, 3.0, -4.0, 5.0];
+		y_prod_mixed: array[0..4] of lreal := [2.0, 3.0, -1.0, 2.0, -3.0];
+		x_prod_decimal: array[0..3] of lreal := [0.5, 1.5, 2.5, 3.5];
+		y_prod_decimal: array[0..3] of lreal := [2.0, 4.0, 6.0, 8.0];
+		x_prod_identical: array[0..4] of lreal := [3.0, 3.0, 3.0, 3.0, 3.0];
+		y_prod_identical: array[0..4] of lreal := [4.0, 4.0, 4.0, 4.0, 4.0];
+		x_prod_two: array[0..1] of lreal := [6.0, 8.0];
+		y_prod_two: array[0..1] of lreal := [5.0, 7.0];
+		x_prod_large: array[0..2] of lreal := [100.0, 200.0, 300.0];
+		y_prod_large: array[0..2] of lreal := [10.0, 20.0, 30.0];
+		result: lreal;
+	end
+	{st}
+		result := Stats_sums_sum_of_products(x:=x_prod1, y:=y_prod1);
+		EXPECT_NEAR(110.0, result, 0.001);
+		result := Stats_sums_sum_of_products(x:=x1_prod, y:=y1_prod);
+		EXPECT_NEAR(300.0, result, EPS);
+		result := Stats_sums_sum_of_products(x:=x2_prod, y:=y2_prod);
+		EXPECT_NEAR(140.0, result, EPS);
+
+		// Single element: 7 * 3 = 21
+		result := Stats_sums_sum_of_products(x:=x_prod_single, y:=y_prod_single);
+		EXPECT_NEAR(21.0, result, EPS);
+
+		// Zero products
+		result := Stats_sums_sum_of_products(x:=x_prod_zeros, y:=y_prod_zeros);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// Mixed signs: 1*2 + (-2)*3 + 3*(-1) + (-4)*2 + 5*(-3) = 2 - 6 - 3 - 8 - 15 = -30
+		result := Stats_sums_sum_of_products(x:=x_prod_mixed, y:=y_prod_mixed);
+		EXPECT_NEAR(-30.0, result, EPS);
+
+		// Decimal values: 0.5*2 + 1.5*4 + 2.5*6 + 3.5*8 = 1 + 6 + 15 + 28 = 50
+		result := Stats_sums_sum_of_products(x:=x_prod_decimal, y:=y_prod_decimal);
+		EXPECT_NEAR(50.0, result, 0.001);
+
+		// Identical values: 5 * (3 * 4) = 60
+		result := Stats_sums_sum_of_products(x:=x_prod_identical, y:=y_prod_identical);
+		EXPECT_NEAR(60.0, result, EPS);
+
+		// Two elements: 6*5 + 8*7 = 30 + 56 = 86
+		result := Stats_sums_sum_of_products(x:=x_prod_two, y:=y_prod_two);
+		EXPECT_NEAR(86.0, result, EPS);
+
+		// Large values: 100*10 + 200*20 + 300*30 = 1000 + 4000 + 9000 = 14000
+		result := Stats_sums_sum_of_products(x:=x_prod_large, y:=y_prod_large);
+		EXPECT_NEAR(14000.0, result, EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_sums_cumsum)
+	var
+		x_cumsum1: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		result_cum1: array[0..4] of lreal;
+		x_cumsum2: array[0..5] of lreal := [2.0, 4.0, 6.0, 8.0, 10.0, 12.0];
+		x_cumsum3: array[0..3] of lreal := [-1.0, -2.0, -3.0, -4.0];
+		result_cum2: array[0..5] of lreal;
+		result_cum3: array[0..3] of lreal;
+		// Additional test cases
+		x_cumsum_single: array[0..0] of lreal := [42.0];
+		result_cum_single: array[0..0] of lreal;
+		x_cumsum_two: array[0..1] of lreal := [10.0, 20.0];
+		result_cum_two: array[0..1] of lreal;
+		x_cumsum_zeros: array[0..3] of lreal := [0.0, 0.0, 0.0, 0.0];
+		result_cum_zeros: array[0..3] of lreal;
+		x_cumsum_mixed: array[0..5] of lreal := [5.0, -3.0, 2.0, -1.0, 4.0, -2.0];
+		result_cum_mixed: array[0..5] of lreal;
+		x_cumsum_decimal: array[0..4] of lreal := [0.1, 0.2, 0.3, 0.4, 0.5];
+		result_cum_decimal: array[0..4] of lreal;
+		x_cumsum_large: array[0..3] of lreal := [1000.0, 2000.0, 3000.0, 4000.0];
+		result_cum_large: array[0..3] of lreal;
+		x_cumsum_alternating: array[0..7] of lreal := [1.0, -1.0, 2.0, -2.0, 3.0, -3.0, 4.0, -4.0];
+		result_cum_alternating: array[0..7] of lreal;
+		x_cumsum_identical: array[0..4] of lreal := [5.0, 5.0, 5.0, 5.0, 5.0];
+		result_cum_identical: array[0..4] of lreal;
+		x_cumsum_long: array[0..9] of lreal := [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
+		result_cum_long: array[0..9] of lreal;
+		i: dint;
+	end
+	{st}
+		Stats_sums_cumsum(data:=x_cumsum1, result:=result_cum1);
+		EXPECT_NEAR(1.0, result_cum1[0], 0.001);
+		EXPECT_NEAR(3.0, result_cum1[1], 0.001);
+		EXPECT_NEAR(6.0, result_cum1[2], 0.001);
+		EXPECT_NEAR(10.0, result_cum1[3], 0.001);
+		EXPECT_NEAR(15.0, result_cum1[4], 0.001);
+		EXPECT_TRUE(result_cum1[0] <= result_cum1[1]);
+		EXPECT_TRUE(result_cum1[1] <= result_cum1[2]);
+		EXPECT_TRUE(result_cum1[2] <= result_cum1[3]);
+		EXPECT_TRUE(result_cum1[3] <= result_cum1[4]);
+
+		Stats_sums_cumsum(data:=x_cumsum2, result:=result_cum2);
+		EXPECT_NEAR(2.0, result_cum2[0], EPS);
+		EXPECT_NEAR(6.0, result_cum2[1], EPS);
+		EXPECT_NEAR(12.0, result_cum2[2], EPS);
+		EXPECT_NEAR(20.0, result_cum2[3], EPS);
+		EXPECT_NEAR(30.0, result_cum2[4], EPS);
+		EXPECT_NEAR(42.0, result_cum2[5], EPS);
+
+		Stats_sums_cumsum(data:=x_cumsum3, result:=result_cum3);
+		EXPECT_NEAR(-1.0, result_cum3[0], EPS);
+		EXPECT_NEAR(-3.0, result_cum3[1], EPS);
+		EXPECT_NEAR(-6.0, result_cum3[2], EPS);
+		EXPECT_NEAR(-10.0, result_cum3[3], EPS);
+
+		// Single element
+		Stats_sums_cumsum(data:=x_cumsum_single, result:=result_cum_single);
+		EXPECT_NEAR(42.0, result_cum_single[0], EPS);
+
+		// Two elements
+		Stats_sums_cumsum(data:=x_cumsum_two, result:=result_cum_two);
+		EXPECT_NEAR(10.0, result_cum_two[0], EPS);
+		EXPECT_NEAR(30.0, result_cum_two[1], EPS);
+
+		// All zeros
+		Stats_sums_cumsum(data:=x_cumsum_zeros, result:=result_cum_zeros);
+		EXPECT_NEAR(0.0, result_cum_zeros[0], EPS);
+		EXPECT_NEAR(0.0, result_cum_zeros[1], EPS);
+		EXPECT_NEAR(0.0, result_cum_zeros[2], EPS);
+		EXPECT_NEAR(0.0, result_cum_zeros[3], EPS);
+
+		// Mixed positive/negative
+		Stats_sums_cumsum(data:=x_cumsum_mixed, result:=result_cum_mixed);
+		EXPECT_NEAR(5.0, result_cum_mixed[0], EPS);
+		EXPECT_NEAR(2.0, result_cum_mixed[1], EPS);
+		EXPECT_NEAR(4.0, result_cum_mixed[2], EPS);
+		EXPECT_NEAR(3.0, result_cum_mixed[3], EPS);
+		EXPECT_NEAR(7.0, result_cum_mixed[4], EPS);
+		EXPECT_NEAR(5.0, result_cum_mixed[5], EPS);
+
+		// Decimal values
+		Stats_sums_cumsum(data:=x_cumsum_decimal, result:=result_cum_decimal);
+		EXPECT_NEAR(0.1, result_cum_decimal[0], 0.001);
+		EXPECT_NEAR(0.3, result_cum_decimal[1], 0.001);
+		EXPECT_NEAR(0.6, result_cum_decimal[2], 0.001);
+		EXPECT_NEAR(1.0, result_cum_decimal[3], 0.001);
+		EXPECT_NEAR(1.5, result_cum_decimal[4], 0.001);
+
+		// Large values
+		Stats_sums_cumsum(data:=x_cumsum_large, result:=result_cum_large);
+		EXPECT_NEAR(1000.0, result_cum_large[0], 0.001);
+		EXPECT_NEAR(3000.0, result_cum_large[1], 0.001);
+		EXPECT_NEAR(6000.0, result_cum_large[2], 0.001);
+		EXPECT_NEAR(10000.0, result_cum_large[3], 0.001);
+
+		// Alternating signs
+		Stats_sums_cumsum(data:=x_cumsum_alternating, result:=result_cum_alternating);
+		EXPECT_NEAR(1.0, result_cum_alternating[0], EPS);
+		EXPECT_NEAR(0.0, result_cum_alternating[1], EPS);
+		EXPECT_NEAR(2.0, result_cum_alternating[2], EPS);
+		EXPECT_NEAR(0.0, result_cum_alternating[3], EPS);
+		EXPECT_NEAR(3.0, result_cum_alternating[4], EPS);
+		EXPECT_NEAR(0.0, result_cum_alternating[5], EPS);
+		EXPECT_NEAR(4.0, result_cum_alternating[6], EPS);
+		EXPECT_NEAR(0.0, result_cum_alternating[7], EPS);
+
+		// Identical values
+		Stats_sums_cumsum(data:=x_cumsum_identical, result:=result_cum_identical);
+		EXPECT_NEAR(5.0, result_cum_identical[0], EPS);
+		EXPECT_NEAR(10.0, result_cum_identical[1], EPS);
+		EXPECT_NEAR(15.0, result_cum_identical[2], EPS);
+		EXPECT_NEAR(20.0, result_cum_identical[3], EPS);
+		EXPECT_NEAR(25.0, result_cum_identical[4], EPS);
+
+		// Longer array
+		Stats_sums_cumsum(data:=x_cumsum_long, result:=result_cum_long);
+		for i := 0 to 9 do
+			EXPECT_NEAR(dint_to_lreal(i + 1), result_cum_long[i], EPS);
+		end_for;
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_sums_fsum)
+	var
+		x_fsum1: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		x_fsum_prec: array[0..2] of lreal := [1.0e10, 1.0, -1.0e10];
+		x_fsum2: array[0..3] of lreal := [0.1, 0.2, 0.3, 0.4];
+		x_fsum3: array[0..4] of lreal := [1.0e15, 1.0, -1.0e15, 1.0, 1.0];
+		// Additional test cases
+		x_fsum_single: array[0..0] of lreal := [42.0];
+		x_fsum_zeros: array[0..3] of lreal := [0.0, 0.0, 0.0, 0.0];
+		x_fsum_negative: array[0..3] of lreal := [-1.0, -2.0, -3.0, -4.0];
+		x_fsum_mixed: array[0..5] of lreal := [1.0, -1.0, 2.0, -2.0, 3.0, -3.0];
+		x_fsum_tiny: array[0..4] of lreal := [1.0e-15, 2.0e-15, 3.0e-15, 4.0e-15, 5.0e-15];
+		x_fsum_large_cancel: array[0..3] of lreal := [1.0e12, -1.0e12, 1.0, 1.0];
+		x_fsum_decimal_prec: array[0..6] of lreal := [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1];
+		x_fsum_alternating: array[0..5] of lreal := [1.0e8, -1.0e8, 1.0, 1.0e8, -1.0e8, 1.0];
+		result: lreal;
+	end
+	{st}
+		result := Stats_sums_fsum(data:=x_fsum1);
+		EXPECT_NEAR(result, 15.0, EPS);
+		result := Stats_sums_fsum(data:=x_fsum_prec);
+		EXPECT_NEAR(result, 1.0, EPS);
+		result := Stats_sums_fsum(data:=x_fsum2);
+		EXPECT_NEAR(1.0, result, EPS);
+		result := Stats_sums_fsum(data:=x_fsum3);
+		EXPECT_NEAR(3.0, result, EPS);
+
+		// Single element
+		result := Stats_sums_fsum(data:=x_fsum_single);
+		EXPECT_NEAR(42.0, result, EPS);
+
+		// All zeros
+		result := Stats_sums_fsum(data:=x_fsum_zeros);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// All negative
+		result := Stats_sums_fsum(data:=x_fsum_negative);
+		EXPECT_NEAR(-10.0, result, EPS);
+
+		// Alternating signs canceling
+		result := Stats_sums_fsum(data:=x_fsum_mixed);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// Very small values
+		result := Stats_sums_fsum(data:=x_fsum_tiny);
+		EXPECT_NEAR(15.0e-15, result, 1.0e-15);
+
+		// Large number cancellation
+		result := Stats_sums_fsum(data:=x_fsum_large_cancel);
+		EXPECT_NEAR(2.0, result, EPS);
+
+		// Decimal precision accumulation
+		result := Stats_sums_fsum(data:=x_fsum_decimal_prec);
+		EXPECT_NEAR(0.7, result, 1.0e-10);
+
+		// Large alternating with small residual
+		result := Stats_sums_fsum(data:=x_fsum_alternating);
+		EXPECT_NEAR(2.0, result, EPS);
+	{end}
+END_TEST_S
+
+{#undef EPS}

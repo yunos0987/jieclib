@@ -1,0 +1,321 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/descriptive/test_variance.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/descriptive/test_variance.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/descriptive/variance.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_variance',
+		'test_stats_sample_variance',
+		'test_stats_variance_ddof',
+		'test_stats_weighted_variance',
+		'test_stats_variance_two_pass',
+		'test_stats_variance_welford'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_stats_variance)
+	var
+		x1: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
+		x2: array[0..3] of lreal := [1.5, -2.5, 3.0, -1.0];
+		x3: array[0..5] of lreal := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+		x4: array[0..9] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
+		x5: array[0..4] of lreal := [-5.0, -3.0, -1.0, -7.0, -2.0];
+		x6: array[0..9] of lreal := [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
+		x7: array[0..4] of lreal := [1000.0, 2000.0, 3000.0, 4000.0, 5000.0];
+		x8: array[0..0] of lreal := [42.0];
+		x9: array[0..1] of lreal := [15.5, 24.5];
+		x10: array[0..5] of lreal := [0.0, 10.0, 20.0, 30.0, 40.0, 50.0];
+		x11: array[0..6] of lreal := [5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0];
+		x12: array[0..4] of lreal := [10.0, 10.1, 9.9, 10.05, 9.95];
+		x_add1: array[0..5] of lreal := [5.0, 10.0, 15.0, 20.0, 25.0, 30.0];
+		x_add2: array[0..3] of lreal := [2.0, 4.0, 6.0, 8.0];
+	end
+	{st}
+	EXPECT_NEAR(10.0, Stats_variance(x1, -1), EPS);
+	EXPECT_NEAR(4.5625, Stats_variance(x2, -1), EPS);
+	EXPECT_NEAR(0.0, Stats_variance(x3, -1), EPS);
+	EXPECT_NEAR(8.25, Stats_variance(x4, -1), EPS);
+	EXPECT_NEAR(4.64, Stats_variance(x5, -1), EPS);
+	EXPECT_NEAR(0.0825, Stats_variance(x6, -1), EPS);
+	EXPECT_NEAR(2000000.0, Stats_variance(x7, -1), EPS);
+	EXPECT_NEAR(0.0, Stats_variance(x8, -1), EPS);
+	EXPECT_NEAR(20.25, Stats_variance(x9, -1), EPS);
+	EXPECT_NEAR(291.666666666667, Stats_variance(x10, -1), EPS);
+	EXPECT_NEAR(0.0, Stats_variance(x11, -1), EPS);
+	EXPECT_NEAR(0.005, Stats_variance(x12, -1), EPS);
+	EXPECT_NEAR(72.916666666667, Stats_variance(x_add1, -1), 1.0e-9);
+	EXPECT_NEAR(5.0, Stats_variance(x_add2, -1), EPS);
+
+	// Failure case: Single element should return 0.0
+	EXPECT_NEAR(0.0, Stats_variance(data:=x8, n:=-1), EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_sample_variance)
+	var
+		x1: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
+		x2: array[0..3] of lreal := [1.5, -2.5, 3.0, -1.0];
+		x3: array[0..5] of lreal := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+		x4: array[0..9] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
+		x5: array[0..4] of lreal := [-5.0, -3.0, -1.0, -7.0, -2.0];
+		x6: array[0..9] of lreal := [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
+		x7: array[0..4] of lreal := [1000.0, 2000.0, 3000.0, 4000.0, 5000.0];
+		x8: array[0..0] of lreal := [42.0];
+		x9: array[0..1] of lreal := [15.5, 24.5];
+		x10: array[0..5] of lreal := [0.0, 10.0, 20.0, 30.0, 40.0, 50.0];
+		x11: array[0..6] of lreal := [5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0];
+		x12: array[0..4] of lreal := [10.0, 10.1, 9.9, 10.05, 9.95];
+		x_add1: array[0..5] of lreal := [5.0, 10.0, 15.0, 20.0, 25.0, 30.0];
+		x_add2: array[0..3] of lreal := [2.0, 4.0, 6.0, 8.0];
+		//
+		result: lreal;
+		result_eno: bool;
+	end
+	{st}
+	result := Stats_sample_variance(x1, -1);
+	EXPECT_NEAR(12.5, result, EPS);
+	result := Stats_sample_variance(x2, -1);
+	EXPECT_NEAR(6.08333333333333, result, EPS);
+	result := Stats_sample_variance(x3, -1);
+	EXPECT_NEAR(0.0, result, EPS);
+	result := Stats_sample_variance(x4, -1);
+	EXPECT_NEAR(9.16666666666667, result, EPS);
+	result := Stats_sample_variance(x5, -1);
+	EXPECT_NEAR(5.8, result, EPS);
+	result := Stats_sample_variance(x6, -1);
+	EXPECT_NEAR(0.0916666666666667, result, EPS);
+	result := Stats_sample_variance(x7, -1);
+	EXPECT_NEAR(2500000.0, result, EPS);
+	result := Stats_sample_variance(data:=x8, n:=-1, eno=>result_eno);
+	EXPECT_FALSE(result_eno);
+	result := Stats_sample_variance(x9, -1);
+	EXPECT_NEAR(40.5, result, EPS);
+	result := Stats_sample_variance(x10, -1);
+	EXPECT_NEAR(350.0, result, EPS);
+	result := Stats_sample_variance(x11, -1);
+	EXPECT_NEAR(0.0, result, EPS);
+	result := Stats_sample_variance(x12, -1);
+	EXPECT_NEAR(0.00625, result, EPS);
+	result := Stats_sample_variance(x_add1, -1);
+	EXPECT_NEAR(87.500000000000, result, 1.0e-9);
+	result := Stats_sample_variance(x_add2, -1);
+	EXPECT_NEAR(6.666666666666667, result, EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_variance_ddof)
+	var
+		x1: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
+		x2: array[0..3] of lreal := [1.5, -2.5, 3.0, -1.0];
+		x3: array[0..5] of lreal := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+		x4: array[0..9] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
+		x5: array[0..4] of lreal := [-5.0, -3.0, -1.0, -7.0, -2.0];
+		x_ddof_small: array[0..2] of lreal := [2.0, 4.0, 6.0];
+		x_large: array[0..6] of lreal := [100.0, 200.0, 300.0, 400.0, 500.0, 600.0, 700.0];
+		x_single: array[0..0] of lreal := [42.0];
+		x_two: array[0..1] of lreal := [10.0, 20.0];
+		result: lreal;
+		result_eno: bool;
+	end
+	{st}
+		// Basic ddof=0 tests
+		EXPECT_NEAR(10.000000000000, Stats_variance_ddof(data:=x1, ddof:=0), EPS);
+		EXPECT_NEAR(4.562500000000, Stats_variance_ddof(data:=x2, ddof:=0), EPS);
+		EXPECT_NEAR(0.000000000000, Stats_variance_ddof(data:=x3, ddof:=0), EPS);
+
+		// Basic ddof=1 tests
+		EXPECT_NEAR(12.500000000000, Stats_variance_ddof(data:=x1, ddof:=1), EPS);
+		EXPECT_NEAR(6.083333333333, Stats_variance_ddof(data:=x2, ddof:=1), EPS);
+		EXPECT_NEAR(8.250000000000, Stats_variance_ddof(data:=x4, ddof:=0), EPS);
+		EXPECT_NEAR(9.166666666667, Stats_variance_ddof(data:=x4, ddof:=1), EPS);
+
+		// ddof=2 tests
+		EXPECT_NEAR(16.666666666667, Stats_variance_ddof(data:=x1, ddof:=2), EPS);
+		EXPECT_NEAR(4.000000000000, Stats_variance_ddof(data:=x_ddof_small, ddof:=1), EPS);
+
+		// Negative values
+		EXPECT_NEAR(4.640000000000, Stats_variance_ddof(data:=x5, ddof:=0), EPS);
+		EXPECT_NEAR(5.800000000000, Stats_variance_ddof(data:=x5, ddof:=1), EPS);
+
+		// Large values
+		EXPECT_NEAR(40000.000000000000, Stats_variance_ddof(data:=x_large, ddof:=0), EPS);
+		EXPECT_NEAR(46666.666666666667, Stats_variance_ddof(data:=x_large, ddof:=1), EPS);
+
+		// Failure case: Single element with ddof=0 should succeed and return 0.0
+		result := Stats_variance_ddof(data:=x_single, ddof:=0);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// Failure case: ddof too large (n-ddof <= 0)
+		result := Stats_variance_ddof(data:=x_two, ddof:=2, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+
+		// Failure case: ddof > n
+		result := Stats_variance_ddof(data:=x_two, ddof:=5, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_weighted_variance)
+	var
+		xw1: array[0..3] of lreal := [1.0, 2.0, 3.0, 4.0];
+		w1: array[0..3] of lreal := [1.0, 1.0, 1.0, 1.0];
+		xw2: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		w2: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		xw3: array[0..3] of lreal := [10.0, 20.0, 30.0, 40.0];
+		w3: array[0..3] of lreal := [0.25, 0.25, 0.25, 0.25];
+		xw4: array[0..4] of lreal := [2.0, 4.0, 6.0, 8.0, 10.0];
+		w4: array[0..4] of lreal := [1.0, 1.0, 1.0, 1.0, 1.0];
+		xw5: array[0..3] of lreal := [100.0, 200.0, 300.0, 400.0];
+		w5: array[0..3] of lreal := [0.1, 0.2, 0.3, 0.4];
+		xw6: array[0..2] of lreal := [5.0, 10.0, 15.0];
+		w6: array[0..2] of lreal := [0.5, 0.3, 0.2];
+		xw7: array[0..4] of lreal := [1.5, 2.5, 3.5, 4.5, 5.5];
+		w7: array[0..4] of lreal := [0.2, 0.2, 0.2, 0.2, 0.2];
+		xw8: array[0..3] of lreal := [-5.0, -3.0, -1.0, -7.0];
+		w8: array[0..3] of lreal := [1.0, 2.0, 3.0, 4.0];
+		xw9: array[0..1] of lreal := [10.0, 20.0];
+		w9: array[0..1] of lreal := [0.3, 0.7];
+		xw10: array[0..5] of lreal := [0.0, 10.0, 20.0, 30.0, 40.0, 50.0];
+		w10: array[0..5] of lreal := [1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
+		x_normal: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		w_normal: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		w_mismatch: array[0..1] of lreal := [1.0, 2.0];
+		w_negative: array[0..2] of lreal := [1.0, -2.0, 3.0];
+		x_single: array[0..0] of lreal := [42.0];
+		w_single: array[0..0] of lreal := [1.0];
+		//
+		result: lreal;
+		result_eno: bool;
+	end
+	{st}
+		// Equal weights
+		result := Stats_weighted_variance(xw1, w1, -1);
+		EXPECT_NEAR(1.250000000000, result, EPS);
+		// Unequal weights
+		result := Stats_weighted_variance(xw2, w2, -1);
+		EXPECT_NEAR(0.555555555556, result, EPS);
+		// Uniform weights
+		result := Stats_weighted_variance(xw3, w3, -1);
+		EXPECT_NEAR(125.000000000000, result, EPS);
+		result := Stats_weighted_variance(xw4, w4, -1);
+		EXPECT_NEAR(8.000000000000, result, EPS);
+		// Different weight distributions
+		result := Stats_weighted_variance(xw5, w5, -1);
+		EXPECT_NEAR(10000.000000000000, result, EPS);
+		result := Stats_weighted_variance(xw6, w6, -1);
+		EXPECT_NEAR(15.250000000000, result, EPS);
+		// Equal small weights
+		result := Stats_weighted_variance(xw7, w7, -1);
+		EXPECT_NEAR(2.000000000000, result, EPS);
+		// Negative values with weights
+		result := Stats_weighted_variance(xw8, w8, -1);
+		EXPECT_NEAR(6.560000000000, result, EPS);
+		// Two elements
+		result := Stats_weighted_variance(xw9, w9, -1);
+		EXPECT_NEAR(21.000000000000, result, EPS);
+		// Large array
+		result := Stats_weighted_variance(xw10, w10, -1);
+		EXPECT_NEAR(291.666666666667, result, EPS);
+
+		// Failure case: Size mismatch
+		result := Stats_weighted_variance(data:=x_normal, weights:=w_mismatch, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+		// Failure case: Negative weights
+		result := Stats_weighted_variance(data:=x_normal, weights:=w_negative, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+		// Failure case: Single element
+		result := Stats_weighted_variance(data:=x_single, weights:=w_single);
+		EXPECT_NEAR(0.0, result, EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_variance_two_pass)
+	var
+		x1: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
+		x2: array[0..3] of lreal := [1.5, -2.5, 3.0, -1.0];
+		x3: array[0..5] of lreal := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+		x4: array[0..9] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
+		x5: array[0..4] of lreal := [-5.0, -3.0, -1.0, -7.0, -2.0];
+		x6: array[0..1] of lreal := [15.5, 24.5];
+		x7: array[0..2] of lreal := [2.0, 4.0, 6.0];
+		x8: array[0..4] of lreal := [100.0, 200.0, 300.0, 400.0, 500.0];
+		x9: array[0..3] of lreal := [0.1, 0.2, 0.3, 0.4];
+		x10: array[0..5] of lreal := [5.0, 10.0, 15.0, 20.0, 25.0, 30.0];
+	end
+	{st}
+		// ddof=0 tests
+		EXPECT_NEAR(10.000000000000, Stats_variance_two_pass(data:=x1, ddof:=0), EPS);
+		EXPECT_NEAR(4.562500000000, Stats_variance_two_pass(data:=x2, ddof:=0), EPS);
+		EXPECT_NEAR(0.000000000000, Stats_variance_two_pass(data:=x3, ddof:=0), EPS);
+		EXPECT_NEAR(8.250000000000, Stats_variance_two_pass(data:=x4, ddof:=0), EPS);
+		EXPECT_NEAR(4.640000000000, Stats_variance_two_pass(data:=x5, ddof:=0), EPS);
+
+		// ddof=1 tests
+		EXPECT_NEAR(12.500000000000, Stats_variance_two_pass(data:=x1, ddof:=1), EPS);
+		EXPECT_NEAR(6.083333333333, Stats_variance_two_pass(data:=x2, ddof:=1), EPS);
+		EXPECT_NEAR(40.500000000000, Stats_variance_two_pass(data:=x6, ddof:=1), EPS);
+		EXPECT_NEAR(4.000000000000, Stats_variance_two_pass(data:=x7, ddof:=1), EPS);
+
+		// Large values
+		EXPECT_NEAR(20000.000000000000, Stats_variance_two_pass(data:=x8, ddof:=0), EPS);
+
+		// Small values
+		EXPECT_NEAR(0.012500000000, Stats_variance_two_pass(data:=x9, ddof:=0), EPS);
+
+		// Various ddof
+		EXPECT_NEAR(72.916666666667, Stats_variance_two_pass(data:=x10, ddof:=0), EPS);
+		EXPECT_NEAR(87.500000000000, Stats_variance_two_pass(data:=x10, ddof:=1), EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_variance_welford)
+	var
+		x1: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
+		x2: array[0..3] of lreal := [1.5, -2.5, 3.0, -1.0];
+		x3: array[0..5] of lreal := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+		x4: array[0..9] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
+		x5: array[0..4] of lreal := [-5.0, -3.0, -1.0, -7.0, -2.0];
+		x6: array[0..1] of lreal := [15.5, 24.5];
+		x7: array[0..2] of lreal := [2.0, 4.0, 6.0];
+		x8: array[0..4] of lreal := [100.0, 200.0, 300.0, 400.0, 500.0];
+		x9: array[0..3] of lreal := [0.1, 0.2, 0.3, 0.4];
+		x10: array[0..5] of lreal := [5.0, 10.0, 15.0, 20.0, 25.0, 30.0];
+		x_welford_cancel: array[0..2] of lreal := [10000000000000000.0, 1.0, -10000000000000000.0];
+	end
+	{st}
+		// ddof=0 tests
+		EXPECT_NEAR(10.000000000000, Stats_variance_welford(data:=x1, ddof:=0), EPS);
+		EXPECT_NEAR(4.562500000000, Stats_variance_welford(data:=x2, ddof:=0), EPS);
+		EXPECT_NEAR(0.000000000000, Stats_variance_welford(data:=x3, ddof:=0), EPS);
+		EXPECT_NEAR(8.250000000000, Stats_variance_welford(data:=x4, ddof:=0), EPS);
+		EXPECT_NEAR(4.640000000000, Stats_variance_welford(data:=x5, ddof:=0), EPS);
+
+		// ddof=1 tests
+		EXPECT_NEAR(12.500000000000, Stats_variance_welford(data:=x1, ddof:=1), EPS);
+		EXPECT_NEAR(6.083333333333, Stats_variance_welford(data:=x2, ddof:=1), EPS);
+		EXPECT_NEAR(40.500000000000, Stats_variance_welford(data:=x6, ddof:=1), EPS);
+		EXPECT_NEAR(4.000000000000, Stats_variance_welford(data:=x7, ddof:=1), EPS);
+
+		// Large values
+		EXPECT_NEAR(20000.000000000000, Stats_variance_welford(data:=x8, ddof:=0), EPS);
+
+		// Small values
+		EXPECT_NEAR(0.012500000000, Stats_variance_welford(data:=x9, ddof:=0), EPS);
+
+		// Various ddof
+		EXPECT_NEAR(72.916666666667, Stats_variance_welford(data:=x10, ddof:=0), EPS);
+		EXPECT_NEAR(87.500000000000, Stats_variance_welford(data:=x10, ddof:=1), EPS);
+
+		// Numerical stability test
+		EXPECT_NEAR(6.666666666666667e+31, Stats_variance_welford(data:=x_welford_cancel, ddof:=0), 1.0e25);
+	{end}
+END_TEST_S
+
+{#undef EPS}

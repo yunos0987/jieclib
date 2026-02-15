@@ -1,18 +1,67 @@
 (*
  * $ cd <JiecLib Project Root>
  * $ jiecc ./stats/stats.txt -I. -I./vendor/jiecunit/sys -o ./stats/stats.xml -t omron
- * $ jiecc ./stats/stats.txt -I. -I./vendor/jiecunit/sys -o ./stats/stats.xml -t keyence
  *)
 {#ifndef __STATS_STATS_TXT__}
 {#define __STATS_STATS_TXT__}
 
-{#include <sys.txt>}
-{#include <array/array.txt>}
+{#if _JIECC and (_JIECC_VER < 514)}
+	{#error This library requires Jiecc 5.14 or later.}
+{#endif}
 
-{doc サンプルサイズ}
+{#include <sys.txt>}
+
+{#include "descriptive/arithmetic_mean.txt"}
+{#include "descriptive/correlation.txt"}
+{#include "descriptive/covariance.txt"}
+{#include "descriptive/cv.txt"}
+{#include "descriptive/geometric_mean.txt"}
+{#include "descriptive/harmonic_mean.txt"}
+{#include "descriptive/kurtosis.txt"}
+{#include "descriptive/mad.txt"}
+{#include "descriptive/mean.txt"}
+{#include "descriptive/median.txt"}
+{#include "descriptive/mode.txt"}
+{#include "descriptive/quantiles.txt"}
+{#include "descriptive/skewness.txt"}
+{#include "descriptive/standard_error.txt"}
+{#include "descriptive/stddev.txt"}
+{#include "descriptive/sums.txt"}
+{#include "descriptive/variance.txt"}
+{#include "distributions/continuous/chi_square.txt"}
+{#include "distributions/continuous/exponential.txt"}
+{#include "distributions/continuous/normal.txt"}
+{#include "distributions/continuous/student_t.txt"}
+{#include "distributions/continuous/uniform.txt"}
+{#include "distributions/core/special_functions.txt"}
+{#include "distributions/discrete/binomial.txt"}
+{#include "distributions/discrete/poisson.txt"}
+{#include "inference/effect_size/effect_size.txt"}
+{#include "inference/estimation/confidence_intervals.txt"}
+{#include "inference/tests/chi_square_tests.txt"}
+{#include "inference/tests/nonparametric_tests.txt"}
+{#include "inference/tests/normality_tests.txt"}
+{#include "inference/tests/t_tests.txt"}
+{#include "inference/tests/test_core.txt"}
+{#include "moments/central_moments.txt"}
+{#include "moments/raw_moments.txt"}
+{#include "moments/standardized_moments.txt"}
+{#include "regression/correlation_tests.txt"}
+{#include "regression/linear_regression.txt"}
+{#include "sequences/accumulate.txt"}
+{#include "sequences/quantile.txt"}
+{#include "sequences/rank.txt"}
+{#include "sequences/sort_select.txt"}
+
+(*{doc サンプルサイズ
+@inout sample サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@return 計算結果。
+@error sampleが正規配列でない場合。}*)
 function sampleSize: dint
 	_PROLOGUE_OF_FUNCTION_()
 	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
 		sample: array[*] of lreal;
 	end
 	{st}
@@ -20,254 +69,203 @@ function sampleSize: dint
 	{end}
 end
 
-{doc 合計: Σ}
+(*{doc 合計: Σ
+@inout sample サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@return 計算結果。
+@error sampleが正規配列でない場合。}*)
 function sum: lreal
 	_PROLOGUE_OF_FUNCTION_()
 	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
 		sample: array[*] of lreal;
 	end
-	var_temp
-		i_0, i_1: dint;
-		index, sample_size: dint;
-		sample_value: lreal;
-		t_x: lreal;
-		s_x, c_x: lreal;
-	end
 	{st}
-	// see https://en.wikipedia.org/wiki/Kahan_summation_algorithm
-	s_x := 0.0;
-	c_x := 0.0;
-	i_0 := lower_bound(sample, 1);
-	i_1 := upper_bound(sample, 1);
-	for index := i_0 to i_1 do
-		sample_value := sample[index];
-		t_x := s_x + sample_value;
-		if abs(s_x) >= abs(sample_value) then
-			c_x := c_x + (s_x - t_x) + sample_value;
-		else
-			c_x := c_x + (sample_value - t_x) + s_x;
-		end_if;
-		s_x := t_x;
-	end_for;
-	sum := s_x + c_x;
+	sum := Stats_sum(sample, -1);
 	{end}
 end
 
-{doc 算術平均: μ = E[X]}
+(*{doc 算術平均: μ = E[X]
+@inout sample サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@return 計算結果。
+@error sampleが正規配列でない場合。}*)
 function mean: lreal
 	_PROLOGUE_OF_FUNCTION_()
 	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
 		sample: array[*] of lreal;
 	end
 	{st}
-	mean := sum(sample) / sampleSize(sample);
+	mean := Stats_mean(sample, -1);
 	{end}
 end
 
-{doc 分散: σ^2 = V[X] = E[X^2] - (E[X])^2}
+(*{doc 分散: σ^2 = V[X] = E[X^2] - (E[X])^2
+@inout sample サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@return 計算結果。
+@error sampleが正規配列でない場合。}*)
 function variance: lreal
 	_PROLOGUE_OF_FUNCTION_()
 	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
 		sample: array[*] of lreal;
 	end
-	var_temp
-		i_0, i_1: dint;
-		index, sample_size: dint;
-		sample_value: lreal;
-		sum_of_x2, sum_of_x: lreal;
-	end
 	{st}
-	i_0 := lower_bound(sample, 1);
-	i_1 := upper_bound(sample, 1);
-	sum_of_x2 := 0.0;
-	sum_of_x := 0.0;
-	for index := i_0 to i_1 do
-		sample_value := sample[index];
-		sum_of_x2 := sum_of_x2 + sample_value * sample_value;
-		sum_of_x := sum_of_x + sample_value;
-	end_for;
-	sample_size := i_1 - i_0 + 1;
-	variance := (sum_of_x2 / sample_size) - (sum_of_x / sample_size)**2;
+	variance := Stats_variance(sample, -1);
 	{end}
 end
 
-{doc 歪度: E[(X-μ)^3] / σ^3 = (Σ(x-μ)^3 / n) / (√(Σ(x-μ)^2 / n))^3}
+(*{doc 歪度: E[(X-μ)^3] / σ^3 = (Σ(x-μ)^3 / n) / (√(Σ(x-μ)^2 / n))^3
+@inout sample サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@return 計算結果。
+@error sampleが正規配列でない場合。}*)
 function skewness: lreal
 	_PROLOGUE_OF_FUNCTION_()
 	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
 		sample: array[*] of lreal;
 	end
-	var_temp
-		i_0, i_1: dint;
-		index, sample_size: dint;
-		myu: lreal;
-		t_3, t_2, d_1: lreal;
-	end
 	{st}
-	i_0 := lower_bound(sample, 1);
-	i_1 := upper_bound(sample, 1);
-	sample_size := i_1 - i_0 + 1;
-	myu := mean(sample);
-	t_3 := 0;
-	t_2 := 0;
-	for index := i_0 to i_1 by 1 do
-		d_1 := sample[index] - myu;
-		t_2 := t_2 + d_1 ** 2;
-		t_3 := t_3 + d_1 ** 3;
-	end_for;
-	skewness := (t_3 / sample_size) / sqrt(t_2 / sample_size) ** 3;
+	skewness := Stats_skewness(sample, -1, false);
 	{end}
 end
 
-{doc 尖度: E[(X-μ)^4] / σ^4 - 3 = (Σ(x-μ)^4 / n) / (√(Σ(x-μ)^2 / n))^4 - 3}
+(*{doc 尖度: E[(X-μ)^4] / σ^4 - 3 = (Σ(x-μ)^4 / n) / (√(Σ(x-μ)^2 / n))^4 - 3
+@inout sample サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@return 計算結果。
+@error sampleが正規配列でない場合。}*)
 function kurtosis: lreal
 	_PROLOGUE_OF_FUNCTION_()
 	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
 		sample: array[*] of lreal;
 	end
-	var_temp
-		i_0, i_1: dint;
-		index, sample_size: dint;
-		myu: lreal;
-		t_4, t_2, d_1: lreal;
-	end
 	{st}
-	i_0 := lower_bound(sample, 1);
-	i_1 := upper_bound(sample, 1);
-	sample_size := i_1 - i_0 + 1;
-	myu := mean(sample);
-	t_4 := 0;
-	t_2 := 0;
-	for index := i_0 to i_1 by 1 do
-		d_1 := sample[index] - myu;
-		t_2 := t_2 + d_1 ** 2;
-		t_4 := t_4 + d_1 ** 4;
-	end_for;
-	kurtosis := (t_4 / sample_size) / sqrt(t_2 / sample_size) ** 4 - 3.0;
+	kurtosis := Stats_kurtosis(sample, -1, true, false);
 	{end}
 end
 
-{doc 標準偏差: σ = √(分散)}
+(*{doc 標準偏差: σ = √(分散)
+@inout sample サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@return 計算結果。
+@error sampleが正規配列でない場合。}*)
 function standardDeviation: lreal
 	_PROLOGUE_OF_FUNCTION_()
 	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
 		sample: array[*] of lreal;
 	end
 	{st}
-	standardDeviation := sqrt(variance(sample));
+	standardDeviation := Stats_stddev(sample, -1, 0);
 	{end}
 end
 
-{doc 変動係数: C.V. = 標準偏差 / 平均値}
+(*{doc 変動係数: C.V. = 標準偏差 / 平均値
+@inout sample サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@return 計算結果。
+@error sampleが正規配列でない場合。}*)
 function coefficientOfVariation: lreal
 	_PROLOGUE_OF_FUNCTION_()
 	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
 		sample: array[*] of lreal;
 	end
 	{st}
-	coefficientOfVariation := standardDeviation(sample) / mean(sample);
+	coefficientOfVariation := Stats_coefficient_of_variation(sample, -1, 0);
 	{end}
 end
 
-{doc 不偏分散: s^2 = V(X) * n / (n - 1)}
+(*{doc 不偏分散: s^2 = V(X) * n / (n - 1)
+@inout sample サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@return 計算結果。
+@error sampleが正規配列でない場合。}*)
 function sampleVariance: lreal
 	_PROLOGUE_OF_FUNCTION_()
 	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
 		sample: array[*] of lreal;
 	end
-	var_temp
-		i_0, i_1: dint;
-		sample_size: dint;
-	end
 	{st}
-	i_0 := lower_bound(sample, 1);
-	i_1 := upper_bound(sample, 1);
-	sample_size := i_1 - i_0 + 1;
-	sampleVariance := variance(sample) * sample_size / (sample_size - 1);
+	sampleVariance := Stats_sample_variance(sample, -1);
 	{end}
 end
 
-{doc 標準誤差: S.E. = √(不偏分散 / サンプルサイズ)}
+(*{doc 標準誤差: S.E. = √(不偏分散 / サンプルサイズ)
+@inout sample サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@return 計算結果。
+@error sampleが正規配列でない場合。}*)
 function standardError: lreal
 	_PROLOGUE_OF_FUNCTION_()
 	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
 		sample: array[*] of lreal;
 	end
 	{st}
-	standardError := sqrt(sampleVariance(sample) / sampleSize(sample));
+	standardError := Stats_standard_error_mean(sample, -1, 0);
 	{end}
 end
 
-{doc 幾何平均: (Πx)^(1/n)}
+(*{doc 幾何平均: (Πx)^(1/n)
+@inout sample サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@return 計算結果。
+@error sampleが正規配列でない場合。}*)
 function geometricMean: lreal
 	_PROLOGUE_OF_FUNCTION_()
 	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
 		sample: array[*] of lreal;
 	end
-	var_temp
-		i_0, i_1: dint;
-		index, sample_size: dint;
-		sum_of_ln_x: lreal;
-	end
 	{st}
-	i_0 := lower_bound(sample, 1);
-	i_1 := upper_bound(sample, 1);
-	sum_of_ln_x := 0.0;
-	for index := i_0 to i_1 do
-		sum_of_ln_x := sum_of_ln_x + ln(sample[index]);
-	end_for;
-	geometricMean := exp(sum_of_ln_x / (i_1 - i_0 + 1));
+	geometricMean := Stats_geometric_mean(sample, -1);
 	{end}
 end
 
-{doc 調和平均: (Σx^(-1) / n)^(-1)}
+(*{doc 調和平均: (Σx^(-1) / n)^(-1)
+@inout sample サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@return 計算結果。
+@error sampleが正規配列でない場合。}*)
 function harmonicMean: lreal
 	_PROLOGUE_OF_FUNCTION_()
 	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
 		sample: array[*] of lreal;
 	end
-	var_temp
-		i_0, i_1: dint;
-		index, sample_size: dint;
-		sample_value: lreal;
-		sum_of_1_x: lreal;
-	end
 	{st}
-	i_0 := lower_bound(sample, 1);
-	i_1 := upper_bound(sample, 1);
-	sum_of_1_x := 0.0;
-	for index := i_0 to i_1 do
-		sum_of_1_x := sum_of_1_x + 1.0 / sample[index];
-	end_for;
-	harmonicMean := (i_1 - i_0 + 1) / sum_of_1_x;
+	harmonicMean := Stats_harmonic_mean(sample, -1);
 	{end}
 end
 
-{doc 中央値}
+(*{doc 中央値
+@inout sample サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout work1 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout work2 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@return 計算結果。
+@error sampleが正規配列でない場合。}*)
 function median: lreal
 	_PROLOGUE_OF_FUNCTION_()
 	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
 		sample: array[*] of lreal;
-		work: array[*] of lreal;
-	end
-	var_temp
-		i_0, i_1, j_0: dint;
-		sample_size: dint;
+		(*{doc 作業配列。}*)
+		work1: array[*] of lreal;
+		(*{doc 作業配列。}*)
+		work2: array[*] of lreal;
 	end
 	{st}
-	Array_copy_lreal(src:=sample, dst:=work, eno=>eno);
-	if eno then
-		i_0 := lower_bound(sample, 1);
-		i_1 := upper_bound(sample, 1);
-		sample_size := i_1 - i_0 + 1;
-		Array_bubblesort_lreal(work, true);
-		j_0 := lower_bound(work, 1);
-		if (sample_size mod 2) = 0 then
-			median := (work[j_0 + sample_size / 2 - 1] + work[j_0 + sample_size / 2]) / 2.0;
-		else
-			median := work[j_0 + (sample_size - 1) / 2];
-		end_if;
-	end_if;
+	median := Stats_median(data:=sample, n:=-1, work1:=work1, work2:=work2);
 	{end}
 end
 

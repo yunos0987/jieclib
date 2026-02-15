@@ -1,0 +1,261 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/distributions/continuous/test_normal.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/distributions/continuous/test_normal.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/distributions/continuous/normal.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_normal_pdf',
+		'test_stats_normal_cdf',
+		'test_stats_normal_ppf',
+		'test_stats_normal_mean',
+		'test_stats_normal_variance'
+	)
+)
+{#endif}
+
+TEST_S(test_stats_normal_pdf)
+	var result: lreal; end
+	var result1: lreal; end
+	var result2: lreal; end
+	{st}
+		// Standard normal PDF tests
+		result := Stats_normal_pdf(x:=0.0, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(0.398942280401433, result, 0.001);
+
+		result := Stats_normal_pdf(x:=1.0, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(0.241970724519143, result, 0.001);
+
+		result := Stats_normal_pdf(x:=-1.0, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(0.241970724519143, result, 0.001);
+
+		result := Stats_normal_pdf(x:=2.0, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(0.053990966513188, result, 0.001);
+
+		result := Stats_normal_pdf(x:=-2.0, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(0.053990966513188, result, 0.001);
+
+		// Different mean tests
+		result := Stats_normal_pdf(x:=0.0, mu:=2.0, sigma:=1.0);
+		EXPECT_NEAR(0.053990966513188, result, 0.001);
+
+		result := Stats_normal_pdf(x:=2.0, mu:=2.0, sigma:=1.0);
+		EXPECT_NEAR(0.398942280401433, result, 0.001);
+
+		// Different sigma tests
+		result := Stats_normal_pdf(x:=0.0, mu:=0.0, sigma:=2.0);
+		EXPECT_NEAR(0.199471140200716, result, 0.001);
+
+		result := Stats_normal_pdf(x:=2.0, mu:=0.0, sigma:=2.0);
+		EXPECT_NEAR(0.120985362259572, result, 0.001);
+
+		// Complex parameters
+		result := Stats_normal_pdf(x:=5.0, mu:=3.0, sigma:=1.5);
+		EXPECT_NEAR(0.109340049783996, result, 0.001);
+
+		// Tail behavior - very small values
+		result := Stats_normal_pdf(x:=10.0, mu:=0.0, sigma:=1.0);
+		EXPECT_TRUE(result >= 0.0);
+
+		// Symmetry check
+		result1 := Stats_normal_pdf(x:=1.0, mu:=0.0, sigma:=1.0);
+		result2 := Stats_normal_pdf(x:=-1.0, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(result1, result2, 0.0001);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_normal_cdf)
+	var result: lreal; end
+	{st}
+		// Standard normal CDF tests
+		result := Stats_normal_cdf(x:=0.0, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(0.500000000000000, result, 1e-6);
+
+		result := Stats_normal_cdf(x:=1.0, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(0.841344746068543, result, 1e-6);
+
+		result := Stats_normal_cdf(x:=-1.0, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(0.158655253931457, result, 1e-6);
+
+		result := Stats_normal_cdf(x:=1.96, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(0.975002104851780, result, 1e-6);
+
+		result := Stats_normal_cdf(x:=-1.96, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(0.024997895148220, result, 1e-6);
+
+		result := Stats_normal_cdf(x:=2.58, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(0.995059984242229, result, 1e-6);
+
+		result := Stats_normal_cdf(x:=-2.58, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(0.004940015757771, result, 1e-6);
+
+		// Different parameters
+		result := Stats_normal_cdf(x:=0.0, mu:=5.0, sigma:=2.0);
+		EXPECT_NEAR(0.006209665325776, result, 1e-6);
+
+		result := Stats_normal_cdf(x:=5.0, mu:=5.0, sigma:=2.0);
+		EXPECT_NEAR(0.500000000000000, result, 1e-6);
+
+		result := Stats_normal_cdf(x:=7.0, mu:=5.0, sigma:=2.0);
+		EXPECT_NEAR(0.841344746068543, result, 1e-6);
+
+		result := Stats_normal_cdf(x:=3.0, mu:=5.0, sigma:=2.0);
+		EXPECT_NEAR(0.158655253931457, result, 1e-6);
+
+		result := Stats_normal_cdf(x:=0.0, mu:=0.0, sigma:=0.5);
+		EXPECT_NEAR(0.500000000000000, result, 1e-6);
+
+		// Symmetry: Phi(-x) = 1 - Phi(x) for standard normal
+		result := Stats_normal_cdf(x:=-0.5, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(1.0 - Stats_normal_cdf(x:=0.5, mu:=0.0, sigma:=1.0), result, 1e-6);
+
+		result := Stats_normal_cdf(x:=-1.0, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(1.0 - Stats_normal_cdf(x:=1.0, mu:=0.0, sigma:=1.0), result, 1e-6);
+
+		result := Stats_normal_cdf(x:=-1.96, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(1.0 - Stats_normal_cdf(x:=1.96, mu:=0.0, sigma:=1.0), result, 1e-6);
+
+		result := Stats_normal_cdf(x:=-2.58, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(1.0 - Stats_normal_cdf(x:=2.58, mu:=0.0, sigma:=1.0), result, 1e-6);
+
+		result := Stats_normal_cdf(x:=-5.0, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(1.0 - Stats_normal_cdf(x:=5.0, mu:=0.0, sigma:=1.0), result, 1e-6);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_normal_ppf)
+	var result: lreal; end
+	var lower: lreal; end
+	var upper: lreal; end
+	{st}
+		// Standard normal PPF tests
+		result := Stats_normal_ppf(p:=0.5, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(0.000000000000000, result, 0.0001);
+
+		result := Stats_normal_ppf(p:=0.025, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(-1.959963984540054, result, 0.001);
+
+		result := Stats_normal_ppf(p:=0.975, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(1.959963984540054, result, 0.001);
+
+		result := Stats_normal_ppf(p:=0.05, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(-1.644853626951473, result, 0.001);
+
+		result := Stats_normal_ppf(p:=0.95, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(1.644853626951472, result, 0.001);
+
+		result := Stats_normal_ppf(p:=0.1, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(-1.281551565544600, result, 0.001);
+
+		result := Stats_normal_ppf(p:=0.9, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(1.281551565544600, result, 0.001);
+
+		result := Stats_normal_ppf(p:=0.25, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(-0.674489750196082, result, 0.001);
+
+		result := Stats_normal_ppf(p:=0.75, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(0.674489750196082, result, 0.001);
+
+		// Different parameters
+		result := Stats_normal_ppf(p:=0.5, mu:=2.0, sigma:=3.0);
+		EXPECT_NEAR(2.000000000000000, result, 0.0001);
+
+		result := Stats_normal_ppf(p:=0.95, mu:=-1.0, sigma:=0.5);
+		EXPECT_NEAR(-0.177573186524264, result, 0.001);
+
+		result := Stats_normal_ppf(p:=0.01, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(-2.326347874040841, result, 0.001);
+
+		// Symmetry check
+		lower := Stats_normal_ppf(p:=0.05, mu:=0.0, sigma:=1.0);
+		upper := Stats_normal_ppf(p:=0.95, mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(-upper, lower, 0.0001);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_normal_mean)
+	var mean_val: lreal; end
+	{st}
+		// Various parameter tests
+		mean_val := Stats_normal_mean(mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(0.000000000000000, mean_val, 0.0001);
+
+		mean_val := Stats_normal_mean(mu:=5.0, sigma:=2.0);
+		EXPECT_NEAR(5.000000000000000, mean_val, 0.0001);
+
+		mean_val := Stats_normal_mean(mu:=-3.0, sigma:=1.5);
+		EXPECT_NEAR(-3.000000000000000, mean_val, 0.0001);
+
+		mean_val := Stats_normal_mean(mu:=10.0, sigma:=0.1);
+		EXPECT_NEAR(10.000000000000000, mean_val, 0.0001);
+
+		mean_val := Stats_normal_mean(mu:=0.0, sigma:=10.0);
+		EXPECT_NEAR(0.000000000000000, mean_val, 0.0001);
+
+		mean_val := Stats_normal_mean(mu:=-10.0, sigma:=5.0);
+		EXPECT_NEAR(-10.000000000000000, mean_val, 0.0001);
+
+		mean_val := Stats_normal_mean(mu:=2.5, sigma:=1.2);
+		EXPECT_NEAR(2.500000000000000, mean_val, 0.0001);
+
+		mean_val := Stats_normal_mean(mu:=-1.5, sigma:=2.8);
+		EXPECT_NEAR(-1.500000000000000, mean_val, 0.0001);
+
+		mean_val := Stats_normal_mean(mu:=100.0, sigma:=1.0);
+		EXPECT_NEAR(100.000000000000000, mean_val, 0.0001);
+
+		mean_val := Stats_normal_mean(mu:=0.001, sigma:=0.001);
+		EXPECT_NEAR(0.001000000000000, mean_val, 0.000001);
+
+		mean_val := Stats_normal_mean(mu:=-0.001, sigma:=3.0);
+		EXPECT_NEAR(-0.001000000000000, mean_val, 0.000001);
+
+		mean_val := Stats_normal_mean(mu:=7.89, sigma:=1.23);
+		EXPECT_NEAR(7.890000000000000, mean_val, 0.0001);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_normal_variance)
+	var variance_val: lreal; end
+	{st}
+		// Various parameter tests
+		variance_val := Stats_normal_variance(mu:=0.0, sigma:=1.0);
+		EXPECT_NEAR(1.000000000000000, variance_val, 0.0001);
+
+		variance_val := Stats_normal_variance(mu:=5.0, sigma:=2.0);
+		EXPECT_NEAR(4.000000000000000, variance_val, 0.0001);
+
+		variance_val := Stats_normal_variance(mu:=-3.0, sigma:=1.5);
+		EXPECT_NEAR(2.250000000000000, variance_val, 0.0001);
+
+		variance_val := Stats_normal_variance(mu:=10.0, sigma:=0.1);
+		EXPECT_NEAR(0.010000000000000, variance_val, 0.000001);
+
+		variance_val := Stats_normal_variance(mu:=0.0, sigma:=10.0);
+		EXPECT_NEAR(100.000000000000000, variance_val, 0.01);
+
+		variance_val := Stats_normal_variance(mu:=-10.0, sigma:=5.0);
+		EXPECT_NEAR(25.000000000000000, variance_val, 0.01);
+
+		variance_val := Stats_normal_variance(mu:=2.5, sigma:=1.2);
+		EXPECT_NEAR(1.440000000000000, variance_val, 0.0001);
+
+		variance_val := Stats_normal_variance(mu:=-1.5, sigma:=2.8);
+		EXPECT_NEAR(7.840000000000000, variance_val, 0.01);
+
+		variance_val := Stats_normal_variance(mu:=100.0, sigma:=1.0);
+		EXPECT_NEAR(1.000000000000000, variance_val, 0.0001);
+
+		variance_val := Stats_normal_variance(mu:=0.001, sigma:=0.001);
+		EXPECT_NEAR(0.000001000000000, variance_val, 0.0000001);
+
+		variance_val := Stats_normal_variance(mu:=-0.001, sigma:=3.0);
+		EXPECT_NEAR(9.000000000000000, variance_val, 0.01);
+
+		variance_val := Stats_normal_variance(mu:=7.89, sigma:=1.23);
+		EXPECT_NEAR(1.512900000000000, variance_val, 0.0001);
+	{end}
+END_TEST_S

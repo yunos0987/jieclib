@@ -1,0 +1,151 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/moments/test_central_moments.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/moments/test_central_moments.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/moments/central_moments.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_central_moment'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-6}
+
+// Stats_central_moment: Compute the k-th central moment of a dataset
+TEST_S(test_stats_central_moment)
+	var
+		uniform: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		scattered: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
+		sequential: array[0..9] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
+		negative: array[0..3] of lreal := [-5.0, -3.0, -1.0, -7.0];
+		small_values: array[0..9] of lreal := [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
+		large_values: array[0..4] of lreal := [100.0, 200.0, 300.0, 400.0, 500.0];
+		symmetric: array[0..4] of lreal := [-2.0, -1.0, 0.0, 1.0, 2.0];
+		zeros: array[0..5] of lreal := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+		one_element: array[0..0] of lreal := [7.5];
+		pair: array[0..1] of lreal := [10.0, 20.0];
+		monotonic_ascending: array[0..5] of lreal := [5.0, 10.0, 15.0, 20.0, 25.0, 30.0];
+		monotonic_descending: array[0..3] of lreal := [400.0, 300.0, 200.0, 100.0];
+		bimodal: array[0..1] of lreal := [10.0, 20.0];
+		result: lreal;
+	end
+	{st}
+		// ========== k=2: Second central moment (variance-related) ==========
+
+		result := Stats_central_moment(data:=uniform, k:=2);
+		EXPECT_NEAR(2.0, result, EPS);
+
+		result := Stats_central_moment(data:=scattered, k:=2);
+		EXPECT_NEAR(10.0, result, EPS);
+
+		result := Stats_central_moment(data:=sequential, k:=2);
+		EXPECT_NEAR(8.25, result, EPS);
+
+		result := Stats_central_moment(data:=negative, k:=2);
+		EXPECT_NEAR(5.0, result, EPS);
+
+		result := Stats_central_moment(data:=small_values, k:=2);
+		EXPECT_NEAR(0.0825, result, EPS);
+
+		result := Stats_central_moment(data:=large_values, k:=2);
+		EXPECT_NEAR(20000.0, result, EPS);
+
+		result := Stats_central_moment(data:=symmetric, k:=2);
+		EXPECT_NEAR(2.0, result, EPS);
+
+		// ========== k=3: Third central moment (skewness-related) ==========
+
+		result := Stats_central_moment(data:=uniform, k:=3);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		result := Stats_central_moment(data:=scattered, k:=3);
+		EXPECT_NEAR(36.0, result, EPS);
+
+		result := Stats_central_moment(data:=sequential, k:=3);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		result := Stats_central_moment(data:=negative, k:=3);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		result := Stats_central_moment(data:=small_values, k:=3);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		result := Stats_central_moment(data:=large_values, k:=3);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		result := Stats_central_moment(data:=bimodal, k:=3);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		result := Stats_central_moment(data:=symmetric, k:=3);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// ========== k=4: Fourth central moment (kurtosis-related) ==========
+
+		result := Stats_central_moment(data:=uniform, k:=4);
+		EXPECT_NEAR(6.8, result, EPS);
+
+		result := Stats_central_moment(data:=scattered, k:=4);
+		EXPECT_NEAR(278.8, result, EPS);
+
+		result := Stats_central_moment(data:=sequential, k:=4);
+		EXPECT_NEAR(120.8625, result, EPS);
+
+		result := Stats_central_moment(data:=negative, k:=4);
+		EXPECT_NEAR(41.0, result, EPS);
+
+		result := Stats_central_moment(data:=small_values, k:=4);
+		EXPECT_NEAR(0.012086, result, EPS);
+
+		result := Stats_central_moment(data:=large_values, k:=4);
+		EXPECT_NEAR(680000000.0, result, EPS);
+
+		result := Stats_central_moment(data:=bimodal, k:=4);
+		EXPECT_NEAR(625.0, result, EPS);
+
+		result := Stats_central_moment(data:=symmetric, k:=4);
+		EXPECT_NEAR(6.8, result, EPS);
+
+		// ========== Edge cases and special scenarios ==========
+
+		// All zeros: all moments should be zero
+		result := Stats_central_moment(data:=zeros, k:=2);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		result := Stats_central_moment(data:=zeros, k:=3);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		result := Stats_central_moment(data:=zeros, k:=4);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// Single value: all central moments are zero
+		result := Stats_central_moment(data:=one_element, k:=2);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		result := Stats_central_moment(data:=one_element, k:=3);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		result := Stats_central_moment(data:=one_element, k:=4);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// Pair of values
+		result := Stats_central_moment(data:=pair, k:=2);
+		EXPECT_NEAR(25.0, result, EPS);
+
+		// Monotonic ascending
+		result := Stats_central_moment(data:=monotonic_ascending, k:=2);
+		EXPECT_NEAR(72.9167, result, 0.01);
+
+		// Monotonic descending
+		result := Stats_central_moment(data:=monotonic_descending, k:=2);
+		EXPECT_NEAR(12500.0, result, 1.0);
+
+		result := Stats_central_moment(data:=monotonic_descending, k:=3);
+		EXPECT_NEAR(0.0, result, 1.0);
+	{end}
+END_TEST_S
+
+{#undef EPS}

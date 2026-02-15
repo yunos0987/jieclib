@@ -1,0 +1,199 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/descriptive/test_covariance.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/descriptive/test_covariance.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/descriptive/covariance.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_covariance',
+		'test_stats_covariance_matrix'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_stats_covariance)
+	var
+		x_basic: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		y_basic: array[0..4] of lreal := [2.0, 4.0, 6.0, 8.0, 10.0];
+		x_positive: array[0..3] of lreal := [1.0, 2.0, 3.0, 4.0];
+		y_positive: array[0..3] of lreal := [1.5, 2.5, 3.5, 4.5];
+		x_negative: array[0..3] of lreal := [1.0, 2.0, 3.0, 4.0];
+		y_negative: array[0..3] of lreal := [4.0, 3.0, 2.0, 1.0];
+		x_zero: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		y_zero: array[0..4] of lreal := [3.0, 3.0, 3.0, 3.0, 3.0];
+		x_sample: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		y_sample: array[0..4] of lreal := [2.0, 4.0, 6.0, 8.0, 10.0];
+		// Real-valued test data sets
+		x_real1: array[0..6] of lreal := [1.2, 3.4, 2.1, 4.5, 6.7, 2.8, 5.1];
+		y_real1: array[0..6] of lreal := [2.3, 6.8, 4.2, 9.1, 13.4, 5.6, 10.2];
+		x_real2: array[0..4] of lreal := [10.5, 15.2, 8.7, 22.1, 18.9];
+		y_real2: array[0..4] of lreal := [5.1, 7.3, 4.2, 11.0, 9.4];
+		x_real3: array[0..4] of lreal := [0.15, 0.42, 0.73, 1.21, 1.67];
+		y_real3: array[0..4] of lreal := [0.85, 1.58, 2.27, 3.79, 4.33];
+		sample_cov, pop_cov, result: lreal;
+	end
+	{st}
+		// Covariance of linearly related variables
+		result := Stats_covariance(x:=x_basic, y:=y_basic, ddof:=1);
+		EXPECT_GT_LREAL(result, 0.0);
+		EXPECT_NEAR(5.0, result, EPS);
+
+		// Positive covariance
+		result := Stats_covariance(x:=x_positive, y:=y_positive, ddof:=1);
+		EXPECT_GT_LREAL(result, 0.0);
+		EXPECT_NEAR(1.6666666667, result, EPS);
+
+		// Negative covariance
+		result := Stats_covariance(x:=x_negative, y:=y_negative, ddof:=1);
+		EXPECT_LT_LREAL(result, 0.0);
+		EXPECT_NEAR(-1.6666666667, result, EPS);
+
+		// Zero covariance (y is constant)
+		result := Stats_covariance(x:=x_zero, y:=y_zero, ddof:=1);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// Sample covariance vs population covariance
+		sample_cov := Stats_covariance(x:=x_sample, y:=y_sample, ddof:=1);
+		pop_cov := Stats_covariance(x:=x_sample, y:=y_sample, ddof:=0);
+		EXPECT_GT_LREAL(sample_cov, pop_cov);
+		EXPECT_NEAR(sample_cov, pop_cov * 5.0 / 4.0, 0.1);
+
+		// Real-valued test 1: Mixed decimal values
+		result := Stats_covariance(x:=x_real1, y:=y_real1, ddof:=1);
+		EXPECT_NEAR(7.1578571429, result, EPS);
+		result := Stats_covariance(x:=x_real1, y:=y_real1, ddof:=0);
+		EXPECT_NEAR(6.1353061224, result, EPS);
+
+		// Real-valued test 2: Larger magnitude values
+		result := Stats_covariance(x:=x_real2, y:=y_real2, ddof:=1);
+		EXPECT_NEAR(15.9625, result, EPS);
+
+		// Real-valued test 3: Small decimal precision values
+		result := Stats_covariance(x:=x_real3, y:=y_real3, ddof:=1);
+		EXPECT_NEAR(0.88692, result, EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_covariance_matrix)
+	var
+		data_basic: array[0..2, 0..1] of lreal := [1.0, 2.0, 2.0, 4.0, 3.0, 6.0];
+		result_basic: array[0..1, 0..1] of lreal;
+		data_identity: array[0..3, 0..1] of lreal := [1.0, 10.0, 2.0, 20.0, 3.0, 30.0, 4.0, 40.0];
+		result_identity: array[0..1, 0..1] of lreal;
+		data_symmetry: array[0..4, 0..2] of lreal := [
+			1.0, 2.0, 3.0,
+			2.0, 4.0, 5.0,
+			3.0, 6.0, 7.0,
+			4.0, 8.0, 9.0,
+			5.0, 10.0, 11.0
+		];
+		result_symmetry: array[0..2, 0..2] of lreal;
+		data_single: array[0..2, 0..0] of lreal := [1.0, 2.0, 3.0];
+		result_single: array[0..0, 0..0] of lreal;
+		data_negative: array[0..3, 0..1] of lreal := [-1.0, 2.0, -2.0, 3.0, -3.0, 4.0, -4.0, 5.0];
+		result_negative: array[0..1, 0..1] of lreal;
+		data_large: array[0..3, 0..1] of lreal := [1000.0, 2000.0, 2000.0, 3000.0, 3000.0, 4000.0, 4000.0, 5000.0];
+		result_large: array[0..1, 0..1] of lreal;
+		data_precision: array[0..3, 0..1] of lreal := [0.1, 0.2, 0.2, 0.3, 0.3, 0.4, 0.4, 0.5];
+		result_precision: array[0..1, 0..1] of lreal;
+		data_two_vars: array[0..2, 0..1] of lreal := [1.0, 10.0, 2.0, 20.0, 3.0, 30.0];
+		result_two_vars: array[0..1, 0..1] of lreal;
+		data_identity_ddof: array[0..1, 0..1] of lreal := [1.0, 2.0, 1.0, 2.0];
+		result_identity_ddof: array[0..1, 0..1] of lreal;
+		data_correlated: array[0..4, 0..1] of lreal := [1.0, 5.0, 2.0, 10.0, 3.0, 15.0, 4.0, 20.0, 5.0, 25.0];
+		result_correlated: array[0..1, 0..1] of lreal;
+		// Real-valued 3-variable covariance matrix test
+		data_real3vars: array[0..4, 0..2] of lreal := [
+			2.5, 1.8, 3.2,
+			3.1, 2.4, 4.1,
+			1.9, 1.2, 2.8,
+			4.2, 3.6, 5.5,
+			3.8, 2.9, 4.7
+		];
+		result_real3vars: array[0..2, 0..2] of lreal;
+	end
+	{st}
+		// Basic covariance matrix test
+		Stats_covariance_matrix(data:=data_basic, ddof:=1, result:=result_basic);
+		EXPECT_GT_LREAL(result_basic[0, 0], 0.0);
+		EXPECT_GT_LREAL(result_basic[1, 1], 0.0);
+		EXPECT_NEAR(result_basic[0, 1], result_basic[1, 0], EPS);
+		EXPECT_GT_LREAL(result_basic[0, 1], 0.0);
+		EXPECT_NEAR(1.0, result_basic[0, 0], EPS);
+		EXPECT_NEAR(4.0, result_basic[1, 1], EPS);
+		EXPECT_NEAR(2.0, result_basic[0, 1], EPS);
+
+		// Perfect linear correlation
+		Stats_covariance_matrix(data:=data_identity, ddof:=1, result:=result_identity);
+		EXPECT_NEAR(result_identity[0, 1], result_identity[1, 0], EPS);
+		EXPECT_GT_LREAL(result_identity[0, 1], 0.0);
+		EXPECT_NEAR(1.6666666667, result_identity[0, 0], EPS);
+		EXPECT_NEAR(166.6666666667, result_identity[1, 1], EPS);
+		EXPECT_NEAR(16.6666666667, result_identity[0, 1], EPS);
+
+		// 3x3 covariance matrix symmetry + positive variances
+		Stats_covariance_matrix(data:=data_symmetry, ddof:=1, result:=result_symmetry);
+		EXPECT_NEAR(result_symmetry[0, 1], result_symmetry[1, 0], EPS);
+		EXPECT_NEAR(result_symmetry[0, 2], result_symmetry[2, 0], EPS);
+		EXPECT_NEAR(result_symmetry[1, 2], result_symmetry[2, 1], EPS);
+		EXPECT_GT_LREAL(result_symmetry[0, 0], 0.0);
+		EXPECT_GT_LREAL(result_symmetry[1, 1], 0.0);
+		EXPECT_GT_LREAL(result_symmetry[2, 2], 0.0);
+		EXPECT_NEAR(2.5, result_symmetry[0, 0], EPS);
+		EXPECT_NEAR(10.0, result_symmetry[1, 1], EPS);
+		EXPECT_NEAR(10.0, result_symmetry[2, 2], EPS);
+		EXPECT_NEAR(5.0, result_symmetry[0, 1], EPS);
+		EXPECT_NEAR(5.0, result_symmetry[0, 2], EPS);
+		EXPECT_NEAR(10.0, result_symmetry[1, 2], EPS);
+
+		// Single variable - variance only
+		Stats_covariance_matrix(data:=data_single, ddof:=1, result:=result_single);
+		EXPECT_GT_LREAL(result_single[0, 0], 0.0);
+		EXPECT_NEAR(1.0, result_single[0, 0], EPS);
+
+		// Negative correlation
+		Stats_covariance_matrix(data:=data_negative, ddof:=1, result:=result_negative);
+		EXPECT_LT_LREAL(result_negative[0, 1], 0.0);
+
+		// Large magnitude values
+		Stats_covariance_matrix(data:=data_large, ddof:=1, result:=result_large);
+		EXPECT_GT_LREAL(result_large[0, 1], 0.0);
+
+		// Floating point precision
+		Stats_covariance_matrix(data:=data_precision, ddof:=1, result:=result_precision);
+		EXPECT_NEAR(result_precision[0, 1], result_precision[1, 0], 1.0e-8);
+
+		// Two variables with linear relationship
+		Stats_covariance_matrix(data:=data_two_vars, ddof:=1, result:=result_two_vars);
+		EXPECT_GT_LREAL(result_two_vars[0, 1], 0.0);
+
+		// Identical rows - zero variance with population ddof
+		Stats_covariance_matrix(data:=data_identity_ddof, ddof:=0, result:=result_identity_ddof);
+		EXPECT_NEAR(0.0, result_identity_ddof[0, 0], 1.0e-9);
+
+		// Perfectly correlated variables
+		Stats_covariance_matrix(data:=data_correlated, ddof:=1, result:=result_correlated);
+		EXPECT_GT_LREAL(result_correlated[0, 1], 0.0);
+
+		// Real-valued 3-variable covariance matrix with specific expected values
+		Stats_covariance_matrix(data:=data_real3vars, ddof:=1, result:=result_real3vars);
+		// Check diagonal elements (variances)
+		EXPECT_NEAR(0.875, result_real3vars[0, 0], EPS);
+		EXPECT_NEAR(0.872, result_real3vars[1, 1], EPS);
+		EXPECT_NEAR(1.203, result_real3vars[2, 2], EPS);
+		// Check off-diagonal elements (covariances)
+		EXPECT_NEAR(0.8675, result_real3vars[0, 1], EPS);
+		EXPECT_NEAR(0.8675, result_real3vars[1, 0], EPS);
+		EXPECT_NEAR(1.015, result_real3vars[0, 2], EPS);
+		EXPECT_NEAR(1.015, result_real3vars[2, 0], EPS);
+		EXPECT_NEAR(1.019, result_real3vars[1, 2], EPS);
+		EXPECT_NEAR(1.019, result_real3vars[2, 1], EPS);
+	{end}
+END_TEST_S
+
+{#undef EPS}

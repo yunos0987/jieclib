@@ -1,0 +1,458 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/inference/estimation/test_confidence_intervals.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/inference/estimation/test_confidence_intervals.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/inference/estimation/confidence_intervals.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_ci_mean_known_variance',
+		'test_stats_ci_mean_unknown_variance',
+		'test_stats_ci_proportion',
+		'test_stats_ci_different_levels',
+		'test_stats_ci_mean_t',
+		'test_stats_ci_variance_chi_square',
+		'test_stats_ci_variance'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-6}
+
+TEST_S(test_stats_ci_mean_known_variance)
+	var
+		data_basic: array[0..9] of lreal := [98.5, 99.2, 100.1, 101.3, 99.8, 100.5, 98.9, 101.1, 99.7, 100.4];
+		lower_basic, upper_basic: lreal;
+
+		data_small: array[0..4] of lreal := [10.0, 12.0, 11.0, 13.0, 11.5];
+		lower_small, upper_small: lreal;
+
+		data_large: array[0..19] of lreal := [100.0, 100.5, 101.0, 101.5, 102.0, 102.5, 103.0, 103.5, 104.0, 104.5, 105.0, 105.5, 106.0, 106.5, 107.0, 107.5, 108.0, 108.5, 109.0, 109.5];
+		lower_large, upper_large: lreal;
+
+		data_identical: array[0..4] of lreal := [50.0, 50.0, 50.0, 50.0, 50.0];
+		lower_identical, upper_identical: lreal;
+
+		data_neg: array[0..4] of lreal := [-5.0, -3.0, -1.0, 1.0, 3.0];
+		lower_neg, upper_neg: lreal;
+
+		data_high_var: array[0..4] of lreal := [1.0, 10.0, 100.0, 1000.0, 10000.0];
+		lower_high_var, upper_high_var: lreal;
+
+		data_low_var: array[0..4] of lreal := [10.0, 10.1, 9.9, 10.05, 9.95];
+		lower_low_var, upper_low_var: lreal;
+
+		data_even: array[0..5] of lreal := [2.0, 4.0, 6.0, 8.0, 10.0, 12.0];
+		lower_even, upper_even: lreal;
+
+		data_odd: array[0..6] of lreal := [1.0, 3.0, 5.0, 7.0, 9.0, 11.0, 13.0];
+		lower_odd, upper_odd: lreal;
+
+		data_frac: array[0..4] of lreal := [1.1, 2.2, 3.3, 4.4, 5.5];
+		lower_frac, upper_frac: lreal;
+	end
+	{st}
+	// Basic sample - 95% CI
+	Stats_ci_mean_known_var(data:=data_basic, sigma:=1.0, confidence:=0.95, ci_lower=>lower_basic, ci_upper=>upper_basic);
+	EXPECT_NEAR(lower_basic, 99.330204967695, EPS * 99.330204967695);
+	EXPECT_NEAR(upper_basic, 100.569795032305, EPS * 100.569795032305);
+
+	// Small sample - 95% CI
+	Stats_ci_mean_known_var(data:=data_small, sigma:=2.0, confidence:=0.95, ci_lower=>lower_small, ci_upper=>upper_small);
+	EXPECT_NEAR(lower_small, 9.746954918847, EPS * 9.746954918847);
+	EXPECT_NEAR(upper_small, 13.253045081153, EPS * 13.253045081153);
+
+	// Large sample - 95% CI
+	Stats_ci_mean_known_var(data:=data_large, sigma:=5.0, confidence:=0.95, ci_lower=>lower_large, ci_upper=>upper_large);
+	EXPECT_NEAR(lower_large, 102.558693648559, EPS * 102.558693648559);
+	EXPECT_NEAR(upper_large, 106.941306351441, EPS * 106.941306351441);
+
+	// Identical values - 95% CI
+	Stats_ci_mean_known_var(data:=data_identical, sigma:=0.1, confidence:=0.95, ci_lower=>lower_identical, ci_upper=>upper_identical);
+	EXPECT_NEAR(lower_identical, 49.912347745942, EPS * 49.912347745942);
+	EXPECT_NEAR(upper_identical, 50.087652254058, EPS * 50.087652254058);
+
+	// Negative values - 95% CI
+	Stats_ci_mean_known_var(data:=data_neg, sigma:=3.0, confidence:=0.95, ci_lower=>lower_neg, ci_upper=>upper_neg);
+	EXPECT_NEAR(lower_neg, -3.629567621730, EPS * 3.629567621730);
+	EXPECT_NEAR(upper_neg, 1.629567621730, EPS * 1.629567621730);
+
+	// High variance - 95% CI
+	Stats_ci_mean_known_var(data:=data_high_var, sigma:=1000.0, confidence:=0.95, ci_lower=>lower_high_var, ci_upper=>upper_high_var);
+	EXPECT_NEAR(lower_high_var, 1345.677459423418, EPS * 1345.677459423418);
+	EXPECT_NEAR(upper_high_var, 3098.722540576581, EPS * 3098.722540576581);
+
+	// Low variance - 95% CI
+	Stats_ci_mean_known_var(data:=data_low_var, sigma:=0.1, confidence:=0.95, ci_lower=>lower_low_var, ci_upper=>upper_low_var);
+	EXPECT_NEAR(lower_low_var, 9.912347745942, EPS * 9.912347745942);
+	EXPECT_NEAR(upper_low_var, 10.087652254058, EPS * 10.087652254058);
+
+	// Even sample size - 90% CI
+	Stats_ci_mean_known_var(data:=data_even, sigma:=2.0, confidence:=0.90, ci_lower=>lower_even, ci_upper=>upper_even);
+	EXPECT_NEAR(lower_even, 5.656982637468, EPS * 5.656982637468);
+	EXPECT_NEAR(upper_even, 8.343017362532, EPS * 8.343017362532);
+
+	// Odd sample size - 99% CI
+	Stats_ci_mean_known_var(data:=data_odd, sigma:=3.0, confidence:=0.99, ci_lower=>lower_odd, ci_upper=>upper_odd);
+	EXPECT_NEAR(lower_odd, 4.079284104167, EPS * 4.079284104167);
+	EXPECT_NEAR(upper_odd, 9.920715895833, EPS * 9.920715895833);
+
+	// Fractional values - 95% CI
+	Stats_ci_mean_known_var(data:=data_frac, sigma:=1.0, confidence:=0.95, ci_lower=>lower_frac, ci_upper=>upper_frac);
+	EXPECT_NEAR(lower_frac, 2.423477459423, EPS * 2.423477459423);
+	EXPECT_NEAR(upper_frac, 4.176522540577, EPS * 4.176522540577);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_ci_mean_unknown_variance)
+	var
+		data_basic: array[0..9] of lreal := [98.5, 99.2, 100.1, 101.3, 99.8, 100.5, 98.9, 101.1, 99.7, 100.4];
+		lower_basic, upper_basic: lreal;
+
+		data_small: array[0..4] of lreal := [10.0, 12.0, 11.0, 13.0, 11.5];
+		lower_small, upper_small: lreal;
+
+		data_large: array[0..19] of lreal := [100.0, 100.5, 101.0, 101.5, 102.0, 102.5, 103.0, 103.5, 104.0, 104.5, 105.0, 105.5, 106.0, 106.5, 107.0, 107.5, 108.0, 108.5, 109.0, 109.5];
+		lower_large, upper_large: lreal;
+
+		data_identical: array[0..4] of lreal := [50.0, 50.0, 50.0, 50.0, 50.0];
+		lower_identical, upper_identical: lreal;
+
+		data_neg: array[0..4] of lreal := [-5.0, -3.0, -1.0, 1.0, 3.0];
+		lower_neg, upper_neg: lreal;
+
+		data_high_var: array[0..4] of lreal := [1.0, 10.0, 100.0, 1000.0, 10000.0];
+		lower_high_var, upper_high_var: lreal;
+
+		data_low_var: array[0..4] of lreal := [10.0, 10.1, 9.9, 10.05, 9.95];
+		lower_low_var, upper_low_var: lreal;
+
+		data_even: array[0..5] of lreal := [2.0, 4.0, 6.0, 8.0, 10.0, 12.0];
+		lower_even, upper_even: lreal;
+
+		data_odd: array[0..6] of lreal := [1.0, 3.0, 5.0, 7.0, 9.0, 11.0, 13.0];
+		lower_odd, upper_odd: lreal;
+
+		data_frac: array[0..4] of lreal := [1.1, 2.2, 3.3, 4.4, 5.5];
+		lower_frac, upper_frac: lreal;
+	end
+	{st}
+	// Basic sample - 95% CI
+	Stats_ci_mean_unknown_var(data:=data_basic, confidence:=0.95, ci_lower=>lower_basic, ci_upper=>upper_basic);
+	EXPECT_NEAR(lower_basic, 99.295884001174, EPS * 99.295884001174);
+	EXPECT_NEAR(upper_basic, 100.604115998826, EPS * 100.604115998826);
+
+	// Small sample - 95% CI
+	Stats_ci_mean_unknown_var(data:=data_small, confidence:=0.95, ci_lower=>lower_small, ci_upper=>upper_small);
+	EXPECT_NEAR(lower_small, 10.111777447401, EPS * 10.111777447401);
+	EXPECT_NEAR(upper_small, 12.888222552599, EPS * 12.888222552599);
+
+	// Large sample - 95% CI
+	Stats_ci_mean_unknown_var(data:=data_large, confidence:=0.95, ci_lower=>lower_large, ci_upper=>upper_large);
+	EXPECT_NEAR(lower_large, 103.365594715990, EPS * 103.365594715990);
+	EXPECT_NEAR(upper_large, 106.134405284010, EPS * 106.134405284010);
+
+	// Identical values - 95% CI
+	Stats_ci_mean_unknown_var(data:=data_identical, confidence:=0.95, ci_lower=>lower_identical, ci_upper=>upper_identical);
+	EXPECT_NEAR(lower_identical, 50.0, EPS);
+	EXPECT_NEAR(upper_identical, 50.0, EPS);
+
+	// Negative values - 95% CI
+	Stats_ci_mean_unknown_var(data:=data_neg, confidence:=0.95, ci_lower=>lower_neg, ci_upper=>upper_neg);
+	EXPECT_NEAR(lower_neg, -4.926486322955, EPS * 4.926486322955);
+	EXPECT_NEAR(upper_neg, 2.926486322955, EPS * 2.926486322955);
+
+	// High variance - 95% CI
+	Stats_ci_mean_unknown_var(data:=data_high_var, confidence:=0.95, ci_lower=>lower_high_var, ci_upper=>upper_high_var);
+	EXPECT_NEAR(lower_high_var, -3201.443093073243, EPS * 3201.443093073243);
+	EXPECT_NEAR(upper_high_var, 7645.843093073243, EPS * 7645.843093073243);
+
+	// Low variance - 95% CI
+	Stats_ci_mean_unknown_var(data:=data_low_var, confidence:=0.95, ci_lower=>lower_low_var, ci_upper=>upper_low_var);
+	EXPECT_NEAR(lower_low_var, 9.901837841926, EPS * 9.901837841926);
+	EXPECT_NEAR(upper_low_var, 10.098162158074, EPS * 10.098162158074);
+
+	// Even sample size - 90% CI
+	Stats_ci_mean_unknown_var(data:=data_even, confidence:=0.90, ci_lower=>lower_even, ci_upper=>upper_even);
+	EXPECT_NEAR(lower_even, 3.921962767749, EPS * 3.921962767749);
+	EXPECT_NEAR(upper_even, 10.078037232251, EPS * 10.078037232251);
+
+	// Odd sample size - 99% CI
+	Stats_ci_mean_unknown_var(data:=data_odd, confidence:=0.99, ci_lower=>lower_odd, ci_upper=>upper_odd);
+	EXPECT_NEAR(lower_odd, 0.945795393105, EPS * 0.945795393105);
+	EXPECT_NEAR(upper_odd, 13.054204606895, EPS * 13.054204606895);
+
+	// Fractional values - 95% CI
+	Stats_ci_mean_unknown_var(data:=data_frac, confidence:=0.95, ci_lower=>lower_frac, ci_upper=>upper_frac);
+	EXPECT_NEAR(lower_frac, 1.140432522375, EPS * 1.140432522375);
+	EXPECT_NEAR(upper_frac, 5.459567477625, EPS * 5.459567477625);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_ci_proportion)
+	var
+		lower, upper: lreal;
+	end
+	{st}
+	// 60 successes out of 100 trials - 95% CI
+	Stats_ci_proportion(successes:=60, trials:=100, confidence:=0.95, ci_lower=>lower, ci_upper=>upper);
+	EXPECT_NEAR(lower, 0.502002586791, 1.0e-6);
+	EXPECT_NEAR(upper, 0.690598713568, 1.0e-6);
+
+	// 30 successes out of 50 trials - 95% CI
+	Stats_ci_proportion(successes:=30, trials:=50, confidence:=0.95, ci_lower=>lower, ci_upper=>upper);
+	EXPECT_NEAR(lower, 0.461814377476, 1.0e-6);
+	EXPECT_NEAR(upper, 0.723916102697, 1.0e-6);
+
+	// 10 successes out of 20 trials - 95% CI
+	Stats_ci_proportion(successes:=10, trials:=20, confidence:=0.95, ci_lower=>lower, ci_upper=>upper);
+	EXPECT_NEAR(lower, 0.299298008198, 1.0e-6);
+	EXPECT_NEAR(upper, 0.700701991802, 1.0e-6);
+
+	// 0 successes out of 10 trials - 95% CI
+	Stats_ci_proportion(successes:=0, trials:=10, confidence:=0.95, ci_lower=>lower, ci_upper=>upper);
+	EXPECT_NEAR(lower, 0.0, EPS);
+	EXPECT_NEAR(upper, 0.277532799863, 1.0e-6);
+
+	// 10 successes out of 10 trials - 95% CI
+	Stats_ci_proportion(successes:=10, trials:=10, confidence:=0.95, ci_lower=>lower, ci_upper=>upper);
+	EXPECT_NEAR(lower, 0.722467200137, 1.0e-6);
+	EXPECT_NEAR(upper, 1.0, EPS);
+
+	// 5 successes out of 100 trials - 95% CI
+	Stats_ci_proportion(successes:=5, trials:=100, confidence:=0.95, ci_lower=>lower, ci_upper=>upper);
+	EXPECT_NEAR(lower, 0.021543679154, 1.0e-6);
+	EXPECT_NEAR(upper, 0.111750469232, 1.0e-6);
+
+	// 95 successes out of 100 trials - 95% CI
+	Stats_ci_proportion(successes:=95, trials:=100, confidence:=0.95, ci_lower=>lower, ci_upper=>upper);
+	EXPECT_NEAR(lower, 0.888249530768, 1.0e-6);
+	EXPECT_NEAR(upper, 0.978456320846, 1.0e-6);
+
+	// 50 successes out of 100 trials - 90% CI
+	Stats_ci_proportion(successes:=50, trials:=100, confidence:=0.90, ci_lower=>lower, ci_upper=>upper);
+	EXPECT_NEAR(lower, 0.418847796113, 1.0e-6);
+	EXPECT_NEAR(upper, 0.581152203887, 1.0e-6);
+
+	// 25 successes out of 50 trials - 99% CI
+	Stats_ci_proportion(successes:=25, trials:=50, confidence:=0.99, ci_lower=>lower, ci_upper=>upper);
+	EXPECT_NEAR(lower, 0.328862561287, 1.0e-6);
+	EXPECT_NEAR(upper, 0.671137438713, 1.0e-6);
+
+	// 1 success out of 2 trials - 95% CI
+	Stats_ci_proportion(successes:=1, trials:=2, confidence:=0.95, ci_lower=>lower, ci_upper=>upper);
+	EXPECT_NEAR(lower, 0.094531205734, 1.0e-6);
+	EXPECT_NEAR(upper, 0.905468794266, 1.0e-6);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_ci_different_levels)
+	var
+		x: array[0..9] of lreal := [98.5, 99.2, 100.1, 101.3, 99.8, 100.5, 98.9, 101.1, 99.7, 100.4];
+		lower90, upper90, lower99, upper99: lreal;
+	end
+	{st}
+		// Compare 90% vs 99% confidence intervals
+		Stats_ci_mean_unknown_var(data:=x, confidence:=0.90, ci_lower=>lower90, ci_upper=>upper90);
+		Stats_ci_mean_unknown_var(data:=x, confidence:=0.99, ci_lower=>lower99, ci_upper=>upper99);
+
+		// 99% CI should be wider than 90% CI
+		EXPECT_LT_LREAL(lower99, lower90);
+		EXPECT_GT_LREAL(upper99, upper90);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_ci_mean_t)
+	var
+		data_basic: array[0..9] of lreal := [10.0, 12.0, 11.0, 13.0, 11.5, 12.5, 10.5, 11.8, 12.2, 11.0];
+		lower_basic, upper_basic: lreal;
+
+		data_identical: array[0..4] of lreal := [10.0, 10.0, 10.0, 10.0, 10.0];
+		lower_identical, upper_identical: lreal;
+
+		data_small: array[0..6] of lreal := [5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0];
+		lower_small, upper_small: lreal;
+
+		data_tiny: array[0..2] of lreal := [20.0, 20.0, 20.0];
+		lower_tiny, upper_tiny: lreal;
+
+		data_neg: array[0..4] of lreal := [-5.0, -3.0, -1.0, 1.0, 3.0];
+		lower_neg, upper_neg: lreal;
+
+		data_large: array[0..4] of lreal := [1000.0, 1010.0, 1020.0, 1030.0, 1040.0];
+		lower_large, upper_large: lreal;
+	end
+	{st}
+		// Basic sample - 95% CI
+		Stats_ci_mean_t(data:=data_basic, confidence:=0.95, ci_lower=>lower_basic, ci_upper=>upper_basic);
+		EXPECT_NEAR(lower_basic, 10.883825548366, EPS * 10.883825548366);
+		EXPECT_NEAR(upper_basic, 12.216174451634, EPS * 12.216174451634);
+
+		// Identical values - should give very narrow CI
+		Stats_ci_mean_t(data:=data_identical, confidence:=0.95, ci_lower=>lower_identical, ci_upper=>upper_identical);
+		EXPECT_NEAR(lower_identical, 10.0, EPS);
+		EXPECT_NEAR(upper_identical, 10.0, EPS);
+
+		// Small sample - 90% CI
+		Stats_ci_mean_t(data:=data_small, confidence:=0.90, ci_lower=>lower_small, ci_upper=>upper_small);
+		EXPECT_NEAR(lower_small, 6.413399944933, EPS * 6.413399944933);
+		EXPECT_NEAR(upper_small, 9.586600055067, EPS * 9.586600055067);
+
+		// Very small sample - 99% CI
+		Stats_ci_mean_t(data:=data_tiny, confidence:=0.99, ci_lower=>lower_tiny, ci_upper=>upper_tiny);
+		EXPECT_NEAR(lower_tiny, 20.0, EPS);
+		EXPECT_NEAR(upper_tiny, 20.0, EPS);
+
+		// Negative values - 95% CI
+		Stats_ci_mean_t(data:=data_neg, confidence:=0.95, ci_lower=>lower_neg, ci_upper=>upper_neg);
+		EXPECT_NEAR(lower_neg, -4.926486322955, EPS * 4.926486322955);
+		EXPECT_NEAR(upper_neg, 2.926486322955, EPS * 2.926486322955);
+
+		// Large values - 95% CI
+		Stats_ci_mean_t(data:=data_large, confidence:=0.95, ci_lower=>lower_large, ci_upper=>upper_large);
+		EXPECT_NEAR(lower_large, 1000.367568385224, EPS * 1000.367568385224);
+		EXPECT_NEAR(upper_large, 1039.632431614776, EPS * 1039.632431614776);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_ci_variance_chi_square)
+	var
+		data_basic: array[0..9] of lreal := [10.0, 12.0, 11.0, 13.0, 11.5, 12.5, 10.5, 11.8, 12.2, 11.0];
+		lower_basic, upper_basic: lreal;
+
+		data_large: array[0..19] of lreal := [10.0, 10.5, 11.0, 11.5, 12.0, 12.5, 13.0, 13.5, 14.0, 14.5, 15.0, 15.5, 16.0, 16.5, 17.0, 17.5, 18.0, 18.5, 19.0, 19.5];
+		lower_large, upper_large: lreal;
+
+		data_small: array[0..7] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
+		lower_small, upper_small: lreal;
+
+		data_scale: array[0..4] of lreal := [100.0, 105.0, 110.0, 115.0, 120.0];
+		lower_scale, upper_scale: lreal;
+
+		data_identical: array[0..4] of lreal := [5.0, 5.0, 5.0, 5.0, 5.0];
+		lower_identical, upper_identical: lreal;
+
+		data_neg: array[0..4] of lreal := [-5.0, -3.0, -1.0, 1.0, 3.0];
+		lower_neg, upper_neg: lreal;
+	end
+	{st}
+		// Basic sample - 95% CI
+		Stats_ci_variance_chi_square(data:=data_basic, confidence:=0.95, ci_lower=>lower_basic, ci_upper=>upper_basic);
+		EXPECT_NEAR(lower_basic, 0.410297811686, EPS);
+		EXPECT_NEAR(upper_basic, 2.890323784794, EPS * 2.890323784794);
+
+		// Larger sample - should give tighter CI
+		Stats_ci_variance_chi_square(data:=data_large, confidence:=0.95, ci_lower=>lower_large, ci_upper=>upper_large);
+		EXPECT_NEAR(lower_large, 5.060524348845, EPS * 5.060524348845);
+		EXPECT_NEAR(upper_large, 18.666108162065, EPS * 18.666108162065);
+
+		// Small sample - 90% CI
+		Stats_ci_variance_chi_square(data:=data_small, confidence:=0.90, ci_lower=>lower_small, ci_upper=>upper_small);
+		EXPECT_NEAR(lower_small, 2.985681429090, EPS * 2.985681429090);
+		EXPECT_NEAR(upper_small, 19.378504513654, EPS * 19.378504513654);
+
+		// Larger scale values - 95% CI
+		Stats_ci_variance_chi_square(data:=data_scale, confidence:=0.95, ci_lower=>lower_scale, ci_upper=>upper_scale);
+		EXPECT_NEAR(lower_scale, 22.435032400546, EPS * 22.435032400546);
+		EXPECT_NEAR(upper_scale, 516.082623883917, EPS * 516.082623883917);
+
+		// Identical values - zero variance
+		Stats_ci_variance_chi_square(data:=data_identical, confidence:=0.95, ci_lower=>lower_identical, ci_upper=>upper_identical);
+		EXPECT_NEAR(lower_identical, 0.0, EPS);
+		EXPECT_NEAR(upper_identical, 0.0, EPS);
+
+		// Negative values - 95% CI
+		Stats_ci_variance_chi_square(data:=data_neg, confidence:=0.95, ci_lower=>lower_neg, ci_upper=>upper_neg);
+		EXPECT_NEAR(lower_neg, 3.589605184087, EPS * 3.589605184087);
+		EXPECT_NEAR(upper_neg, 82.573219821427, EPS * 82.573219821427);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_ci_variance)
+	var
+		data_basic: array[0..9] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
+		lower_basic, upper_basic: lreal;
+
+		data_small: array[0..4] of lreal := [10.0, 12.0, 11.0, 13.0, 11.5];
+		lower_small, upper_small: lreal;
+
+		data_large: array[0..19] of lreal := [10.0, 10.5, 11.0, 11.5, 12.0, 12.5, 13.0, 13.5, 14.0, 14.5, 15.0, 15.5, 16.0, 16.5, 17.0, 17.5, 18.0, 18.5, 19.0, 19.5];
+		lower_large, upper_large: lreal;
+
+		data_identical: array[0..4] of lreal := [5.0, 5.0, 5.0, 5.0, 5.0];
+		lower_identical, upper_identical: lreal;
+
+		data_neg: array[0..4] of lreal := [-5.0, -3.0, -1.0, 1.0, 3.0];
+		lower_neg, upper_neg: lreal;
+
+		data_high_var: array[0..4] of lreal := [1.0, 10.0, 100.0, 1000.0, 10000.0];
+		lower_high_var, upper_high_var: lreal;
+
+		data_low_var: array[0..4] of lreal := [10.0, 10.1, 9.9, 10.05, 9.95];
+		lower_low_var, upper_low_var: lreal;
+
+		data_even: array[0..5] of lreal := [2.0, 4.0, 6.0, 8.0, 10.0, 12.0];
+		lower_even, upper_even: lreal;
+
+		data_odd: array[0..6] of lreal := [1.0, 3.0, 5.0, 7.0, 9.0, 11.0, 13.0];
+		lower_odd, upper_odd: lreal;
+
+		data_frac: array[0..4] of lreal := [1.1, 2.2, 3.3, 4.4, 5.5];
+		lower_frac, upper_frac: lreal;
+	end
+	{st}
+		// Basic sample - 95% CI
+		Stats_ci_variance(data:=data_basic, confidence:=0.95, ci_lower=>lower_basic, ci_upper=>upper_basic);
+		EXPECT_NEAR(lower_basic, 4.336908323398, EPS * 4.336908323398);
+		EXPECT_NEAR(upper_basic, 30.551148269759, EPS * 30.551148269759);
+
+		// Small sample - 95% CI
+		Stats_ci_variance(data:=data_small, confidence:=0.95, ci_lower=>lower_small, ci_upper=>upper_small);
+		EXPECT_NEAR(lower_small, 0.448700648011, EPS);
+		EXPECT_NEAR(upper_small, 10.321652477678, EPS * 10.321652477678);
+
+		// Large sample - 95% CI
+		Stats_ci_variance(data:=data_large, confidence:=0.95, ci_lower=>lower_large, ci_upper=>upper_large);
+		EXPECT_NEAR(lower_large, 5.060524348845, EPS * 5.060524348845);
+		EXPECT_NEAR(upper_large, 18.666108162065, EPS * 18.666108162065);
+
+		// Identical values - zero variance
+		Stats_ci_variance(data:=data_identical, confidence:=0.95, ci_lower=>lower_identical, ci_upper=>upper_identical);
+		EXPECT_NEAR(lower_identical, 0.0, EPS);
+		EXPECT_NEAR(upper_identical, 0.0, EPS);
+
+		// Negative values - 95% CI
+		Stats_ci_variance(data:=data_neg, confidence:=0.95, ci_lower=>lower_neg, ci_upper=>upper_neg);
+		EXPECT_NEAR(lower_neg, 3.589605184087, EPS * 3.589605184087);
+		EXPECT_NEAR(upper_neg, 82.573219821427, EPS * 82.573219821427);
+
+		// High variance - 95% CI
+		Stats_ci_variance(data:=data_high_var, confidence:=0.95, ci_lower=>lower_high_var, ci_upper=>upper_high_var);
+		EXPECT_NEAR(lower_high_var, 6848898.201571652, EPS * 6848898.201571652);
+		EXPECT_NEAR(upper_high_var, 157548127.92224795, EPS * 157548127.92224795);
+
+		// Low variance - 95% CI
+		Stats_ci_variance(data:=data_low_var, confidence:=0.95, ci_lower=>lower_low_var, ci_upper=>upper_low_var);
+		EXPECT_NEAR(lower_low_var, 0.002243503240, EPS);
+		EXPECT_NEAR(upper_low_var, 0.051608262388, EPS * 0.051608262388);
+
+		// Even sample size - 90% CI
+		Stats_ci_variance(data:=data_even, confidence:=0.90, ci_lower=>lower_even, ci_upper=>upper_even);
+		EXPECT_NEAR(lower_even, 6.323112287987, EPS * 6.323112287987);
+		EXPECT_NEAR(upper_even, 61.109954451578, EPS * 61.109954451578);
+
+		// Odd sample size - 99% CI
+		Stats_ci_variance(data:=data_odd, confidence:=0.99, ci_lower=>lower_odd, ci_upper=>upper_odd);
+		EXPECT_NEAR(lower_odd, 6.038522263711, EPS * 6.038522263711);
+		EXPECT_NEAR(upper_odd, 165.747464414167, EPS * 165.747464414167);
+
+		// Fractional values - 95% CI
+		Stats_ci_variance(data:=data_frac, confidence:=0.95, ci_lower=>lower_frac, ci_upper=>upper_frac);
+		EXPECT_NEAR(lower_frac, 1.085855568186, EPS * 1.085855568186);
+		EXPECT_NEAR(upper_frac, 24.978398995982, EPS * 24.978398995982);
+	{end}
+END_TEST_S
+
+{#undef EPS}

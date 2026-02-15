@@ -1,0 +1,116 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/regression/test_correlation_tests.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/regression/test_correlation_tests.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/regression/correlation_tests.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_pearson_correlation_normal'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_stats_pearson_correlation_normal)
+	var
+		x_perfect_pos: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		y_perfect_pos: array[0..4] of lreal := [2.0, 4.0, 6.0, 8.0, 10.0];
+		x_perfect_neg: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		y_perfect_neg: array[0..4] of lreal := [5.0, 4.0, 3.0, 2.0, 1.0];
+		x_strong_pos: array[0..5] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+		y_strong_pos: array[0..5] of lreal := [2.1, 3.9, 6.2, 7.8, 10.1, 11.9];
+		x_weak: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		y_weak: array[0..4] of lreal := [2.0, 4.0, 5.0, 4.0, 5.0];
+		x_none: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		y_none: array[0..4] of lreal := [3.0, 5.0, 1.0, 4.0, 2.0];
+		x_neg: array[0..6] of lreal := [2.5, 5.0, 7.5, 10.0, 12.5, 15.0, 17.5];
+		y_neg: array[0..6] of lreal := [8.0, 6.0, 7.0, 5.0, 6.0, 4.0, 5.0];
+		x_large: array[0..9] of lreal := [10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0];
+		y_large: array[0..9] of lreal := [15.0, 25.0, 35.0, 45.0, 55.0, 65.0, 75.0, 85.0, 95.0, 105.0];
+		x_small: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		y_small: array[0..2] of lreal := [2.0, 4.0, 6.0];
+		x_scattered: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		y_scattered: array[0..4] of lreal := [5.2, 1.8, 4.3, 2.1, 3.9];
+		x_moderate: array[0..5] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+		y_moderate: array[0..5] of lreal := [1.5, 3.2, 4.8, 6.1, 7.9, 9.0];
+		x_small_fail: array[0..1] of lreal := [1.0, 2.0];
+		y_small_fail: array[0..1] of lreal := [2.0, 4.0];
+		x_size_mismatch: array[0..3] of lreal := [1.0, 2.0, 3.0, 4.0];
+		y_size_mismatch: array[0..4] of lreal := [2.0, 4.0, 6.0, 8.0, 10.0];
+		result: Stats_TestResult;
+		result_eno: bool;
+	end
+	{st}
+		// Perfect positive correlation
+		Stats_test_pearson_correlation(x:=x_perfect_pos, y:=y_perfect_pos, result:=result);
+		EXPECT_NEAR(1.000000000000, result.statistic, EPS);
+		EXPECT_NEAR(0.000000000000, result.pvalue, 1.0e-6);
+		EXPECT_NEAR(3.0, result.df, EPS);
+
+		// Perfect negative correlation
+		Stats_test_pearson_correlation(x:=x_perfect_neg, y:=y_perfect_neg, result:=result);
+		EXPECT_NEAR(-1.000000000000, result.statistic, EPS);
+		EXPECT_NEAR(0.000000000000, result.pvalue, 1.0e-6);
+		EXPECT_NEAR(3.0, result.df, EPS);
+
+		// Strong positive correlation
+		Stats_test_pearson_correlation(x:=x_strong_pos, y:=y_strong_pos, result:=result);
+		EXPECT_NEAR(0.999190732505, result.statistic, 0.001);
+		EXPECT_NEAR(0.000000982106, result.pvalue, 1.0e-6);
+		EXPECT_NEAR(4.0, result.df, EPS);
+
+		// Weak positive correlation
+		Stats_test_pearson_correlation(x:=x_weak, y:=y_weak, result:=result);
+		EXPECT_NEAR(0.774596669241, result.statistic, 0.001);
+		EXPECT_NEAR(0.124027062658, result.pvalue, 0.001);
+		EXPECT_NEAR(3.0, result.df, EPS);
+
+		// No correlation
+		Stats_test_pearson_correlation(x:=x_none, y:=y_none, result:=result);
+		EXPECT_NEAR(-0.300000000000, result.statistic, 0.001);
+		EXPECT_NEAR(0.623837664781, result.pvalue, 0.001);
+		EXPECT_NEAR(3.0, result.df, EPS);
+
+		// Negative correlation
+		Stats_test_pearson_correlation(x:=x_neg, y:=y_neg, result:=result);
+		EXPECT_NEAR(-0.802955068547, result.statistic, 0.001);
+		EXPECT_NEAR(0.029676501378, result.pvalue, 0.001);
+		EXPECT_NEAR(5.0, result.df, EPS);
+
+		// Large array perfect positive
+		Stats_test_pearson_correlation(x:=x_large, y:=y_large, result:=result);
+		EXPECT_NEAR(1.000000000000, result.statistic, EPS);
+		EXPECT_NEAR(0.000000000000, result.pvalue, 1.0e-10);
+		EXPECT_NEAR(8.0, result.df, EPS);
+
+		// Minimum size (n=3) perfect positive
+		Stats_test_pearson_correlation(x:=x_small, y:=y_small, result:=result);
+		EXPECT_NEAR(1.000000000000, result.statistic, EPS);
+		EXPECT_NEAR(0.000000000000, result.pvalue, 1.0e-6);
+		EXPECT_NEAR(1.0, result.df, EPS);
+
+		// Scattered positive
+		Stats_test_pearson_correlation(x:=x_scattered, y:=y_scattered, result:=result);
+		EXPECT_TRUE(result.statistic >= -1.0 and result.statistic <= 1.0);
+		EXPECT_TRUE(result.pvalue >= 0.0 and result.pvalue <= 1.0);
+
+		// Moderate positive
+		Stats_test_pearson_correlation(x:=x_moderate, y:=y_moderate, result:=result);
+		EXPECT_TRUE(result.statistic > 0.9);
+		EXPECT_TRUE(result.pvalue < 0.01);
+
+		// Failure case: n < 3: Too few elements
+		Stats_test_pearson_correlation(x:=x_small_fail, y:=y_small_fail, result:=result, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+
+		// Failure case: Size mismatch
+		Stats_test_pearson_correlation(x:=x_size_mismatch, y:=y_size_mismatch, result:=result, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+	{end}
+END_TEST_S
+
+{#undef EPS}

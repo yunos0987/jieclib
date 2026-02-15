@@ -1,0 +1,537 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/distributions/core/test_special_functions.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/distributions/core/test_special_functions.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/distributions/core/special_functions.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_erf',
+		'test_stats_erfc',
+		'test_stats_gamma',
+		'test_stats_lgamma',
+		'test_stats_beta',
+		'test_stats_beta_incomplete',
+		'test_stats_beta_continued_fraction',
+		'test_stats_gammainc',
+		'test_stats_gammaincc'
+	)
+)
+{#endif}
+
+TEST_S(test_stats_erf)
+	var result: lreal; end
+	{st}
+		// erf(0) = 0
+		result := Stats_erf(x:=0.0);
+		EXPECT_NEAR(0.000000000000, result, 1e-6);
+
+		// erf(0.1) ≈ 0.112462916018285
+		result := Stats_erf(x:=0.1);
+		EXPECT_NEAR(0.112462916018285, result, 1e-6);
+
+		// erf(0.5) ≈ 0.520499877813047
+		result := Stats_erf(x:=0.5);
+		EXPECT_NEAR(0.520499877813047, result, 1e-6);
+
+		// erf(1.0) ≈ 0.842700792949715
+		result := Stats_erf(x:=1.0);
+		EXPECT_NEAR(0.842700792949715, result, 1e-6);
+
+		// erf(1.5) ≈ 0.966105146475311
+		result := Stats_erf(x:=1.5);
+		EXPECT_NEAR(0.966105146475311, result, 1e-6);
+
+		// erf(2.0) ≈ 0.995322265018953
+		result := Stats_erf(x:=2.0);
+		EXPECT_NEAR(0.995322265018953, result, 1e-6);
+
+		// erf(2.5) ≈ 0.999593047982555
+		result := Stats_erf(x:=2.5);
+		EXPECT_NEAR(0.999593047982555, result, 1e-6);
+
+		// erf(3.0) ≈ 0.999977909503001
+		result := Stats_erf(x:=3.0);
+		EXPECT_NEAR(0.999977909503001, result, 1e-6);
+
+		// erf(0.75) ≈ 0.711155633653515
+		result := Stats_erf(x:=0.75);
+		EXPECT_NEAR(0.711155633653515, result, 1e-6);
+
+		// erf(0.8) ≈ 0.742101014240266
+		result := Stats_erf(x:=0.8);
+		EXPECT_NEAR(0.742101014240266, result, 1e-6);
+
+		// erf(-0.5) = -erf(0.5) ≈ -0.520499877813047
+		result := Stats_erf(x:=-0.5);
+		EXPECT_NEAR(-0.520499877813047, result, 1e-6);
+
+		// erf(-1.0) = -erf(1.0) ≈ -0.842700792949715
+		result := Stats_erf(x:=-1.0);
+		EXPECT_NEAR(-0.842700792949715, result, 1e-6);
+
+		// erf(-2.0) = -erf(2.0) ≈ -0.995322265018953
+		result := Stats_erf(x:=-2.0);
+		EXPECT_NEAR(-0.995322265018953, result, 1e-6);
+
+		// erf(-3.0) = -erf(3.0) ≈ -0.999977909503001
+		result := Stats_erf(x:=-3.0);
+		EXPECT_NEAR(-0.999977909503001, result, 1e-6);
+	{end}
+END_TEST_S
+
+
+
+TEST_S(test_stats_gammainc)
+	var result, p, q, s, p1, p2: lreal; end
+	{st}
+		// P(0.5, z) = erf(sqrt(z))
+		result := Stats_gammainc(a:=0.5, z:=0.25, gln:=Stats_lgamma(x:=0.5));
+		EXPECT_NEAR(0.520499877813047, result, 1e-6);
+
+		result := Stats_gammainc(a:=0.5, z:=1.0, gln:=Stats_lgamma(x:=0.5));
+		EXPECT_NEAR(0.842700792949715, result, 1e-6);
+
+		result := Stats_gammainc(a:=0.5, z:=2.25, gln:=Stats_lgamma(x:=0.5));
+		EXPECT_NEAR(0.966105146475311, result, 1e-6);
+
+		// P(1, z) = 1 - exp(-z)
+		result := Stats_gammainc(a:=1.0, z:=0.5, gln:=Stats_lgamma(x:=1.0));
+		EXPECT_NEAR(0.393469340287367, result, 1e-6);
+
+		result := Stats_gammainc(a:=1.0, z:=2.0, gln:=Stats_lgamma(x:=1.0));
+		EXPECT_NEAR(0.864664716763387, result, 1e-6);
+
+		// P(2, z) = 1 - exp(-z) * (1 + z)
+		result := Stats_gammainc(a:=2.0, z:=1.0, gln:=Stats_lgamma(x:=2.0));
+		EXPECT_NEAR(0.264241117657115, result, 1e-6);
+
+		result := Stats_gammainc(a:=2.0, z:=2.0, gln:=Stats_lgamma(x:=2.0));
+		EXPECT_NEAR(0.593994150290162, result, 1e-6);
+
+		// P(2, z) = 1 - exp(-z) * (1 + z)
+		result := Stats_gammainc(a:=2.0, z:=3.0, gln:=Stats_lgamma(x:=2.0));
+		EXPECT_NEAR(0.800851726528544, result, 1e-6);
+
+		// Boundary: z=0 → P=0
+		p := Stats_gammainc(a:=0.5, z:=0.0, gln:=Stats_lgamma(x:=0.5));
+		EXPECT_NEAR(0.0, p, 1e-12);
+
+		p := Stats_gammainc(a:=2.0, z:=0.0, gln:=Stats_lgamma(x:=2.0));
+		EXPECT_NEAR(0.0, p, 1e-12);
+
+		// Large z → P→1
+		p := Stats_gammainc(a:=0.5, z:=10.0, gln:=Stats_lgamma(x:=0.5));
+		EXPECT_TRUE(p > 0.999);
+
+		p := Stats_gammainc(a:=3.0, z:=10.0, gln:=Stats_lgamma(x:=3.0));
+		EXPECT_TRUE(p > 0.95);
+
+		// Complementarity: P+Q ≈ 1
+		p := Stats_gammainc(a:=0.5, z:=0.25, gln:=Stats_lgamma(x:=0.5));
+		q := Stats_gammaincc(a:=0.5, z:=0.25, gln:=Stats_lgamma(x:=0.5));
+		s := p + q;
+		EXPECT_NEAR(1.0, s, 1e-6);
+
+		p := Stats_gammainc(a:=2.0, z:=3.0, gln:=Stats_lgamma(x:=2.0));
+		q := Stats_gammaincc(a:=2.0, z:=3.0, gln:=Stats_lgamma(x:=2.0));
+		s := p + q;
+		EXPECT_NEAR(1.0, s, 1e-6);
+
+		// Monotonicity: P increases with z
+		p1 := Stats_gammainc(a:=2.0, z:=0.5, gln:=Stats_lgamma(x:=2.0));
+		p2 := Stats_gammainc(a:=2.0, z:=1.0, gln:=Stats_lgamma(x:=2.0));
+		EXPECT_TRUE(p2 > p1);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_gammaincc)
+	var result, q, p, s, p1, p2, q1, q2: lreal; end
+	{st}
+		// Q = 1 - P when z < a+1, use P=gammainc then Q=1-P
+		// a=0.5: all z < 1.5, so use gammainc
+		p := Stats_gammainc(a:=0.5, z:=0.25, gln:=Stats_lgamma(x:=0.5));
+		result := 1.0 - p;
+		EXPECT_NEAR(1.0 - 0.520499877813047, result, 1e-6);
+
+		p := Stats_gammainc(a:=0.5, z:=1.0, gln:=Stats_lgamma(x:=0.5));
+		result := 1.0 - p;
+		EXPECT_NEAR(1.0 - 0.842700792949715, result, 1e-6);
+
+		// a=0.5, z=2.25 >= 1.5, can use gammaincc directly
+		result := Stats_gammaincc(a:=0.5, z:=2.25, gln:=Stats_lgamma(x:=0.5));
+		EXPECT_NEAR(1.0 - 0.966105146475311, result, 1e-6);
+
+		// a=1.0: z < 2.0, use gammainc
+		p := Stats_gammainc(a:=1.0, z:=0.5, gln:=Stats_lgamma(x:=1.0));
+		result := 1.0 - p;
+		EXPECT_NEAR(1.0 - 0.393469340287367, result, 1e-6);
+
+		// a=1.0, z=2.0 >= 2.0, can use gammaincc directly
+		result := Stats_gammaincc(a:=1.0, z:=2.0, gln:=Stats_lgamma(x:=1.0));
+		EXPECT_NEAR(1.0 - 0.864664716763387, result, 1e-6);
+
+		// a=2.0: z < 3.0, use gammainc
+		p := Stats_gammainc(a:=2.0, z:=1.0, gln:=Stats_lgamma(x:=2.0));
+		result := 1.0 - p;
+		EXPECT_NEAR(1.0 - 0.264241117657115, result, 1e-6);
+
+		p := Stats_gammainc(a:=2.0, z:=2.0, gln:=Stats_lgamma(x:=2.0));
+		result := 1.0 - p;
+		EXPECT_NEAR(1.0 - 0.593994150290162, result, 1e-6);
+
+		// a=2.0, z=3.0 >= 3.0, can use gammaincc directly
+		result := Stats_gammaincc(a:=2.0, z:=3.0, gln:=Stats_lgamma(x:=2.0));
+		EXPECT_NEAR(1.0 - 0.800851726528544, result, 1e-6);
+
+		// Boundary: z=0 → Q=1
+		q := Stats_gammaincc(a:=0.5, z:=0.0, gln:=Stats_lgamma(x:=0.5));
+		EXPECT_NEAR(1.0, q, 1e-6);
+
+		q := Stats_gammaincc(a:=2.0, z:=0.0, gln:=Stats_lgamma(x:=2.0));
+		EXPECT_NEAR(1.0, q, 1e-6);
+
+		// Large z → Q→0
+		q := Stats_gammaincc(a:=0.5, z:=10.0, gln:=Stats_lgamma(x:=0.5));
+		EXPECT_TRUE(q < 0.001);
+
+		q := Stats_gammaincc(a:=3.0, z:=10.0, gln:=Stats_lgamma(x:=3.0));
+		EXPECT_TRUE(q < 0.05);
+
+		// Complementarity: P+Q ≈ 1
+		p := Stats_gammainc(a:=0.5, z:=0.25, gln:=Stats_lgamma(x:=0.5));
+		q := Stats_gammaincc(a:=0.5, z:=0.25, gln:=Stats_lgamma(x:=0.5));
+		s := p + q;
+		EXPECT_NEAR(1.0, s, 1e-6);
+
+		p := Stats_gammainc(a:=2.0, z:=3.0, gln:=Stats_lgamma(x:=2.0));
+		q := Stats_gammaincc(a:=2.0, z:=3.0, gln:=Stats_lgamma(x:=2.0));
+		s := p + q;
+		EXPECT_NEAR(1.0, s, 1e-6);
+
+		// Monotonicity: Q decreases with z
+		p1 := Stats_gammainc(a:=2.0, z:=0.5, gln:=Stats_lgamma(x:=2.0));
+		q1 := 1.0 - p1;
+		p2 := Stats_gammainc(a:=2.0, z:=1.0, gln:=Stats_lgamma(x:=2.0));
+		q2 := 1.0 - p2;
+		EXPECT_TRUE(q2 < q1);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_erfc)
+	var result: lreal; end
+	{st}
+		// erfc(0) = 1.0
+		result := Stats_erfc(x:=0.0);
+		EXPECT_NEAR(1.0, result, 1e-6);
+
+		// erfc(0.1) ≈ 0.887537083981715
+		result := Stats_erfc(x:=0.1);
+		EXPECT_NEAR(0.887537083981715, result, 1e-6);
+
+		// erfc(0.5) ≈ 0.479500122186953
+		result := Stats_erfc(x:=0.5);
+		EXPECT_NEAR(0.479500122186953, result, 1e-6);
+
+		// erfc(1.0) ≈ 0.157299207050285
+		result := Stats_erfc(x:=1.0);
+		EXPECT_NEAR(0.157299207050285, result, 1e-6);
+
+		// erfc(1.5) ≈ 0.0338948535246886
+		result := Stats_erfc(x:=1.5);
+		EXPECT_NEAR(0.0338948535246886, result, 1e-6);
+
+		// erfc(2.0) ≈ 0.00467773498104727
+		result := Stats_erfc(x:=2.0);
+		EXPECT_NEAR(0.00467773498104727, result, 1e-6);
+
+		// erfc(2.5) ≈ 0.000406952017445123
+		result := Stats_erfc(x:=2.5);
+		EXPECT_NEAR(0.000406952017445123, result, 1e-6);
+
+		// erfc(3.0) ≈ 2.20904969985854e-05
+		result := Stats_erfc(x:=3.0);
+		EXPECT_NEAR(2.20904969985854e-05, result, 1e-6);
+
+		// erfc(4.0) ≈ 1.54156708070857e-08
+		result := Stats_erfc(x:=4.0);
+		EXPECT_NEAR(1.54156708070857e-08, result, 1e-10);
+
+		// erfc(0.8) ≈ 0.257898985759734
+		result := Stats_erfc(x:=0.8);
+		EXPECT_NEAR(0.257898985759734, result, 1e-6);
+
+		// erfc(-0.5) = 1 + erf(0.5) ≈ 1.520499877813047
+		result := Stats_erfc(x:=-0.5);
+		EXPECT_NEAR(1.520499877813047, result, 1e-6);
+
+		// erfc(-1.0) = 1 + erf(1.0) ≈ 1.842700792949715
+		result := Stats_erfc(x:=-1.0);
+		EXPECT_NEAR(1.842700792949715, result, 1e-6);
+
+		// erfc(-2.0) = 1 + erf(2.0) ≈ 1.995322265018953
+		result := Stats_erfc(x:=-2.0);
+		EXPECT_NEAR(1.995322265018953, result, 1e-6);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_gamma)
+	var result: lreal; end
+	{st}
+		// Gamma(0.1) ≈ 9.513507698668732
+		result := Stats_gamma(x:=0.1);
+		EXPECT_NEAR(9.513507698668732, result, 1e-5);
+
+		// Gamma(0.25) ≈ 3.625609908221908
+		result := Stats_gamma(x:=0.25);
+		EXPECT_NEAR(3.625609908221908, result, 1e-6);
+
+		// Gamma(0.5) = sqrt(pi) ≈ 1.772453850905516
+		result := Stats_gamma(x:=0.5);
+		EXPECT_NEAR(1.772453850905516, result, 1e-6);
+
+		// Gamma(0.75) ≈ 1.225416702465177
+		result := Stats_gamma(x:=0.75);
+		EXPECT_NEAR(1.225416702465177, result, 1e-6);
+
+		// Gamma(1.25) ≈ 0.906402477055477
+		result := Stats_gamma(x:=1.25);
+		EXPECT_NEAR(0.906402477055477, result, 1e-6);
+
+		// Gamma(1.0) = 0! = 1
+		result := Stats_gamma(x:=1.0);
+		EXPECT_NEAR(1.0, result, 1e-6);
+
+		// Gamma(1.5) ≈ 0.886226925452758
+		result := Stats_gamma(x:=1.5);
+		EXPECT_NEAR(0.886226925452758, result, 1e-6);
+
+		// Gamma(2.0) = 1! = 1
+		result := Stats_gamma(x:=2.0);
+		EXPECT_NEAR(1.0, result, 1e-6);
+
+		// Gamma(2.5) ≈ 1.329340388179137
+		result := Stats_gamma(x:=2.5);
+		EXPECT_NEAR(1.329340388179137, result, 1e-6);
+
+		// Gamma(3.0) = 2! = 2
+		result := Stats_gamma(x:=3.0);
+		EXPECT_NEAR(2.0, result, 1e-6);
+
+		// Gamma(4.0) = 3! = 6
+		result := Stats_gamma(x:=4.0);
+		EXPECT_NEAR(6.0, result, 1e-5);
+
+		// Gamma(5.0) = 4! = 24
+		result := Stats_gamma(x:=5.0);
+		EXPECT_NEAR(24.0, result, 1e-5);
+
+		// Gamma(6.0) = 5! = 120
+		result := Stats_gamma(x:=6.0);
+		EXPECT_NEAR(120.0, result, 1e-4);
+
+		// Gamma(10.0) = 9! = 362880
+		result := Stats_gamma(x:=10.0);
+		EXPECT_NEAR(362880.0, result, 1000.0);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_lgamma)
+	var result: lreal; end
+	{st}
+		// lgamma(0.1) ≈ 2.252712651734206
+		result := Stats_lgamma(x:=0.1);
+		EXPECT_NEAR(2.252712651734206, result, 1e-6);
+
+		// lgamma(0.5) ≈ 0.572364942924700
+		result := Stats_lgamma(x:=0.5);
+		EXPECT_NEAR(0.572364942924700, result, 1e-6);
+
+		// lgamma(1.0) = ln(Gamma(1)) = ln(1) = 0
+		result := Stats_lgamma(x:=1.0);
+		EXPECT_NEAR(0.0, result, 1e-6);
+
+		// lgamma(1.5) ≈ -0.120782237635245
+		result := Stats_lgamma(x:=1.5);
+		EXPECT_NEAR(-0.120782237635245, result, 1e-6);
+
+		// lgamma(2.0) = ln(Gamma(2)) = ln(1) = 0
+		result := Stats_lgamma(x:=2.0);
+		EXPECT_NEAR(0.0, result, 1e-6);
+
+		// lgamma(2.5) ≈ 0.284682870472919
+		result := Stats_lgamma(x:=2.5);
+		EXPECT_NEAR(0.284682870472919, result, 1e-6);
+
+		// lgamma(3.0) = ln(Gamma(3)) = ln(2) ≈ 0.693147180559945
+		result := Stats_lgamma(x:=3.0);
+		EXPECT_NEAR(0.693147180559945, result, 1e-6);
+
+		// lgamma(5.0) = ln(4!) ≈ 3.178053830347946
+		result := Stats_lgamma(x:=5.0);
+		EXPECT_NEAR(3.178053830347946, result, 1e-6);
+
+		// lgamma(10.0) = ln(9!) ≈ 12.801827480081469
+		result := Stats_lgamma(x:=10.0);
+		EXPECT_NEAR(12.801827480081469, result, 1e-6);
+
+		// lgamma(15.0) ≈ 25.191221182738683
+		result := Stats_lgamma(x:=15.0);
+		EXPECT_NEAR(25.191221182738683, result, 1e-6);
+
+		// lgamma(20.0) ≈ 39.339884187199495
+		result := Stats_lgamma(x:=20.0);
+		EXPECT_NEAR(39.339884187199495, result, 1e-6);
+
+		// lgamma(50.0) ≈ 144.565743946344867
+		result := Stats_lgamma(x:=50.0);
+		EXPECT_NEAR(144.565743946344867, result, 1e-5);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_beta)
+	var result: lreal; end
+	{st}
+		// Beta(1, 1) = 1
+		result := Stats_beta(a:=1.0, b:=1.0);
+		EXPECT_NEAR(1.0, result, 1e-6);
+
+		// Beta(1, 2) = 0.5
+		result := Stats_beta(a:=1.0, b:=2.0);
+		EXPECT_NEAR(0.5, result, 1e-6);
+
+		// Beta(2, 1) = 0.5
+		result := Stats_beta(a:=2.0, b:=1.0);
+		EXPECT_NEAR(0.5, result, 1e-6);
+
+		// Beta(2, 2) ≈ 0.166666666666667
+		result := Stats_beta(a:=2.0, b:=2.0);
+		EXPECT_NEAR(0.166666666666667, result, 1e-6);
+
+		// Beta(2, 3) ≈ 0.083333333333333
+		result := Stats_beta(a:=2.0, b:=3.0);
+		EXPECT_NEAR(0.083333333333333, result, 1e-6);
+
+		// Beta(3, 2) ≈ 0.083333333333333
+		result := Stats_beta(a:=3.0, b:=2.0);
+		EXPECT_NEAR(0.083333333333333, result, 1e-6);
+
+		// Beta(3, 3) ≈ 0.033333333333333
+		result := Stats_beta(a:=3.0, b:=3.0);
+		EXPECT_NEAR(0.033333333333333, result, 1e-6);
+
+		// Beta(1.5, 2.5) ≈ 0.196349540849362
+		result := Stats_beta(a:=1.5, b:=2.5);
+		EXPECT_NEAR(0.196349540849362, result, 1e-6);
+
+		// Beta(0.25, 0.75) ≈ 4.442882938158365
+		result := Stats_beta(a:=0.25, b:=0.75);
+		EXPECT_NEAR(4.442882938158365, result, 1e-5);
+
+		// Beta(5, 2) ≈ 0.033333333333333
+		result := Stats_beta(a:=5.0, b:=2.0);
+		EXPECT_NEAR(0.033333333333333, result, 1e-6);
+
+		// Beta(4, 6) ≈ 0.001984126984126984
+		result := Stats_beta(a:=4.0, b:=6.0);
+		EXPECT_NEAR(0.001984126984126984, result, 1e-9);
+
+		// Beta(0.5, 0.5) = π ≈ 3.141592653589793
+		result := Stats_beta(a:=0.5, b:=0.5);
+		EXPECT_NEAR(3.141592653589793, result, 1e-6);
+
+		// Beta(0.5, 1) = 2
+		result := Stats_beta(a:=0.5, b:=1.0);
+		EXPECT_NEAR(2.0, result, 1e-6);
+
+		// Beta(0.5, 2) ≈ 1.333333333333333
+		result := Stats_beta(a:=0.5, b:=2.0);
+		EXPECT_NEAR(1.333333333333333, result, 1e-6);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_beta_incomplete)
+	var result: lreal; end
+	{st}
+		// Regularized incomplete Beta values (SciPy compatible)
+		result := Stats_beta_incomplete(a:=0.5, b:=2.0, x:=0.5);
+		EXPECT_NEAR(0.883883476483184, result, 1e-6);
+
+		result := Stats_beta_incomplete(a:=2.0, b:=3.0, x:=0.4);
+		EXPECT_NEAR(0.524800000000000, result, 1e-6);
+
+		result := Stats_beta_incomplete(a:=3.0, b:=2.0, x:=0.6);
+		EXPECT_NEAR(0.475200000000000, result, 1e-6);
+
+		result := Stats_beta_incomplete(a:=5.0, b:=5.0, x:=0.5);
+		EXPECT_NEAR(0.500000000000001, result, 1e-6);
+
+		result := Stats_beta_incomplete(a:=2.5, b:=3.5, x:=0.7);
+		EXPECT_NEAR(0.922819065477919, result, 1e-6);
+
+		result := Stats_beta_incomplete(a:=1.0, b:=1.0, x:=0.3);
+		EXPECT_NEAR(0.300000000000000, result, 1e-6);
+
+		result := Stats_beta_incomplete(a:=1.0, b:=2.0, x:=0.7);
+		EXPECT_NEAR(0.910000000000000, result, 1e-6);
+
+		result := Stats_beta_incomplete(a:=2.0, b:=1.0, x:=0.7);
+		EXPECT_NEAR(0.490000000000000, result, 1e-6);
+
+		result := Stats_beta_incomplete(a:=0.2, b:=0.8, x:=0.25);
+		EXPECT_NEAR(0.715431899350958, result, 1e-6);
+
+		result := Stats_beta_incomplete(a:=4.0, b:=0.5, x:=0.3);
+		EXPECT_NEAR(0.002544374616407, result, 1e-6);
+
+		result := Stats_beta_incomplete(a:=10.0, b:=12.0, x:=0.45);
+		EXPECT_NEAR(0.488313543078355, result, 1e-6);
+
+		result := Stats_beta_incomplete(a:=0.7, b:=3.3, x:=0.9);
+		EXPECT_NEAR(0.999732028236898, result, 1e-6);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_beta_continued_fraction)
+	var result: lreal; end
+	{st}
+		// Continued fraction helper h values (betacf)
+		result := Stats_beta_continued_fraction(a:=0.5, b:=2.0, x:=0.5);
+		EXPECT_NEAR(3.333333333333334, result, 1e-6);
+
+		result := Stats_beta_continued_fraction(a:=2.0, b:=3.0, x:=0.4);
+		EXPECT_NEAR(2.530864197530864, result, 1e-6);
+
+		result := Stats_beta_continued_fraction(a:=3.0, b:=2.0, x:=0.6);
+		EXPECT_NEAR(3.437500000000000, result, 1e-6);
+
+		result := Stats_beta_continued_fraction(a:=5.0, b:=5.0, x:=0.5);
+		EXPECT_NEAR(4.063492063492065, result, 1e-6);
+
+		result := Stats_beta_continued_fraction(a:=2.5, b:=3.5, x:=0.7);
+		EXPECT_NEAR(14.009358134235137, result, 1e-6);
+
+		result := Stats_beta_continued_fraction(a:=1.0, b:=1.0, x:=0.3);
+		EXPECT_NEAR(1.428571428571429, result, 1e-6);
+
+		result := Stats_beta_continued_fraction(a:=1.0, b:=2.0, x:=0.7);
+		EXPECT_NEAR(7.222222222222216, result, 1e-6);
+
+		result := Stats_beta_continued_fraction(a:=2.0, b:=1.0, x:=0.7);
+		EXPECT_NEAR(3.333333333333332, result, 1e-6);
+
+		result := Stats_beta_continued_fraction(a:=0.2, b:=0.8, x:=0.25);
+		EXPECT_NEAR(1.270259556724464, result, 1e-6);
+
+		result := Stats_beta_continued_fraction(a:=4.0, b:=0.5, x:=0.3);
+		EXPECT_NEAR(1.373058182724465, result, 1e-6);
+
+		result := Stats_beta_continued_fraction(a:=10.0, b:=12.0, x:=0.45);
+		EXPECT_NEAR(5.306353724937964, result, 1e-6);
+
+		result := Stats_beta_continued_fraction(a:=0.7, b:=3.3, x:=0.9);
+		EXPECT_NEAR(872.660482645349475, result, 1e-6);
+	{end}
+END_TEST_S

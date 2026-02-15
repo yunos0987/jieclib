@@ -1,0 +1,392 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/descriptive/test_standard_error.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/descriptive/test_standard_error.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/descriptive/standard_error.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_standard_error_mean',
+		'test_stats_standard_error_proportion',
+		'test_stats_standard_error_difference_of_means',
+		'test_stats_standard_error_difference',
+		'test_stats_standard_error_regression'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_stats_standard_error_mean)
+	var
+		x_basic: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		x_small: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		x_large: array[0..9] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
+		x_identical: array[0..4] of lreal := [5.0, 5.0, 5.0, 5.0, 5.0];
+		x_negative: array[0..3] of lreal := [-10.0, -5.0, 0.0, 5.0];
+		x_fractional: array[0..3] of lreal := [1.1, 2.2, 3.3, 4.4];
+		x_large_var: array[0..4] of lreal := [1.0, 10.0, 100.0, 1000.0, 10000.0];
+		x_two: array[0..1] of lreal := [10.0, 20.0];
+		x_spread: array[0..5] of lreal := [0.0, 20.0, 40.0, 60.0, 80.0, 100.0];
+		x_close: array[0..4] of lreal := [10.0, 10.1, 10.2, 10.3, 10.4];
+		x_single: array[0..0] of lreal := [5.0];
+		result, se_small, se_large: lreal;
+		result_eno: bool;
+	end
+	{st}
+		result := Stats_standard_error_mean(data:=x_basic);
+		EXPECT_NEAR(0.707106781187, result, 1.0e-9);
+
+		result := Stats_standard_error_mean(data:=x_small);
+		EXPECT_NEAR(0.577350269190, result, 1.0e-9);
+
+		result := Stats_standard_error_mean(data:=x_large);
+		EXPECT_NEAR(0.957427107756, result, 1.0e-9);
+
+		se_small := Stats_standard_error_mean(data:=x_small);
+		se_large := Stats_standard_error_mean(data:=x_large);
+		EXPECT_NEAR(0.577350269190, se_small, 1.0e-9);
+		EXPECT_NEAR(0.957427107756, se_large, 1.0e-9);
+		EXPECT_GT_LREAL(se_large, se_small);
+
+		result := Stats_standard_error_mean(data:=x_identical);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		result := Stats_standard_error_mean(data:=x_negative);
+		EXPECT_NEAR(3.227486121840, result, 1.0e-9);
+
+		result := Stats_standard_error_mean(data:=x_fractional);
+		EXPECT_NEAR(0.710046946805, result, 1.0e-9);
+
+		result := Stats_standard_error_mean(data:=x_large_var);
+		EXPECT_NEAR(1953.448704215189, result, 1.0e-6);
+
+		result := Stats_standard_error_mean(data:=x_two);
+		EXPECT_NEAR(5.0, result, EPS);
+
+		result := Stats_standard_error_mean(data:=x_spread);
+		EXPECT_NEAR(15.275252316519, result, 1.0e-9);
+
+		result := Stats_standard_error_mean(data:=x_close);
+		EXPECT_NEAR(0.070710678119, result, 1.0e-9);
+
+		// Failure case: Single element (n<2)
+		result := Stats_standard_error_mean(data:=x_single, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_standard_error_proportion)
+	var
+		result: lreal;
+		result_eno: bool;
+	end
+	{st}
+		result := Stats_standard_error_proportion(p:=0.5, n:=100);
+		EXPECT_NEAR(0.050000000000, result, 1.0e-9);
+
+		result := Stats_standard_error_proportion(p:=0.2, n:=50);
+		EXPECT_NEAR(0.056568542495, result, 1.0e-9);
+
+		result := Stats_standard_error_proportion(p:=0.1, n:=100);
+		EXPECT_NEAR(0.030000000000, result, 1.0e-9);
+
+		result := Stats_standard_error_proportion(p:=0.9, n:=100);
+		EXPECT_NEAR(0.030000000000, result, 1.0e-9);
+
+		result := Stats_standard_error_proportion(p:=0.0, n:=100);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		result := Stats_standard_error_proportion(p:=1.0, n:=100);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		result := Stats_standard_error_proportion(p:=0.5, n:=1000);
+		EXPECT_NEAR(0.015811388301, result, 1.0e-9);
+
+		result := Stats_standard_error_proportion(p:=0.5, n:=10);
+		EXPECT_NEAR(0.158113883008, result, 1.0e-9);
+
+		result := Stats_standard_error_proportion(p:=0.3, n:=200);
+		EXPECT_NEAR(0.032403703492, result, 1.0e-9);
+
+		result := Stats_standard_error_proportion(p:=0.6, n:=250);
+		EXPECT_NEAR(0.030983866770, result, 1.0e-9);
+
+		result := Stats_standard_error_proportion(p:=0.25, n:=400);
+		EXPECT_NEAR(0.021650635095, result, 1.0e-9);
+
+		result := Stats_standard_error_proportion(p:=0.75, n:=400);
+		EXPECT_NEAR(0.021650635095, result, 1.0e-9);
+
+		// Failure case: p < 0
+		result := Stats_standard_error_proportion(p:=-0.1, n:=100, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+
+		// Failure case: p > 1
+		result := Stats_standard_error_proportion(p:=1.1, n:=100, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+
+		// Failure case: n = 0
+		result := Stats_standard_error_proportion(p:=0.5, n:=0, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+
+		// Failure case: n < 0
+		result := Stats_standard_error_proportion(p:=0.5, n:=-10, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_standard_error_difference_of_means)
+	var
+		x_basic: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		y_basic: array[0..4] of lreal := [3.0, 4.0, 5.0, 6.0, 7.0];
+		x_equal: array[0..2] of lreal := [10.0, 12.0, 14.0];
+		y_equal: array[0..2] of lreal := [11.0, 13.0, 15.0];
+		x_unequal: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		y_unequal: array[0..2] of lreal := [10.0, 11.0, 12.0];
+		x_identical: array[0..3] of lreal := [5.0, 5.0, 5.0, 5.0];
+		y_identical: array[0..3] of lreal := [7.0, 7.0, 7.0, 7.0];
+		x_negative: array[0..2] of lreal := [-5.0, -3.0, -1.0];
+		y_negative: array[0..2] of lreal := [-10.0, -8.0, -6.0];
+		x_large: array[0..5] of lreal := [100.0, 200.0, 300.0, 400.0, 500.0, 600.0];
+		y_large: array[0..5] of lreal := [150.0, 250.0, 350.0, 450.0, 550.0, 650.0];
+		x_two: array[0..1] of lreal := [10.0, 20.0];
+		y_two: array[0..1] of lreal := [15.0, 25.0];
+		x_small_var: array[0..3] of lreal := [10.0, 10.1, 10.2, 10.3];
+		y_small_var: array[0..3] of lreal := [20.0, 20.1, 20.2, 20.3];
+		x_mixed: array[0..4] of lreal := [1.0, 5.0, 10.0, 15.0, 20.0];
+		y_mixed: array[0..3] of lreal := [2.0, 4.0, 6.0, 8.0];
+		x_single: array[0..0] of lreal := [5.0];
+		result: lreal;
+		result_eno: bool;
+	end
+	{st}
+		result := Stats_standard_error_difference_of_means(x:=x_basic, y:=y_basic);
+		EXPECT_NEAR(1.0, result, EPS);
+
+		result := Stats_standard_error_difference_of_means(x:=x_equal, y:=y_equal);
+		EXPECT_NEAR(1.632993161855, result, 1.0e-9);
+
+		result := Stats_standard_error_difference_of_means(x:=x_unequal, y:=y_unequal);
+		EXPECT_NEAR(1.032795558989, result, 1.0e-9);
+
+		result := Stats_standard_error_difference_of_means(x:=x_identical, y:=y_identical);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		result := Stats_standard_error_difference_of_means(x:=x_negative, y:=y_negative);
+		EXPECT_NEAR(1.632993161855, result, 1.0e-9);
+
+		result := Stats_standard_error_difference_of_means(x:=x_large, y:=y_large);
+		EXPECT_NEAR(108.012344973464, result, 1.0e-9);
+
+		result := Stats_standard_error_difference_of_means(x:=x_two, y:=y_two);
+		EXPECT_NEAR(7.071067811865, result, 1.0e-9);
+
+		result := Stats_standard_error_difference_of_means(x:=x_small_var, y:=y_small_var);
+		EXPECT_NEAR(0.091287092918, result, 1.0e-9);
+
+		result := Stats_standard_error_difference_of_means(x:=x_mixed, y:=y_mixed);
+		EXPECT_NEAR(4.015327775270, result, 1.0e-9);
+
+		result := Stats_standard_error_difference_of_means(x:=x_basic, y:=x_basic);
+		EXPECT_NEAR(1.000000000000, result, 1.0e-9);
+
+		// Failure case: x with single element (n<2)
+		result := Stats_standard_error_difference_of_means(x:=x_single, y:=x_equal, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+
+		// Failure case: y with single element (n<2)
+		result := Stats_standard_error_difference_of_means(x:=x_equal, y:=x_single, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_standard_error_difference)
+	var
+		x1: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		y1: array[0..4] of lreal := [2.0, 3.0, 4.0, 5.0, 6.0];
+		x2: array[0..3] of lreal := [1.0, 2.0, 3.0, 4.0];
+		y2: array[0..2] of lreal := [10.0, 20.0, 30.0];
+		x3: array[0..4] of lreal := [5.0, 10.0, 15.0, 20.0, 25.0];
+		y3: array[0..2] of lreal := [7.0, 8.0, 9.0];
+		x_large_var: array[0..4] of lreal := [1.0, 10.0, 100.0, 1000.0, 10000.0];
+		y_small_var: array[0..3] of lreal := [5.0, 5.1, 5.2, 5.3];
+		x_equal_size: array[0..3] of lreal := [10.0, 20.0, 30.0, 40.0];
+		y_equal_size: array[0..3] of lreal := [15.0, 25.0, 35.0, 45.0];
+		x_negative: array[0..2] of lreal := [-10.0, -5.0, 0.0];
+		y_negative: array[0..2] of lreal := [-20.0, -15.0, -10.0];
+		x_identical: array[0..3] of lreal := [5.0, 5.0, 5.0, 5.0];
+		y_identical: array[0..3] of lreal := [7.0, 7.0, 7.0, 7.0];
+		x_basic: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		y_basic: array[0..4] of lreal := [3.0, 4.0, 5.0, 6.0, 7.0];
+		x_single: array[0..0] of lreal := [5.0];
+		result_pooled, result_welch: lreal;
+		result_eno: bool;
+	end
+	{st}
+		result_pooled := Stats_standard_error_difference(sample1:=x1, sample2:=y1, equal_var:=true);
+		EXPECT_NEAR(1.000000000000, result_pooled, 1.0e-9);
+
+		result_welch := Stats_standard_error_difference(sample1:=x1, sample2:=y1, equal_var:=false);
+		EXPECT_NEAR(1.000000000000, result_welch, 1.0e-9);
+
+		result_pooled := Stats_standard_error_difference(sample1:=x_basic, sample2:=y_basic, equal_var:=true);
+		EXPECT_NEAR(1.0, result_pooled, EPS);
+
+		result_welch := Stats_standard_error_difference(sample1:=x_basic, sample2:=y_basic, equal_var:=false);
+		EXPECT_NEAR(1.000000000000, result_welch, 1.0e-9);
+
+		result_welch := Stats_standard_error_difference(sample1:=x2, sample2:=y2, equal_var:=false);
+		EXPECT_NEAR(5.809475019311, result_welch, 1.0e-9);
+
+		result_welch := Stats_standard_error_difference(sample1:=x3, sample2:=y3, equal_var:=false);
+		EXPECT_NEAR(3.582364210034, result_welch, 1.0e-9);
+
+		result_pooled := Stats_standard_error_difference(sample1:=x_equal_size, sample2:=y_equal_size, equal_var:=true);
+		EXPECT_NEAR(9.128709291753, result_pooled, 1.0e-9);
+
+		result_welch := Stats_standard_error_difference(sample1:=x_equal_size, sample2:=y_equal_size, equal_var:=false);
+		EXPECT_NEAR(9.128709291753, result_welch, 1.0e-9);
+
+		result_pooled := Stats_standard_error_difference(sample1:=x_negative, sample2:=y_negative, equal_var:=true);
+		EXPECT_NEAR(4.082482904639, result_pooled, 1.0e-9);
+
+		result_welch := Stats_standard_error_difference(sample1:=x_negative, sample2:=y_negative, equal_var:=false);
+		EXPECT_NEAR(4.082482904639, result_welch, 1.0e-9);
+
+		result_pooled := Stats_standard_error_difference(sample1:=x_identical, sample2:=y_identical, equal_var:=true);
+		EXPECT_NEAR(0.0, result_pooled, EPS);
+
+		result_welch := Stats_standard_error_difference(sample1:=x_identical, sample2:=y_identical, equal_var:=false);
+		EXPECT_NEAR(0.0, result_welch, EPS);
+
+		// Failure case: sample1 with single element (pooled, n<2)
+		result_pooled := Stats_standard_error_difference(sample1:=x_single, sample2:=x_negative, equal_var:=true, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+
+		// Failure case: sample2 with single element (Welch, n<2)
+		result_welch := Stats_standard_error_difference(sample1:=x_negative, sample2:=x_single, equal_var:=false, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_standard_error_regression)
+	var
+		x_perfect: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		y_perfect: array[0..4] of lreal := [2.0, 4.0, 6.0, 8.0, 10.0];
+		x_noisy: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		y_noisy: array[0..4] of lreal := [2.1, 3.9, 6.2, 7.8, 10.1];
+		x_negative: array[0..3] of lreal := [-2.0, -1.0, 0.0, 1.0];
+		y_negative: array[0..3] of lreal := [-4.0, -2.0, 0.0, 2.0];
+		x_large: array[0..5] of lreal := [100.0, 200.0, 300.0, 400.0, 500.0, 600.0];
+		y_large: array[0..5] of lreal := [150.0, 250.0, 350.0, 450.0, 550.0, 650.0];
+		x_intercept: array[0..3] of lreal := [1.0, 2.0, 3.0, 4.0];
+		y_intercept: array[0..3] of lreal := [5.0, 7.0, 9.0, 11.0];
+		x_flat: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		y_flat: array[0..4] of lreal := [10.0, 10.1, 9.9, 10.2, 9.8];
+		x_scatter: array[0..6] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0];
+		y_scatter: array[0..6] of lreal := [2.5, 3.8, 6.1, 8.3, 9.7, 12.2, 14.1];
+		x_reverse: array[0..3] of lreal := [4.0, 3.0, 2.0, 1.0];
+		y_reverse: array[0..3] of lreal := [8.0, 6.0, 4.0, 2.0];
+		x_close: array[0..4] of lreal := [10.0, 10.1, 10.2, 10.3, 10.4];
+		y_close: array[0..4] of lreal := [5.0, 5.2, 5.4, 5.6, 5.8];
+		x_wide: array[0..4] of lreal := [0.0, 25.0, 50.0, 75.0, 100.0];
+		y_wide: array[0..4] of lreal := [10.0, 35.0, 60.0, 85.0, 110.0];
+		x_negative_slope: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		y_negative_slope: array[0..4] of lreal := [10.0, 8.0, 6.0, 4.0, 2.0];
+		x_negative_noisy: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		y_negative_noisy: array[0..4] of lreal := [9.9, 8.1, 5.8, 4.2, 2.1];
+		x_zero_intercept: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		y_zero_intercept: array[0..4] of lreal := [2.1, 3.9, 6.1, 7.9, 10.2];
+		x_centered: array[0..4] of lreal := [-2.0, -1.0, 0.0, 1.0, 2.0];
+		y_centered: array[0..4] of lreal := [-4.0, -2.0, 0.1, 2.0, 4.0];
+		x_centered_perfect: array[0..4] of lreal := [-2.0, -1.0, 0.0, 1.0, 2.0];
+		y_centered_perfect: array[0..4] of lreal := [-4.0, -2.0, 0.0, 2.0, 4.0];
+		x_two: array[0..1] of lreal := [1.0, 2.0];
+		y_two: array[0..1] of lreal := [3.0, 4.0];
+		x_three: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		y_three: array[0..2] of lreal := [2.0, 4.0, 6.0];
+		y_four: array[0..3] of lreal := [2.0, 4.0, 6.0, 8.0];
+		x_identical: array[0..3] of lreal := [5.0, 5.0, 5.0, 5.0];
+		y_varied: array[0..3] of lreal := [1.0, 2.0, 3.0, 4.0];
+		se_slope, se_intercept: lreal;
+		result_eno: bool;
+	end
+	{st}
+		Stats_standard_error_regression(x:=x_perfect, y:=y_perfect, se_slope=>se_slope, se_intercept=>se_intercept);
+		EXPECT_NEAR(0.0, se_slope, 1.0e-12);
+		EXPECT_NEAR(0.0, se_intercept, 1.0e-12);
+
+		Stats_standard_error_regression(x:=x_noisy, y:=y_noisy, se_slope=>se_slope, se_intercept=>se_intercept);
+		EXPECT_NEAR(0.059721576224, se_slope, 1.0e-9);
+		EXPECT_NEAR(0.198074060223, se_intercept, 1.0e-9);
+
+		Stats_standard_error_regression(x:=x_negative, y:=y_negative, se_slope=>se_slope, se_intercept=>se_intercept);
+		EXPECT_NEAR(0.0, se_slope, 1.0e-12);
+		EXPECT_NEAR(0.0, se_intercept, 1.0e-12);
+
+		Stats_standard_error_regression(x:=x_large, y:=y_large, se_slope=>se_slope, se_intercept=>se_intercept);
+		EXPECT_NEAR(0.0, se_slope, 1.0e-12);
+		EXPECT_NEAR(0.0, se_intercept, 1.0e-11);
+
+		Stats_standard_error_regression(x:=x_intercept, y:=y_intercept, se_slope=>se_slope, se_intercept=>se_intercept);
+		EXPECT_NEAR(0.0, se_slope, 1.0e-12);
+		EXPECT_NEAR(0.0, se_intercept, 1.0e-12);
+
+		Stats_standard_error_regression(x:=x_flat, y:=y_flat, se_slope=>se_slope, se_intercept=>se_intercept);
+		EXPECT_NEAR(0.055075705473, se_slope, 1.0e-9);
+		EXPECT_NEAR(0.182665450118, se_intercept, 1.0e-9);
+
+		Stats_standard_error_regression(x:=x_scatter, y:=y_scatter, se_slope=>se_slope, se_intercept=>se_intercept);
+		EXPECT_NEAR(0.055878877759, se_slope, 1.0e-9);
+		EXPECT_NEAR(0.249897938351, se_intercept, 1.0e-9);
+
+		Stats_standard_error_regression(x:=x_reverse, y:=y_reverse, se_slope=>se_slope, se_intercept=>se_intercept);
+		EXPECT_NEAR(0.0, se_slope, 1.0e-12);
+		EXPECT_NEAR(0.0, se_intercept, 1.0e-12);
+
+		Stats_standard_error_regression(x:=x_close, y:=y_close, se_slope=>se_slope, se_intercept=>se_intercept);
+		EXPECT_NEAR(0.0, se_slope, 1.0e-12);
+		EXPECT_NEAR(0.0, se_intercept, 1.0e-11);
+
+		Stats_standard_error_regression(x:=x_wide, y:=y_wide, se_slope=>se_slope, se_intercept=>se_intercept);
+		EXPECT_NEAR(0.0, se_slope, 1.0e-12);
+		EXPECT_NEAR(0.0, se_intercept, 1.0e-11);
+
+		Stats_standard_error_regression(x:=x_negative_slope, y:=y_negative_slope, se_slope=>se_slope, se_intercept=>se_intercept);
+		EXPECT_NEAR(0.0, se_slope, 1.0e-12);
+		EXPECT_NEAR(0.0, se_intercept, 1.0e-12);
+
+		Stats_standard_error_regression(x:=x_negative_noisy, y:=y_negative_noisy, se_slope=>se_slope, se_intercept=>se_intercept);
+		EXPECT_NEAR(0.052599112794, se_slope, 1.0e-9);
+		EXPECT_NEAR(0.174451521442, se_intercept, 1.0e-9);
+
+		Stats_standard_error_regression(x:=x_zero_intercept, y:=y_zero_intercept, se_slope=>se_slope, se_intercept=>se_intercept);
+		EXPECT_NEAR(0.047609522857, se_slope, 1.0e-9);
+		EXPECT_NEAR(0.157902923764, se_intercept, 1.0e-9);
+
+		Stats_standard_error_regression(x:=x_centered, y:=y_centered, se_slope=>se_slope, se_intercept=>se_intercept);
+		EXPECT_NEAR(0.016329931619, se_slope, 1.0e-9);
+		EXPECT_NEAR(0.023094010768, se_intercept, 1.0e-9);
+
+		Stats_standard_error_regression(x:=x_centered_perfect, y:=y_centered_perfect, se_slope=>se_slope, se_intercept=>se_intercept);
+		EXPECT_NEAR(0.0, se_slope, 1.0e-12);
+		EXPECT_NEAR(0.0, se_intercept, 1.0e-12);
+
+		// Failure case: n < 3 (two elements)
+		Stats_standard_error_regression(x:=x_two, y:=y_two, se_slope=>se_slope, se_intercept=>se_intercept, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+
+		// Failure case: Size mismatch
+		Stats_standard_error_regression(x:=x_three, y:=y_four, se_slope=>se_slope, se_intercept=>se_intercept, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+
+		// Failure case: All x identical (ss_x = 0)
+		Stats_standard_error_regression(x:=x_identical, y:=y_varied, se_slope=>se_slope, se_intercept=>se_intercept, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+	{end}
+END_TEST_S
+
+{#undef EPS}

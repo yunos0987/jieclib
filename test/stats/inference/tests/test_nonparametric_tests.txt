@@ -1,0 +1,404 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/inference/tests/test_nonparametric_tests.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/inference/tests/test_nonparametric_tests.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/inference/tests/nonparametric_tests.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_mann_whitney_u',
+		'test_stats_wilcoxon_signed_rank'
+	)
+)
+{#endif}
+
+TEST_S(test_stats_mann_whitney_u)
+	var
+		case1_x: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		case1_y: array[0..4] of lreal := [6.0, 7.0, 8.0, 9.0, 10.0];
+		result: Stats_TestResult;
+		case2_x: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		case2_y: array[0..4] of lreal := [1.5, 2.5, 3.5, 4.5, 5.5];
+		result2: Stats_TestResult;
+		case3_x: array[0..5] of lreal := [10.0, 12.0, 14.0, 16.0, 18.0, 20.0];
+		case3_y: array[0..5] of lreal := [5.0, 7.0, 9.0, 11.0, 13.0, 15.0];
+		result3: Stats_TestResult;
+		case4_x: array[0..3] of lreal := [100.0, 101.0, 102.0, 103.0];
+		case4_y: array[0..3] of lreal := [100.5, 101.5, 102.5, 103.5];
+		result4: Stats_TestResult;
+		case5_x: array[0..2] of lreal := [1.0, 1.0, 1.0];
+		case5_y: array[0..2] of lreal := [2.0, 2.0, 2.0];
+		result5: Stats_TestResult;
+		case6_x: array[0..1] of lreal := [1.0, 2.0];
+		case6_y: array[0..1] of lreal := [3.0, 4.0];
+		result6: Stats_TestResult;
+		case7_x: array[0..6] of lreal := [1.0, 3.0, 5.0, 7.0, 9.0, 11.0, 13.0];
+		case7_y: array[0..6] of lreal := [2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0];
+		result7: Stats_TestResult;
+		case8_x: array[0..4] of lreal := [0.1, 0.2, 0.3, 0.4, 0.5];
+		case8_y: array[0..4] of lreal := [0.6, 0.7, 0.8, 0.9, 1.0];
+		result8: Stats_TestResult;
+		case9_x: array[0..3] of lreal := [10.0, 20.0, 30.0, 40.0];
+		case9_y: array[0..3] of lreal := [15.0, 25.0, 35.0, 45.0];
+		result9: Stats_TestResult;
+		case10_x: array[0..2] of lreal := [1000.0, 2000.0, 3000.0];
+		case10_y: array[0..2] of lreal := [1500.0, 2500.0, 3500.0];
+		result10: Stats_TestResult;
+		case11_x: array[0..14] of lreal := [5.1, 5.3, 5.0, 5.2, 5.4, 5.6, 5.8, 5.5, 5.7, 5.9, 6.0, 5.2, 5.1, 5.4, 5.6];
+		case11_y: array[0..14] of lreal := [6.5, 6.7, 6.3, 6.8, 7.0, 7.2, 6.6, 7.1, 6.4, 7.3, 7.4, 7.5, 6.9, 7.6, 7.7];
+		result11: Stats_TestResult;
+		mw_combined_work: array[0..999] of lreal;
+		mw_ranks_work: array[0..999] of lreal;
+		mw_rank_sort_work: array[0..999] of lreal;
+		mw_rank_idx_work: array[0..999] of dint;
+		stat_tol: lreal := 1.0e-6;
+		pvalue_tol: lreal := 1.0e-4; // CODING_RULES: 統計p値の検証はabs_error=1.0e-4
+	end
+	{st}
+		// Case 1: Different groups - p値は小さいはず
+		Stats_mann_whitney_u(
+			x:=case1_x,
+			y:=case1_y,
+			combined_work:=mw_combined_work,
+			ranks_work:=mw_ranks_work,
+			rank_sort_work:=mw_rank_sort_work,
+			rank_idx_work:=mw_rank_idx_work,
+			result:=result
+		);
+		EXPECT_NEAR(0.0, result.statistic, stat_tol);
+		EXPECT_NEAR(0.00902343881808032, result.pvalue, pvalue_tol);
+
+		// Case 2: Similar groups
+		Stats_mann_whitney_u(
+			x:=case2_x,
+			y:=case2_y,
+			combined_work:=mw_combined_work,
+			ranks_work:=mw_ranks_work,
+			rank_sort_work:=mw_rank_sort_work,
+			rank_idx_work:=mw_rank_idx_work,
+			result:=result2
+		);
+		EXPECT_NEAR(10.0, result2.statistic, stat_tol);
+		EXPECT_NEAR(0.6015081344405899, result2.pvalue, pvalue_tol);
+
+		// Case 3: Clearly different groups
+		Stats_mann_whitney_u(
+			x:=case3_x,
+			y:=case3_y,
+			combined_work:=mw_combined_work,
+			ranks_work:=mw_ranks_work,
+			rank_sort_work:=mw_rank_sort_work,
+			rank_idx_work:=mw_rank_idx_work,
+			result:=result3
+		);
+		EXPECT_NEAR(6.0, result3.statistic, stat_tol);
+		EXPECT_NEAR(0.054663935891675175, result3.pvalue, pvalue_tol);
+
+		// Case 4: Overlapping groups
+		Stats_mann_whitney_u(
+			x:=case4_x,
+			y:=case4_y,
+			combined_work:=mw_combined_work,
+			ranks_work:=mw_ranks_work,
+			rank_sort_work:=mw_rank_sort_work,
+			rank_idx_work:=mw_rank_idx_work,
+			result:=result4
+		);
+		EXPECT_NEAR(6.0, result4.statistic, stat_tol);
+		EXPECT_NEAR(0.5637028616507731, result4.pvalue, pvalue_tol);
+
+		// Case 5: Identical values in groups
+		Stats_mann_whitney_u(
+			x:=case5_x,
+			y:=case5_y,
+			combined_work:=mw_combined_work,
+			ranks_work:=mw_ranks_work,
+			rank_sort_work:=mw_rank_sort_work,
+			rank_idx_work:=mw_rank_idx_work,
+			result:=result5
+		);
+		EXPECT_NEAR(0.0, result5.statistic, stat_tol);
+		EXPECT_NEAR(0.049534613435626595, result5.pvalue, pvalue_tol);
+
+		// Case 6: Small sample sizes
+		Stats_mann_whitney_u(
+			x:=case6_x,
+			y:=case6_y,
+			combined_work:=mw_combined_work,
+			ranks_work:=mw_ranks_work,
+			rank_sort_work:=mw_rank_sort_work,
+			rank_idx_work:=mw_rank_idx_work,
+			result:=result6
+		);
+		EXPECT_NEAR(0.0, result6.statistic, stat_tol);
+		EXPECT_NEAR(0.12133525035848214, result6.pvalue, pvalue_tol);
+
+		// Case 7: Larger sample sizes
+		Stats_mann_whitney_u(
+			x:=case7_x,
+			y:=case7_y,
+			combined_work:=mw_combined_work,
+			ranks_work:=mw_ranks_work,
+			rank_sort_work:=mw_rank_sort_work,
+			rank_idx_work:=mw_rank_idx_work,
+			result:=result7
+		);
+		EXPECT_NEAR(21.0, result7.statistic, stat_tol);
+		EXPECT_NEAR(0.6547208460185772, result7.pvalue, pvalue_tol);
+
+		// Case 8: Small values
+		Stats_mann_whitney_u(
+			x:=case8_x,
+			y:=case8_y,
+			combined_work:=mw_combined_work,
+			ranks_work:=mw_ranks_work,
+			rank_sort_work:=mw_rank_sort_work,
+			rank_idx_work:=mw_rank_idx_work,
+			result:=result8
+		);
+		EXPECT_NEAR(0.0, result8.statistic, stat_tol);
+		EXPECT_NEAR(0.00902343881808032, result8.pvalue, pvalue_tol);
+
+		// Case 9: Medium values
+		Stats_mann_whitney_u(
+			x:=case9_x,
+			y:=case9_y,
+			combined_work:=mw_combined_work,
+			ranks_work:=mw_ranks_work,
+			rank_sort_work:=mw_rank_sort_work,
+			rank_idx_work:=mw_rank_idx_work,
+			result:=result9
+		);
+		EXPECT_NEAR(6.0, result9.statistic, stat_tol);
+		EXPECT_NEAR(0.5637028616507731, result9.pvalue, pvalue_tol);
+
+		// Case 10: Large values
+		Stats_mann_whitney_u(
+			x:=case10_x,
+			y:=case10_y,
+			combined_work:=mw_combined_work,
+			ranks_work:=mw_ranks_work,
+			rank_sort_work:=mw_rank_sort_work,
+			rank_idx_work:=mw_rank_idx_work,
+			result:=result10
+		);
+		EXPECT_NEAR(3.0, result10.statistic, stat_tol);
+		EXPECT_NEAR(0.5126907602619235, result10.pvalue, pvalue_tol);
+
+		// Case 11: Sample size ~30 across groups
+		Stats_mann_whitney_u(
+			x:=case11_x,
+			y:=case11_y,
+			combined_work:=mw_combined_work,
+			ranks_work:=mw_ranks_work,
+			rank_sort_work:=mw_rank_sort_work,
+			rank_idx_work:=mw_rank_idx_work,
+			result:=result11
+		);
+		EXPECT_NEAR(0.0, result11.statistic, stat_tol);
+		EXPECT_NEAR(3.066977765420198e-06, result11.pvalue, pvalue_tol);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_wilcoxon_signed_rank)
+	var
+		case1_x: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		case1_y: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		result: Stats_TestResult;
+		case2_x: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		case2_y: array[0..4] of lreal := [1.1, 2.1, 3.1, 4.1, 5.1];
+		result2: Stats_TestResult;
+		case3_x: array[0..5] of lreal := [10.0, 11.0, 12.0, 13.0, 14.0, 15.0];
+		case3_y: array[0..5] of lreal := [12.0, 13.0, 14.0, 15.0, 16.0, 17.0];
+		result3: Stats_TestResult;
+		case4_x: array[0..4] of lreal := [5.0, 6.0, 7.0, 8.0, 9.0];
+		case4_y: array[0..4] of lreal := [4.9, 6.1, 6.9, 8.1, 9.0];
+		result4: Stats_TestResult;
+		case5_x: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		case5_y: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		result5: Stats_TestResult;
+		case6_x: array[0..1] of lreal := [1.0, 2.0];
+		case6_y: array[0..1] of lreal := [1.5, 2.5];
+		result6: Stats_TestResult;
+		case7_x: array[0..6] of lreal := [1.0, 3.0, 5.0, 7.0, 9.0, 11.0, 13.0];
+		case7_y: array[0..6] of lreal := [2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0];
+		result7: Stats_TestResult;
+		case8_x: array[0..4] of lreal := [0.1, 0.2, 0.3, 0.4, 0.5];
+		case8_y: array[0..4] of lreal := [0.15, 0.25, 0.35, 0.45, 0.55];
+		result8: Stats_TestResult;
+		case9_x: array[0..3] of lreal := [10.0, 20.0, 30.0, 40.0];
+		case9_y: array[0..3] of lreal := [11.0, 21.0, 31.0, 41.0];
+		result9: Stats_TestResult;
+		case10_x: array[0..2] of lreal := [1000.0, 2000.0, 3000.0];
+		case10_y: array[0..2] of lreal := [1100.0, 2100.0, 3100.0];
+		result10: Stats_TestResult;
+		case11_x: array[0..14] of lreal := [10.0, 11.5, 12.0, 13.5, 14.0, 15.5, 16.0, 17.5, 18.0, 19.5, 20.0, 21.5, 22.0, 23.5, 24.0];
+		case11_y: array[0..14] of lreal := [10.5, 11.0, 12.5, 13.0, 14.5, 15.0, 16.5, 17.0, 18.5, 19.0, 20.5, 21.0, 22.5, 23.0, 24.5];
+		result11: Stats_TestResult;
+		wsr_diff_work: array[0..999] of lreal;
+		wsr_abs_diff_work: array[0..999] of lreal;
+		wsr_ranks_work: array[0..999] of lreal;
+		wsr_rank_sort_work: array[0..999] of lreal;
+		wsr_rank_idx_work: array[0..999] of dint;
+		stat_tol: lreal := 1.0e-6;
+		pvalue_tol: lreal := 1.0e-4; // CODING_RULES: 統計p値の検証はabs_error=1.0e-4
+		result_eno: bool;
+	end
+	{st}
+		// Case 1: Zero difference - 同じデータ
+		Stats_wilcoxon_signed_rank(
+			x:=case1_x,
+			y:=case1_y,
+			diff_work:=wsr_diff_work,
+			abs_diff_work:=wsr_abs_diff_work,
+			ranks_work:=wsr_ranks_work,
+			rank_sort_work:=wsr_rank_sort_work,
+			rank_idx_work:=wsr_rank_idx_work,
+			result:=result,
+			eno=>result_eno
+		);
+		EXPECT_FALSE(result_eno);
+
+		// Case 2: Small differences
+		Stats_wilcoxon_signed_rank(
+			x:=case2_x,
+			y:=case2_y,
+			diff_work:=wsr_diff_work,
+			abs_diff_work:=wsr_abs_diff_work,
+			ranks_work:=wsr_ranks_work,
+			rank_sort_work:=wsr_rank_sort_work,
+			rank_idx_work:=wsr_rank_idx_work,
+			result:=result2
+		);
+		EXPECT_NEAR(0.0, result2.statistic, stat_tol);
+		EXPECT_NEAR(0.0431144467830753, result2.pvalue, pvalue_tol);
+
+		// Case 3: Consistent difference
+		Stats_wilcoxon_signed_rank(
+			x:=case3_x,
+			y:=case3_y,
+			diff_work:=wsr_diff_work,
+			abs_diff_work:=wsr_abs_diff_work,
+			ranks_work:=wsr_ranks_work,
+			rank_sort_work:=wsr_rank_sort_work,
+			rank_idx_work:=wsr_rank_idx_work,
+			result:=result3
+		);
+		EXPECT_NEAR(0.0, result3.statistic, stat_tol);
+		EXPECT_NEAR(0.027707849358079906, result3.pvalue, pvalue_tol);
+
+		// Case 4: Small differences between pairs
+		Stats_wilcoxon_signed_rank(
+			x:=case4_x,
+			y:=case4_y,
+			diff_work:=wsr_diff_work,
+			abs_diff_work:=wsr_abs_diff_work,
+			ranks_work:=wsr_ranks_work,
+			rank_sort_work:=wsr_rank_sort_work,
+			rank_idx_work:=wsr_rank_idx_work,
+			result:=result4
+		);
+		EXPECT_NEAR(5.0, result4.statistic, stat_tol);
+		EXPECT_NEAR(1.0, result4.pvalue, pvalue_tol);
+
+		// Case 5: Identical pairs
+		Stats_wilcoxon_signed_rank(
+			x:=case5_x,
+			y:=case5_y,
+			diff_work:=wsr_diff_work,
+			abs_diff_work:=wsr_abs_diff_work,
+			ranks_work:=wsr_ranks_work,
+			rank_sort_work:=wsr_rank_sort_work,
+			rank_idx_work:=wsr_rank_idx_work,
+			result:=result5,
+			eno=>result_eno
+		);
+		EXPECT_FALSE(result_eno);
+
+		// Case 6: Small sample sizes
+		Stats_wilcoxon_signed_rank(
+			x:=case6_x,
+			y:=case6_y,
+			diff_work:=wsr_diff_work,
+			abs_diff_work:=wsr_abs_diff_work,
+			ranks_work:=wsr_ranks_work,
+			rank_sort_work:=wsr_rank_sort_work,
+			rank_idx_work:=wsr_rank_idx_work,
+			result:=result6
+		);
+		EXPECT_NEAR(0.0, result6.statistic, stat_tol);
+		EXPECT_NEAR(0.17971249487899976, result6.pvalue, pvalue_tol);
+
+		// Case 7: Larger sample sizes
+		Stats_wilcoxon_signed_rank(
+			x:=case7_x,
+			y:=case7_y,
+			diff_work:=wsr_diff_work,
+			abs_diff_work:=wsr_abs_diff_work,
+			ranks_work:=wsr_ranks_work,
+			rank_sort_work:=wsr_rank_sort_work,
+			rank_idx_work:=wsr_rank_idx_work,
+			result:=result7
+		);
+		EXPECT_NEAR(0.0, result7.statistic, stat_tol);
+		EXPECT_NEAR(0.017960477526078766, result7.pvalue, pvalue_tol);
+
+		// Case 8: Small values
+		Stats_wilcoxon_signed_rank(
+			x:=case8_x,
+			y:=case8_y,
+			diff_work:=wsr_diff_work,
+			abs_diff_work:=wsr_abs_diff_work,
+			ranks_work:=wsr_ranks_work,
+			rank_sort_work:=wsr_rank_sort_work,
+			rank_idx_work:=wsr_rank_idx_work,
+			result:=result8
+		);
+		EXPECT_NEAR(0.0, result8.statistic, stat_tol);
+		EXPECT_NEAR(0.0431144467830753, result8.pvalue, pvalue_tol);
+
+		// Case 9: Medium values
+		Stats_wilcoxon_signed_rank(
+			x:=case9_x,
+			y:=case9_y,
+			diff_work:=wsr_diff_work,
+			abs_diff_work:=wsr_abs_diff_work,
+			ranks_work:=wsr_ranks_work,
+			rank_sort_work:=wsr_rank_sort_work,
+			rank_idx_work:=wsr_rank_idx_work,
+			result:=result9
+		);
+		EXPECT_NEAR(0.0, result9.statistic, stat_tol);
+		EXPECT_NEAR(0.067889154861829, result9.pvalue, pvalue_tol);
+
+		// Case 10: Large values
+		Stats_wilcoxon_signed_rank(
+			x:=case10_x,
+			y:=case10_y,
+			diff_work:=wsr_diff_work,
+			abs_diff_work:=wsr_abs_diff_work,
+			ranks_work:=wsr_ranks_work,
+			rank_sort_work:=wsr_rank_sort_work,
+			rank_idx_work:=wsr_rank_idx_work,
+			result:=result10
+		);
+		EXPECT_NEAR(0.0, result10.statistic, stat_tol);
+		EXPECT_NEAR(0.10880943004054566, result10.pvalue, pvalue_tol);
+
+		// Case 11: Sample size ~30 paired observations
+		Stats_wilcoxon_signed_rank(
+			x:=case11_x,
+			y:=case11_y,
+			diff_work:=wsr_diff_work,
+			abs_diff_work:=wsr_abs_diff_work,
+			ranks_work:=wsr_ranks_work,
+			rank_sort_work:=wsr_rank_sort_work,
+			rank_idx_work:=wsr_rank_idx_work,
+			result:=result11
+		);
+		EXPECT_NEAR(56.0, result11.statistic, stat_tol);
+		EXPECT_NEAR(0.8202800980995039, result11.pvalue, pvalue_tol);
+	{end}
+END_TEST_S

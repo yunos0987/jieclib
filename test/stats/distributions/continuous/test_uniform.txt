@@ -1,0 +1,199 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/distributions/continuous/test_uniform.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/distributions/continuous/test_uniform.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/distributions/continuous/uniform.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_uniform_pdf',
+		'test_stats_uniform_cdf',
+		'test_stats_uniform_ppf',
+		'test_stats_uniform_mean',
+		'test_stats_uniform_variance'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_stats_uniform_pdf)
+	var result: lreal; end
+	{st}
+		// PDF on [0,1]: f(x) = 1 for x in [0,1]
+		result := Stats_uniform_pdf(x:=0.5, a:=0.0, b:=1.0);
+		EXPECT_NEAR(1.0, result, EPS);
+
+		// PDF on [2,6]: f(x) = 1/(6-2) = 0.25
+		result := Stats_uniform_pdf(x:=3.0, a:=2.0, b:=6.0);
+		EXPECT_NEAR(0.25, result, EPS);
+		// PDF on [-3,5]: width=8 => 0.125
+		result := Stats_uniform_pdf(x:=1.0, a:=-3.0, b:=5.0);
+		EXPECT_NEAR(0.125, result, EPS);
+		// Narrow interval [10,10.5]: width=0.5 => 2.0
+		result := Stats_uniform_pdf(x:=10.2, a:=10.0, b:=10.5);
+		EXPECT_NEAR(2.0, result, EPS);
+
+		// PDF outside interval should be 0
+		result := Stats_uniform_pdf(x:=1.5, a:=0.0, b:=1.0);
+		EXPECT_NEAR(0.0, result, EPS);
+		result := Stats_uniform_pdf(x:=-4.0, a:=-3.0, b:=5.0);
+		EXPECT_NEAR(0.0, result, EPS);
+		result := Stats_uniform_pdf(x:=6.1, a:=0.0, b:=6.0);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// Standard uniform [0,1] tests
+		result := Stats_uniform_pdf(x:=0.3, a:=0.0, b:=1.0);
+		EXPECT_NEAR(1.0, result, EPS);
+		result := Stats_uniform_pdf(x:=0.0, a:=0.0, b:=1.0);
+		EXPECT_NEAR(1.0, result, EPS);
+		result := Stats_uniform_pdf(x:=1.0, a:=0.0, b:=1.0);
+		EXPECT_NEAR(1.0, result, EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_uniform_cdf)
+	var result: lreal; end
+	{st}
+		// CDF at lower bound
+		result := Stats_uniform_cdf(x:=0.0, a:=0.0, b:=1.0);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// CDF at midpoint
+		result := Stats_uniform_cdf(x:=0.5, a:=0.0, b:=1.0);
+		EXPECT_NEAR(0.5, result, EPS);
+
+		// CDF at upper bound
+		result := Stats_uniform_cdf(x:=1.0, a:=0.0, b:=1.0);
+		EXPECT_NEAR(1.0, result, EPS);
+		// Below lower bound
+		result := Stats_uniform_cdf(x:=-0.5, a:=0.0, b:=1.0);
+		EXPECT_NEAR(0.0, result, EPS);
+		// Above upper bound
+		result := Stats_uniform_cdf(x:=1.5, a:=0.0, b:=1.0);
+		EXPECT_NEAR(1.0, result, EPS);
+
+		// CDF for [2,6] at x=4
+		result := Stats_uniform_cdf(x:=4.0, a:=2.0, b:=6.0);
+		EXPECT_NEAR(0.5, result, EPS);
+		result := Stats_uniform_cdf(x:=2.0, a:=2.0, b:=6.0);
+		EXPECT_NEAR(0.0, result, EPS);
+		result := Stats_uniform_cdf(x:=6.0, a:=2.0, b:=6.0);
+		EXPECT_NEAR(1.0, result, EPS);
+		result := Stats_uniform_cdf(x:=5.0, a:=2.0, b:=6.0);
+		EXPECT_NEAR(0.75, result, EPS);
+
+		result := Stats_uniform_cdf(x:=0.7, a:=0.0, b:=1.0);
+		EXPECT_NEAR(0.7, result, EPS);
+		// Other intervals
+		result := Stats_uniform_cdf(x:=1.0, a:=-3.0, b:=5.0);
+		EXPECT_NEAR(0.5, result, EPS);
+		result := Stats_uniform_cdf(x:=10.25, a:=10.0, b:=10.5);
+		EXPECT_NEAR(0.5, result, EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_uniform_ppf)
+	var result: lreal; end
+	{st}
+		// PPF(p=0) = a
+		result := Stats_uniform_ppf(p:=0.0, a:=0.0, b:=1.0);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// PPF(p=0.5) = (a+b)/2
+		result := Stats_uniform_ppf(p:=0.5, a:=0.0, b:=1.0);
+		EXPECT_NEAR(0.5, result, EPS);
+
+		// PPF(p=1) = b
+		result := Stats_uniform_ppf(p:=1.0, a:=0.0, b:=1.0);
+		EXPECT_NEAR(1.0, result, EPS);
+
+		// PPF for [2,6] at p=0.25
+		result := Stats_uniform_ppf(p:=0.25, a:=2.0, b:=6.0);
+		EXPECT_NEAR(3.0, result, EPS);
+
+		result := Stats_uniform_ppf(p:=0.2, a:=0.0, b:=1.0);
+		EXPECT_NEAR(0.2, result, EPS);
+		result := Stats_uniform_ppf(p:=0.75, a:=0.0, b:=1.0);
+		EXPECT_NEAR(0.75, result, EPS);
+		result := Stats_uniform_ppf(p:=0.1, a:=2.0, b:=6.0);
+		EXPECT_NEAR(2.4, result, EPS);
+		result := Stats_uniform_ppf(p:=0.6, a:=-3.0, b:=5.0);
+		EXPECT_NEAR(1.8, result, EPS);
+		result := Stats_uniform_ppf(p:=0.33, a:=10.0, b:=10.5);
+		EXPECT_NEAR(10.165, result, 1e-6);
+		result := Stats_uniform_ppf(p:=0.9, a:=-1.0, b:=1.0);
+		EXPECT_NEAR(0.8, result, EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_uniform_mean)
+	var mean_val: lreal; end
+	{st}
+		// Mean = (a+b)/2
+		mean_val := Stats_uniform_mean(a:=2.0, b:=6.0);
+		EXPECT_NEAR(4.0, mean_val, EPS);
+
+		// Standard case [0,1]
+		mean_val := Stats_uniform_mean(a:=0.0, b:=1.0);
+		EXPECT_NEAR(0.5, mean_val, EPS);
+
+		// Large interval [-10, 10]
+		mean_val := Stats_uniform_mean(a:=-10.0, b:=10.0);
+		EXPECT_NEAR(0.0, mean_val, EPS);
+
+		// Small interval [0, 0.1]
+		mean_val := Stats_uniform_mean(a:=0.0, b:=0.1);
+		EXPECT_NEAR(0.05, mean_val, EPS);
+
+		// Negative interval [-5, -2]
+		mean_val := Stats_uniform_mean(a:=-5.0, b:=-2.0);
+		EXPECT_NEAR(-3.5, mean_val, EPS);
+		// Other intervals
+		mean_val := Stats_uniform_mean(a:=-3.0, b:=5.0);
+		EXPECT_NEAR(1.0, mean_val, EPS);
+		mean_val := Stats_uniform_mean(a:=10.0, b:=10.5);
+		EXPECT_NEAR(10.25, mean_val, EPS);
+		mean_val := Stats_uniform_mean(a:=2.5, b:=2.6);
+		EXPECT_NEAR(2.55, mean_val, EPS);
+		mean_val := Stats_uniform_mean(a:=-1.0, b:=1.0);
+		EXPECT_NEAR(0.0, mean_val, EPS);
+		mean_val := Stats_uniform_mean(a:=100.0, b:=200.0);
+		EXPECT_NEAR(150.0, mean_val, EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_uniform_variance)
+	var variance_val: lreal; end
+	{st}
+		// Variance = (b-a)^2/12
+		variance_val := Stats_uniform_variance(a:=2.0, b:=6.0);
+		EXPECT_NEAR(1.3333333333, variance_val, 0.001);
+
+		variance_val := Stats_uniform_variance(a:=0.0, b:=1.0);
+		EXPECT_NEAR(0.0833333333, variance_val, 0.001);
+
+		variance_val := Stats_uniform_variance(a:=-10.0, b:=10.0);
+		EXPECT_NEAR(33.3333333333, variance_val, 0.001);
+
+		variance_val := Stats_uniform_variance(a:=0.0, b:=0.1);
+		EXPECT_NEAR(0.000833333333, variance_val, 0.00001);
+
+		variance_val := Stats_uniform_variance(a:=-5.0, b:=-2.0);
+		EXPECT_NEAR(0.75, variance_val, 0.001);
+		variance_val := Stats_uniform_variance(a:=-3.0, b:=5.0);
+		EXPECT_NEAR(5.3333333333, variance_val, 0.001);
+		variance_val := Stats_uniform_variance(a:=10.0, b:=10.5);
+		EXPECT_NEAR(0.0208333333, variance_val, 0.00001);
+		variance_val := Stats_uniform_variance(a:=2.5, b:=2.6);
+		EXPECT_NEAR(0.000833333333, variance_val, 0.00001);
+		variance_val := Stats_uniform_variance(a:=-1.0, b:=1.0);
+		EXPECT_NEAR(0.3333333333, variance_val, 0.001);
+		variance_val := Stats_uniform_variance(a:=100.0, b:=200.0);
+		EXPECT_NEAR(833.3333333333, variance_val, 0.001);
+	{end}
+END_TEST_S
+
+{#undef EPS}

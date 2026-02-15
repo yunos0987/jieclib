@@ -1,0 +1,249 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/distributions/continuous/test_exponential.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/distributions/continuous/test_exponential.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/distributions/continuous/exponential.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_exponential_pdf',
+		'test_stats_exponential_cdf',
+		'test_stats_exponential_ppf',
+		'test_stats_exponential_mean',
+		'test_stats_exponential_variance'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_stats_exponential_pdf)
+	var result: lreal; end
+	var result_lambda1: lreal; end
+	var result_lambda2: lreal; end
+	var result_lambda3: lreal; end
+	var result_lambda4: lreal; end
+	var result_lambda5: lreal; end
+	var result_neg: lreal; end
+	var result_zero: lreal; end
+	var result_large: lreal; end
+	var result_small: lreal; end
+	{st}
+		// PDF(x=0, lambda=1) = 1
+		result := Stats_exponential_pdf(x:=0.0, lambda:=1.0);
+		EXPECT_NEAR(1.0, result, EPS);
+
+		// PDF(x=1, lambda=1) = e^(-1) ≈0.3679
+		result := Stats_exponential_pdf(x:=1.0, lambda:=1.0);
+		EXPECT_NEAR(0.367879441171442, result, 0.0001);
+
+		// PDF(x=2, lambda=0.5) = 0.5*e^(-1) ≈0.1839
+		result := Stats_exponential_pdf(x:=2.0, lambda:=0.5);
+		EXPECT_NEAR(0.183939720585721, result, 0.0001);
+
+		// PDF(x=1, lambda=2)
+		result := Stats_exponential_pdf(x:=1.0, lambda:=2.0);
+		EXPECT_NEAR(0.270670566473225, result, 0.0001);
+
+		// PDF(x=0.5, lambda=1) = e^(-0.5)
+		result := Stats_exponential_pdf(x:=0.5, lambda:=1.0);
+		EXPECT_NEAR(0.606530659712633, result, 0.0001);
+
+		// PDF(x=3, lambda=1) = e^(-3)
+		result := Stats_exponential_pdf(x:=3.0, lambda:=1.0);
+		EXPECT_NEAR(0.049787068367863, result, 0.0001);
+
+		// PDF(x=0, lambda=2) = 2
+		result := Stats_exponential_pdf(x:=0.0, lambda:=2.0);
+		EXPECT_NEAR(2.0, result, EPS);
+
+		// PDF(x=0, lambda=0.5) = 0.5
+		result := Stats_exponential_pdf(x:=0.0, lambda:=0.5);
+		EXPECT_NEAR(0.5, result, EPS);
+
+		// PDF for negative x should be 0
+		result_neg := Stats_exponential_pdf(x:=-1.0, lambda:=1.0);
+		EXPECT_NEAR(0.0, result_neg, EPS);
+
+		// PDF for large x approaches 0
+		result_large := Stats_exponential_pdf(x:=10.0, lambda:=1.0);
+		EXPECT_TRUE(result_large < 0.001);
+
+		// PDF for small positive x is close to lambda
+		result_small := Stats_exponential_pdf(x:=0.001, lambda:=1.0);
+		EXPECT_TRUE(result_small < 1.0);
+		EXPECT_TRUE(result_small > 0.99);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_exponential_cdf)
+	var result: lreal; end
+	var cdf1: lreal; end
+	var cdf2: lreal; end
+	var cdf3: lreal; end
+	var cdf_zero: lreal; end
+	var cdf_large: lreal; end
+	var cdf_lambda1: lreal; end
+	var cdf_lambda2: lreal; end
+	var cdf_neg: lreal; end
+	{st}
+		// CDF(x=0, lambda=1) = 0
+		result := Stats_exponential_cdf(x:=0.0, lambda:=1.0);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// CDF(x=1, lambda=1) = 1-e^(-1) ≈0.6321
+		result := Stats_exponential_cdf(x:=1.0, lambda:=1.0);
+		EXPECT_NEAR(0.632120558828557, result, 0.0001);
+
+		// CDF(x=2, lambda=1) = 1-e^(-2)
+		result := Stats_exponential_cdf(x:=2.0, lambda:=1.0);
+		EXPECT_NEAR(0.864664716763387, result, 0.0001);
+
+		// CDF(x=0.5, lambda=1) = 1-e^(-0.5)
+		result := Stats_exponential_cdf(x:=0.5, lambda:=1.0);
+		EXPECT_NEAR(0.393469340287367, result, 0.0001);
+
+		// CDF(x=3, lambda=1) = 1-e^(-3)
+		result := Stats_exponential_cdf(x:=3.0, lambda:=1.0);
+		EXPECT_NEAR(0.950212931632137, result, 0.0001);
+
+		// CDF(x=1, lambda=2) = 1-e^(-2)
+		result := Stats_exponential_cdf(x:=1.0, lambda:=2.0);
+		EXPECT_NEAR(0.864664716763387, result, 0.0001);
+
+		// CDF(x=2, lambda=0.5) = 1-e^(-1)
+		result := Stats_exponential_cdf(x:=2.0, lambda:=0.5);
+		EXPECT_NEAR(0.632120558828557, result, 0.0001);
+
+		// CDF is monotonically increasing
+		cdf1 := Stats_exponential_cdf(x:=1.0, lambda:=1.0);
+		cdf2 := Stats_exponential_cdf(x:=2.0, lambda:=1.0);
+		cdf3 := Stats_exponential_cdf(x:=3.0, lambda:=1.0);
+		EXPECT_TRUE(cdf1 < cdf2);
+		EXPECT_TRUE(cdf2 < cdf3);
+
+		// CDF approaches 1 for large x
+		cdf_large := Stats_exponential_cdf(x:=10.0, lambda:=1.0);
+		EXPECT_GT_LREAL(cdf_large, 0.99);
+
+		// CDF for negative x should be 0
+		cdf_neg := Stats_exponential_cdf(x:=-1.0, lambda:=1.0);
+		EXPECT_NEAR(0.0, cdf_neg, EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_exponential_ppf)
+	var result: lreal; end
+	var ppf_0: lreal; end
+	var ppf_median: lreal; end
+	var ppf_90: lreal; end
+	var ppf_95: lreal; end
+	var ppf_99: lreal; end
+	var ppf_0_25: lreal; end
+	var ppf_0_75: lreal; end
+	var ppf_lambda2: lreal; end
+	var cdf_val: lreal; end
+	var inv_val: lreal; end
+	{st}
+		// PPF(p=0, lambda=1) = 0
+		ppf_0 := Stats_exponential_ppf(p:=0.0, lambda:=1.0);
+		EXPECT_NEAR(0.0, ppf_0, EPS);
+
+		// PPF(p=0.5, lambda=1) = ln(2) ≈0.6931
+		ppf_median := Stats_exponential_ppf(p:=0.5, lambda:=1.0);
+		EXPECT_NEAR(0.693147180559945, ppf_median, 0.0001);
+
+		// PPF(p=0.9, lambda=1) = -ln(0.1) ≈2.3026
+		ppf_90 := Stats_exponential_ppf(p:=0.9, lambda:=1.0);
+		EXPECT_NEAR(2.302585092994046, ppf_90, 0.0001);
+
+		// PPF(p=0.95, lambda=1) = -ln(0.05)
+		ppf_95 := Stats_exponential_ppf(p:=0.95, lambda:=1.0);
+		EXPECT_NEAR(2.995732273553990, ppf_95, 0.0001);
+
+		// PPF(p=0.99, lambda=1) = -ln(0.01)
+		ppf_99 := Stats_exponential_ppf(p:=0.99, lambda:=1.0);
+		EXPECT_NEAR(4.605170185988091, ppf_99, 0.0001);
+
+		// PPF(p=0.25, lambda=1) = -ln(0.75)
+		ppf_0_25 := Stats_exponential_ppf(p:=0.25, lambda:=1.0);
+		EXPECT_NEAR(0.287682072451781, ppf_0_25, 0.0001);
+
+		// PPF(p=0.75, lambda=1) = -ln(0.25)
+		ppf_0_75 := Stats_exponential_ppf(p:=0.75, lambda:=1.0);
+		EXPECT_NEAR(1.386294361119891, ppf_0_75, 0.0001);
+
+		// PPF(p=0.5, lambda=2)
+		ppf_lambda2 := Stats_exponential_ppf(p:=0.5, lambda:=2.0);
+		EXPECT_NEAR(0.346573590279973, ppf_lambda2, 0.0001);
+
+		// PPF(CDF(x)) = x
+		cdf_val := Stats_exponential_cdf(x:=1.5, lambda:=1.0);
+		inv_val := Stats_exponential_ppf(p:=cdf_val, lambda:=1.0);
+		EXPECT_NEAR(1.5, inv_val, 0.01);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_exponential_mean)
+	var result: lreal; end
+	var mean_lambda1: lreal; end
+	var mean_lambda2: lreal; end
+	var mean_lambda05: lreal; end
+	var mean_lambda3: lreal; end
+	var mean_lambda4: lreal; end
+	{st}
+		// Mean = 1/lambda
+		mean_lambda1 := Stats_exponential_mean(lambda:=1.0);
+		EXPECT_NEAR(1.0, mean_lambda1, EPS);
+
+		// Mean = 1/2
+		result := Stats_exponential_mean(lambda:=2.0);
+		EXPECT_NEAR(0.5, result, EPS);
+
+		// Mean = 2.0
+		mean_lambda05 := Stats_exponential_mean(lambda:=0.5);
+		EXPECT_NEAR(2.0, mean_lambda05, EPS);
+
+		// Mean = 1/3
+		mean_lambda3 := Stats_exponential_mean(lambda:=3.0);
+		EXPECT_NEAR(0.333333333333333, mean_lambda3, 0.0001);
+
+		// Mean = 0.25
+		mean_lambda4 := Stats_exponential_mean(lambda:=4.0);
+		EXPECT_NEAR(0.25, mean_lambda4, EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_exponential_variance)
+	var result: lreal; end
+	var var_lambda1: lreal; end
+	var var_lambda2: lreal; end
+	var var_lambda05: lreal; end
+	var var_lambda3: lreal; end
+	var var_lambda4: lreal; end
+	{st}
+		// Variance = 1/lambda^2
+		var_lambda1 := Stats_exponential_variance(lambda:=1.0);
+		EXPECT_NEAR(1.0, var_lambda1, EPS);
+
+		// Variance = 1/4 = 0.25
+		result := Stats_exponential_variance(lambda:=2.0);
+		EXPECT_NEAR(0.25, result, EPS);
+
+		// Variance = 4.0
+		var_lambda05 := Stats_exponential_variance(lambda:=0.5);
+		EXPECT_NEAR(4.0, var_lambda05, EPS);
+
+		// Variance = 1/9
+		var_lambda3 := Stats_exponential_variance(lambda:=3.0);
+		EXPECT_NEAR(0.111111111111111, var_lambda3, 0.0001);
+
+		// Variance = 1/16 = 0.0625
+		var_lambda4 := Stats_exponential_variance(lambda:=4.0);
+		EXPECT_NEAR(0.0625, var_lambda4, EPS);
+	{end}
+END_TEST_S
+
+{#undef EPS}
