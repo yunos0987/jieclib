@@ -1,0 +1,259 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/descriptive/test_quantiles.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/descriptive/test_quantiles.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/descriptive/quantiles.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_percentile',
+		'test_stats_iqr',
+		'test_stats_quartiles_desc'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_stats_percentile)
+	var
+		x_p_seq10: array[0..9] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
+		work_p_seq10: array[0..9] of lreal;
+		x_p_edges5: array[0..4] of lreal := [10.0, 20.0, 30.0, 40.0, 50.0];
+		work_p_edges5: array[0..4] of lreal;
+		x_p_unsorted5: array[0..4] of lreal := [7.0, 2.0, 9.0, 4.0, 1.0];
+		work_p_unsorted5: array[0..4] of lreal;
+		x_p_duplicates4: array[0..3] of lreal := [5.0, 5.0, 5.0, 5.0];
+		work_p_duplicates4: array[0..3] of lreal;
+		x_p_negative4: array[0..3] of lreal := [-10.0, -5.0, 0.0, 5.0];
+		work_p_negative4: array[0..3] of lreal;
+		x_p_single1: array[0..0] of lreal := [42.0];
+		work_p_single1: array[0..0] of lreal;
+		x_p_spread5: array[0..4] of lreal := [0.0, 10.0, 20.0, 30.0, 40.0];
+		work_p_spread5: array[0..4] of lreal;
+		x_p_three: array[0..2] of lreal := [1.0, 3.0, 5.0];
+		work_p_three: array[0..2] of lreal;
+		x_p_short5: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		work_p_tiny2: array[0..1] of lreal;
+		result: lreal;
+		result_eno: bool;
+	end
+	{st}
+		result := Stats_percentile(data:=x_p_seq10, p:=0.25, work:=work_p_seq10);
+		EXPECT_NEAR(3.25, result, EPS);
+
+		result := Stats_percentile(data:=x_p_seq10, p:=0.50, work:=work_p_seq10);
+		EXPECT_NEAR(5.5, result, EPS);
+
+		result := Stats_percentile(data:=x_p_seq10, p:=0.75, work:=work_p_seq10);
+		EXPECT_NEAR(7.75, result, EPS);
+
+		result := Stats_percentile(data:=x_p_edges5, p:=0.0, work:=work_p_edges5);
+		EXPECT_NEAR(10.0, result, EPS);
+
+		result := Stats_percentile(data:=x_p_edges5, p:=1.0, work:=work_p_edges5);
+		EXPECT_NEAR(50.0, result, EPS);
+
+		result := Stats_percentile(data:=x_p_unsorted5, p:=0.50, work:=work_p_unsorted5);
+		EXPECT_NEAR(4.0, result, EPS);
+
+		result := Stats_percentile(data:=x_p_duplicates4, p:=0.30, work:=work_p_duplicates4);
+		EXPECT_NEAR(5.0, result, EPS);
+
+		result := Stats_percentile(data:=x_p_negative4, p:=0.75, work:=work_p_negative4);
+		EXPECT_NEAR(1.25, result, EPS);
+
+		result := Stats_percentile(data:=x_p_single1, p:=0.20, work:=work_p_single1);
+		EXPECT_NEAR(42.0, result, EPS);
+
+		result := Stats_percentile(data:=x_p_spread5, p:=0.10, work:=work_p_spread5);
+		EXPECT_NEAR(4.0, result, EPS);
+
+		result := Stats_percentile(data:=x_p_three, p:=0.33, work:=work_p_three);
+		EXPECT_NEAR(2.32, result, 1.0e-6);
+
+		result := Stats_percentile(data:=x_p_seq10, p:=-0.1, work:=work_p_seq10, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+
+		result := Stats_percentile(data:=x_p_seq10, p:=1.1, work:=work_p_seq10, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+
+		result := Stats_percentile(data:=x_p_short5, p:=0.5, work:=work_p_tiny2, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_iqr)
+	var
+		x_iqr_seq10: array[0..9] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
+		x_iqr5: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		x_iqr7: array[0..6] of lreal := [10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0];
+		x_iqr_identical: array[0..3] of lreal := [7.0, 7.0, 7.0, 7.0];
+		x_iqr_desc: array[0..4] of lreal := [9.0, 7.0, 5.0, 3.0, 1.0];
+		x_iqr_negative: array[0..4] of lreal := [-5.0, -4.0, -3.0, -2.0, -1.0];
+		x_iqr_frac: array[0..3] of lreal := [1.1, 2.2, 3.3, 4.4];
+		x_iqr_two: array[0..1] of lreal := [0.0, 100.0];
+		x_iqr_mixed: array[0..2] of lreal := [5.0, 5.0, 10.0];
+		x_iqr_single: array[0..0] of lreal := [42.0];
+		//
+		q_iqr_seq10: array[0..2] of lreal;
+		q_iqr5: array[0..2] of lreal;
+		q_iqr7: array[0..2] of lreal;
+		q_iqr_identical: array[0..2] of lreal;
+		q_iqr_desc: array[0..2] of lreal;
+		q_iqr_negative: array[0..2] of lreal;
+		q_iqr_frac: array[0..2] of lreal;
+		q_iqr_two: array[0..2] of lreal;
+		q_iqr_mixed: array[0..2] of lreal;
+		q_iqr_single: array[0..2] of lreal;
+		q_iqr_fail3: array[0..2] of lreal;
+		//
+		work_seq10: array[0..9] of lreal;
+		work5: array[0..4] of lreal;
+		work7: array[0..6] of lreal;
+		work_identical: array[0..3] of lreal;
+		work_desc: array[0..4] of lreal;
+		work_negative: array[0..4] of lreal;
+		work_frac: array[0..3] of lreal;
+		work_two: array[0..1] of lreal;
+		work_mixed: array[0..2] of lreal;
+		work_single: array[0..0] of lreal;
+		work_tiny: array[0..1] of lreal;
+		x_iqr_fail3: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		result: lreal;
+		result_eno: bool;
+	end
+	{st}
+		result := Stats_iqr(data:=x_iqr_seq10, q_work:=q_iqr_seq10, work:=work_seq10);
+		EXPECT_NEAR(4.5, result, EPS);
+
+		result := Stats_iqr(data:=x_iqr5, q_work:=q_iqr5, work:=work5);
+		EXPECT_NEAR(2.0, result, EPS);
+
+		result := Stats_iqr(data:=x_iqr7, q_work:=q_iqr7, work:=work7);
+		EXPECT_NEAR(30.0, result, EPS);
+
+		result := Stats_iqr(data:=x_iqr_identical, q_work:=q_iqr_identical, work:=work_identical);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		result := Stats_iqr(data:=x_iqr_desc, q_work:=q_iqr_desc, work:=work_desc);
+		EXPECT_NEAR(4.0, result, EPS);
+
+		result := Stats_iqr(data:=x_iqr_negative, q_work:=q_iqr_negative, work:=work_negative);
+		EXPECT_NEAR(2.0, result, EPS);
+
+		result := Stats_iqr(data:=x_iqr_frac, q_work:=q_iqr_frac, work:=work_frac);
+		EXPECT_NEAR(1.65, result, EPS);
+
+		result := Stats_iqr(data:=x_iqr_two, q_work:=q_iqr_two, work:=work_two);
+		EXPECT_NEAR(50.0, result, EPS);
+
+		result := Stats_iqr(data:=x_iqr_mixed, q_work:=q_iqr_mixed, work:=work_mixed);
+		EXPECT_NEAR(2.5, result, EPS);
+
+		result := Stats_iqr(data:=x_iqr_single, q_work:=q_iqr_single, work:=work_single);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		result := Stats_iqr(data:=x_iqr_fail3, q_work:=q_iqr_fail3, work:=work_tiny, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_quartiles_desc)
+	var
+		x_q_basic9: array[0..8] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0];
+		x_q_even10: array[0..9] of lreal := [2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0];
+		x_q_small3: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		x_q_single: array[0..0] of lreal := [5.0];
+		x_q_identical: array[0..4] of lreal := [7.0, 7.0, 7.0, 7.0, 7.0];
+		x_q_negative: array[0..6] of lreal := [-7.0, -4.0, -1.0, 0.0, 1.0, 4.0, 7.0];
+		x_q_skewed: array[0..7] of lreal := [1.0, 1.0, 1.0, 1.0, 5.0, 10.0, 20.0, 100.0];
+		x_q_large: array[0..3] of lreal := [1000.0, 2000.0, 3000.0, 4000.0];
+		x_q_desc: array[0..4] of lreal := [9.0, 7.0, 5.0, 3.0, 1.0];
+		x_q_fractional: array[0..5] of lreal := [0.5, 2.5, 2.5, 4.5, 10.0, 20.0];
+		work_basic9: array[0..8] of lreal;
+		work_even10: array[0..9] of lreal;
+		work_small3: array[0..2] of lreal;
+		work_single: array[0..0] of lreal;
+		work_identical: array[0..4] of lreal;
+		work_negative: array[0..6] of lreal;
+		work_skewed: array[0..7] of lreal;
+		work_large: array[0..3] of lreal;
+		work_desc: array[0..4] of lreal;
+		work_fractional: array[0..5] of lreal;
+		work_tiny: array[0..1] of lreal;
+		result_basic9: array[0..2] of lreal;
+		result_even10: array[0..2] of lreal;
+		result_small3: array[0..2] of lreal;
+		result_single: array[0..2] of lreal;
+		result_identical: array[0..2] of lreal;
+		result_negative: array[0..2] of lreal;
+		result_skewed: array[0..2] of lreal;
+		result_large: array[0..2] of lreal;
+		result_desc: array[0..2] of lreal;
+		result_fractional: array[0..2] of lreal;
+		result_short: array[0..1] of lreal;
+		//
+		result_eno: bool;
+	end
+	{st}
+	Stats_quartiles_desc(data:=x_q_basic9, work:=work_basic9, result:=result_basic9);
+	EXPECT_NEAR(3.0, result_basic9[0], EPS);
+	EXPECT_NEAR(5.0, result_basic9[1], EPS);
+	EXPECT_NEAR(7.0, result_basic9[2], EPS);
+
+	Stats_quartiles_desc(data:=x_q_even10, work:=work_even10, result:=result_even10);
+	EXPECT_NEAR(6.5, result_even10[0], EPS);
+	EXPECT_NEAR(11.0, result_even10[1], EPS);
+	EXPECT_NEAR(15.5, result_even10[2], EPS);
+
+	Stats_quartiles_desc(data:=x_q_small3, work:=work_small3, result:=result_small3);
+	EXPECT_NEAR(1.5, result_small3[0], EPS);
+	EXPECT_NEAR(2.0, result_small3[1], EPS);
+	EXPECT_NEAR(2.5, result_small3[2], EPS);
+
+	Stats_quartiles_desc(data:=x_q_single, work:=work_single, result:=result_single);
+	EXPECT_NEAR(5.0, result_single[0], EPS);
+	EXPECT_NEAR(5.0, result_single[1], EPS);
+	EXPECT_NEAR(5.0, result_single[2], EPS);
+
+	Stats_quartiles_desc(data:=x_q_identical, work:=work_identical, result:=result_identical);
+	EXPECT_NEAR(7.0, result_identical[0], EPS);
+	EXPECT_NEAR(7.0, result_identical[1], EPS);
+	EXPECT_NEAR(7.0, result_identical[2], EPS);
+
+	Stats_quartiles_desc(data:=x_q_negative, work:=work_negative, result:=result_negative);
+	EXPECT_NEAR(-2.5, result_negative[0], EPS);
+	EXPECT_NEAR(0.0, result_negative[1], EPS);
+	EXPECT_NEAR(2.5, result_negative[2], EPS);
+
+	Stats_quartiles_desc(data:=x_q_skewed, work:=work_skewed, result:=result_skewed);
+	EXPECT_NEAR(1.0, result_skewed[0], EPS);
+	EXPECT_NEAR(3.0, result_skewed[1], EPS);
+	EXPECT_NEAR(12.5, result_skewed[2], EPS);
+
+	Stats_quartiles_desc(data:=x_q_large, work:=work_large, result:=result_large);
+	EXPECT_NEAR(1750.0, result_large[0], EPS);
+	EXPECT_NEAR(2500.0, result_large[1], EPS);
+	EXPECT_NEAR(3250.0, result_large[2], EPS);
+
+	Stats_quartiles_desc(data:=x_q_desc, work:=work_desc, result:=result_desc);
+	EXPECT_NEAR(3.0, result_desc[0], EPS);
+	EXPECT_NEAR(5.0, result_desc[1], EPS);
+	EXPECT_NEAR(7.0, result_desc[2], EPS);
+
+	Stats_quartiles_desc(data:=x_q_fractional, work:=work_fractional, result:=result_fractional);
+	EXPECT_NEAR(2.5, result_fractional[0], EPS);
+	EXPECT_NEAR(3.5, result_fractional[1], EPS);
+	EXPECT_NEAR(8.625, result_fractional[2], EPS);
+
+	Stats_quartiles_desc(data:=x_q_basic9, work:=work_tiny, result:=result_basic9, eno=>result_eno);
+	EXPECT_FALSE(result_eno);
+	Stats_quartiles_desc(data:=x_q_basic9, work:=work_basic9, result:=result_short, eno=>result_eno);
+	EXPECT_FALSE(result_eno);
+	{end}
+END_TEST_S
+
+{#undef EPS}

@@ -21,25 +21,25 @@ TEST_S(test_floor)
 	EXPECT_EQ_LREAL(3.0, Math_floor(x:=3.1));
 	EXPECT_EQ_LREAL(5.0, Math_floor(x:=5.9));
 	EXPECT_EQ_LREAL(0.0, Math_floor(x:=0.5));
-	
+
 	// 負の小数：1引いた値
 	EXPECT_EQ_LREAL(-3.0, Math_floor(x:=-2.7));
 	EXPECT_EQ_LREAL(-4.0, Math_floor(x:=-3.1));
 	EXPECT_EQ_LREAL(-6.0, Math_floor(x:=-5.9));
 	EXPECT_EQ_LREAL(-1.0, Math_floor(x:=-0.5));
-	
+
 	// 整数：そのまま返す
 	EXPECT_EQ_LREAL(0.0, Math_floor(x:=0.0));
 	EXPECT_EQ_LREAL(5.0, Math_floor(x:=5.0));
 	EXPECT_EQ_LREAL(10.0, Math_floor(x:=10.0));
 	EXPECT_EQ_LREAL(-5.0, Math_floor(x:=-5.0));
 	EXPECT_EQ_LREAL(-10.0, Math_floor(x:=-10.0));
-	
+
 	// 0と1の間の小数
 	EXPECT_EQ_LREAL(0.0, Math_floor(x:=0.1));
 	EXPECT_EQ_LREAL(0.0, Math_floor(x:=0.9));
 	EXPECT_EQ_LREAL(0.0, Math_floor(x:=0.99));
-	
+
 	// -1と0の間の小数
 	EXPECT_EQ_LREAL(-1.0, Math_floor(x:=-0.1));
 	EXPECT_EQ_LREAL(-1.0, Math_floor(x:=-0.9));

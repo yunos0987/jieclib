@@ -1,0 +1,57 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./stats/descriptive/geometric_mean.txt -I. -I./vendor/jiecunit/sys -o ./stats/descriptive/geometric_mean.xml -t omron
+ *)
+{#ifndef __STATS_DESCRIPTIVE_GEOMETRIC_MEAN_TXT__}
+{#define __STATS_DESCRIPTIVE_GEOMETRIC_MEAN_TXT__}
+
+{#include <sys.txt>}
+{#include <array/array.txt>}
+
+(*{doc 幾何平均 exp(mean(ln(x)))
+x>0 を要する。
+@inout data サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@input n 先頭n個を使用する。
+  デフォルト値: -1
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_geometric_mean: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
+		data: array[*] of lreal;
+	end
+	var_input
+		(*{doc 先頭n個を使用する。}*)
+		n: dint := -1;
+	end
+	var_temp
+		actual_n, i: dint;
+		s: lreal;
+	end
+	{st}
+	actual_n := Array_isRegular_lreal(data);
+	if (actual_n = 0) or (n > actual_n) then
+		eno := false;
+		return;
+	end_if;
+	if n >= 0 then
+		actual_n := n;
+	end_if;
+
+	s := 0.0;
+	for i := 0 to actual_n - 1 do
+		if data[i] <= 0.0 then
+			eno := false;
+			return;
+		end_if;
+		s := s + ln(data[i]);
+	end_for;
+
+	Stats_geometric_mean := exp(s / dint_to_lreal(actual_n));
+	{end}
+end
+
+{#endif}
+

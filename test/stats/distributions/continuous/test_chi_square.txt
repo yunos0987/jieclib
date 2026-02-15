@@ -1,0 +1,290 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/distributions/continuous/test_chi_square.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/distributions/continuous/test_chi_square.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/distributions/continuous/chi_square.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_chi_square_pdf',
+		'test_stats_chi_square_cdf',
+		'test_stats_chi_square_ppf',
+		'test_stats_chi_square_mean',
+		'test_stats_chi_square_variance'
+	)
+)
+{#endif}
+
+TEST_S(test_stats_chi_square_pdf)
+	var
+		result: lreal;
+		result1: lreal;
+		result2: lreal;
+		result3: lreal;
+		result_zero: lreal;
+		result_large: lreal;
+		pdf_df1: lreal;
+		pdf_df2: lreal;
+		pdf_df3: lreal;
+		pdf_df5: lreal;
+		pdf_df10: lreal;
+		ratio1: lreal;
+		ratio2: lreal;
+		result_eno: bool;
+	end
+	{st}
+		// Chi-square(df=2) PDF at x=1.0
+		result := Stats_chi_square_pdf(x:=1.0, df:=2.0);
+		EXPECT_NEAR(0.303265329856317, result, 0.0001);
+
+		// Chi-square(df=4) PDF at x=3.0
+		result := Stats_chi_square_pdf(x:=3.0, df:=4.0);
+		EXPECT_NEAR(0.167347620111322, result, 0.0001);
+
+		// Chi-square(df=5) PDF at x=5.0
+		result := Stats_chi_square_pdf(x:=5.0, df:=5.0);
+		EXPECT_NEAR(0.122041521349387, result, 0.0001);
+
+		// Chi-square(df=10) PDF at x=8.0
+		result := Stats_chi_square_pdf(x:=8.0, df:=10.0);
+		EXPECT_NEAR(0.097683407406582, result, 0.0001);
+
+		// Chi-square PDF positive for all x > 0
+		result1 := Stats_chi_square_pdf(x:=1.0, df:=3.0);
+		result2 := Stats_chi_square_pdf(x:=5.0, df:=3.0);
+		result3 := Stats_chi_square_pdf(x:=10.0, df:=3.0);
+		EXPECT_TRUE(result1 > 0.0);
+		EXPECT_TRUE(result2 > 0.0);
+		EXPECT_TRUE(result3 > 0.0);
+
+		// Test behavior at edge values
+		result_zero := Stats_chi_square_pdf(x:=0.0, df:=1.0);
+		EXPECT_TRUE(result_zero = 0.0);
+
+		// Test large x values
+		result_large := Stats_chi_square_pdf(x:=100.0, df:=3.0);
+		EXPECT_TRUE(result_large < 0.0001);
+
+		// Test with negative x (should return 0 or handle gracefully)
+		result := Stats_chi_square_pdf(x:=-1.0, df:=3.0, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+
+		// PDF at x=0 for df=2
+		pdf_df2 := Stats_chi_square_pdf(x:=0.0, df:=2.0);
+		EXPECT_NEAR(0.5, pdf_df2, 0.01);
+
+		// PDF at x=0 for df=3
+		pdf_df3 := Stats_chi_square_pdf(x:=0.0, df:=3.0);
+		EXPECT_NEAR(0.0, pdf_df3, 0.001);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_chi_square_cdf)
+	var
+		result: lreal;
+		cdf1: lreal;
+		cdf2: lreal;
+		cdf3: lreal;
+		cdf_zero: lreal;
+		cdf_large: lreal;
+		cdf_df1: lreal;
+		cdf_df5: lreal;
+		cdf_df10: lreal;
+		tail_prob: lreal;
+		survival: lreal;
+		cdf_ratio: lreal;
+		result_eno: bool;
+	end
+	{st}
+		// Chi-square(df=3) CDF at x=5.0 ~ 0.8282
+		result := Stats_chi_square_cdf(x:=5.0, df:=3.0);
+		EXPECT_NEAR(0.828202855703266, result, 0.0001);
+
+		// Chi-square(df=1) CDF at x=1.0
+		result := Stats_chi_square_cdf(x:=1.0, df:=1.0);
+		EXPECT_NEAR(0.682689492137086, result, 0.0001);
+
+		// Chi-square(df=2) CDF at x=2.0
+		result := Stats_chi_square_cdf(x:=2.0, df:=2.0);
+		EXPECT_NEAR(0.632120558828558, result, 0.0001);
+
+		// Chi-square(df=4) CDF at x=3.0
+		result := Stats_chi_square_cdf(x:=3.0, df:=4.0);
+		EXPECT_NEAR(0.442174599628925, result, 0.0001);
+
+		// Chi-square(df=5) CDF at x=5.0
+		result := Stats_chi_square_cdf(x:=5.0, df:=5.0);
+		EXPECT_NEAR(0.584119813004492, result, 0.0001);
+
+		// Chi-square(df=10) CDF at x=8.0
+		result := Stats_chi_square_cdf(x:=8.0, df:=10.0);
+		EXPECT_NEAR(0.371163064820127, result, 0.0001);
+
+		// CDF is monotonically increasing
+		cdf1 := Stats_chi_square_cdf(x:=1.0, df:=3.0);
+		cdf2 := Stats_chi_square_cdf(x:=5.0, df:=3.0);
+		cdf3 := Stats_chi_square_cdf(x:=10.0, df:=3.0);
+		EXPECT_TRUE(cdf1 < cdf2);
+		EXPECT_TRUE(cdf2 < cdf3);
+
+		// CDF at x=0 should be 0
+		cdf_zero := Stats_chi_square_cdf(x:=0.0, df:=3.0);
+		EXPECT_NEAR(0.0, cdf_zero, 0.001);
+
+		// CDF at large x should approach 1
+		cdf_large := Stats_chi_square_cdf(x:=100.0, df:=3.0);
+		EXPECT_TRUE(cdf_large > 0.999);
+
+		// Test CDF for different degrees of freedom
+		cdf_df1 := Stats_chi_square_cdf(x:=5.0, df:=1.0);
+		cdf_df5 := Stats_chi_square_cdf(x:=5.0, df:=5.0);
+		cdf_df10 := Stats_chi_square_cdf(x:=5.0, df:=10.0);
+
+		// Higher df should have lower CDF for same x
+		EXPECT_TRUE(cdf_df1 > cdf_df5);
+		EXPECT_TRUE(cdf_df5 > cdf_df10);
+
+		// Test negative x
+		result := Stats_chi_square_cdf(x:=-1.0, df:=3.0, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+
+		// Test tail probabilities (survival function = 1 - CDF)
+		tail_prob := Stats_chi_square_cdf(x:=7.815, df:=3.0);
+		survival := 1.0 - tail_prob;
+		EXPECT_NEAR(0.05, survival, 0.01);
+
+		// Test critical values for hypothesis testing
+		tail_prob := Stats_chi_square_cdf(x:=6.251, df:=3.0);
+		survival := 1.0 - tail_prob;
+		EXPECT_NEAR(0.1, survival, 0.01);
+
+		// Test that CDF is strictly increasing
+		cdf_ratio := Stats_chi_square_cdf(x:=5.0, df:=3.0) - Stats_chi_square_cdf(x:=3.0, df:=3.0);
+		EXPECT_TRUE(cdf_ratio > 0.0);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_chi_square_ppf)
+	var
+		p90: lreal;
+		p95: lreal;
+		x: lreal;
+		cdf_val: lreal;
+		ppf_val: lreal;
+		ppf_0: lreal;
+		ppf_1: lreal;
+		ppf_median: lreal;
+		ppf_0_1: lreal;
+		ppf_0_25: lreal;
+		ppf_0_75: lreal;
+		ppf_0_99: lreal;
+	end
+	{st}
+		// Chi-square(df=3) PPF at p=0.90 ~ 6.2514
+		p90 := Stats_chi_square_ppf(p:=0.90, df:=3.0);
+		EXPECT_NEAR(6.251388631170325, p90, 0.01);
+
+		// Chi-square(df=3) PPF at p=0.95 ~ 7.8147
+		p95 := Stats_chi_square_ppf(p:=0.95, df:=3.0);
+		EXPECT_NEAR(7.814727903251179, p95, 0.01);
+
+		// Chi-square(df=1) PPF at p=0.5
+		ppf_median := Stats_chi_square_ppf(p:=0.5, df:=1.0);
+		EXPECT_NEAR(0.454936423119572, ppf_median, 0.01);
+
+		// Chi-square(df=5) PPF at p=0.5
+		ppf_median := Stats_chi_square_ppf(p:=0.5, df:=5.0);
+		EXPECT_NEAR(4.351460191095528, ppf_median, 0.01);
+
+		// Chi-square(df=10) PPF at p=0.9
+		p90 := Stats_chi_square_ppf(p:=0.9, df:=10.0);
+		EXPECT_NEAR(15.987179172105265, p90, 0.01);
+
+		// PPF(CDF(x)) should equal x
+		x := 5.0;
+		cdf_val := Stats_chi_square_cdf(x:=x, df:=3.0);
+		ppf_val := Stats_chi_square_ppf(p:=cdf_val, df:=3.0);
+		EXPECT_NEAR(x, ppf_val, 0.01);
+
+		// PPF(CDF(x)) should equal x
+		x := 5.0;
+		cdf_val := Stats_chi_square_cdf(x:=x, df:=3.0);
+		ppf_val := Stats_chi_square_ppf(p:=cdf_val, df:=3.0);
+		EXPECT_NEAR(x, ppf_val, 0.01);
+
+		// Test boundary probability values
+		ppf_0 := Stats_chi_square_ppf(p:=0.0, df:=3.0);
+		EXPECT_NEAR(0.0, ppf_0, 0.001);
+
+		// PPF at p close to 1
+		ppf_1 := Stats_chi_square_ppf(p:=0.999, df:=3.0);
+		EXPECT_TRUE(ppf_1 > 10.0);
+
+		// Test quantiles
+		ppf_0_1 := Stats_chi_square_ppf(p:=0.1, df:=3.0);
+		ppf_0_25 := Stats_chi_square_ppf(p:=0.25, df:=3.0);
+		ppf_0_75 := Stats_chi_square_ppf(p:=0.75, df:=3.0);
+		ppf_0_99 := Stats_chi_square_ppf(p:=0.99, df:=3.0);
+
+		EXPECT_TRUE(ppf_0_1 > 0.0);
+		EXPECT_TRUE(ppf_0_1 < ppf_0_25);
+		EXPECT_TRUE(ppf_0_25 < ppf_0_75);
+		EXPECT_TRUE(ppf_0_75 < ppf_0_99);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_chi_square_mean)
+	var
+		mean_val: lreal;
+	end
+	{st}
+		// Mean = df
+		mean_val := Stats_chi_square_mean(df:=1.0);
+		EXPECT_NEAR(1.0, mean_val, 0.0001);
+
+		// Mean = df
+		mean_val := Stats_chi_square_mean(df:=3.0);
+		EXPECT_NEAR(3.0, mean_val, 0.0001);
+
+		// Mean = df
+		mean_val := Stats_chi_square_mean(df:=5.0);
+		EXPECT_NEAR(5.0, mean_val, 0.0001);
+
+		// Mean = df
+		mean_val := Stats_chi_square_mean(df:=10.0);
+		EXPECT_NEAR(10.0, mean_val, 0.0001);
+
+		// Mean = df
+		mean_val := Stats_chi_square_mean(df:=20.0);
+		EXPECT_NEAR(20.0, mean_val, 0.0001);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_chi_square_variance)
+	var
+		variance_val: lreal;
+	end
+	{st}
+		// Variance = 2*df
+		variance_val := Stats_chi_square_variance(df:=1.0);
+		EXPECT_NEAR(2.0, variance_val, 0.0001);
+
+		// Variance = 2*df
+		variance_val := Stats_chi_square_variance(df:=3.0);
+		EXPECT_NEAR(6.0, variance_val, 0.0001);
+		// Variance = 2*df
+		// Variance = 2*df
+		variance_val := Stats_chi_square_variance(df:=5.0);
+		EXPECT_NEAR(10.0, variance_val, 0.0001);
+
+		// Variance = 2*df
+		variance_val := Stats_chi_square_variance(df:=10.0);
+		EXPECT_NEAR(20.0, variance_val, 0.0001);
+
+		// Variance = 2*df
+		variance_val := Stats_chi_square_variance(df:=20.0);
+		EXPECT_NEAR(40.0, variance_val, 0.0001);
+	{end}
+END_TEST_S

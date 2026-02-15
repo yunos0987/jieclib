@@ -1,0 +1,136 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./stats/distributions/continuous/uniform.txt -I. -I./vendor/jiecunit/sys -o ./stats/distributions/continuous/uniform.xml -t omron
+ *)
+{#ifndef __STATS_DISTRIBUTIONS_CONTINUOUS_UNIFORM_TXT__}
+{#define __STATS_DISTRIBUTIONS_CONTINUOUS_UNIFORM_TXT__}
+
+{#include <sys.txt>}
+
+(*{doc 一様分布の確率密度関数 U(a, b)
+f(x) = 1/(b-a) for a <= x <= b
+@input x 入力値。
+@input a 下限。
+@input b 上限。
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_uniform_pdf: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 入力値。}*)
+		x: lreal;
+		(*{doc 下限。}*)
+		a: lreal;
+		(*{doc 上限。}*)
+		b: lreal;
+	end
+	{st}
+		if b <= a then
+			eno := false;
+			Stats_uniform_pdf := 0.0;
+			return;
+		end_if;
+
+		if x < a or x > b then
+			Stats_uniform_pdf := 0.0;
+		else
+			Stats_uniform_pdf := 1.0 / (b - a);
+		end_if;
+	{end}
+end
+
+(*{doc 一様分布の累積分布関数
+F(x) = 0 for x < a, (x-a)/(b-a) for a <= x <= b, 1 for x > b
+@input x 入力値。
+@input a 下限。
+@input b 上限。
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_uniform_cdf: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 入力値。}*)
+		x: lreal;
+		(*{doc 下限。}*)
+		a: lreal;
+		(*{doc 上限。}*)
+		b: lreal;
+	end
+	{st}
+		if b <= a then
+			eno := false;
+			Stats_uniform_cdf := 0.0;
+			return;
+		end_if;
+
+		if x < a then
+			Stats_uniform_cdf := 0.0;
+		elsif x > b then
+			Stats_uniform_cdf := 1.0;
+		else
+			Stats_uniform_cdf := (x - a) / (b - a);
+		end_if;
+	{end}
+end
+
+(*{doc 一様分布の分位関数。Q(p) = a + p * (b - a)
+@input p 確率(0..1)。
+@input a 下限。
+@input b 上限。
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_uniform_ppf: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 確率(0..1)。}*)
+		p: lreal;
+		(*{doc 下限。}*)
+		a: lreal;
+		(*{doc 上限。}*)
+		b: lreal;
+	end
+	{st}
+		if p < 0.0 or p > 1.0 or b <= a then
+			eno := false;
+			Stats_uniform_ppf := 0.0;
+			return;
+		end_if;
+
+		Stats_uniform_ppf := a + p * (b - a);
+	{end}
+end
+
+(*{doc 一様分布の平均 = (a + b) / 2
+@input a 下限。
+@input b 上限。
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_uniform_mean: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 下限。}*)
+		a: lreal;
+		(*{doc 上限。}*)
+		b: lreal;
+	end
+	{st} Stats_uniform_mean := (a + b) / 2.0; {end}
+end
+
+(*{doc 一様分布の分散 = (b - a)^2 / 12
+@input a 下限。
+@input b 上限。
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_uniform_variance: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 下限。}*)
+		a: lreal;
+		(*{doc 上限。}*)
+		b: lreal;
+	end
+	{st} Stats_uniform_variance := (b - a) * (b - a) / 12.0; {end}
+end
+
+{#endif}
+

@@ -1,0 +1,249 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/sequences/test_quantile.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/sequences/test_quantile.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/sequences/quantile.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_quantile',
+		'test_stats_quantiles',
+		'test_stats_quantile_types'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_stats_quantile)
+	var
+		x_1: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		x_2: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
+		x_3: array[0..9] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
+		x_4: array[0..3] of lreal := [-5.0, -3.0, -1.0, -7.0];
+		x_5: array[0..9] of lreal := [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
+		x_6: array[0..4] of lreal := [100.0, 200.0, 300.0, 400.0, 500.0];
+		x_7: array[0..0] of lreal := [7.5];
+		x_8: array[0..1] of lreal := [10.0, 20.0];
+		x_9: array[0..4] of lreal := [-2.0, -1.0, 0.0, 1.0, 2.0];
+		x_10: array[0..3] of lreal := [1.0, 1.0, 2.0, 10.0];
+		x_add1: array[0..11] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0];
+		x_add2: array[0..4] of lreal := [50.0, 60.0, 70.0, 80.0, 90.0];
+		x_quartiles: array[0..8] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0];
+		x_percentiles: array[0..9] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
+		x_odd: array[0..4] of lreal := [1.0, 3.0, 5.0, 7.0, 9.0];
+		x_even: array[0..5] of lreal := [2.0, 4.0, 6.0, 8.0, 10.0, 12.0];
+		x_extremes: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		x_single_b: array[0..0] of lreal := [42.0];
+		work_1: array[0..4] of lreal;
+		work_2: array[0..4] of lreal;
+		work_3: array[0..9] of lreal;
+		work_4: array[0..3] of lreal;
+		work_5: array[0..9] of lreal;
+		work_6: array[0..4] of lreal;
+		work_7: array[0..0] of lreal;
+		work_8: array[0..1] of lreal;
+		work_9: array[0..4] of lreal;
+		work_10: array[0..3] of lreal;
+		work_add1: array[0..11] of lreal;
+		work_add2: array[0..4] of lreal;
+		work_quartiles: array[0..8] of lreal;
+		work_percentiles: array[0..9] of lreal;
+		work_odd: array[0..4] of lreal;
+		work_even: array[0..5] of lreal;
+		work_extremes: array[0..4] of lreal;
+		work_single_b: array[0..0] of lreal;
+	end
+	{st}
+		// Medians (p = 0.5)
+		EXPECT_NEAR(3.0, Stats_quantile(data:=x_1, work:=work_1, p:=0.5, quantile_type:=7), EPS);
+		EXPECT_NEAR(3.0, Stats_quantile(data:=x_2, work:=work_2, p:=0.5, quantile_type:=7), EPS);
+		EXPECT_NEAR(5.5, Stats_quantile(data:=x_3, work:=work_3, p:=0.5, quantile_type:=7), EPS);
+		EXPECT_NEAR(-4.0, Stats_quantile(data:=x_4, work:=work_4, p:=0.5, quantile_type:=7), EPS);
+		EXPECT_NEAR(0.55, Stats_quantile(data:=x_5, work:=work_5, p:=0.5, quantile_type:=7), EPS);
+		EXPECT_NEAR(300.0, Stats_quantile(data:=x_6, work:=work_6, p:=0.5, quantile_type:=7), EPS);
+		EXPECT_NEAR(7.5, Stats_quantile(data:=x_7, work:=work_7, p:=0.5, quantile_type:=7), EPS);
+		EXPECT_NEAR(15.0, Stats_quantile(data:=x_8, work:=work_8, p:=0.5, quantile_type:=7), EPS);
+		EXPECT_NEAR(0.0, Stats_quantile(data:=x_9, work:=work_9, p:=0.5, quantile_type:=7), EPS);
+		EXPECT_NEAR(1.5, Stats_quantile(data:=x_10, work:=work_10, p:=0.5, quantile_type:=7), EPS);
+
+		// Lower quartiles (p = 0.25)
+		EXPECT_NEAR(2.0, Stats_quantile(data:=x_1, work:=work_1, p:=0.25, quantile_type:=7), EPS);
+		EXPECT_NEAR(2.0, Stats_quantile(data:=x_2, work:=work_2, p:=0.25, quantile_type:=7), EPS);
+		EXPECT_NEAR(3.25, Stats_quantile(data:=x_3, work:=work_3, p:=0.25, quantile_type:=7), EPS);
+		EXPECT_NEAR(-5.5, Stats_quantile(data:=x_4, work:=work_4, p:=0.25, quantile_type:=7), EPS);
+		EXPECT_NEAR(0.325, Stats_quantile(data:=x_5, work:=work_5, p:=0.25, quantile_type:=7), EPS);
+		EXPECT_NEAR(200.0, Stats_quantile(data:=x_6, work:=work_6, p:=0.25, quantile_type:=7), EPS);
+		EXPECT_NEAR(7.5, Stats_quantile(data:=x_7, work:=work_7, p:=0.25, quantile_type:=7), EPS);
+		EXPECT_NEAR(12.5, Stats_quantile(data:=x_8, work:=work_8, p:=0.25, quantile_type:=7), EPS);
+		EXPECT_NEAR(-1.0, Stats_quantile(data:=x_9, work:=work_9, p:=0.25, quantile_type:=7), EPS);
+		EXPECT_NEAR(1.0, Stats_quantile(data:=x_10, work:=work_10, p:=0.25, quantile_type:=7), EPS);
+
+		// Upper quartiles / additional samples
+		EXPECT_NEAR(6.5, Stats_quantile(data:=x_add1, work:=work_add1, p:=0.5, quantile_type:=7), EPS);
+		EXPECT_NEAR(9.25, Stats_quantile(data:=x_add1, work:=work_add1, p:=0.75, quantile_type:=7), EPS);
+		EXPECT_NEAR(60.0, Stats_quantile(data:=x_add2, work:=work_add2, p:=0.25, quantile_type:=7), EPS);
+
+		// Quartile consistency check (from test_stats_quantiles)
+		EXPECT_NEAR(3.0, Stats_quantile(data:=x_quartiles, work:=work_quartiles, p:=0.25, quantile_type:=7), 0.5);
+		EXPECT_NEAR(5.0, Stats_quantile(data:=x_quartiles, work:=work_quartiles, p:=0.50, quantile_type:=7), EPS);
+		EXPECT_NEAR(7.0, Stats_quantile(data:=x_quartiles, work:=work_quartiles, p:=0.75, quantile_type:=7), 0.5);
+
+		// Percentiles 10th / 90th
+		EXPECT_NEAR(1.9, Stats_quantile(data:=x_percentiles, work:=work_percentiles, p:=0.10, quantile_type:=7), 0.5);
+		EXPECT_NEAR(9.1, Stats_quantile(data:=x_percentiles, work:=work_percentiles, p:=0.90, quantile_type:=7), 0.5);
+
+		// Odd / even length medians
+		EXPECT_NEAR(5.0, Stats_quantile(data:=x_odd, work:=work_odd, p:=0.50, quantile_type:=7), EPS);
+		EXPECT_NEAR(7.0, Stats_quantile(data:=x_even, work:=work_even, p:=0.50, quantile_type:=7), EPS);
+
+		// Extremes p = 0, 1
+		EXPECT_NEAR(1.0, Stats_quantile(data:=x_extremes, work:=work_extremes, p:=0.0, quantile_type:=7), EPS);
+		EXPECT_NEAR(5.0, Stats_quantile(data:=x_extremes, work:=work_extremes, p:=1.0, quantile_type:=7), EPS);
+
+		// Single-element input
+		EXPECT_NEAR(42.0, Stats_quantile(data:=x_single_b, work:=work_single_b, p:=0.25, quantile_type:=7), EPS);
+		EXPECT_NEAR(42.0, Stats_quantile(data:=x_single_b, work:=work_single_b, p:=0.50, quantile_type:=7), EPS);
+		EXPECT_NEAR(42.0, Stats_quantile(data:=x_single_b, work:=work_single_b, p:=0.75, quantile_type:=7), EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_quantile_types)
+	var
+		x: array[0..5] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+		work: array[0..5] of lreal;
+	end
+	{st}
+		// Test quantile_type=1: [0..n-1] 下側順序統計量 切り下げ
+		EXPECT_NEAR(1.0, Stats_quantile(data:=x, work:=work, p:=0.0, quantile_type:=1), EPS);
+		EXPECT_NEAR(2.0, Stats_quantile(data:=x, work:=work, p:=0.25, quantile_type:=1), EPS);
+		EXPECT_NEAR(3.0, Stats_quantile(data:=x, work:=work, p:=0.5, quantile_type:=1), EPS);
+		EXPECT_NEAR(4.0, Stats_quantile(data:=x, work:=work, p:=0.75, quantile_type:=1), EPS);
+		EXPECT_NEAR(5.0, Stats_quantile(data:=x, work:=work, p:=0.9, quantile_type:=1), EPS);
+		EXPECT_NEAR(6.0, Stats_quantile(data:=x, work:=work, p:=1.0, quantile_type:=1), EPS);
+
+		// Test quantile_type=2: [0..n-1] 上側順序統計量 切り上げ
+		EXPECT_NEAR(1.0, Stats_quantile(data:=x, work:=work, p:=0.0, quantile_type:=2), EPS);
+		EXPECT_NEAR(3.0, Stats_quantile(data:=x, work:=work, p:=0.25, quantile_type:=2), EPS);
+		EXPECT_NEAR(4.0, Stats_quantile(data:=x, work:=work, p:=0.5, quantile_type:=2), EPS);
+		EXPECT_NEAR(5.0, Stats_quantile(data:=x, work:=work, p:=0.75, quantile_type:=2), EPS);
+		EXPECT_NEAR(6.0, Stats_quantile(data:=x, work:=work, p:=0.9, quantile_type:=2), EPS);
+		EXPECT_NEAR(6.0, Stats_quantile(data:=x, work:=work, p:=1.0, quantile_type:=2), EPS);
+
+		// Test quantile_type=3: [0..n-1] 下上の平均 中央値
+		EXPECT_NEAR(1.5, Stats_quantile(data:=x, work:=work, p:=0.0, quantile_type:=3), EPS);
+		EXPECT_NEAR(2.5, Stats_quantile(data:=x, work:=work, p:=0.25, quantile_type:=3), EPS);
+		EXPECT_NEAR(3.5, Stats_quantile(data:=x, work:=work, p:=0.5, quantile_type:=3), EPS);
+		EXPECT_NEAR(4.5, Stats_quantile(data:=x, work:=work, p:=0.75, quantile_type:=3), EPS);
+		EXPECT_NEAR(5.5, Stats_quantile(data:=x, work:=work, p:=0.9, quantile_type:=3), EPS);
+		EXPECT_NEAR(6.0, Stats_quantile(data:=x, work:=work, p:=1.0, quantile_type:=3), EPS);
+
+		// Test quantile_type=4: [0..n-1] 最近傍値
+		EXPECT_NEAR(1.0, Stats_quantile(data:=x, work:=work, p:=0.0, quantile_type:=4), EPS);
+		EXPECT_NEAR(2.0, Stats_quantile(data:=x, work:=work, p:=0.25, quantile_type:=4), EPS);
+		EXPECT_NEAR(4.0, Stats_quantile(data:=x, work:=work, p:=0.5, quantile_type:=4), EPS);
+		EXPECT_NEAR(5.0, Stats_quantile(data:=x, work:=work, p:=0.75, quantile_type:=4), EPS);
+		EXPECT_NEAR(6.0, Stats_quantile(data:=x, work:=work, p:=0.9, quantile_type:=4), EPS);
+		EXPECT_NEAR(6.0, Stats_quantile(data:=x, work:=work, p:=1.0, quantile_type:=4), EPS);
+
+		// Test quantile_type=7: [0..n-1] 線形補間
+		EXPECT_NEAR(1.0, Stats_quantile(data:=x, work:=work, p:=0.0, quantile_type:=7), EPS);
+		EXPECT_NEAR(2.25, Stats_quantile(data:=x, work:=work, p:=0.25, quantile_type:=7), EPS);
+		EXPECT_NEAR(3.5, Stats_quantile(data:=x, work:=work, p:=0.5, quantile_type:=7), EPS);
+		EXPECT_NEAR(4.75, Stats_quantile(data:=x, work:=work, p:=0.75, quantile_type:=7), EPS);
+		EXPECT_NEAR(5.5, Stats_quantile(data:=x, work:=work, p:=0.9, quantile_type:=7), EPS);
+		EXPECT_NEAR(6.0, Stats_quantile(data:=x, work:=work, p:=1.0, quantile_type:=7), EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_quantiles)
+	var
+		x_1: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		x_2: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
+		x_3: array[0..9] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
+		x_4: array[0..3] of lreal := [-5.0, -3.0, -1.0, -7.0];
+		x_5: array[0..9] of lreal := [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
+		x_even: array[0..5] of lreal := [2.0, 4.0, 6.0, 8.0, 10.0, 12.0];
+		x_single: array[0..0] of lreal := [42.0];
+		x_ident: array[0..4] of lreal := [5.0, 5.0, 5.0, 5.0, 5.0];
+		x_large: array[0..4] of lreal := [1000.0, 2000.0, 3000.0, 4000.0, 5000.0];
+		x_neg: array[0..4] of lreal := [-5.0, -3.0, 0.0, 3.0, 5.0];
+		work_1: array[0..4] of lreal;
+		work_2: array[0..4] of lreal;
+		work_3: array[0..9] of lreal;
+		work_4: array[0..3] of lreal;
+		work_5: array[0..9] of lreal;
+		work_even: array[0..5] of lreal;
+		work_single: array[0..0] of lreal;
+		work_ident: array[0..4] of lreal;
+		work_large: array[0..4] of lreal;
+		work_neg: array[0..4] of lreal;
+		result_1, result_2, result_3, result_4, result_5: array[0..2] of lreal;
+		result_even, result_single, result_ident, result_large, result_neg: array[0..2] of lreal;
+	end
+	{st}
+		// Sorted and unsorted inputs
+		// Basic test
+		Stats_quantiles(data:=x_1, work:=work_1, result:=result_1);
+		EXPECT_NEAR(2.0, result_1[0], EPS);
+		EXPECT_NEAR(3.0, result_1[1], EPS);
+		EXPECT_NEAR(4.0, result_1[2], EPS);
+
+		Stats_quantiles(data:=x_2, work:=work_2, result:=result_2);
+		EXPECT_NEAR(2.0, result_2[0], EPS);
+		EXPECT_NEAR(3.0, result_2[1], EPS);
+		EXPECT_NEAR(4.0, result_2[2], EPS);
+
+		// Longer sample
+		Stats_quantiles(data:=x_3, work:=work_3, result:=result_3);
+		EXPECT_NEAR(3.25, result_3[0], EPS);
+		EXPECT_NEAR(5.5, result_3[1], EPS);
+		EXPECT_NEAR(7.75, result_3[2], EPS);
+
+		// Negative values, out-of-order
+		Stats_quantiles(data:=x_4, work:=work_4, result:=result_4);
+		EXPECT_NEAR(-5.5, result_4[0], EPS);
+		EXPECT_NEAR(-4.0, result_4[1], EPS);
+		EXPECT_NEAR(-2.5, result_4[2], EPS);
+
+		// Fractional values
+		Stats_quantiles(data:=x_5, work:=work_5, result:=result_5);
+		EXPECT_NEAR(0.325, result_5[0], EPS);
+		EXPECT_NEAR(0.55, result_5[1], EPS);
+		EXPECT_NEAR(0.775, result_5[2], EPS);
+
+		// Even-length sample
+		Stats_quantiles(data:=x_even, work:=work_even, result:=result_even);
+		EXPECT_NEAR(4.5, result_even[0], EPS);
+		EXPECT_NEAR(7.0, result_even[1], EPS);
+		EXPECT_NEAR(9.5, result_even[2], EPS);
+
+		// Single-element sample
+		Stats_quantiles(data:=x_single, work:=work_single, result:=result_single);
+		EXPECT_NEAR(42.0, result_single[0], EPS);
+		EXPECT_NEAR(42.0, result_single[1], EPS);
+		EXPECT_NEAR(42.0, result_single[2], EPS);
+
+		// Identical values
+		Stats_quantiles(data:=x_ident, work:=work_ident, result:=result_ident);
+		EXPECT_NEAR(5.0, result_ident[0], EPS);
+		EXPECT_NEAR(5.0, result_ident[1], EPS);
+		EXPECT_NEAR(5.0, result_ident[2], EPS);
+
+		// Large-magnitude values
+		Stats_quantiles(data:=x_large, work:=work_large, result:=result_large);
+		EXPECT_NEAR(2000.0, result_large[0], EPS);
+		EXPECT_NEAR(3000.0, result_large[1], EPS);
+		EXPECT_NEAR(4000.0, result_large[2], EPS);
+
+		// Mixed-sign values
+		Stats_quantiles(data:=x_neg, work:=work_neg, result:=result_neg);
+		EXPECT_NEAR(-3.0, result_neg[0], EPS);
+		EXPECT_NEAR(0.0, result_neg[1], EPS);
+		EXPECT_NEAR(3.0, result_neg[2], EPS);
+	{end}
+END_TEST_S
+
+{#undef EPS}

@@ -1,0 +1,297 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/distributions/discrete/test_binomial.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/distributions/discrete/test_binomial.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/distributions/discrete/binomial.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_binomial_pmf',
+		'test_stats_binomial_cdf',
+		'test_stats_binomial_mean',
+		'test_stats_binomial_variance',
+		'test_stats_binomial_coefficient'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-6}
+
+// Stats_binomial_pmf: Probability mass function
+TEST_S(test_stats_binomial_pmf)
+	var result: lreal; end
+	{st}
+		// ========== Fair coin (p=0.5) ==========
+
+		// All failures: P(k=0|n=10,p=0.5) = (1/2)^10 ≈ 0.0009766
+		result := Stats_binomial_pmf(k:=0, n:=10, p:=0.5);
+		EXPECT_NEAR(0.0009765625, result, 1.0e-6);
+
+		// Mean: P(k=5|n=10,p=0.5) ≈ 0.2461
+		result := Stats_binomial_pmf(k:=5, n:=10, p:=0.5);
+		EXPECT_NEAR(0.24609375, result, 1.0e-6);
+
+		// All successes: P(k=10|n=10,p=0.5) = (1/2)^10 ≈ 0.0009766
+		result := Stats_binomial_pmf(k:=10, n:=10, p:=0.5);
+		EXPECT_NEAR(0.0009765625, result, 1.0e-6);
+
+		// ========== Skewed distribution (p=0.3) ==========
+
+		// P(k=0|n=10,p=0.3) = 0.7^10 ≈ 0.0282
+		result := Stats_binomial_pmf(k:=0, n:=10, p:=0.3);
+		EXPECT_NEAR(0.0282475249, result, 1.0e-6);
+
+		// P(k=3|n=10,p=0.3) ≈ 0.2668 (mode)
+		result := Stats_binomial_pmf(k:=3, n:=10, p:=0.3);
+		EXPECT_NEAR(0.26682793449999997, result, 1.0e-6);
+
+		// ========== Edge cases ==========
+
+		// n=1: Bernoulli trial
+		result := Stats_binomial_pmf(k:=0, n:=1, p:=0.7);
+		EXPECT_NEAR(0.3, result, EPS);
+
+		result := Stats_binomial_pmf(k:=1, n:=1, p:=0.7);
+		EXPECT_NEAR(0.7, result, EPS);
+
+		// p=0: always fails
+		result := Stats_binomial_pmf(k:=0, n:=5, p:=0.0);
+		EXPECT_NEAR(1.0, result, EPS);
+
+		result := Stats_binomial_pmf(k:=1, n:=5, p:=0.0);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// p=1: always succeeds
+		result := Stats_binomial_pmf(k:=5, n:=5, p:=1.0);
+		EXPECT_NEAR(1.0, result, EPS);
+
+		result := Stats_binomial_pmf(k:=4, n:=5, p:=1.0);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// ========== Symmetry check ==========
+
+		// P(k|n,p) = P(n-k|n,1-p)
+		result := Stats_binomial_pmf(k:=2, n:=10, p:=0.3);
+		EXPECT_NEAR(Stats_binomial_pmf(k:=8, n:=10, p:=0.7), result, 1.0e-6);
+	{end}
+END_TEST_S
+
+// Stats_binomial_cdf: Cumulative distribution function
+TEST_S(test_stats_binomial_cdf)
+	var result: lreal; end
+	var cdf3, cdf5, cdf7: lreal; end
+	{st}
+		// ========== Fair coin (p=0.5) ==========
+
+		// CDF at k=0
+		result := Stats_binomial_cdf(k:=0, n:=10, p:=0.5);
+		EXPECT_NEAR(0.0009765625, result, 1.0e-6);
+
+		// CDF at mean k=5
+		result := Stats_binomial_cdf(k:=5, n:=10, p:=0.5);
+		EXPECT_NEAR(0.623046875, result, 1.0e-6);
+
+		// CDF at k=n equals 1.0
+		result := Stats_binomial_cdf(k:=10, n:=10, p:=0.5);
+		EXPECT_NEAR(1.0, result, 1.0e-6);
+
+		// ========== Monotonicity check ==========
+
+		cdf3 := Stats_binomial_cdf(k:=3, n:=10, p:=0.5);
+		cdf5 := Stats_binomial_cdf(k:=5, n:=10, p:=0.5);
+		cdf7 := Stats_binomial_cdf(k:=7, n:=10, p:=0.5);
+		EXPECT_TRUE(cdf3 < cdf5);
+		EXPECT_TRUE(cdf5 < cdf7);
+
+		// ========== Boundary conditions ==========
+
+		// p=0: CDF jumps to 1 at k=0
+		result := Stats_binomial_cdf(k:=0, n:=5, p:=0.0);
+		EXPECT_NEAR(1.0, result, EPS);
+
+		// p=1: CDF stays 0 until k=n
+		result := Stats_binomial_cdf(k:=4, n:=5, p:=1.0);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		result := Stats_binomial_cdf(k:=5, n:=5, p:=1.0);
+		EXPECT_NEAR(1.0, result, EPS);
+
+		// ========== Additional test cases ==========
+
+		// CDF for p=0.3, n=10, k=3
+		result := Stats_binomial_cdf(k:=3, n:=10, p:=0.3);
+		EXPECT_NEAR(0.6496443165, result, 1.0e-4);
+
+		// CDF for larger n
+		result := Stats_binomial_cdf(k:=15, n:=20, p:=0.7);
+		EXPECT_NEAR(0.7622086447, result, 1.0e-3);
+	{end}
+END_TEST_S
+
+// Stats_binomial_mean: Mean of binomial distribution
+TEST_S(test_stats_binomial_mean)
+	var result: lreal; end
+	{st}
+		// ========== Basic cases ==========
+
+		// Mean = n*p = 10*0.3 = 3.0
+		result := Stats_binomial_mean(n:=10, p:=0.3);
+		EXPECT_NEAR(3.0, result, EPS);
+
+		// Fair coin: mean = n/2 = 5.0
+		result := Stats_binomial_mean(n:=10, p:=0.5);
+		EXPECT_NEAR(5.0, result, EPS);
+
+		// Mean = n*p = 100*0.25 = 25.0
+		result := Stats_binomial_mean(n:=100, p:=0.25);
+		EXPECT_NEAR(25.0, result, EPS);
+
+		// ========== Edge cases ==========
+
+		// p=0: mean = 0
+		result := Stats_binomial_mean(n:=10, p:=0.0);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// p=1: mean = n
+		result := Stats_binomial_mean(n:=10, p:=1.0);
+		EXPECT_NEAR(10.0, result, EPS);
+
+		// n=1: Bernoulli
+		result := Stats_binomial_mean(n:=1, p:=0.7);
+		EXPECT_NEAR(0.7, result, EPS);
+
+		// ========== Various p values ==========
+
+		result := Stats_binomial_mean(n:=20, p:=0.1);
+		EXPECT_NEAR(2.0, result, EPS);
+
+		result := Stats_binomial_mean(n:=50, p:=0.6);
+		EXPECT_NEAR(30.0, result, EPS);
+	{end}
+END_TEST_S
+
+// Stats_binomial_variance: Variance of binomial distribution
+TEST_S(test_stats_binomial_variance)
+	var result: lreal; end
+	{st}
+		// ========== Basic cases ==========
+
+		// Variance = n*p*(1-p) = 10*0.3*0.7 = 2.1
+		result := Stats_binomial_variance(n:=10, p:=0.3);
+		EXPECT_NEAR(2.1, result, EPS);
+
+		// Fair coin variance = n/4 = 2.5
+		result := Stats_binomial_variance(n:=10, p:=0.5);
+		EXPECT_NEAR(2.5, result, EPS);
+
+		// Variance = n*p*(1-p) = 100*0.25*0.75 = 18.75
+		result := Stats_binomial_variance(n:=100, p:=0.25);
+		EXPECT_NEAR(18.75, result, EPS);
+
+		// ========== Edge cases ==========
+
+		// p=0: variance = 0
+		result := Stats_binomial_variance(n:=10, p:=0.0);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// p=1: variance = 0
+		result := Stats_binomial_variance(n:=10, p:=1.0);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// Maximum variance at p=0.5
+		result := Stats_binomial_variance(n:=20, p:=0.5);
+		EXPECT_NEAR(5.0, result, EPS);
+
+		// n=1: Bernoulli variance = p*(1-p)
+		result := Stats_binomial_variance(n:=1, p:=0.7);
+		EXPECT_NEAR(0.21, result, EPS);
+
+		// ========== Symmetry check ==========
+
+		// Var(n,p) = Var(n,1-p)
+		EXPECT_NEAR(Stats_binomial_variance(n:=10, p:=0.3), Stats_binomial_variance(n:=10, p:=0.7), 1.0e-6);
+	{end}
+END_TEST_S
+
+// Stats_binomial_coefficient: Binomial coefficient C(n,k)
+TEST_S(test_stats_binomial_coefficient)
+	var result, result1, result2: lreal; end
+	{st}
+		// ========== Basic values ==========
+
+		// C(5,2) = 5!/(2!*3!) = 10
+		result := Stats_binomial_coefficient(n:=5, k:=2);
+		EXPECT_NEAR(10.0, result, EPS);
+
+		// C(10,3) = 10!/(3!*7!) = 120
+		result := Stats_binomial_coefficient(n:=10, k:=3);
+		EXPECT_NEAR(120.0, result, EPS);
+
+		// C(4,2) = 6
+		result := Stats_binomial_coefficient(n:=4, k:=2);
+		EXPECT_NEAR(6.0, result, EPS);
+
+		// C(12,4) = 495
+		result := Stats_binomial_coefficient(n:=12, k:=4);
+		EXPECT_NEAR(495.0, result, EPS);
+
+		// C(15,7) = 6435
+		result := Stats_binomial_coefficient(n:=15, k:=7);
+		EXPECT_NEAR(6435.0, result, EPS);
+
+		// C(20,10) = 184756
+		result := Stats_binomial_coefficient(n:=20, k:=10);
+		EXPECT_NEAR(184756.0, result, EPS);
+
+		// ========== Edge cases ==========
+
+		// C(n,0) = 1 for any n
+		result := Stats_binomial_coefficient(n:=7, k:=0);
+		EXPECT_NEAR(1.0, result, EPS);
+
+		// C(n,n) = 1 for any n
+		result := Stats_binomial_coefficient(n:=7, k:=7);
+		EXPECT_NEAR(1.0, result, EPS);
+
+		// C(0,0) = 1
+		result := Stats_binomial_coefficient(n:=0, k:=0);
+		EXPECT_NEAR(1.0, result, EPS);
+
+		// C(n,1) = n
+		result := Stats_binomial_coefficient(n:=10, k:=1);
+		EXPECT_NEAR(10.0, result, EPS);
+
+		// C(n,n-1) = n
+		result := Stats_binomial_coefficient(n:=10, k:=9);
+		EXPECT_NEAR(10.0, result, EPS);
+
+		// ========== Symmetry: C(n,k) = C(n,n-k) ==========
+
+		result1 := Stats_binomial_coefficient(n:=8, k:=2);
+		result2 := Stats_binomial_coefficient(n:=8, k:=6);
+		EXPECT_NEAR(result1, result2, EPS);
+
+		result1 := Stats_binomial_coefficient(n:=6, k:=1);
+		result2 := Stats_binomial_coefficient(n:=6, k:=5);
+		EXPECT_NEAR(6.0, result1, EPS);
+		EXPECT_NEAR(6.0, result2, EPS);
+
+		// ========== Pascal's identity: C(n,k) + C(n,k+1) = C(n+1,k+1) ==========
+
+		// C(5,2)=10 + C(5,3)=10 = C(6,3)=20
+		result1 := Stats_binomial_coefficient(n:=5, k:=2);
+		result2 := Stats_binomial_coefficient(n:=5, k:=3);
+		result := Stats_binomial_coefficient(n:=6, k:=3);
+		EXPECT_NEAR(result, result1 + result2, EPS);
+
+		// C(10,5)=252 + C(10,6)=210 = C(11,6)=462
+		result1 := Stats_binomial_coefficient(n:=10, k:=5);
+		result2 := Stats_binomial_coefficient(n:=10, k:=6);
+		result := Stats_binomial_coefficient(n:=11, k:=6);
+		EXPECT_NEAR(result, result1 + result2, EPS);
+	{end}
+END_TEST_S
+
+{#undef EPS}

@@ -1,0 +1,115 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/descriptive/test_mad.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/descriptive/test_mad.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/descriptive/mad.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_mean_absolute_deviation',
+		'test_stats_median_absolute_deviation'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_stats_mean_absolute_deviation)
+	var
+		x_1: array[0..4] of lreal := [1.0, 5.0, 3.0, 9.0, 2.0];
+		x_2: array[0..5] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+		x_3: array[0..4] of lreal := [-5.0, -1.0, 0.0, 2.0, 8.0];
+		x_4: array[0..5] of lreal := [1.0, 2.0, 2.0, 3.0, 3.0, 3.0];
+		x_5: array[0..0] of lreal := [42.0];
+		x_6: array[0..1] of lreal := [10.0, 20.0];
+		x_7: array[0..4] of lreal := [100.0, 200.0, 300.0, 400.0, 500.0];
+		x_8: array[0..4] of lreal := [0.1, 0.3, 0.5, 0.7, 0.9];
+		result: lreal;
+	end
+	{st}
+		EXPECT_NEAR(2.4, Stats_mean_absolute_deviation(data:=x_1), EPS);
+		EXPECT_NEAR(1.5, Stats_mean_absolute_deviation(data:=x_2), EPS);
+		EXPECT_NEAR(3.36, Stats_mean_absolute_deviation(data:=x_3), EPS);
+		EXPECT_NEAR(0.666666666666667, Stats_mean_absolute_deviation(data:=x_4), 1.0e-6);
+		EXPECT_NEAR(0.0, Stats_mean_absolute_deviation(data:=x_5), EPS);
+		EXPECT_NEAR(5.0, Stats_mean_absolute_deviation(data:=x_6), EPS);
+		EXPECT_NEAR(120.0, Stats_mean_absolute_deviation(data:=x_7), EPS);
+		EXPECT_NEAR(0.24, Stats_mean_absolute_deviation(data:=x_8), EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_median_absolute_deviation)
+	var
+		x_mad1: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		work1_mad1, work2_mad1, work3_mad1: array[0..4] of lreal;
+
+		x_mad2: array[0..6] of lreal := [1.0, 1.0, 2.0, 2.0, 4.0, 6.0, 9.0];
+		work1_mad2, work2_mad2, work3_mad2: array[0..6] of lreal;
+
+		x_add1: array[0..5] of lreal := [10.0, 15.0, 20.0, 25.0, 30.0, 35.0];
+		work1_add1, work2_add1, work3_add1: array[0..5] of lreal;
+
+		x_add2: array[0..3] of lreal := [100.0, 150.0, 200.0, 250.0];
+		work1_add2, work2_add2, work3_add2: array[0..3] of lreal;
+
+		x_add3: array[0..4] of lreal := [10.0, 12.0, 14.0, 16.0, 18.0];
+		work1_add3, work2_add3, work3_add3: array[0..4] of lreal;
+
+		x_identical: array[0..4] of lreal := [5.0, 5.0, 5.0, 5.0, 5.0];
+		work1_identical, work2_identical, work3_identical: array[0..4] of lreal;
+
+		x_single: array[0..0] of lreal := [42.0];
+		work1_single, work2_single, work3_single: array[0..0] of lreal;
+
+		x_large: array[0..4] of lreal := [1000.0, 2000.0, 3000.0, 4000.0, 5000.0];
+		work1_large, work2_large, work3_large: array[0..4] of lreal;
+
+		x_negative: array[0..4] of lreal := [-5.0, -3.0, 0.0, 3.0, 5.0];
+		work1_negative, work2_negative, work3_negative: array[0..4] of lreal;
+
+		x_symmetric: array[0..5] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+		work1_symmetric, work2_symmetric, work3_symmetric: array[0..5] of lreal;
+
+		result: lreal;
+	end
+	{st}
+		result := Stats_median_absolute_deviation(data:=x_mad1, work1:=work1_mad1, work2:=work2_mad1, work3:=work3_mad1);
+		EXPECT_NEAR(1.0, result, 0.5);
+
+		result := Stats_median_absolute_deviation(data:=x_mad2, work1:=work1_mad2, work2:=work2_mad2, work3:=work3_mad2);
+		EXPECT_GT_LREAL(result, 0.0);
+		EXPECT_LT_LREAL(result, 3.0);
+
+		result := Stats_median_absolute_deviation(data:=x_add1, work1:=work1_add1, work2:=work2_add1, work3:=work3_add1);
+		EXPECT_GT_LREAL(result, 5.0);
+		EXPECT_LT_LREAL(result, 15.0);
+
+		result := Stats_median_absolute_deviation(data:=x_add2, work1:=work1_add2, work2:=work2_add2, work3:=work3_add2);
+		EXPECT_GT_LREAL(result, 30.0);
+		EXPECT_LT_LREAL(result, 80.0);
+
+		result := Stats_median_absolute_deviation(data:=x_add3, work1:=work1_add3, work2:=work2_add3, work3:=work3_add3);
+		EXPECT_NEAR(2.0, result, 0.01);
+
+		result := Stats_median_absolute_deviation(data:=x_identical, work1:=work1_identical, work2:=work2_identical, work3:=work3_identical);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		result := Stats_median_absolute_deviation(data:=x_single, work1:=work1_single, work2:=work2_single, work3:=work3_single);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		result := Stats_median_absolute_deviation(data:=x_large, work1:=work1_large, work2:=work2_large, work3:=work3_large);
+		EXPECT_NEAR(1000.0, result, 10.0);
+
+		result := Stats_median_absolute_deviation(data:=x_negative, work1:=work1_negative, work2:=work2_negative, work3:=work3_negative);
+		EXPECT_NEAR(3.0, result, 0.1);
+
+		result := Stats_median_absolute_deviation(data:=x_symmetric, work1:=work1_symmetric, work2:=work2_symmetric, work3:=work3_symmetric);
+		EXPECT_GT_LREAL(result, 0.0);
+		EXPECT_LT_LREAL(result, 3.5);
+	{end}
+END_TEST_S
+
+{#undef EPS}
+

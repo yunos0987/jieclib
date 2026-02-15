@@ -1,0 +1,157 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/moments/test_raw_moments.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/moments/test_raw_moments.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/moments/raw_moments.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_moment'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+// Stats_moment: Compute the k-th raw moment about origin
+TEST_S(test_stats_moment)
+	var
+		simple_seq: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		small_seq: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		large_values: array[0..3] of lreal := [5.0, 10.0, 15.0, 20.0];
+		even_seq: array[0..5] of lreal := [2.0, 4.0, 6.0, 8.0, 10.0, 12.0];
+		symmetric_neg: array[0..3] of lreal := [-2.0, -1.0, 1.0, 2.0];
+		constant_values: array[0..4] of lreal := [5.0, 5.0, 5.0, 5.0, 5.0];
+		zeros: array[0..2] of lreal := [0.0, 0.0, 0.0];
+		one_element: array[0..0] of lreal := [7.5];
+		mixed: array[0..5] of lreal := [-3.0, -1.0, 0.0, 1.0, 3.0, 5.0];
+		result: lreal;
+	end
+	{st}
+		// ========== k=0: Always 1.0 ==========
+
+		result := Stats_moment(data:=simple_seq, k:=0);
+		EXPECT_NEAR(1.0, result, EPS);
+
+		result := Stats_moment(data:=large_values, k:=0);
+		EXPECT_NEAR(1.0, result, EPS);
+
+		result := Stats_moment(data:=zeros, k:=0);
+		EXPECT_NEAR(1.0, result, EPS);
+
+		result := Stats_moment(data:=one_element, k:=0);
+		EXPECT_NEAR(1.0, result, EPS);
+
+		// ========== k=1: Mean ==========
+
+		// [1,2,3,4,5]: mean = 3.0
+		result := Stats_moment(data:=simple_seq, k:=1);
+		EXPECT_NEAR(3.0, result, EPS);
+
+		// [1,2,3]: mean = 2.0
+		result := Stats_moment(data:=small_seq, k:=1);
+		EXPECT_NEAR(2.0, result, EPS);
+
+		// [5,10,15,20]: mean = 12.5
+		result := Stats_moment(data:=large_values, k:=1);
+		EXPECT_NEAR(12.5, result, EPS);
+
+		// [2,4,6,8,10,12]: mean = 7.0
+		result := Stats_moment(data:=even_seq, k:=1);
+		EXPECT_NEAR(7.0, result, EPS);
+
+		// [-2,-1,1,2]: mean = 0.0
+		result := Stats_moment(data:=symmetric_neg, k:=1);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// [5,5,5,5,5]: mean = 5.0
+		result := Stats_moment(data:=constant_values, k:=1);
+		EXPECT_NEAR(5.0, result, EPS);
+
+		// [0,0,0]: mean = 0.0
+		result := Stats_moment(data:=zeros, k:=1);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// [7.5]: mean = 7.5
+		result := Stats_moment(data:=one_element, k:=1);
+		EXPECT_NEAR(7.5, result, EPS);
+
+		// ========== k=2: Second raw moment ==========
+
+		// [1,2,3,4,5]: sum of squares = 55, mean = 11.0
+		result := Stats_moment(data:=simple_seq, k:=2);
+		EXPECT_NEAR(11.0, result, EPS);
+
+		// [1,2,3]: sum of squares = 14, mean = 4.666...
+		result := Stats_moment(data:=small_seq, k:=2);
+		EXPECT_NEAR(4.6667, result, 0.001);
+
+		// [2,4,6,8,10,12]: sum of squares = 364, mean = 60.666...
+		result := Stats_moment(data:=even_seq, k:=2);
+		EXPECT_NEAR(60.6667, result, 0.001);
+
+		// [-2,-1,1,2]: sum of squares = 10, mean = 2.5
+		result := Stats_moment(data:=symmetric_neg, k:=2);
+		EXPECT_NEAR(2.5, result, EPS);
+
+		// [5,5,5,5,5]: sum of squares = 125, mean = 25.0
+		result := Stats_moment(data:=constant_values, k:=2);
+		EXPECT_NEAR(25.0, result, EPS);
+
+		// [0,0,0]: sum of squares = 0, mean = 0.0
+		result := Stats_moment(data:=zeros, k:=2);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// ========== k=3: Third raw moment ==========
+
+		// [1,2,3]: sum of cubes = 36, mean = 12.0
+		result := Stats_moment(data:=small_seq, k:=3);
+		EXPECT_NEAR(12.0, result, EPS);
+
+		// [-2,-1,1,2]: sum of cubes = -8-1+1+8 = 0
+		result := Stats_moment(data:=symmetric_neg, k:=3);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// [0,0,0]: sum of cubes = 0, mean = 0.0
+		result := Stats_moment(data:=zeros, k:=3);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// ========== k=4: Fourth raw moment ==========
+
+		// [1,2,3]: sum of fourth powers = 1+16+81 = 98, mean ≈ 32.67
+		result := Stats_moment(data:=small_seq, k:=4);
+		EXPECT_NEAR(32.6667, result, 0.001);
+
+		// [-2,-1,1,2]: sum of fourth powers = 16+1+1+16 = 34, mean = 8.5
+		result := Stats_moment(data:=symmetric_neg, k:=4);
+		EXPECT_NEAR(8.5, result, EPS);
+
+		// [0,0,0]: sum of fourth powers = 0, mean = 0.0
+		result := Stats_moment(data:=zeros, k:=4);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// ========== Edge cases ==========
+
+		// Single element
+		result := Stats_moment(data:=one_element, k:=2);
+		EXPECT_NEAR(56.25, result, EPS);  // 7.5^2
+
+		result := Stats_moment(data:=one_element, k:=3);
+		EXPECT_NEAR(421.875, result, EPS);  // 7.5^3
+
+		// All zeros
+		result := Stats_moment(data:=zeros, k:=4);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// Mixed positive/negative
+		result := Stats_moment(data:=mixed, k:=1);
+		EXPECT_NEAR(0.8333, result, 0.001);  // (-3-1+0+1+3+5)/6 = 5/6
+
+		result := Stats_moment(data:=mixed, k:=2);
+		EXPECT_NEAR(7.5, result, 0.001);  // (9+1+0+1+9+25)/6 = 45/6
+	{end}
+END_TEST_S
+
+{#undef EPS}

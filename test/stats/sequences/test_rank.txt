@@ -1,0 +1,263 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/sequences/test_rank.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/sequences/test_rank.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/sequences/rank.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_rankdata'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_stats_rankdata)
+	var
+		x_basic: array[0..4] of lreal := [40.0, 10.0, 30.0, 20.0, 50.0];
+		x_desc: array[0..4] of lreal := [50.0, 40.0, 30.0, 20.0, 10.0];
+		x_sorted: array[0..4] of lreal := [10.0, 20.0, 30.0, 40.0, 50.0];
+		x_ties_pair: array[0..4] of lreal := [10.0, 20.0, 20.0, 30.0, 30.0];
+		x_ties_many: array[0..5] of lreal := [10.0, 20.0, 20.0, 30.0, 30.0, 30.0];
+		x_single: array[0..0] of lreal := [42.0];
+		x_neg_frac: array[0..4] of lreal := [-1.5, -1.5, 0.0, 0.5, -0.25];
+		x_large: array[0..4] of lreal := [1000.0, 2000.0, 3000.0, 4000.0, 5000.0];
+		x_small: array[0..4] of lreal := [0.001, 0.01, 0.1, 1.0, 10.0];
+		x_mixed: array[0..6] of lreal := [10.0, 5.0, 15.0, 5.0, 20.0, 10.0, 15.0];
+
+		result_basic: array[0..4] of lreal;
+		result_desc: array[0..4] of lreal;
+		result_sorted: array[0..4] of lreal;
+		result_ties_pair: array[0..4] of lreal;
+		result_ties_many: array[0..5] of lreal;
+		result_single: array[0..0] of lreal;
+		result_neg_frac: array[0..4] of lreal;
+		result_large: array[0..4] of lreal;
+		result_small: array[0..4] of lreal;
+		result_mixed: array[0..6] of lreal;
+
+		work_basic: array[0..4] of lreal;
+		work_desc: array[0..4] of lreal;
+		work_sorted: array[0..4] of lreal;
+		work_ties_pair: array[0..4] of lreal;
+		work_ties_many: array[0..5] of lreal;
+		work_single: array[0..0] of lreal;
+		work_neg_frac: array[0..4] of lreal;
+		work_large: array[0..4] of lreal;
+		work_small: array[0..4] of lreal;
+		work_mixed: array[0..6] of lreal;
+
+		idx_basic: array[0..4] of dint;
+		idx_desc: array[0..4] of dint;
+		idx_sorted: array[0..4] of dint;
+		idx_ties_pair: array[0..4] of dint;
+		idx_ties_many: array[0..5] of dint;
+		idx_single: array[0..0] of dint;
+		idx_neg_frac: array[0..4] of dint;
+		idx_large: array[0..4] of dint;
+		idx_small: array[0..4] of dint;
+		idx_mixed: array[0..6] of dint;
+	end
+	{st}
+		// Basic unsorted sample
+		Stats_rankdata(data:=x_basic, rank:=result_basic, work1:=work_basic, work2:=idx_basic, rank_type:=0);
+		EXPECT_NEAR(4.0, result_basic[0], EPS);
+		EXPECT_NEAR(1.0, result_basic[1], EPS);
+		EXPECT_NEAR(3.0, result_basic[2], EPS);
+		EXPECT_NEAR(2.0, result_basic[3], EPS);
+		EXPECT_NEAR(5.0, result_basic[4], EPS);
+
+		// Already descending order
+		Stats_rankdata(data:=x_desc, rank:=result_desc, work1:=work_desc, work2:=idx_desc, rank_type:=0);
+		EXPECT_NEAR(5.0, result_desc[0], EPS);
+		EXPECT_NEAR(4.0, result_desc[1], EPS);
+		EXPECT_NEAR(3.0, result_desc[2], EPS);
+		EXPECT_NEAR(2.0, result_desc[3], EPS);
+		EXPECT_NEAR(1.0, result_desc[4], EPS);
+
+		// Already ascending order
+		Stats_rankdata(data:=x_sorted, rank:=result_sorted, work1:=work_sorted, work2:=idx_sorted, rank_type:=0);
+		EXPECT_NEAR(1.0, result_sorted[0], EPS);
+		EXPECT_NEAR(2.0, result_sorted[1], EPS);
+		EXPECT_NEAR(3.0, result_sorted[2], EPS);
+		EXPECT_NEAR(4.0, result_sorted[3], EPS);
+		EXPECT_NEAR(5.0, result_sorted[4], EPS);
+
+		// Pairwise ties
+		Stats_rankdata(data:=x_ties_pair, rank:=result_ties_pair, work1:=work_ties_pair, work2:=idx_ties_pair, rank_type:=0);
+		EXPECT_NEAR(1.0, result_ties_pair[0], EPS);
+		EXPECT_NEAR(2.5, result_ties_pair[1], EPS);
+		EXPECT_NEAR(2.5, result_ties_pair[2], EPS);
+		EXPECT_NEAR(4.5, result_ties_pair[3], EPS);
+		EXPECT_NEAR(4.5, result_ties_pair[4], EPS);
+
+		// Multi-way ties
+		Stats_rankdata(data:=x_ties_many, rank:=result_ties_many, work1:=work_ties_many, work2:=idx_ties_many, rank_type:=0);
+		EXPECT_NEAR(1.0, result_ties_many[0], EPS);
+		EXPECT_NEAR(2.5, result_ties_many[1], EPS);
+		EXPECT_NEAR(2.5, result_ties_many[2], EPS);
+		EXPECT_NEAR(5.0, result_ties_many[3], EPS);
+		EXPECT_NEAR(5.0, result_ties_many[4], EPS);
+		EXPECT_NEAR(5.0, result_ties_many[5], EPS);
+
+		// Single-element input
+		Stats_rankdata(data:=x_single, rank:=result_single, work1:=work_single, work2:=idx_single, rank_type:=0);
+		EXPECT_NEAR(1.0, result_single[0], EPS);
+
+		// Negative and fractional values with ties
+		Stats_rankdata(data:=x_neg_frac, rank:=result_neg_frac, work1:=work_neg_frac, work2:=idx_neg_frac, rank_type:=0);
+		EXPECT_NEAR(1.5, result_neg_frac[0], EPS);
+		EXPECT_NEAR(1.5, result_neg_frac[1], EPS);
+		EXPECT_NEAR(4.0, result_neg_frac[2], EPS);
+		EXPECT_NEAR(5.0, result_neg_frac[3], EPS);
+		EXPECT_NEAR(3.0, result_neg_frac[4], EPS);
+
+		// Large values
+		Stats_rankdata(data:=x_large, rank:=result_large, work1:=work_large, work2:=idx_large, rank_type:=0);
+		EXPECT_NEAR(1.0, result_large[0], EPS);
+		EXPECT_NEAR(2.0, result_large[1], EPS);
+		EXPECT_NEAR(3.0, result_large[2], EPS);
+		EXPECT_NEAR(4.0, result_large[3], EPS);
+		EXPECT_NEAR(5.0, result_large[4], EPS);
+
+		// Small values
+		Stats_rankdata(data:=x_small, rank:=result_small, work1:=work_small, work2:=idx_small, rank_type:=0);
+		EXPECT_NEAR(1.0, result_small[0], EPS);
+		EXPECT_NEAR(2.0, result_small[1], EPS);
+		EXPECT_NEAR(3.0, result_small[2], EPS);
+		EXPECT_NEAR(4.0, result_small[3], EPS);
+		EXPECT_NEAR(5.0, result_small[4], EPS);
+
+		// Mixed with multiple tie groups
+		Stats_rankdata(data:=x_mixed, rank:=result_mixed, work1:=work_mixed, work2:=idx_mixed, rank_type:=0);
+		EXPECT_NEAR(3.5, result_mixed[0], EPS);
+		EXPECT_NEAR(1.5, result_mixed[1], EPS);
+		EXPECT_NEAR(5.5, result_mixed[2], EPS);
+		EXPECT_NEAR(1.5, result_mixed[3], EPS);
+		EXPECT_NEAR(7.0, result_mixed[4], EPS);
+		EXPECT_NEAR(3.5, result_mixed[5], EPS);
+		EXPECT_NEAR(5.5, result_mixed[6], EPS);
+
+		// rank_type=1: min ranking - pairwise ties
+		Stats_rankdata(data:=x_ties_pair, rank:=result_ties_pair, work1:=work_ties_pair, work2:=idx_ties_pair, rank_type:=1);
+		EXPECT_NEAR(1.0, result_ties_pair[0], EPS);
+		EXPECT_NEAR(2.0, result_ties_pair[1], EPS);
+		EXPECT_NEAR(2.0, result_ties_pair[2], EPS);
+		EXPECT_NEAR(4.0, result_ties_pair[3], EPS);
+		EXPECT_NEAR(4.0, result_ties_pair[4], EPS);
+
+		// rank_type=1: min - multi-way ties
+		Stats_rankdata(data:=x_ties_many, rank:=result_ties_many, work1:=work_ties_many, work2:=idx_ties_many, rank_type:=1);
+		EXPECT_NEAR(1.0, result_ties_many[0], EPS);
+		EXPECT_NEAR(2.0, result_ties_many[1], EPS);
+		EXPECT_NEAR(2.0, result_ties_many[2], EPS);
+		EXPECT_NEAR(4.0, result_ties_many[3], EPS);
+		EXPECT_NEAR(4.0, result_ties_many[4], EPS);
+		EXPECT_NEAR(4.0, result_ties_many[5], EPS);
+
+		// rank_type=1: min with complex ties
+		Stats_rankdata(data:=x_mixed, rank:=result_mixed, work1:=work_mixed, work2:=idx_mixed, rank_type:=1);
+		EXPECT_NEAR(3.0, result_mixed[0], EPS);
+		EXPECT_NEAR(1.0, result_mixed[1], EPS);
+		EXPECT_NEAR(5.0, result_mixed[2], EPS);
+		EXPECT_NEAR(1.0, result_mixed[3], EPS);
+		EXPECT_NEAR(7.0, result_mixed[4], EPS);
+		EXPECT_NEAR(3.0, result_mixed[5], EPS);
+		EXPECT_NEAR(5.0, result_mixed[6], EPS);
+
+		// rank_type=1: min - single element
+		Stats_rankdata(data:=x_single, rank:=result_single, work1:=work_single, work2:=idx_single, rank_type:=1);
+		EXPECT_NEAR(1.0, result_single[0], EPS);
+
+		// rank_type=1: min - negative and fractional
+		Stats_rankdata(data:=x_neg_frac, rank:=result_neg_frac, work1:=work_neg_frac, work2:=idx_neg_frac, rank_type:=1);
+		EXPECT_NEAR(1.0, result_neg_frac[0], EPS);
+		EXPECT_NEAR(1.0, result_neg_frac[1], EPS);
+		EXPECT_NEAR(4.0, result_neg_frac[2], EPS);
+		EXPECT_NEAR(5.0, result_neg_frac[3], EPS);
+		EXPECT_NEAR(3.0, result_neg_frac[4], EPS);
+
+		// rank_type=2: max ranking - pairwise ties
+		Stats_rankdata(data:=x_ties_pair, rank:=result_ties_pair, work1:=work_ties_pair, work2:=idx_ties_pair, rank_type:=2);
+		EXPECT_NEAR(1.0, result_ties_pair[0], EPS);
+		EXPECT_NEAR(3.0, result_ties_pair[1], EPS);
+		EXPECT_NEAR(3.0, result_ties_pair[2], EPS);
+		EXPECT_NEAR(5.0, result_ties_pair[3], EPS);
+		EXPECT_NEAR(5.0, result_ties_pair[4], EPS);
+
+		// rank_type=2: max - multi-way ties
+		Stats_rankdata(data:=x_ties_many, rank:=result_ties_many, work1:=work_ties_many, work2:=idx_ties_many, rank_type:=2);
+		EXPECT_NEAR(1.0, result_ties_many[0], EPS);
+		EXPECT_NEAR(3.0, result_ties_many[1], EPS);
+		EXPECT_NEAR(3.0, result_ties_many[2], EPS);
+		EXPECT_NEAR(6.0, result_ties_many[3], EPS);
+		EXPECT_NEAR(6.0, result_ties_many[4], EPS);
+		EXPECT_NEAR(6.0, result_ties_many[5], EPS);
+
+		// rank_type=2: max with complex ties
+		Stats_rankdata(data:=x_mixed, rank:=result_mixed, work1:=work_mixed, work2:=idx_mixed, rank_type:=2);
+		EXPECT_NEAR(4.0, result_mixed[0], EPS);
+		EXPECT_NEAR(2.0, result_mixed[1], EPS);
+		EXPECT_NEAR(6.0, result_mixed[2], EPS);
+		EXPECT_NEAR(2.0, result_mixed[3], EPS);
+		EXPECT_NEAR(7.0, result_mixed[4], EPS);
+		EXPECT_NEAR(4.0, result_mixed[5], EPS);
+		EXPECT_NEAR(6.0, result_mixed[6], EPS);
+
+		// rank_type=2: max - single element
+		Stats_rankdata(data:=x_single, rank:=result_single, work1:=work_single, work2:=idx_single, rank_type:=2);
+		EXPECT_NEAR(1.0, result_single[0], EPS);
+
+		// rank_type=2: max - negative and fractional
+		Stats_rankdata(data:=x_neg_frac, rank:=result_neg_frac, work1:=work_neg_frac, work2:=idx_neg_frac, rank_type:=2);
+		EXPECT_NEAR(2.0, result_neg_frac[0], EPS);
+		EXPECT_NEAR(2.0, result_neg_frac[1], EPS);
+		EXPECT_NEAR(4.0, result_neg_frac[2], EPS);
+		EXPECT_NEAR(5.0, result_neg_frac[3], EPS);
+		EXPECT_NEAR(3.0, result_neg_frac[4], EPS);
+
+		// rank_type=3: first occurrence - pairwise ties
+		Stats_rankdata(data:=x_ties_pair, rank:=result_ties_pair, work1:=work_ties_pair, work2:=idx_ties_pair, rank_type:=3);
+		EXPECT_NEAR(1.0, result_ties_pair[0], EPS);
+		EXPECT_NEAR(2.0, result_ties_pair[1], EPS);
+		EXPECT_NEAR(2.0, result_ties_pair[2], EPS);
+		EXPECT_NEAR(4.0, result_ties_pair[3], EPS);
+		EXPECT_NEAR(4.0, result_ties_pair[4], EPS);
+
+		// rank_type=3: first - multi-way ties
+		Stats_rankdata(data:=x_ties_many, rank:=result_ties_many, work1:=work_ties_many, work2:=idx_ties_many, rank_type:=3);
+		EXPECT_NEAR(1.0, result_ties_many[0], EPS);
+		EXPECT_NEAR(2.0, result_ties_many[1], EPS);
+		EXPECT_NEAR(2.0, result_ties_many[2], EPS);
+		EXPECT_NEAR(4.0, result_ties_many[3], EPS);
+		EXPECT_NEAR(4.0, result_ties_many[4], EPS);
+		EXPECT_NEAR(4.0, result_ties_many[5], EPS);
+
+		// rank_type=3: first with complex ties
+		Stats_rankdata(data:=x_mixed, rank:=result_mixed, work1:=work_mixed, work2:=idx_mixed, rank_type:=3);
+		EXPECT_NEAR(3.0, result_mixed[0], EPS);
+		EXPECT_NEAR(1.0, result_mixed[1], EPS);
+		EXPECT_NEAR(5.0, result_mixed[2], EPS);
+		EXPECT_NEAR(1.0, result_mixed[3], EPS);
+		EXPECT_NEAR(7.0, result_mixed[4], EPS);
+		EXPECT_NEAR(3.0, result_mixed[5], EPS);
+		EXPECT_NEAR(5.0, result_mixed[6], EPS);
+
+		// rank_type=3: first - single element
+		Stats_rankdata(data:=x_single, rank:=result_single, work1:=work_single, work2:=idx_single, rank_type:=3);
+		EXPECT_NEAR(1.0, result_single[0], EPS);
+
+		// rank_type=3: first - negative and fractional
+		Stats_rankdata(data:=x_neg_frac, rank:=result_neg_frac, work1:=work_neg_frac, work2:=idx_neg_frac, rank_type:=3);
+		EXPECT_NEAR(1.0, result_neg_frac[0], EPS);
+		EXPECT_NEAR(1.0, result_neg_frac[1], EPS);
+		EXPECT_NEAR(4.0, result_neg_frac[2], EPS);
+		EXPECT_NEAR(5.0, result_neg_frac[3], EPS);
+		EXPECT_NEAR(3.0, result_neg_frac[4], EPS);
+	{end}
+END_TEST_S
+
+{#undef EPS}

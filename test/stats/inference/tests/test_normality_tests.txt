@@ -1,0 +1,270 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/inference/tests/test_normality_tests.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/inference/tests/test_normality_tests.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/inference/tests/normality_tests.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_jarque_bera',
+		'test_stats_shapiro_wilk'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_stats_jarque_bera)
+	var
+		// Edge cases
+		x_min_n3: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		x_min_n4: array[0..3] of lreal := [1.0, 2.0, 3.0, 4.0];
+		x_uniform: array[0..9] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
+
+		// Normal-like distributions
+		x_nearly_normal: array[0..9] of lreal := [10.0, 11.0, 10.5, 11.5, 10.2, 11.1, 10.8, 11.2, 10.9, 11.1];
+		x_symmetric: array[0..4] of lreal := [-2.0, -1.0, 0.0, 1.0, 2.0];
+
+		// Skewed distributions
+		x_right_skewed: array[0..6] of lreal := [1.0, 1.0, 2.0, 2.0, 3.0, 5.0, 10.0];
+		x_left_skewed: array[0..6] of lreal := [0.0, 5.0, 7.0, 8.0, 9.0, 9.0, 10.0];
+		x_highly_skewed: array[0..6] of lreal := [-2.0, -1.0, 0.0, 1.0, 2.0, 3.0, 20.0];
+
+		// Kurtosis variations
+		x_platykurtic: array[0..3] of lreal := [0.0, 5.0, 5.0, 10.0];
+		x_leptokurtic: array[0..5] of lreal := [-10.0, -1.0, 0.0, 1.0, 2.0, 15.0];
+
+		// Special patterns
+		x_bimodal: array[0..5] of lreal := [-2.0, -2.0, -2.0, 2.0, 2.0, 2.0];
+		x_constant_low: array[0..3] of lreal := [5.0, 5.0, 5.0, 5.0];
+
+		result: Stats_TestResult;
+		result_eno: bool;
+	end
+	{st}
+		// Edge case: n < 4 should return default values
+		Stats_jarque_bera(data:=x_min_n3, result:=result, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+
+		// Edge case: n = 4 (minimum valid)
+		Stats_jarque_bera(data:=x_min_n4, result:=result);
+		EXPECT_NEAR(0.3082666667, result.statistic, 0.001);
+		EXPECT_NEAR(0.8571577257, result.pvalue, 0.001);
+		EXPECT_NEAR(2.0, result.df, EPS);
+
+		// Uniform distribution (moderate skewness and kurtosis)
+		Stats_jarque_bera(data:=x_uniform, result:=result);
+		EXPECT_NEAR(0.6244872972, result.statistic, 0.001);
+		EXPECT_NEAR(0.7318032037, result.pvalue, 0.001);
+
+		// Nearly normal distribution
+		Stats_jarque_bera(data:=x_nearly_normal, result:=result);
+		EXPECT_NEAR(0.6889119951, result.statistic, 0.001);
+		EXPECT_NEAR(0.7086057319, result.pvalue, 0.001);
+
+		// Symmetric distribution
+		Stats_jarque_bera(data:=x_symmetric, result:=result);
+		EXPECT_NEAR(0.3520833333, result.statistic, 0.001);
+		EXPECT_NEAR(0.8385830416, result.pvalue, 0.001);
+
+		// Right-skewed distribution
+		Stats_jarque_bera(data:=x_right_skewed, result:=result);
+		EXPECT_NEAR(2.3245085165, result.statistic, 0.001);
+		EXPECT_NEAR(0.3127802980, result.pvalue, 0.001);
+
+		// Left-skewed distribution
+		Stats_jarque_bera(data:=x_left_skewed, result:=result);
+		EXPECT_NEAR(1.7820584745, result.statistic, 0.001);
+		EXPECT_NEAR(0.4102333080, result.pvalue, 0.001);
+
+		// Highly skewed distribution
+		Stats_jarque_bera(data:=x_highly_skewed, result:=result);
+		EXPECT_NEAR(4.7418090170, result.statistic, 0.001);
+		EXPECT_NEAR(0.0933962104, result.pvalue, 0.001);
+
+		// Platykurtic (flat) distribution
+		Stats_jarque_bera(data:=x_platykurtic, result:=result);
+		EXPECT_NEAR(0.1666666667, result.statistic, 0.001);
+		EXPECT_NEAR(0.9200444146, result.pvalue, 0.001);
+
+		// Leptokurtic (peaked) distribution
+		Stats_jarque_bera(data:=x_leptokurtic, result:=result);
+		EXPECT_NEAR(0.2757751851, result.statistic, 0.001);
+		EXPECT_NEAR(0.8711966152, result.pvalue, 0.001);
+
+		// Bimodal distribution
+		Stats_jarque_bera(data:=x_bimodal, result:=result);
+		EXPECT_NEAR(1.0000000000, result.statistic, 0.001);
+		EXPECT_NEAR(0.6065306597, result.pvalue, 0.001);
+
+		// Constant values (zero variance) - NaN case
+		Stats_jarque_bera(data:=x_constant_low, result:=result, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_shapiro_wilk)
+	var
+		// Edge cases
+		x_min_n2: array[0..1] of lreal := [1.0, 2.0];
+		x_min_n3: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		x_min_n4: array[0..3] of lreal := [1.0, 2.0, 3.0, 4.0];
+		x_uniform: array[0..9] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
+
+		// Normal-like distributions
+		x_nearly_normal: array[0..9] of lreal := [10.0, 11.0, 10.5, 11.5, 10.2, 11.1, 10.8, 11.2, 10.9, 11.1];
+		x_symmetric: array[0..4] of lreal := [-2.0, -1.0, 0.0, 1.0, 2.0];
+
+		// Skewed distributions
+		x_right_skewed: array[0..6] of lreal := [1.0, 1.0, 2.0, 2.0, 3.0, 5.0, 10.0];
+		x_left_skewed: array[0..6] of lreal := [0.0, 5.0, 7.0, 8.0, 9.0, 9.0, 10.0];
+		x_highly_skewed: array[0..6] of lreal := [-2.0, -1.0, 0.0, 1.0, 2.0, 3.0, 20.0];
+
+		// Kurtosis variations
+		x_platykurtic: array[0..3] of lreal := [0.0, 5.0, 5.0, 10.0];
+		x_leptokurtic: array[0..5] of lreal := [-10.0, -1.0, 0.0, 1.0, 2.0, 15.0];
+
+		// Special patterns
+		x_bimodal: array[0..5] of lreal := [-2.0, -2.0, -2.0, 2.0, 2.0, 2.0];
+		x_constant: array[0..3] of lreal := [5.0, 5.0, 5.0, 5.0];
+		x_outliers: array[0..5] of lreal := [-3.0, -1.0, 0.0, 1.0, 3.0, 20.0];
+
+		// Large sample size n=30
+		x_normal_n30: array[0..29] of lreal := [
+			0.496714, -0.138264, 0.647689, 1.523030, -0.234153,
+			-0.234137, 1.579213, 0.767435, -0.469474, 0.542560,
+			-0.463418, -0.465730, 0.241962, -1.913280, -1.724918,
+			-0.562288, -1.012831, 0.314247, -0.908024, -1.412304,
+			1.465649, -0.225776, 0.067528, -1.424748, -0.544383,
+			0.110923, -1.150994, 0.375698, -0.600639, -0.291694
+		];
+		x_exponential_n30: array[0..29] of lreal := [
+			1.152751, 0.580091, 0.130152, 0.683547, 0.034994,
+			2.400423, 0.299458, 1.086256, 0.373547, 0.734111,
+			0.791224, 0.204389, 3.492807, 1.492245, 2.805094,
+			2.252152, 0.911054, 2.549435, 0.092655, 0.218135,
+			0.046282, 0.393532, 0.492130, 0.316560, 1.764558,
+			0.441227, 0.329803, 0.782407, 0.151898, 1.620484
+		];
+		x_uniform_n30: array[0..29] of lreal := [
+			0.074551, 0.986887, 0.772245, 0.198716, 0.005522,
+			0.815461, 0.706857, 0.729007, 0.771270, 0.074045,
+			0.358466, 0.115869, 0.863103, 0.623298, 0.330898,
+			0.063558, 0.310982, 0.325183, 0.729606, 0.637557,
+			0.887213, 0.472215, 0.119594, 0.713245, 0.760785,
+			0.561277, 0.770967, 0.493796, 0.522733, 0.427541
+		];
+		x_mixed_n30: array[0..29] of lreal := [
+			0.087047, -0.299007, 0.091761, -1.987569, -0.219672,
+			0.357113, 1.477894, -0.518270, -0.808494, -0.501757,
+			0.915402, 0.328751, -0.529760, 0.513267, 0.097078,
+			0.968645, -0.702053, -0.327662, -0.392108, -1.463515,
+			5.296120, 5.261055, 5.005113, 4.765413, 3.584629,
+			4.579355, 4.657285, 4.197723, 4.838714, 5.404051
+		];
+
+		// Work arrays
+		work1: array[0..29] of lreal;
+		work2: array[0..29] of lreal;
+		work3: array[0..29] of lreal;
+
+		result: Stats_TestResult;
+		result_eno: bool;
+		W_EPS: lreal constant := 1.0e-5;
+		PVALUE_EPS: lreal constant := 1.0e-5;
+	end
+	{st}
+		// n < 3 -> eno=false
+		Stats_shapiro_wilk(data:=x_min_n2, result:=result, work1:=work1, work2:=work2, work3:=work3, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+
+		// n = 3 (SciPy reference: W=1.0, p=1.0)
+		Stats_shapiro_wilk(data:=x_min_n3, result:=result, work1:=work1, work2:=work2, work3:=work3);
+		EXPECT_NEAR(1.0, result.statistic, W_EPS);
+		EXPECT_NEAR(1.0, result.pvalue, PVALUE_EPS);
+
+		// n = 4 minimum valid
+		Stats_shapiro_wilk(data:=x_min_n4, result:=result, work1:=work1, work2:=work2, work3:=work3);
+		EXPECT_NEAR(0.9929119349, result.statistic, W_EPS);
+		EXPECT_NEAR(0.9718766809, result.pvalue, PVALUE_EPS);
+
+		// Uniform
+		Stats_shapiro_wilk(data:=x_uniform, result:=result, work1:=work1, work2:=work2, work3:=work3);
+		EXPECT_NEAR(0.9701647162, result.statistic, W_EPS);
+		EXPECT_NEAR(0.8923683763, result.pvalue, PVALUE_EPS);
+
+		// Nearly normal
+		Stats_shapiro_wilk(data:=x_nearly_normal, result:=result, work1:=work1, work2:=work2, work3:=work3);
+		EXPECT_NEAR(0.9418021441, result.statistic, W_EPS);
+		EXPECT_NEAR(0.5732355714, result.pvalue, PVALUE_EPS);
+
+		// Symmetric
+		Stats_shapiro_wilk(data:=x_symmetric, result:=result, work1:=work1, work2:=work2, work3:=work3);
+		EXPECT_NEAR(0.9867621660, result.statistic, W_EPS);
+		EXPECT_NEAR(0.9671739340, result.pvalue, PVALUE_EPS);
+
+		// Right-skewed
+		Stats_shapiro_wilk(data:=x_right_skewed, result:=result, work1:=work1, work2:=work2, work3:=work3);
+		EXPECT_NEAR(0.7851966619, result.statistic, W_EPS);
+		EXPECT_NEAR(0.0291492138, result.pvalue, PVALUE_EPS);
+
+		// Left-skewed
+		Stats_shapiro_wilk(data:=x_left_skewed, result:=result, work1:=work1, work2:=work2, work3:=work3);
+		EXPECT_NEAR(0.8422836065, result.statistic, W_EPS);
+		EXPECT_NEAR(0.1043382585, result.pvalue, PVALUE_EPS);
+
+		// Highly skewed
+		Stats_shapiro_wilk(data:=x_highly_skewed, result:=result, work1:=work1, work2:=work2, work3:=work3);
+		EXPECT_NEAR(0.6729817390, result.statistic, W_EPS);
+		EXPECT_NEAR(0.0018661633, result.pvalue, PVALUE_EPS);
+
+		// Platykurtic
+		Stats_shapiro_wilk(data:=x_platykurtic, result:=result, work1:=work1, work2:=work2, work3:=work3);
+		EXPECT_NEAR(0.9446643591, result.statistic, W_EPS);
+		EXPECT_NEAR(0.6829614043, result.pvalue, PVALUE_EPS);
+
+		// Leptokurtic
+		Stats_shapiro_wilk(data:=x_leptokurtic, result:=result, work1:=work1, work2:=work2, work3:=work3);
+		EXPECT_NEAR(0.8956907988, result.statistic, W_EPS);
+		EXPECT_NEAR(0.3490853608, result.pvalue, PVALUE_EPS);
+
+		// Bimodal
+		Stats_shapiro_wilk(data:=x_bimodal, result:=result, work1:=work1, work2:=work2, work3:=work3);
+		EXPECT_NEAR(0.6826766729, result.statistic, W_EPS);
+		EXPECT_NEAR(0.0040393374, result.pvalue, PVALUE_EPS);
+
+		// Constant values -> SciPy returns W=1, p=1
+		Stats_shapiro_wilk(data:=x_constant, result:=result, work1:=work1, work2:=work2, work3:=work3);
+		EXPECT_NEAR(1.0, result.statistic, W_EPS);
+		EXPECT_NEAR(1.0, result.pvalue, PVALUE_EPS);
+
+		// With outliers
+		Stats_shapiro_wilk(data:=x_outliers, result:=result, work1:=work1, work2:=work2, work3:=work3);
+		EXPECT_NEAR(0.7244776487, result.statistic, W_EPS);
+		EXPECT_NEAR(0.0110808983, result.pvalue, PVALUE_EPS);
+
+		// Large sample: Normal distribution n=30
+		Stats_shapiro_wilk(data:=x_normal_n30, result:=result, work1:=work1, work2:=work2, work3:=work3);
+		EXPECT_NEAR(0.9751381874, result.statistic, W_EPS);
+		EXPECT_NEAR(0.6868013144, result.pvalue, PVALUE_EPS);
+
+		// Large sample: Exponential distribution n=30
+		Stats_shapiro_wilk(data:=x_exponential_n30, result:=result, work1:=work1, work2:=work2, work3:=work3);
+		EXPECT_NEAR(0.8442528844, result.statistic, W_EPS);
+		EXPECT_NEAR(0.0004710938, result.pvalue, PVALUE_EPS);
+
+		// Large sample: Uniform distribution n=30
+		Stats_shapiro_wilk(data:=x_uniform_n30, result:=result, work1:=work1, work2:=work2, work3:=work3);
+		EXPECT_NEAR(0.9334995151, result.statistic, W_EPS);
+		EXPECT_NEAR(0.0608631335, result.pvalue, PVALUE_EPS);
+
+		// Large sample: Bimodal/mixed distribution n=30
+		Stats_shapiro_wilk(data:=x_mixed_n30, result:=result, work1:=work1, work2:=work2, work3:=work3);
+		EXPECT_NEAR(0.8357086182, result.statistic, W_EPS);
+		EXPECT_NEAR(0.0003157910, result.pvalue, PVALUE_EPS);
+	{end}
+END_TEST_S
+
+{#undef EPS}

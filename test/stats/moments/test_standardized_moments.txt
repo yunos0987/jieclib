@@ -1,0 +1,282 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/moments/test_standardized_moments.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/moments/test_standardized_moments.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/moments/standardized_moments.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_standardized_moment',
+		'test_stats_skewness_from_moments',
+		'test_stats_kurtosis_from_moments'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_stats_standardized_moment)
+	var
+		x_case1: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		x_case4_right: array[0..6] of lreal := [1.0, 1.0, 1.0, 2.0, 3.0, 4.0, 5.0];
+		x_case4_left: array[0..6] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 5.0, 5.0];
+		x_case5_peaked: array[0..4] of lreal := [2.0, 3.0, 3.0, 3.0, 4.0];
+		x_constant: array[0..4] of lreal := [5.0, 5.0, 5.0, 5.0, 5.0];
+		x_invalid_bound: array[1..5] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		//
+		result, skew_right, skew_left, kurt_normal, kurt_peaked: lreal;
+		//
+		result_eno: bool;
+	end
+	{st}
+		// Case 1: Second moment should be 1.0 by definition
+		result := Stats_standardized_moment(data:=x_case1, k:=2);
+		EXPECT_NEAR(1.0, result, EPS);
+
+		// Case 2: Third moment = skewness = 0 for symmetric data
+		result := Stats_standardized_moment(data:=x_case1, k:=3);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// Case 3: Fourth moment for uniform data
+		result := Stats_standardized_moment(data:=x_case1, k:=4);
+		EXPECT_NEAR(1.7, result, 0.001);
+
+		// Case 4: Right-skewed and left-skewed data
+		skew_right := Stats_standardized_moment(data:=x_case4_right, k:=3);
+		EXPECT_NEAR(0.5200705032, skew_right, 0.001);
+
+		skew_left := Stats_standardized_moment(data:=x_case4_left, k:=3);
+		EXPECT_NEAR(-0.5200705032, skew_left, 0.001);
+
+		// Case 5: Kurtosis - peaked data has higher kurtosis
+		kurt_normal := Stats_standardized_moment(data:=x_case1, k:=4);
+		EXPECT_NEAR(1.7, kurt_normal, 0.001);
+		kurt_peaked := Stats_standardized_moment(data:=x_case5_peaked, k:=4);
+		EXPECT_NEAR(2.5, kurt_peaked, 0.001);
+		EXPECT_GT_LREAL(kurt_peaked, kurt_normal);
+
+		// Case 6: Zero variance - eno should be false
+		result := Stats_standardized_moment(data:=x_constant, k:=2, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+
+		// Case 7: Zero variance with k=3 - eno should be false
+		result := Stats_standardized_moment(data:=x_constant, k:=3, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+
+		// Case 8: Zero variance with k=4 - eno should be false
+		result := Stats_standardized_moment(data:=x_constant, k:=4, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+
+		// Case 9: Invalid array bound (not starting at 0) - eno should be false
+		result := Stats_standardized_moment(data:=x_invalid_bound, k:=2, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+
+		// Case 10: k=0 should return 1.0 and eno=true
+		result := Stats_standardized_moment(data:=x_case1, k:=0);
+		EXPECT_NEAR(1.0, result, EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_skewness_from_moments)
+	var
+		x_sym: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		x_right: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 100.0];
+		x_left: array[0..4] of lreal := [1.0, 97.0, 98.0, 99.0, 100.0];
+		m2, m3, result: lreal;
+		result_eno: bool;
+	end
+	{st}
+		// Case 1: Symmetric data has zero skewness
+		m2 := Stats_central_moment(data:=x_sym, k:=2);
+		m3 := Stats_central_moment(data:=x_sym, k:=3);
+		result := Stats_skewness_from_moments(m2:=m2, m3:=m3);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// Case 2: Basic - m2=1, m3=0
+		m2 := 1.0;
+		m3 := 0.0;
+		result := Stats_skewness_from_moments(m2:=m2, m3:=m3);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// Case 3: Right-skewed data
+		m2 := Stats_central_moment(data:=x_right, k:=2);
+		m3 := Stats_central_moment(data:=x_right, k:=3);
+		result := Stats_skewness_from_moments(m2:=m2, m3:=m3);
+		EXPECT_NEAR(1.4975367033, result, 0.001);
+
+		// Case 4: Left-skewed data
+		m2 := Stats_central_moment(data:=x_left, k:=2);
+		m3 := Stats_central_moment(data:=x_left, k:=3);
+		result := Stats_skewness_from_moments(m2:=m2, m3:=m3);
+		EXPECT_NEAR(-1.4975367033, result, 0.001);
+
+		// Case 5: Zero third moment
+		m2 := 4.0;
+		m3 := 0.0;
+		result := Stats_skewness_from_moments(m2:=m2, m3:=m3);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// Case 6: Positive third moment
+		m2 := 1.0;
+		m3 := 0.5;
+		result := Stats_skewness_from_moments(m2:=m2, m3:=m3);
+		EXPECT_NEAR(0.5, result, 0.001);
+
+		// Case 7: Negative third moment
+		m2 := 1.0;
+		m3 := -0.5;
+		result := Stats_skewness_from_moments(m2:=m2, m3:=m3);
+		EXPECT_NEAR(-0.5, result, 0.001);
+
+		// Case 8: Precision test - skewness = m3 / (m2^1.5)
+		m2 := 4.0;
+		m3 := 2.0;
+		result := Stats_skewness_from_moments(m2:=m2, m3:=m3);
+		EXPECT_NEAR(0.25, result, EPS);
+
+		// Case 9: Additional verification
+		m2 := 9.0;
+		m3 := 5.4;
+		result := Stats_skewness_from_moments(m2:=m2, m3:=m3);
+		EXPECT_NEAR(0.2, result, 0.001);
+
+		// Zero skewness - symmetric distribution
+		EXPECT_NEAR(0.0, Stats_skewness_from_moments(m2:=4.0, m3:=0.0), EPS);
+
+		// Positive skewness
+		EXPECT_NEAR(1.0, Stats_skewness_from_moments(m2:=4.0, m3:=8.0), EPS);
+
+		// Negative skewness
+		EXPECT_NEAR(-1.0, Stats_skewness_from_moments(m2:=4.0, m3:=-8.0), EPS);
+
+		// Unit variance cases
+		EXPECT_NEAR(0.5, Stats_skewness_from_moments(m2:=1.0, m3:=0.5), EPS);
+		EXPECT_NEAR(-0.5, Stats_skewness_from_moments(m2:=1.0, m3:=-0.5), EPS);
+
+		// Large variance, small skew
+		EXPECT_NEAR(0.111111111111111, Stats_skewness_from_moments(m2:=9.0, m3:=3.0), 1.0e-6);
+
+		// Small variance, larger skew
+		EXPECT_NEAR(4.0, Stats_skewness_from_moments(m2:=0.25, m3:=0.5), EPS);
+
+		// Moderate positive skew
+		EXPECT_NEAR(1.333333333333333, Stats_skewness_from_moments(m2:=2.25, m3:=4.5), 1.0e-6);
+
+		// High positive skew
+		EXPECT_NEAR(2.0, Stats_skewness_from_moments(m2:=1.0, m3:=2.0), EPS);
+
+		// Moderate negative skew
+		EXPECT_NEAR(-0.8, Stats_skewness_from_moments(m2:=6.25, m3:=-12.5), EPS);
+
+		// Another intermediate case
+		EXPECT_NEAR(0.353553390593274, Stats_skewness_from_moments(m2:=2.0, m3:=1.0), 1.0e-6);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_kurtosis_from_moments)
+	var
+		x_basic: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		m2, m4, result: lreal;
+		result_eno: bool;
+	end
+	{st}
+		// Case 1: Basic - uniform [1,5] has excess kurtosis ≈-1.3
+		m2 := Stats_central_moment(data:=x_basic, k:=2);
+		m4 := Stats_central_moment(data:=x_basic, k:=4);
+		result := Stats_kurtosis_from_moments(m2:=m2, m4:=m4, fisher:=true);
+		EXPECT_NEAR(-1.3, result, 0.001);
+
+		// Case 2: Normal distribution - excess kurtosis = 0
+		m2 := 1.0;
+		m4 := 3.0;
+		result := Stats_kurtosis_from_moments(m2:=m2, m4:=m4, fisher:=true);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// Case 3: Uniform distribution - excess kurtosis = -1.2
+		m2 := 1.0;
+		m4 := 1.8;
+		result := Stats_kurtosis_from_moments(m2:=m2, m4:=m4, fisher:=true);
+		EXPECT_NEAR(-1.2, result, 0.001);
+
+		// Case 4: Leptokurtic (heavy-tailed) - positive excess
+		m2 := 1.0;
+		m4 := 5.0;
+		result := Stats_kurtosis_from_moments(m2:=m2, m4:=m4, fisher:=true);
+		EXPECT_NEAR(2.0, result, EPS);
+
+		// Case 5: Platykurtic (light-tailed) - negative excess
+		m2 := 1.0;
+		m4 := 1.0;
+		result := Stats_kurtosis_from_moments(m2:=m2, m4:=m4, fisher:=true);
+		EXPECT_NEAR(-2.0, result, EPS);
+
+		// Case 6: Very heavy tailed
+		m2 := 1.0;
+		m4 := 10.0;
+		result := Stats_kurtosis_from_moments(m2:=m2, m4:=m4, fisher:=true);
+		EXPECT_NEAR(7.0, result, EPS);
+
+		// Case 7: fisher=true
+		m2 := 4.0;
+		m4 := 48.0;
+		result := Stats_kurtosis_from_moments(m2:=m2, m4:=m4, fisher:=true);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// Case 8: fisher=false
+		result := Stats_kurtosis_from_moments(m2:=m2, m4:=m4, fisher:=false);
+		EXPECT_NEAR(3.0, result, EPS);
+
+		// Case 9: Additional verification
+		m2 := 2.5;
+		m4 := 37.5;
+		result := Stats_kurtosis_from_moments(m2:=m2, m4:=m4, fisher:=true);
+		EXPECT_NEAR(3.0, result, EPS);
+
+		// Basic case: normal-like distribution - Fisher/excess kurtosis
+		EXPECT_NEAR(0.0, Stats_kurtosis_from_moments(m2:=4.0, m4:=48.0, fisher:=true), EPS);
+
+		// Simple ratio
+		EXPECT_NEAR(-2.0, Stats_kurtosis_from_moments(m2:=4.0, m4:=16.0, fisher:=true), EPS);
+
+		// Normal-like with unit variance
+		EXPECT_NEAR(0.0, Stats_kurtosis_from_moments(m2:=1.0, m4:=3.0, fisher:=true), EPS);
+
+		// High kurtosis - leptokurtic
+		EXPECT_NEAR(9.5, Stats_kurtosis_from_moments(m2:=2.0, m4:=50.0, fisher:=true), EPS);
+
+		// Low kurtosis - platykurtic
+		EXPECT_NEAR(-1.8, Stats_kurtosis_from_moments(m2:=5.0, m4:=30.0, fisher:=true), EPS);
+
+		// Small moments
+		EXPECT_NEAR(-1.0, Stats_kurtosis_from_moments(m2:=0.5, m4:=0.5, fisher:=true), EPS);
+
+		// Large moments
+		EXPECT_NEAR(1.0, Stats_kurtosis_from_moments(m2:=10.0, m4:=400.0, fisher:=true), EPS);
+
+		// Uniform-like distribution
+		EXPECT_NEAR(-1.333333333333333, Stats_kurtosis_from_moments(m2:=3.0, m4:=15.0, fisher:=true), 1.0e-6);
+
+		// Very peaked distribution
+		EXPECT_NEAR(10.333333333333334, Stats_kurtosis_from_moments(m2:=1.5, m4:=30.0, fisher:=true), 1.0e-6);
+
+		// Intermediate case
+		EXPECT_NEAR(1.0, Stats_kurtosis_from_moments(m2:=2.5, m4:=25.0, fisher:=true), EPS);
+
+		// Edge case: m2^2 equals m4
+		EXPECT_NEAR(-2.0, Stats_kurtosis_from_moments(m2:=2.0, m4:=4.0, fisher:=true), EPS);
+
+		// Test Pearson kurtosis (fisher=false) - returns m4/m2^2
+		EXPECT_NEAR(3.0, Stats_kurtosis_from_moments(m2:=4.0, m4:=48.0, fisher:=false), EPS);
+		EXPECT_NEAR(1.0, Stats_kurtosis_from_moments(m2:=4.0, m4:=16.0, fisher:=false), EPS);
+		EXPECT_NEAR(3.0, Stats_kurtosis_from_moments(m2:=1.0, m4:=3.0, fisher:=false), EPS);
+		EXPECT_NEAR(12.5, Stats_kurtosis_from_moments(m2:=2.0, m4:=50.0, fisher:=false), EPS);
+		EXPECT_NEAR(1.2, Stats_kurtosis_from_moments(m2:=5.0, m4:=30.0, fisher:=false), EPS);
+		EXPECT_NEAR(4.0, Stats_kurtosis_from_moments(m2:=10.0, m4:=400.0, fisher:=false), EPS);
+		EXPECT_NEAR(5.0, Stats_kurtosis_from_moments(m2:=1.0, m4:=5.0, fisher:=false), EPS);
+		EXPECT_NEAR(1.8, Stats_kurtosis_from_moments(m2:=1.0, m4:=1.8, fisher:=false), EPS);
+	{end}
+END_TEST_S
+
+{#undef EPS}

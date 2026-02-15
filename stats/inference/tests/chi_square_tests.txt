@@ -1,0 +1,190 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./stats/inference/tests/chi_square_tests.txt -I. -I./vendor/jiecunit/sys -o ./stats/inference/tests/chi_square_tests.xml -t omron
+ *)
+{#ifndef __STATS_INFERENCE_TESTS_CHI_SQUARE_TESTS_TXT__}
+{#define __STATS_INFERENCE_TESTS_CHI_SQUARE_TESTS_TXT__}
+
+{#include <sys.txt>}
+{#include <array/array.txt>}
+{#include <stats/inference/tests/test_core.txt>}
+
+(*{doc カイ二乗適合度検定 H0: 観測度数が期待数に従う
+chi_sq = sum((observed_i - expected_i)^2 / expected_i)
+@inout observed 観測度数を含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout expected 期待度数を含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@input n 先頭n個を使用する。
+  デフォルト値: -1
+@inout result 結果を格納する。
+@error 入力値が不正な場合。}*)
+function Stats_chi_square_gof
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 観測度数。}*)
+		observed: array[*] of lreal;
+		(*{doc 期待度数。}*)
+		expected: array[*] of lreal;
+	end
+	var_input
+		(*{doc 先頭 n 個を使用する。}*)
+		n: dint := -1;
+	end
+	var_in_out
+		(*{doc 検定結果。}*)
+		result: Stats_TestResult;
+	end
+	var_temp
+		nobs, nexp, i, actual_n: dint;
+		chi_sq_stat, pvalue, diff: lreal;
+	end
+	{st}
+	nobs := Array_isRegular_lreal(observed);
+	nexp := Array_isRegular_lreal(expected);
+	if (nobs = 0) or (n > nobs) or (nexp = 0) or (n > nexp) then
+		eno := false;
+		return;
+	end_if;
+	if n < 0 then
+		if nobs <> nexp then
+			eno := false;
+			return;
+		end_if;
+		actual_n := nobs;
+	else
+		actual_n := n;
+	end_if;
+
+	if actual_n < 2 then
+		eno := false;
+		return;
+	end_if;
+
+	chi_sq_stat := 0.0;
+	for i := 0 to actual_n - 1 do
+		if expected[i] > 0.0 then
+			diff := observed[i] - expected[i];
+			chi_sq_stat := chi_sq_stat + (diff * diff) / expected[i];
+		end_if;
+	end_for;
+
+	// 自由度 = クラス数 - 1
+	pvalue := Stats_p_value_chi_square_right(chi_sq:=chi_sq_stat, df:=dint_to_lreal(actual_n - 1));
+
+	result.statistic := chi_sq_stat;
+	result.pvalue := pvalue;
+	result.df := dint_to_lreal(actual_n - 1);
+	result.ci_lower := 0.0;
+	result.ci_upper := 0.0;
+	result.effect_size := 0.0;
+	{end}
+end
+
+(*{doc カイ二乗独立性検定（分割表）。table: 分割表（行×列の度数）
+@inout table 分割表を含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout result 結果を格納する。
+@inout row_totals_work 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout col_totals_work 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error 入力値が不正な場合。}*)
+function Stats_chi_square_independence
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 分割表。}*)
+		table: array[*,*] of lreal;
+		(*{doc 検定結果。}*)
+		result: Stats_TestResult;
+	end
+	var_in_out
+		(*{doc 作業配列。}*)
+		row_totals_work: array[*] of lreal;
+		(*{doc 作業配列。}*)
+		col_totals_work: array[*] of lreal;
+	end
+	var_temp
+		rows, cols, i, j, row_capacity, col_capacity, row_lb, col_lb, table_row_lb, table_col_lb: dint;
+		row_total, col_total, grand_total, chi_sq_stat, expected, diff, adj_diff: lreal;
+		apply_yates: bool;
+	end
+	{st}
+		table_row_lb := lower_bound(table, 1);
+		table_col_lb := lower_bound(table, 2);
+		rows := upper_bound(table, 1) - table_row_lb + 1;
+		cols := upper_bound(table, 2) - table_col_lb + 1;
+
+		if (rows < 2) or (cols < 2) then
+			eno := false;
+			return;
+		end_if;
+
+		row_capacity := Array_size(row_totals_work);
+		col_capacity := Array_size(col_totals_work);
+		if (row_capacity < rows) or (col_capacity < cols) then
+			eno := false;
+			return;
+		end_if;
+
+		row_lb := lower_bound(row_totals_work, 1);
+		col_lb := lower_bound(col_totals_work, 1);
+
+		// 2x2 分率表は Yates の連続性補正を適用
+		apply_yates := (rows = 2) and (cols = 2);
+
+		// 行合計と列合計を計算
+		grand_total := 0.0;
+		for i := 0 to rows - 1 do
+			row_total := 0.0;
+			for j := 0 to cols - 1 do
+				row_total := row_total + table[table_row_lb + i, table_col_lb + j];
+			end_for;
+			row_totals_work[row_lb + i] := row_total;
+			grand_total := grand_total + row_total;
+		end_for;
+
+		for j := 0 to cols - 1 do
+			col_total := 0.0;
+			for i := 0 to rows - 1 do
+				col_total := col_total + table[table_row_lb + i, table_col_lb + j];
+			end_for;
+			col_totals_work[col_lb + j] := col_total;
+		end_for;
+
+		// カイ二乗統計量を計算
+		chi_sq_stat := 0.0;
+		for i := 0 to rows - 1 do
+			for j := 0 to cols - 1 do
+				expected := (row_totals_work[row_lb + i] * col_totals_work[col_lb + j]) / grand_total;
+				if expected > 0.0 then
+					diff := table[table_row_lb + i, table_col_lb + j] - expected;
+					if apply_yates then
+						adj_diff := diff;
+						if adj_diff < 0.0 then
+							adj_diff := -adj_diff;
+						end_if;
+						adj_diff := adj_diff - 0.5;
+						if adj_diff < 0.0 then
+							adj_diff := 0.0;
+						end_if;
+						chi_sq_stat := chi_sq_stat + (adj_diff * adj_diff) / expected;
+					else
+						chi_sq_stat := chi_sq_stat + (diff * diff) / expected;
+					end_if;
+				end_if;
+			end_for;
+		end_for;
+
+		// 自由度 = (行数 - 1) * (列数 - 1)
+		result.statistic := chi_sq_stat;
+		result.pvalue := Stats_p_value_chi_square_right(chi_sq:=chi_sq_stat, df:=dint_to_lreal((rows - 1) * (cols - 1)));
+		result.df := dint_to_lreal((rows - 1) * (cols - 1));
+		result.ci_lower := 0.0;
+		result.ci_upper := 0.0;
+		result.effect_size := 0.0;
+	{end}
+end
+
+{#endif}
+

@@ -1,0 +1,219 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/distributions/discrete/test_poisson.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/distributions/discrete/test_poisson.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/distributions/discrete/poisson.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_poisson_pmf',
+		'test_stats_poisson_cdf',
+		'test_stats_poisson_mean',
+		'test_stats_poisson_variance'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-6}
+
+// Stats_poisson_pmf: Probability mass function
+TEST_S(test_stats_poisson_pmf)
+	var result: lreal; end
+	var pmf1, pmf2: lreal; end
+	{st}
+		// ========== Basic cases (lambda=3) ==========
+
+		// P(k=0|λ=3) = e^-3 ≈ 0.0498
+		result := Stats_poisson_pmf(k:=0, lambda:=3.0);
+		EXPECT_NEAR(0.049787068367863944, result, EPS);
+
+		// P(k=2|λ=3) = (3^2 * e^-3) / 2! ≈ 0.2240
+		result := Stats_poisson_pmf(k:=2, lambda:=3.0);
+		EXPECT_NEAR(0.22404456893517831, result, 1.0e-4);
+
+		// P(k=3|λ=3) = (3^3 * e^-3) / 3! ≈ 0.2240 (mode)
+		result := Stats_poisson_pmf(k:=3, lambda:=3.0);
+		EXPECT_NEAR(0.22404456893517831, result, 1.0e-4);
+
+		// P(k=5|λ=3) ≈ 0.1008
+		result := Stats_poisson_pmf(k:=5, lambda:=3.0);
+		EXPECT_NEAR(0.10081881344492458, result, 1.0e-4);
+
+		// ========== Different lambda values ==========
+
+		// P(k=1|λ=1) = e^-1 ≈ 0.3679
+		result := Stats_poisson_pmf(k:=1, lambda:=1.0);
+		EXPECT_NEAR(0.36787944117144233, result, EPS);
+
+		// P(k=5|λ=5) = (5^5 * e^-5) / 5! ≈ 0.1755
+		result := Stats_poisson_pmf(k:=5, lambda:=5.0);
+		EXPECT_NEAR(0.17546736976785068, result, EPS);
+
+		// P(k=10|λ=10) ≈ 0.1251
+		result := Stats_poisson_pmf(k:=10, lambda:=10.0);
+		EXPECT_NEAR(0.12511003572113329, result, 1.0e-5);
+
+		// ========== Edge cases ==========
+
+		// Small lambda: P(k=0|λ=0.5) = e^-0.5 ≈ 0.6065
+		result := Stats_poisson_pmf(k:=0, lambda:=0.5);
+		EXPECT_NEAR(0.6065306597126334, result, EPS);
+
+		// Large k
+		result := Stats_poisson_pmf(k:=20, lambda:=15.0);
+		EXPECT_NEAR(0.04180399709930106, result, 1.0e-5);
+
+		// ========== Properties check ==========
+
+		// PMF is always positive
+		result := Stats_poisson_pmf(k:=7, lambda:=4.0);
+		EXPECT_TRUE(result > 0.0);
+
+		// At mode: P(k=λ-1) ≈ P(k=λ) when λ is integer
+		pmf1 := Stats_poisson_pmf(k:=4, lambda:=5.0);
+		pmf2 := Stats_poisson_pmf(k:=5, lambda:=5.0);
+		EXPECT_TRUE(pmf1 > 0.0);
+		EXPECT_TRUE(pmf2 > 0.0);
+	{end}
+END_TEST_S
+
+// Stats_poisson_cdf: Cumulative distribution function
+TEST_S(test_stats_poisson_cdf)
+	var result: lreal; end
+	var cdf1, cdf2, cdf3: lreal; end
+	{st}
+		// ========== Basic cases (lambda=3) ==========
+
+		// CDF at k=0
+		result := Stats_poisson_cdf(k:=0, lambda:=3.0);
+		EXPECT_NEAR(0.049787068367863944, result, 1.0e-4);
+
+		// CDF at k=2
+		result := Stats_poisson_cdf(k:=2, lambda:=3.0);
+		EXPECT_NEAR(0.42319008112684353, result, 1.0e-4);
+
+		// CDF at k=5
+		result := Stats_poisson_cdf(k:=5, lambda:=3.0);
+		EXPECT_NEAR(0.91608371872359129, result, 1.0e-4);
+
+		// ========== Monotonicity check ==========
+
+		cdf1 := Stats_poisson_cdf(k:=1, lambda:=3.0);
+		cdf2 := Stats_poisson_cdf(k:=2, lambda:=3.0);
+		cdf3 := Stats_poisson_cdf(k:=3, lambda:=3.0);
+		EXPECT_TRUE(cdf1 < cdf2);
+		EXPECT_TRUE(cdf2 < cdf3);
+
+		// ========== Different lambda values ==========
+
+		// CDF for lambda=1
+		result := Stats_poisson_cdf(k:=2, lambda:=1.0);
+		EXPECT_NEAR(0.91969860292860951, result, EPS);
+
+		// CDF for lambda=5
+		result := Stats_poisson_cdf(k:=5, lambda:=5.0);
+		EXPECT_NEAR(0.61596060667361513, result, EPS);
+
+		// CDF for lambda=10
+		result := Stats_poisson_cdf(k:=10, lambda:=10.0);
+		EXPECT_NEAR(0.58303975158170563, result, 1.0e-5);
+
+		// ========== Edge cases ==========
+
+		// Small lambda
+		result := Stats_poisson_cdf(k:=1, lambda:=0.5);
+		EXPECT_NEAR(0.90979598956770974, result, EPS);
+
+		// Large k approaches 1.0
+		result := Stats_poisson_cdf(k:=30, lambda:=10.0);
+		EXPECT_NEAR(0.99999999663605224, result, 1.0e-7);
+
+		// ========== Properties check ==========
+
+		// CDF at k=0 equals PMF at k=0
+		result := Stats_poisson_cdf(k:=0, lambda:=2.0);
+		EXPECT_NEAR(Stats_poisson_pmf(k:=0, lambda:=2.0), result, 1.0e-6);
+	{end}
+END_TEST_S
+
+// Stats_poisson_mean: Mean of Poisson distribution
+TEST_S(test_stats_poisson_mean)
+	var result: lreal; end
+	{st}
+		// ========== Basic cases ==========
+
+		// Mean = λ = 3.0
+		result := Stats_poisson_mean(lambda:=3.0);
+		EXPECT_NEAR(3.0, result, EPS);
+
+		// Mean = λ = 5.0
+		result := Stats_poisson_mean(lambda:=5.0);
+		EXPECT_NEAR(5.0, result, EPS);
+
+		// Mean = λ = 100.0
+		result := Stats_poisson_mean(lambda:=100.0);
+		EXPECT_NEAR(100.0, result, EPS);
+
+		// ========== Edge cases ==========
+
+		// Small lambda
+		result := Stats_poisson_mean(lambda:=0.5);
+		EXPECT_NEAR(0.5, result, EPS);
+
+		// Large lambda
+		result := Stats_poisson_mean(lambda:=1000.0);
+		EXPECT_NEAR(1000.0, result, EPS);
+
+		// ========== Various values ==========
+
+		result := Stats_poisson_mean(lambda:=1.5);
+		EXPECT_NEAR(1.5, result, EPS);
+
+		result := Stats_poisson_mean(lambda:=7.25);
+		EXPECT_NEAR(7.25, result, EPS);
+
+		result := Stats_poisson_mean(lambda:=50.0);
+		EXPECT_NEAR(50.0, result, EPS);
+	{end}
+END_TEST_S
+
+// Stats_poisson_variance: Variance of Poisson distribution
+TEST_S(test_stats_poisson_variance)
+	var result: lreal; end
+	{st}
+		// ========== Basic cases ==========
+
+		// Variance = λ = 3.0
+		result := Stats_poisson_variance(lambda:=3.0);
+		EXPECT_NEAR(3.0, result, EPS);
+
+		// Variance = λ = 3.5
+		result := Stats_poisson_variance(lambda:=3.5);
+		EXPECT_NEAR(3.5, result, EPS);
+
+		// Variance = λ = 50.0
+		result := Stats_poisson_variance(lambda:=50.0);
+		EXPECT_NEAR(50.0, result, EPS);
+
+		// ========== Edge cases ==========
+
+		// Small lambda
+		result := Stats_poisson_variance(lambda:=0.5);
+		EXPECT_NEAR(0.5, result, EPS);
+
+		// Large lambda
+		result := Stats_poisson_variance(lambda:=1000.0);
+		EXPECT_NEAR(1000.0, result, EPS);
+
+		// ========== Property: Mean = Variance ==========
+
+		// For Poisson distribution, mean = variance
+		EXPECT_NEAR(Stats_poisson_mean(lambda:=7.0), Stats_poisson_variance(lambda:=7.0), EPS);
+		EXPECT_NEAR(Stats_poisson_mean(lambda:=15.5), Stats_poisson_variance(lambda:=15.5), EPS);
+		EXPECT_NEAR(Stats_poisson_mean(lambda:=100.0), Stats_poisson_variance(lambda:=100.0), EPS);
+	{end}
+END_TEST_S
+
+{#undef EPS}

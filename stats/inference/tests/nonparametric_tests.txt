@@ -1,0 +1,287 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./stats/inference/tests/nonparametric_tests.txt -I. -I./vendor/jiecunit/sys -o ./stats/inference/tests/nonparametric_tests.xml -t omron
+ *)
+{#ifndef __STATS_INFERENCE_TESTS_NONPARAMETRIC_TESTS_TXT__}
+{#define __STATS_INFERENCE_TESTS_NONPARAMETRIC_TESTS_TXT__}
+
+{#include <sys.txt>}
+{#include <stats/sequences/rank.txt>}
+{#include <stats/inference/tests/test_core.txt>}
+
+(*{doc Mann-Whitney U 検定（Wilcoxon rank-sum test）。H0: 2 群の分布が同じ。
+正規近似を使用。連続補正なし。タイ補正なし。
+@inout x サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout y サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout result 結果を格納する。
+@inout combined_work 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout ranks_work 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout rank_sort_work 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout rank_idx_work 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error 入力値が不正な場合。}*)
+function Stats_mann_whitney_u
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc x を含む配列。}*)
+		x: array[*] of lreal;
+		(*{doc y を含む配列。}*)
+		y: array[*] of lreal;
+		(*{doc 検定結果。}*)
+		result: Stats_TestResult;
+	end
+	var_in_out
+		(*{doc 作業配列。}*)
+		combined_work: array[*] of lreal;
+		(*{doc 作業配列。}*)
+		ranks_work: array[*] of lreal;
+		(*{doc 作業配列。}*)
+		rank_sort_work: array[*] of lreal;
+		(*{doc 作業配列。}*)
+		rank_idx_work: array[*] of dint;
+	end
+	var_temp
+		n_x, n_y, n_total, i: dint;
+		combined_capacity, ranks_capacity, rank_sort_capacity, rank_idx_capacity: dint;
+		x_lb, y_lb, combined_lb, ranks_lb, rank_sort_lb, rank_idx_lb: dint;
+		u_x, u_y, u_stat, mean_u, std_u, z_stat: lreal;
+	end
+	{st}
+		n_x := Array_isRegular_lreal(x);
+		n_y := Array_isRegular_lreal(y);
+		if (n_x = 0) or (n_y = 0) then
+			eno := false;
+			return;
+		end_if;
+
+		if (n_x < 2) or (n_y < 2) then
+			eno := false;
+			return;
+		end_if;
+
+		n_total := n_x + n_y;
+
+		if (Array_isRegular_lreal(combined_work) < n_total)
+			or (Array_isRegular_lreal(ranks_work) < n_total)
+			or (Array_isRegular_lreal(rank_sort_work) < n_total)
+			or (Array_isRegular_dint(rank_idx_work) < n_total) then
+			eno := false;
+			return;
+		end_if;
+
+		// データを結合。combined_workの最初の n_total 個のみ使用。
+		for i := 0 to n_x - 1 do
+			combined_work[i] := x[i];
+		end_for;
+		for i := 0 to n_y - 1 do
+			combined_work[n_x + i] := y[i];
+		end_for;
+
+		// ランク付け
+		for i := 0 to n_total - 1 do
+			rank_sort_work[i] := combined_work[i];
+		end_for;
+
+		Stats_rankdata(
+			data:=rank_sort_work,
+			n:=n_total,
+			rank:=ranks_work,
+			work1:=combined_work,
+			work2:=rank_idx_work,
+			rank_type:=0,
+			eno=>eno
+		);
+		if not eno then
+			return;
+		end_if;
+
+		// x 群のランク和を計算
+		u_x := 0.0;
+		for i := 0 to n_x - 1 do
+			u_x := u_x + ranks_work[i];
+		end_for;
+
+		// U 統計量を計算
+		u_stat := u_x - dint_to_lreal(n_x * (n_x + 1)) / 2.0;
+		u_y := dint_to_lreal(n_x * n_y) - u_stat;
+
+		// 小さい方を使用
+		if u_y < u_stat then
+			u_stat := u_y;
+		end_if;
+
+		// 正規近似による z 統計量
+		mean_u := dint_to_lreal(n_x * n_y) / 2.0;
+		std_u := sqrt(dint_to_lreal(n_x * n_y * (n_total + 1)) / 12.0);
+
+		if std_u > 1e-15 then
+			z_stat := (u_stat - mean_u) / std_u;
+		else
+			z_stat := 0.0;
+		end_if;
+
+		result.pvalue := Stats_p_value_normal_two_tailed(z:=z_stat);
+
+		result.statistic := u_stat;
+		result.df := 0.0;
+		result.ci_lower := 0.0;
+		result.ci_upper := 0.0;
+		result.effect_size := 0.0;
+	{end}
+end
+
+(*{doc Wilcoxon signed-rank test。対応あり。H0: 差の中央値が0。
+正規近似を使用。連続補正なし。タイ補正なし。
+@inout x サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout y サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout diff_work 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout abs_diff_work 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout ranks_work 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout rank_sort_work 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout rank_idx_work 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout result 結果を格納する。
+@error 入力値が不正な場合。}*)
+function Stats_wilcoxon_signed_rank
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
+		x: array[*] of lreal;
+		(*{doc サンプルデータを含む配列。}*)
+		y: array[*] of lreal;
+		(*{doc 作業配列。}*)
+		diff_work: array[*] of lreal;
+		(*{doc 作業配列。}*)
+		abs_diff_work: array[*] of lreal;
+		(*{doc 作業配列。}*)
+		ranks_work: array[*] of lreal;
+		(*{doc 作業配列。}*)
+		rank_sort_work: array[*] of lreal;
+		(*{doc 作業配列。}*)
+		rank_idx_work: array[*] of dint;
+		(*{doc 検定結果。}*)
+		result: Stats_TestResult;
+	end
+	var_temp
+		n, n_valid, i: dint;
+		diff_capacity, abs_diff_capacity, ranks_capacity, rank_sort_capacity, rank_idx_capacity: dint;
+		x_lb, y_lb, diff_lb, abs_diff_lb, ranks_lb, rank_sort_lb, rank_idx_lb: dint;
+		diff_val, w_plus, w_minus, w_stat, mean_w, std_w, z_stat: lreal;
+	end
+	{st}
+		n := Array_size(x);
+		if (n < 2) or (Array_size(y) <> n) then
+			eno := false;
+			return;
+		end_if;
+
+		diff_capacity := Array_size(diff_work);
+		abs_diff_capacity := Array_size(abs_diff_work);
+		ranks_capacity := Array_size(ranks_work);
+		rank_sort_capacity := Array_size(rank_sort_work);
+		rank_idx_capacity := Array_size(rank_idx_work);
+		x_lb := lower_bound(x, 1);
+		y_lb := lower_bound(y, 1);
+		diff_lb := lower_bound(diff_work, 1);
+		abs_diff_lb := lower_bound(abs_diff_work, 1);
+		ranks_lb := lower_bound(ranks_work, 1);
+		rank_sort_lb := lower_bound(rank_sort_work, 1);
+		rank_idx_lb := lower_bound(rank_idx_work, 1);
+
+		if (diff_lb <> 0) or (abs_diff_lb <> 0) or (ranks_lb <> 0) or (rank_sort_lb <> 0) or (rank_idx_lb <> 0) then
+			eno := false;
+			return;
+		end_if;
+
+		if (diff_capacity < n) or (abs_diff_capacity < n) or (ranks_capacity < n) or (rank_sort_capacity < n) or (rank_idx_capacity < n) then
+			eno := false;
+			return;
+		end_if;
+
+		for i := 0 to diff_capacity - 1 do
+			diff_work[diff_lb + i] := 0.0;
+		end_for;
+		for i := 0 to abs_diff_capacity - 1 do
+			abs_diff_work[abs_diff_lb + i] := 0.0;
+		end_for;
+
+		// 差を計算。0 でないもののみ使用。
+		n_valid := 0;
+		for i := 0 to n - 1 do
+			diff_val := x[x_lb + i] - y[y_lb + i];
+			if abs(diff_val) > 1e-15 then
+				diff_work[diff_lb + n_valid] := diff_val;
+				abs_diff_work[abs_diff_lb + n_valid] := abs(diff_val);
+				n_valid := n_valid + 1;
+			end_if;
+		end_for;
+
+		if n_valid < 2 then
+			eno := false;
+			return;
+		end_if;
+
+		// 絶対値にランク付け
+		Stats_rankdata(
+			data:=abs_diff_work,
+			n:=n_valid,
+			rank:=ranks_work,
+			work1:=rank_sort_work,
+			work2:=rank_idx_work,
+			rank_type:=0,
+			eno=>eno
+		);
+		if not eno then
+			return;
+		end_if;
+
+		// W+ と W- を計算
+		w_plus := 0.0;
+		w_minus := 0.0;
+		for i := 0 to n_valid - 1 do
+			if diff_work[diff_lb + i] > 0.0 then
+				w_plus := w_plus + ranks_work[ranks_lb + i];
+			else
+				w_minus := w_minus + ranks_work[ranks_lb + i];
+			end_if;
+		end_for;
+
+		// 小さい方を使用
+		if w_minus < w_plus then
+			w_stat := w_minus;
+		else
+			w_stat := w_plus;
+		end_if;
+
+		// 正規近似
+		mean_w := dint_to_lreal(n_valid * (n_valid + 1)) / 4.0;
+		std_w := sqrt(dint_to_lreal(n_valid * (n_valid + 1) * (2 * n_valid + 1)) / 24.0);
+
+		if std_w > 1e-15 then
+			z_stat := (w_stat - mean_w) / std_w;
+		else
+			z_stat := 0.0;
+		end_if;
+
+		result.statistic := w_stat;
+		result.pvalue := Stats_p_value_normal_two_tailed(z:=z_stat);
+		result.df := 0.0;
+		result.ci_lower := 0.0;
+		result.ci_upper := 0.0;
+		result.effect_size := 0.0;
+	{end}
+end
+
+{#endif}
+

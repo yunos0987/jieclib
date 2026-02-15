@@ -1,0 +1,124 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/descriptive/test_correlation.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/descriptive/test_correlation.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/descriptive/correlation.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_pearson',
+		'test_stats_spearman'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_stats_pearson)
+	var x_pos: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0]; end
+	var y_pos: array[0..4] of lreal := [2.0, 4.0, 6.0, 8.0, 10.0]; end
+	var y_neg: array[0..4] of lreal := [10.0, 8.0, 6.0, 4.0, 2.0]; end
+	var y_zero: array[0..4] of lreal := [1.0, 4.0, 2.0, 5.0, 3.0]; end
+	var x_partial: array[0..5] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]; end
+	var y_partial: array[0..5] of lreal := [2.1, 3.9, 6.1, 7.9, 10.1, 11.9]; end
+	var x_ident: array[0..3] of lreal := [2.5, 2.5, 2.5, 2.5]; end
+	var y_ident: array[0..3] of lreal := [3.0, 3.0, 3.0, 3.0]; end
+	var y_moderate_pos: array[0..4] of lreal := [2.0, 2.0, 3.0, 5.0, 10.0]; end
+	var y_moderate_neg: array[0..4] of lreal := [10.0, 5.0, 3.0, 2.0, 1.0]; end
+	var x_zeroish_b: array[0..4] of lreal := [-2.0, -1.0, 0.0, 1.0, 2.0]; end
+	var y_zeroish_b: array[0..4] of lreal := [2.0, -1.0, 0.0, 1.0, -2.0]; end
+	var x_tie: array[0..5] of lreal := [1.0, 1.0, 2.0, 2.0, 3.0, 3.0]; end
+	var y_tie: array[0..5] of lreal := [3.0, 3.0, 2.0, 2.0, 1.0, 1.0]; end
+	var x_p1: array[0..5] of lreal := [10.0, 20.0, 30.0, 40.0, 50.0, 60.0]; end
+	var y_p1: array[0..5] of lreal := [15.0, 25.0, 35.0, 45.0, 55.0, 65.0]; end
+	var x_p2: array[0..6] of lreal := [1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5]; end
+	var y_p2: array[0..6] of lreal := [3.0, 5.1, 7.2, 9.0, 11.1, 13.0, 15.2]; end
+	var result: lreal; end
+	{st}
+		// Correlation perfect positive
+		result := Stats_pearson(x:=x_pos, y:=y_pos);
+		EXPECT_NEAR(1.0, result, EPS);
+
+		// Correlation perfect negative
+		result := Stats_pearson(x:=x_pos, y:=y_neg);
+		EXPECT_NEAR(-1.0, result, EPS);
+
+		// Correlation near zero
+		result := Stats_pearson(x:=x_pos, y:=y_zero);
+		EXPECT_NEAR(0.5, result, EPS);
+
+		// Correlation partial with noise
+		result := Stats_pearson(x:=x_partial, y:=y_partial);
+		EXPECT_GT_LREAL(result, 0.9);
+		EXPECT_LT_LREAL(result, 1.0);
+
+		// Correlation identical values (implementation-defined)
+		result := Stats_pearson(x:=x_ident, y:=y_ident);
+
+		// Pearson moderate positive/negative
+		result := Stats_pearson(x:=x_pos, y:=y_moderate_pos);
+		EXPECT_NEAR(0.893684824964, result, EPS);
+		result := Stats_pearson(x:=x_pos, y:=y_moderate_neg);
+		EXPECT_NEAR(-0.931724334887, result, EPS);
+
+		// Pearson additional zero-ish negative correlation
+		result := Stats_pearson(x:=x_zeroish_b, y:=y_zeroish_b);
+		EXPECT_NEAR(-0.6, result, EPS);
+
+		// Pearson ties reverse ordering
+		result := Stats_pearson(x:=x_tie, y:=y_tie);
+		EXPECT_NEAR(-1.0, result, EPS);
+
+		// Pearson additional cases
+		result := Stats_pearson(x:=x_p1, y:=y_p1);
+		EXPECT_NEAR(1.0, result, EPS);
+		result := Stats_pearson(x:=x_p2, y:=y_p2);
+		EXPECT_GT_LREAL(result, 0.99);
+		EXPECT_LT_LREAL(result, 1.01);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_spearman)
+	var x_pos: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0]; end
+	var y_spearman_basic: array[0..4] of lreal := [5.0, 6.0, 7.0, 8.0, 9.0]; end
+	var y_spearman_monotonic: array[0..4] of lreal := [1.0, 4.0, 9.0, 16.0, 25.0]; end
+	var x_s1: array[0..5] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]; end
+	var y_s1: array[0..5] of lreal := [6.0, 5.0, 4.0, 3.0, 2.0, 1.0]; end
+	var x_s2: array[0..4] of lreal := [1.0, 3.0, 2.0, 5.0, 4.0]; end
+	var y_s2: array[0..4] of lreal := [2.0, 6.0, 4.0, 10.0, 8.0]; end
+	var x_s_ties: array[0..5] of lreal := [1.0, 1.0, 2.0, 2.0, 3.0, 3.0]; end
+	var y_s_ties: array[0..5] of lreal := [1.0, 2.0, 2.0, 3.0, 3.0, 4.0]; end
+	var x_s_offset: array[0..4] of lreal := [5.0, 10.0, 15.0, 20.0, 25.0]; end
+	var y_s_offset: array[0..4] of lreal := [100.0, 120.0, 140.0, 160.0, 180.0]; end
+	var x_s_nonmono: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0]; end
+	var y_s_nonmono: array[0..4] of lreal := [5.0, 3.0, 4.0, 2.0, 1.0]; end
+	var
+		idx_x, idx_y: array[0..9] of dint;
+		x_work, y_work: array[0..9] of lreal;
+		rank_x_work, rank_y_work: array[0..9] of lreal;
+	end
+	var result: lreal; end
+	{st}
+		// Spearman basic/monotonic
+		result := Stats_spearman(x:=x_pos, y:=y_spearman_basic, idx_x:=idx_x, idx_y:=idx_y, x_work:=x_work, y_work:=x_work, rank_x_work:=rank_x_work, rank_y_work:=rank_y_work);
+		EXPECT_NEAR(1.0, result, EPS);
+		result := Stats_spearman(x:=x_pos, y:=y_spearman_monotonic, idx_x:=idx_x, idx_y:=idx_y, x_work:=x_work, y_work:=x_work, rank_x_work:=rank_x_work, rank_y_work:=rank_y_work);
+		EXPECT_NEAR(1.0, result, EPS);
+
+		// Spearman additional cases
+		result := Stats_spearman(x:=x_s1, y:=y_s1, idx_x:=idx_x, idx_y:=idx_y, x_work:=x_work, y_work:=y_work, rank_x_work:=rank_x_work, rank_y_work:=rank_y_work);
+		EXPECT_NEAR(-1.0, result, EPS);
+		result := Stats_spearman(x:=x_s2, y:=y_s2, idx_x:=idx_x, idx_y:=idx_y, x_work:=x_work, y_work:=y_work, rank_x_work:=rank_x_work, rank_y_work:=rank_y_work);
+		EXPECT_NEAR(1.0, result, EPS);
+		result := Stats_spearman(x:=x_s_ties, y:=y_s_ties, idx_x:=idx_x, idx_y:=idx_y, x_work:=x_work, y_work:=y_work, rank_x_work:=rank_x_work, rank_y_work:=rank_y_work);
+		EXPECT_NEAR(0.861640436855, result, EPS);
+		result := Stats_spearman(x:=x_s_offset, y:=y_s_offset, idx_x:=idx_x, idx_y:=idx_y, x_work:=x_work, y_work:=y_work, rank_x_work:=rank_x_work, rank_y_work:=rank_y_work);
+		EXPECT_NEAR(1.0, result, EPS);
+		result := Stats_spearman(x:=x_s_nonmono, y:=y_s_nonmono, idx_x:=idx_x, idx_y:=idx_y, x_work:=x_work, y_work:=y_work, rank_x_work:=rank_x_work, rank_y_work:=rank_y_work);
+		EXPECT_NEAR(-0.9, result, EPS);
+	{end}
+END_TEST_S
+
+{#undef EPS}

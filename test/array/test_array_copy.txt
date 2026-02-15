@@ -38,7 +38,7 @@ TEST_S(test_array_copy)
 	copied := Array_copy_lreal(src:=x_1, dst:=y_1);
 	EXPECT_EQ_INT32(1, copied);
 	EXPECT_EQ_LREAL(1.0, y_1[0]);
-	
+
 	// 正常ケース：より大きいサイズへのコピー
 	copied := Array_copy_lreal(src:=x_3, dst:=y_4);
 	EXPECT_EQ_INT32(3, copied);
@@ -46,7 +46,7 @@ TEST_S(test_array_copy)
 	EXPECT_EQ_LREAL(3.0, y_4[1]);
 	EXPECT_EQ_LREAL(5.0, y_4[2]);
 	EXPECT_EQ_LREAL(-1.0, y_4[3]);
-	
+
 	// 異常ケース：より小さいサイズへのコピー
 	copied := Array_copy_lreal(src:=x_3, dst:=y_2, eno=>result_eno);
 	EXPECT_FALSE(result_eno);

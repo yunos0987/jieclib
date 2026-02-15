@@ -1,0 +1,349 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/descriptive/test_mean.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/descriptive/test_mean.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/descriptive/mean.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_mean',
+		'test_stats_weighted_mean',
+		'test_stats_mean_axis',
+		'test_stats_mean_kahan',
+		'test_stats_trimmed_mean',
+		'test_stats_winsorized_mean'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_stats_mean)
+	var
+		x_basic: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
+		x_mixed: array[0..3] of lreal := [1.5, -2.5, 3.0, -1.0];
+		x_zeros: array[0..5] of lreal := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+		x_seq10: array[0..9] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
+		x_neg: array[0..4] of lreal := [-5.0, -3.0, -1.0, -7.0, -2.0];
+		x_decimals: array[0..9] of lreal := [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
+		x_large: array[0..4] of lreal := [1000.0, 2000.0, 3000.0, 4000.0, 5000.0];
+		x_single: array[0..0] of lreal := [42.0];
+		x_two: array[0..1] of lreal := [15.5, 24.5];
+		x_even_spread: array[0..5] of lreal := [0.0, 10.0, 20.0, 30.0, 40.0, 50.0];
+		x_prime: array[0..7] of lreal := [2.0, 3.0, 5.0, 7.0, 11.0, 13.0, 17.0, 19.0];
+		x_fractional: array[0..4] of lreal := [1.1, 2.2, 3.3, 4.4, 5.5];
+		//
+		result: lreal;
+	end
+	{st}
+	result := Stats_mean(x_basic, -1);
+	EXPECT_NEAR(4.0, result, EPS);
+	result := Stats_mean(x_mixed, -1);
+	EXPECT_NEAR(0.25, result, EPS);
+	result := Stats_mean(x_zeros, -1);
+	EXPECT_NEAR(0.0, result, EPS);
+	result := Stats_mean(x_seq10, -1);
+	EXPECT_NEAR(5.5, result, EPS);
+	result := Stats_mean(x_neg, -1);
+	EXPECT_NEAR(-3.6, result, EPS);
+	result := Stats_mean(x_decimals, -1);
+	EXPECT_NEAR(0.55, result, EPS);
+	result := Stats_mean(x_large, -1);
+	EXPECT_NEAR(3000.0, result, EPS);
+	result := Stats_mean(x_single, -1);
+	EXPECT_NEAR(42.0, result, EPS);
+	result := Stats_mean(x_two, -1);
+	EXPECT_NEAR(20.0, result, EPS);
+	result := Stats_mean(x_even_spread, -1);
+	EXPECT_NEAR(25.0, result, EPS);
+	result := Stats_mean(x_prime, -1);
+	EXPECT_NEAR(9.625, result, EPS);
+	result := Stats_mean(x_fractional, -1);
+	EXPECT_NEAR(3.3, result, EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_weighted_mean)
+	var
+		x_data1: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		w_weight1: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		x_data2: array[0..3] of lreal := [10.0, 20.0, 30.0, 40.0];
+		w_weight2: array[0..3] of lreal := [0.25, 0.25, 0.25, 0.25];
+		x_data3: array[0..4] of lreal := [2.0, 4.0, 6.0, 8.0, 10.0];
+		w_weight3: array[0..4] of lreal := [1.0, 1.0, 1.0, 1.0, 1.0];
+		x_data_add1: array[0..3] of lreal := [100.0, 200.0, 300.0, 400.0];
+		w_weight_add1: array[0..3] of lreal := [0.1, 0.2, 0.3, 0.4];
+		x_data_add2: array[0..2] of lreal := [5.0, 10.0, 15.0];
+		w_weight_add2: array[0..2] of lreal := [0.5, 0.3, 0.2];
+		//
+		result: lreal;
+	end
+	{st}
+	result := Stats_weighted_mean(x_data1, -1, w_weight1);
+	EXPECT_NEAR(2.333333, result, 1.0e-6);
+	result := Stats_weighted_mean(x_data2, -1, w_weight2);
+	EXPECT_NEAR(25.0, result, EPS);
+	result := Stats_weighted_mean(x_data3, -1, w_weight3);
+	EXPECT_NEAR(6.0, result, EPS);
+	result := Stats_weighted_mean(x_data_add1, -1, w_weight_add1);
+	EXPECT_NEAR(300.0, result, EPS);
+	result := Stats_weighted_mean(x_data_add2, -1, w_weight_add2);
+	EXPECT_NEAR(8.5, result, EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_mean_axis)
+	var
+		x_2x3: array[0..1, 0..2] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+		result_col: array[0..2] of lreal;
+		result_row: array[0..1] of lreal;
+		x_3x3: array[0..2, 0..2] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0];
+		result_3col: array[0..2] of lreal;
+		result_3row: array[0..2] of lreal;
+		x_1x5: array[0..0, 0..4] of lreal := [2.0, 4.0, 6.0, 8.0, 10.0];
+		result_1row: array[0..0] of lreal;
+		result_5col: array[0..4] of lreal;
+	end
+	{st}
+	Stats_mean_axis(data:=x_2x3, axis:=1, result:=result_col);
+	EXPECT_NEAR(2.5, result_col[0], EPS);
+	EXPECT_NEAR(3.5, result_col[1], EPS);
+	EXPECT_NEAR(4.5, result_col[2], EPS);
+	Stats_mean_axis(data:=x_2x3, axis:=2, result:=result_row);
+	EXPECT_NEAR(2.0, result_row[0], EPS);
+	EXPECT_NEAR(5.0, result_row[1], EPS);
+	Stats_mean_axis(data:=x_3x3, axis:=1, result:=result_3col);
+	EXPECT_NEAR(4.0, result_3col[0], EPS);
+	EXPECT_NEAR(5.0, result_3col[1], EPS);
+	EXPECT_NEAR(6.0, result_3col[2], EPS);
+	Stats_mean_axis(data:=x_3x3, axis:=2, result:=result_3row);
+	EXPECT_NEAR(2.0, result_3row[0], EPS);
+	EXPECT_NEAR(5.0, result_3row[1], EPS);
+	EXPECT_NEAR(8.0, result_3row[2], EPS);
+	Stats_mean_axis(data:=x_1x5, axis:=1, result:=result_5col);
+	EXPECT_NEAR(2.0, result_5col[0], EPS);
+	EXPECT_NEAR(4.0, result_5col[1], EPS);
+	EXPECT_NEAR(6.0, result_5col[2], EPS);
+	EXPECT_NEAR(8.0, result_5col[3], EPS);
+	EXPECT_NEAR(10.0, result_5col[4], EPS);
+	Stats_mean_axis(data:=x_1x5, axis:=2, result:=result_1row);
+	EXPECT_NEAR(6.0, result_1row[0], EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_mean_kahan)
+	var
+		x_kahan_basic: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
+		x_kahan_mixed: array[0..3] of lreal := [1.5, -2.5, 3.0, -1.0];
+		x_kahan_cancel: array[0..2] of lreal := [10000000000000000.0, 1.0, -10000000000000000.0];
+		x_kahan_precision: array[0..9] of lreal := [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
+		x_kahan_large_small: array[0..4] of lreal := [1.0e10, 1.0, 1.0, 1.0, 1.0];
+		x_kahan_negative: array[0..4] of lreal := [-5.0, -3.0, -1.0, 1.0, 3.0];
+		x_kahan_identical: array[0..4] of lreal := [5.0, 5.0, 5.0, 5.0, 5.0];
+		x_kahan_single: array[0..0] of lreal := [42.0];
+		x_kahan_alternating: array[0..5] of lreal := [1.0, -1.0, 2.0, -2.0, 3.0, -3.0];
+		x_kahan_fractional: array[0..3] of lreal := [0.001, 0.002, 0.003, 0.004];
+		result: lreal;
+	end
+	{st}
+	result := Stats_mean_kahan(x_kahan_basic, -1);
+	EXPECT_NEAR(4.0, result, EPS);
+	result := Stats_mean_kahan(x_kahan_mixed, -1);
+	EXPECT_NEAR(0.25, result, EPS);
+	result := Stats_mean_kahan(x_kahan_cancel, -1);
+	EXPECT_NEAR(0.0, result, 1.0e-6);
+	result := Stats_mean_kahan(x_kahan_precision, -1);
+	EXPECT_NEAR(0.55, result, 1.0e-6);
+	result := Stats_mean_kahan(x_kahan_large_small, -1);
+	EXPECT_GT_LREAL(result, 1.0e9);
+	result := Stats_mean_kahan(x_kahan_negative, -1);
+	EXPECT_NEAR(-1.0, result, EPS);
+	result := Stats_mean_kahan(x_kahan_identical, -1);
+	EXPECT_NEAR(5.0, result, EPS);
+	result := Stats_mean_kahan(x_kahan_single, -1);
+	EXPECT_NEAR(42.0, result, EPS);
+	result := Stats_mean_kahan(x_kahan_alternating, -1);
+	EXPECT_NEAR(0.0, result, EPS);
+	result := Stats_mean_kahan(x_kahan_fractional, -1);
+	EXPECT_NEAR(0.0025, result, 1.0e-6);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_trimmed_mean)
+	var
+		x_trim_basic: array[0..9] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
+		work_basic: array[0..9] of lreal;
+		x_trim_outlier: array[0..8] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 100.0];
+		work_outlier: array[0..8] of lreal;
+		x_trim1: array[0..6] of lreal := [5.0, 15.0, 10.0, 20.0, 25.0, 30.0, 100.0];
+		work1: array[0..6] of lreal;
+		x_trim2: array[0..9] of lreal := [-10.0, -5.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 50.0, 100.0];
+		work2: array[0..9] of lreal;
+		// Additional test cases
+		x_trim_small: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		work_small: array[0..4] of lreal;
+		x_trim_negative: array[0..7] of lreal := [-8.0, -6.0, -4.0, -2.0, 0.0, 2.0, 4.0, 6.0];
+		work_negative: array[0..7] of lreal;
+		x_trim_identical: array[0..5] of lreal := [10.0, 10.0, 10.0, 10.0, 10.0, 10.0];
+		work_identical: array[0..5] of lreal;
+		x_trim_asymmetric: array[0..8] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 100.0, 200.0, 300.0, 400.0];
+		work_asymmetric: array[0..8] of lreal;
+		x_trim_mixed: array[0..11] of lreal := [-100.0, -50.0, -10.0, -5.0, 1.0, 2.0, 3.0, 4.0, 10.0, 50.0, 100.0, 200.0];
+		work_mixed: array[0..11] of lreal;
+		x_trim_single: array[0..0] of lreal := [42.0];
+		work_single: array[0..0] of lreal;
+		x_trim_two: array[0..1] of lreal := [10.0, 20.0];
+		work_two: array[0..1] of lreal;
+		result: lreal;
+	end
+	{st}
+		// Basic case: no trimming
+		result := Stats_trimmed_mean(data:=x_trim_basic, work:=work_basic, proportion:=0.0);
+		EXPECT_NEAR(5.5, result, EPS);
+
+		// Basic case: 10% trimming
+		result := Stats_trimmed_mean(data:=x_trim_basic, work:=work_basic, proportion:=0.1);
+		EXPECT_NEAR(5.5, result, EPS);
+
+		// Basic case: 20% trimming
+		result := Stats_trimmed_mean(data:=x_trim_basic, work:=work_basic, proportion:=0.2);
+		EXPECT_NEAR(5.5, result, EPS);
+
+		// Outlier case: 11.1% trimming should remove outlier
+		result := Stats_trimmed_mean(data:=x_trim_outlier, work:=work_outlier, proportion:=0.111);
+		EXPECT_NEAR(15.111, result, 0.01);
+
+		// High trimming case
+		result := Stats_trimmed_mean(data:=x_trim1, work:=work1, proportion:=0.14);
+		EXPECT_NEAR(29.286, result, 0.01);
+
+		// Mixed positive/negative with outliers
+		result := Stats_trimmed_mean(data:=x_trim2, work:=work2, proportion:=0.2);
+		EXPECT_NEAR(3.5, result, EPS);
+
+		// Small array: 20% trimming
+		result := Stats_trimmed_mean(data:=x_trim_small, work:=work_small, proportion:=0.2);
+		EXPECT_NEAR(3.0, result, EPS);
+
+		// All negative values
+		result := Stats_trimmed_mean(data:=x_trim_negative, work:=work_negative, proportion:=0.125);
+		EXPECT_NEAR(-1.0, result, EPS);
+
+		// Identical values - trimming should not affect result
+		result := Stats_trimmed_mean(data:=x_trim_identical, work:=work_identical, proportion:=0.166);
+		EXPECT_NEAR(10.0, result, EPS);
+
+		// Asymmetric distribution with high trimming
+		result := Stats_trimmed_mean(data:=x_trim_asymmetric, work:=work_asymmetric, proportion:=0.33);
+		EXPECT_NEAR(62.4, result, 0.01);
+
+		// Mixed large range with 25% trimming
+		result := Stats_trimmed_mean(data:=x_trim_mixed, work:=work_mixed, proportion:=0.25);
+		EXPECT_NEAR(2.5, result, EPS);
+
+		// Edge case: single value
+		result := Stats_trimmed_mean(data:=x_trim_single, work:=work_single, proportion:=0.0);
+		EXPECT_NEAR(42.0, result, EPS);
+
+		// Edge case: two values, no trimming possible
+		result := Stats_trimmed_mean(data:=x_trim_two, work:=work_two, proportion:=0.1);
+		EXPECT_NEAR(15.0, result, EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_winsorized_mean)
+	var
+		x_winsor_basic: array[0..8] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 100.0];
+		work_basic: array[0..8] of lreal;
+		x_winsor1: array[0..6] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 50.0];
+		work1: array[0..6] of lreal;
+		x_winsor2: array[0..9] of lreal := [-100.0, -5.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 100.0];
+		work2: array[0..9] of lreal;
+		// Additional test cases
+		x_winsor_symmetric: array[0..9] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
+		work_symmetric: array[0..9] of lreal;
+		x_winsor_small: array[0..4] of lreal := [1.0, 5.0, 10.0, 15.0, 100.0];
+		work_small: array[0..4] of lreal;
+		x_winsor_negative: array[0..7] of lreal := [-100.0, -10.0, -5.0, -2.0, 0.0, 2.0, 5.0, 10.0];
+		work_negative: array[0..7] of lreal;
+		x_winsor_identical: array[0..5] of lreal := [20.0, 20.0, 20.0, 20.0, 20.0, 20.0];
+		work_identical: array[0..5] of lreal;
+		x_winsor_extreme: array[0..8] of lreal := [-1000.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 1000.0];
+		work_extreme: array[0..8] of lreal;
+		x_winsor_clustered: array[0..10] of lreal := [1.0, 2.0, 3.0, 3.0, 3.0, 3.0, 3.0, 4.0, 5.0, 6.0, 100.0];
+		work_clustered: array[0..10] of lreal;
+		x_winsor_single: array[0..0] of lreal := [42.0];
+		work_single: array[0..0] of lreal;
+		x_winsor_two: array[0..1] of lreal := [5.0, 95.0];
+		work_two: array[0..1] of lreal;
+		x_winsor_mixed_range: array[0..11] of lreal := [-500.0, -100.0, -10.0, -1.0, 0.0, 1.0, 2.0, 3.0, 10.0, 100.0, 500.0, 1000.0];
+		work_mixed_range: array[0..11] of lreal;
+		result: lreal;
+	end
+	{st}
+		// Basic case: no winsorizing
+		result := Stats_winsorized_mean(data:=x_winsor_symmetric, work:=work_symmetric, proportion:=0.0);
+		EXPECT_NEAR(5.5, result, EPS);
+
+		// Basic case: 10% winsorizing on symmetric data
+		result := Stats_winsorized_mean(data:=x_winsor_symmetric, work:=work_symmetric, proportion:=0.1);
+		EXPECT_NEAR(5.5, result, EPS);
+
+		// Basic case with outlier: 11.1% winsorizing
+		result := Stats_winsorized_mean(data:=x_winsor_basic, work:=work_basic, proportion:=0.111);
+		EXPECT_NEAR(15.111, result, 0.01);
+
+		// Small array with high value: 14% winsorizing
+		result := Stats_winsorized_mean(data:=x_winsor1, work:=work1, proportion:=0.14);
+		EXPECT_NEAR(10.143, result, 0.01);
+
+		// Symmetric outliers: 20% winsorizing
+		result := Stats_winsorized_mean(data:=x_winsor2, work:=work2, proportion:=0.2);
+		EXPECT_GT_LREAL(result, 0.0);
+		EXPECT_LT_LREAL(result, 10.0);
+
+		// Small array with extreme outlier: 20% winsorizing
+		result := Stats_winsorized_mean(data:=x_winsor_small, work:=work_small, proportion:=0.2);
+		EXPECT_NEAR(10.0, result, EPS);
+
+		// Negative values with outlier: 25% winsorizing
+		result := Stats_winsorized_mean(data:=x_winsor_negative, work:=work_negative, proportion:=0.125);
+		EXPECT_GT_LREAL(result, -10.0);
+		EXPECT_LT_LREAL(result, 5.0);
+
+		// Identical values - winsorizing should not affect result
+		result := Stats_winsorized_mean(data:=x_winsor_identical, work:=work_identical, proportion:=0.166);
+		EXPECT_NEAR(20.0, result, EPS);
+
+		// Extreme outliers: 22% winsorizing
+		result := Stats_winsorized_mean(data:=x_winsor_extreme, work:=work_extreme, proportion:=0.22);
+		EXPECT_GT_LREAL(result, 0.0);
+		EXPECT_LT_LREAL(result, 50.0);
+
+		// Clustered data with outlier: 18% winsorizing
+		result := Stats_winsorized_mean(data:=x_winsor_clustered, work:=work_clustered, proportion:=0.18);
+		EXPECT_GT_LREAL(result, 3.0);
+		EXPECT_LT_LREAL(result, 15.0);
+
+		// Wide range with multiple outliers: 33% winsorizing
+		result := Stats_winsorized_mean(data:=x_winsor_mixed_range, work:=work_mixed_range, proportion:=0.33);
+		EXPECT_GT_LREAL(result, -50.0);
+		EXPECT_LT_LREAL(result, 50.0);
+
+		// Edge case: single value
+		result := Stats_winsorized_mean(data:=x_winsor_single, work:=work_single, proportion:=0.0);
+		EXPECT_NEAR(42.0, result, EPS);
+
+		// Edge case: two values with high proportion
+		result := Stats_winsorized_mean(data:=x_winsor_two, work:=work_two, proportion:=0.1);
+		EXPECT_NEAR(50.0, result, EPS);
+
+		// High winsorizing: 40%
+		result := Stats_winsorized_mean(data:=x_winsor_extreme, work:=work_extreme, proportion:=0.4);
+		EXPECT_NEAR(4.0, result, EPS);
+	{end}
+END_TEST_S
+
+{#undef EPS}

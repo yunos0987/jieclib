@@ -1,0 +1,64 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/descriptive/test_median.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/descriptive/test_median.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/descriptive/median.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_median'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_stats_median)
+	var
+		x_1: array[0..4] of lreal := [1.0, 5.0, 3.0, 9.0, 2.0];
+		x_2: array[0..5] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+		x_3: array[0..4] of lreal := [-5.0, -1.0, 0.0, 2.0, 8.0];
+		x_4: array[0..5] of lreal := [1.0, 2.0, 2.0, 3.0, 3.0, 3.0];
+		x_5: array[0..0] of lreal := [42.0];
+		x_6: array[0..1] of lreal := [10.0, 20.0];
+		x_7: array[0..4] of lreal := [100.0, 200.0, 300.0, 400.0, 500.0];
+		x_8: array[0..4] of lreal := [0.1, 0.3, 0.5, 0.7, 0.9];
+		x_a1: array[0..6] of lreal := [7.0, 1.0, 9.0, 2.0, 5.0, 4.0, 8.0];
+		x_a2: array[0..7] of lreal := [12.0, 8.0, 6.0, 10.0, 14.0, 4.0, 2.0, 16.0];
+		x_a3: array[0..5] of lreal := [15.0, 20.0, 10.0, 30.0, 5.0, 25.0];
+		x_a4: array[0..4] of lreal := [100.0, 200.0, 50.0, 150.0, 75.0];
+		work1_1, work2_1: array[0..4] of lreal;
+		work1_2, work2_2: array[0..5] of lreal;
+		work1_3, work2_3: array[0..4] of lreal;
+		work1_4, work2_4: array[0..5] of lreal;
+		work1_5, work2_5: array[0..0] of lreal;
+		work1_6, work2_6: array[0..1] of lreal;
+		work1_7, work2_7: array[0..4] of lreal;
+		work1_8, work2_8: array[0..4] of lreal;
+		work1_a1, work2_a1: array[0..6] of lreal;
+		work1_a2, work2_a2: array[0..7] of lreal;
+		work1_a3, work2_a3: array[0..5] of lreal;
+		work1_a4, work2_a4: array[0..4] of lreal;
+	end
+	{st}
+	// odd-length datasets
+	EXPECT_NEAR(3.0, Stats_median(data:=x_1, work1:=work1_1, work2:=work2_1), EPS);
+	EXPECT_NEAR(0.0, Stats_median(data:=x_3, work1:=work1_3, work2:=work2_3), EPS);
+	EXPECT_NEAR(42.0, Stats_median(data:=x_5, work1:=work1_5, work2:=work2_5), EPS);
+	EXPECT_NEAR(300.0, Stats_median(data:=x_7, work1:=work1_7, work2:=work2_7), EPS);
+	EXPECT_NEAR(0.5, Stats_median(data:=x_8, work1:=work1_8, work2:=work2_8), EPS);
+	EXPECT_NEAR(5.0, Stats_median(data:=x_a1, work1:=work1_a1, work2:=work2_a1), EPS);
+	EXPECT_NEAR(17.5, Stats_median(data:=x_a3, work1:=work1_a3, work2:=work2_a3), EPS);
+	EXPECT_NEAR(100.0, Stats_median(data:=x_a4, work1:=work1_a4, work2:=work2_a4), EPS);
+
+	// even-length datasets
+	EXPECT_NEAR(3.5, Stats_median(data:=x_2, work1:=work1_2, work2:=work2_2), EPS);
+	EXPECT_NEAR(2.5, Stats_median(data:=x_4, work1:=work1_4, work2:=work2_4), EPS);
+	EXPECT_NEAR(15.0, Stats_median(data:=x_6, work1:=work1_6, work2:=work2_6), EPS);
+	EXPECT_NEAR(9.0, Stats_median(data:=x_a2, work1:=work1_a2, work2:=work2_a2), EPS);
+	{end}
+END_TEST_S
+
+{#undef EPS}

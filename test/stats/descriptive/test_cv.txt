@@ -1,0 +1,191 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/descriptive/test_cv.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/descriptive/test_cv.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/descriptive/cv.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_coefficient_of_variation',
+		'test_stats_relative_stddev'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_stats_coefficient_of_variation)
+	var
+		x_basic: array[0..4] of lreal := [2.0, 4.0, 6.0, 8.0, 10.0];
+		x_add1: array[0..5] of lreal := [100.0, 105.0, 110.0, 115.0, 120.0, 125.0];
+		x_add2: array[0..3] of lreal := [5.0, 10.0, 15.0, 20.0];
+		x_symmetric: array[0..4] of lreal := [3.0, 4.0, 5.0, 6.0, 7.0];
+		x_exponential: array[0..4] of lreal := [1.0, 2.0, 4.0, 8.0, 16.0];
+		x_ddof0: array[0..3] of lreal := [10.0, 20.0, 30.0, 40.0];
+		x_near_zero: array[0..5] of lreal := [-0.1, 0.1, -0.05, 0.05, -0.5e-15, 0.5e-15];
+		x_simple: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		x_zero_mean: array[0..2] of lreal := [-1.0, 0.0, 1.0];
+		x_negative: array[0..4] of lreal := [-5.0, -3.0, -1.0, -2.0, -4.0];
+		x_single: array[0..0] of lreal := [42.0];
+		x_precision: array[0..2] of lreal := [100.0, 101.0, 99.0];
+		x_uniform: array[0..4] of lreal := [10.0, 10.0, 10.0, 10.0, 10.0];
+		x_high_var: array[0..4] of lreal := [1.0, 5.0, 10.0, 50.0, 100.0];
+		x_two_vals: array[0..1] of lreal := [10.0, 20.0];
+		x_narrow: array[0..3] of lreal := [1000.0, 1001.0, 1002.0, 1003.0];
+		result_sample, result_pop: lreal;
+		result_eno: bool;
+	end
+	{st}
+		// CV = stddev/mean = sqrt(2.5)/3 ≈ 0.5270
+		result_sample := Stats_coefficient_of_variation(data:=x_simple, ddof:=1);
+		EXPECT_NEAR(0.5270462767, result_sample, 1.0e-7);
+
+		// CV undefined for zero mean, should handle gracefully
+		result_sample := Stats_coefficient_of_variation(data:=x_zero_mean, ddof:=1, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+
+		// CV for negative values: |CV| - mean=-3, stddev≈1.581
+		result_sample := Stats_coefficient_of_variation(data:=x_negative, ddof:=1);
+		EXPECT_GT_LREAL(result_sample, 0.0);
+		EXPECT_NEAR(0.5270462767, result_sample, 0.001);
+
+		// CV for single value
+		result_sample := Stats_coefficient_of_variation(data:=x_single, ddof:=1, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+
+		// Test precision with small relative variation
+		result_sample := Stats_coefficient_of_variation(data:=x_precision, ddof:=1);
+		EXPECT_NEAR(0.01, result_sample, 1.0e-4);
+
+		// Uniform values -> CV = 0
+		result_sample := Stats_coefficient_of_variation(data:=x_uniform, ddof:=1);
+		EXPECT_NEAR(0.0, result_sample, EPS);
+
+		// High variability - mean=33.2, stddev≈41.29, CV≈1.243
+		result_sample := Stats_coefficient_of_variation(data:=x_high_var, ddof:=1);
+		EXPECT_NEAR(1.2703203894, result_sample, 0.001);
+
+		// Two values - mean=15, stddev≈7.071, CV≈0.4714
+		result_sample := Stats_coefficient_of_variation(data:=x_two_vals, ddof:=1);
+		EXPECT_NEAR(0.4714045208, result_sample, 0.001);
+
+		// Narrow range large values - mean=1001.5, stddev≈1.291, CV≈0.00129
+		result_sample := Stats_coefficient_of_variation(data:=x_narrow, ddof:=1);
+		EXPECT_NEAR(0.0012890609, result_sample, 1.0e-6);
+
+		// mean = 6, stddev = sqrt(10) ≈ 3.162, CV ≈ 0.527
+		result_sample := Stats_coefficient_of_variation(data:=x_basic, ddof:=1);
+		EXPECT_NEAR(0.5270462767, result_sample, 0.001);
+
+		// scipy.stats.variation([100,105,110,115,120,125]) ≈ 0.0831
+		result_sample := Stats_coefficient_of_variation(data:=x_add1, ddof:=1);
+		EXPECT_NEAR(0.0831479419, result_sample, 0.0001);
+
+		// scipy.stats.variation([5,10,15,20]) ≈ 0.516
+		result_sample := Stats_coefficient_of_variation(data:=x_add2, ddof:=1);
+		EXPECT_NEAR(0.5163977795, result_sample, 0.001);
+
+		// Symmetric distribution - mean=5, stddev≈1.581, CV≈0.316
+		result_sample := Stats_coefficient_of_variation(data:=x_symmetric, ddof:=1);
+		EXPECT_NEAR(0.3162277660, result_sample, 0.001);
+
+		// Exponential data - high CV expected
+		result_sample := Stats_coefficient_of_variation(data:=x_exponential, ddof:=1);
+		EXPECT_NEAR(0.9837387537, result_sample, 0.001);
+
+		// Sample vs population variance: ddof=0 vs ddof=1
+		result_sample := Stats_coefficient_of_variation(data:=x_ddof0, ddof:=1);
+		result_pop := Stats_coefficient_of_variation(data:=x_ddof0, ddof:=0);
+		EXPECT_GT_LREAL(result_sample, result_pop);
+		EXPECT_NEAR(0.5163977795, result_sample, 0.01);
+
+		// Near-zero mean - should handle gracefully
+		result_sample := Stats_coefficient_of_variation(data:=x_near_zero, ddof:=1, eno=>result_eno);
+		EXPECT_FALSE(result_eno);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_relative_stddev)
+	var
+		x_base: array[0..4] of lreal := [10.0, 20.0, 30.0, 40.0, 50.0];
+		x_edge: array[0..1] of lreal := [5.0, 15.0];
+		x_small: array[0..4] of lreal := [0.1, 0.2, 0.3, 0.4, 0.5];
+		x_large: array[0..4] of lreal := [1000.0, 2000.0, 3000.0, 4000.0, 5000.0];
+		x_identical: array[0..3] of lreal := [42.0, 42.0, 42.0, 42.0];
+		x_two: array[0..1] of lreal := [100.0, 200.0];
+		x_pct: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		x_precision: array[0..4] of lreal := [99.0, 100.0, 101.0, 102.0, 103.0];
+		x_additional: array[0..3] of lreal := [25.0, 50.0, 75.0, 100.0];
+		x_low_rsd: array[0..4] of lreal := [100.0, 101.0, 99.0, 100.5, 99.5];
+		x_high_rsd: array[0..4] of lreal := [10.0, 100.0, 20.0, 90.0, 30.0];
+		x_negative: array[0..3] of lreal := [-100.0, -90.0, -110.0, -95.0];
+		x_mixed: array[0..5] of lreal := [-10.0, -5.0, 0.0, 5.0, 10.0, 15.0];
+		x_ddof_test: array[0..3] of lreal := [5.0, 10.0, 15.0, 20.0];
+		result, result_ddof0, result_ddof1: lreal;
+	end
+	{st}
+		// RSD for base sequence - mean=30, stddev≈15.811, RSD≈52.7%
+		result := Stats_relative_stddev(data:=x_base, ddof:=1);
+		EXPECT_NEAR(52.704628, result, 0.01);
+
+		// Two-value edge case - mean=10, stddev≈7.071, RSD≈70.71%
+		result := Stats_relative_stddev(data:=x_edge, ddof:=1);
+		EXPECT_NEAR(70.71, result, 0.05);
+
+		// Small values, proportional to base - RSD should match x_base
+		result := Stats_relative_stddev(data:=x_small, ddof:=1);
+		EXPECT_NEAR(52.704628, result, 0.01);
+
+		// Large values, same proportion - scale invariance
+		result := Stats_relative_stddev(data:=x_large, ddof:=1);
+		EXPECT_NEAR(52.704628, result, 0.01);
+
+		// Identical values -> RSD 0
+		result := Stats_relative_stddev(data:=x_identical, ddof:=1);
+		EXPECT_NEAR(0.0, result, EPS);
+
+		// Two-value: mean=150, stddev≈70.71, RSD≈47.14%
+		result := Stats_relative_stddev(data:=x_two, ddof:=1);
+		EXPECT_NEAR(47.140452, result, 0.01);
+
+		// Small integers: mean=2, stddev≈1, RSD≈50%
+		result := Stats_relative_stddev(data:=x_pct, ddof:=1);
+		EXPECT_NEAR(50.0, result, 0.01);
+
+		// Narrow range around 101: stddev≈1.581, mean=100.6, RSD≈1.57%
+		result := Stats_relative_stddev(data:=x_precision, ddof:=1);
+		EXPECT_NEAR(1.565484, result, 0.001);
+
+		// mean=62.5, stddev≈32.22, RSD≈51.55%
+		result := Stats_relative_stddev(data:=x_additional, ddof:=1);
+		EXPECT_NEAR(51.639778, result, 0.01);
+
+		// Low RSD - tight clustering around 100
+		result := Stats_relative_stddev(data:=x_low_rsd, ddof:=1);
+		EXPECT_NEAR(0.790569, result, 0.001);
+
+		// High RSD - wide spread
+		result := Stats_relative_stddev(data:=x_high_rsd, ddof:=1);
+		EXPECT_NEAR(83.666003, result, 0.01);
+
+		// Negative values - should use absolute mean
+		result := Stats_relative_stddev(data:=x_negative, ddof:=1);
+		EXPECT_NEAR(8.647216, result, 0.001);
+
+		// Mixed positive/negative around zero - may fail if mean near zero
+		result := Stats_relative_stddev(data:=x_mixed, ddof:=1);
+		// Mean=2.5, high relative variability expected
+		EXPECT_NEAR(374.165739, result, 0.1);
+
+		// ddof comparison: sample (ddof=1) should give higher RSD than population (ddof=0)
+		result_ddof1 := Stats_relative_stddev(data:=x_ddof_test, ddof:=1);
+		result_ddof0 := Stats_relative_stddev(data:=x_ddof_test, ddof:=0);
+		EXPECT_GT_LREAL(result_ddof1, result_ddof0);
+		EXPECT_NEAR(51.639778, result_ddof1, 0.01);
+		EXPECT_NEAR(44.721360, result_ddof0, 0.01);
+	{end}
+END_TEST_S
+
+{#undef EPS}

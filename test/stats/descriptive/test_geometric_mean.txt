@@ -1,0 +1,78 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/descriptive/test_geometric_mean.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/descriptive/test_geometric_mean.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/descriptive/geometric_mean.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_geometric_mean'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_stats_geometric_mean)
+	var x_basic: array[0..3] of lreal := [1.0, 2.0, 4.0, 8.0]; end
+	var x_unity: array[0..4] of lreal := [1.0, 1.0, 1.0, 1.0, 1.0]; end
+	var x_powers: array[0..2] of lreal := [2.0, 4.0, 8.0]; end
+	var x_identical: array[0..3] of lreal := [5.0, 5.0, 5.0, 5.0]; end
+	var x_precision: array[0..4] of lreal := [0.1, 1.0, 10.0, 100.0, 1000.0]; end
+	var x1: array[0..2] of lreal := [3.0, 9.0, 27.0]; end
+	var x2: array[0..3] of lreal := [16.0, 4.0, 2.0, 1.0]; end
+	var x_additional2: array[0..3] of lreal := [2.0, 4.0, 8.0, 16.0]; end
+	var x_large: array[0..3] of lreal := [100.0, 200.0, 400.0, 800.0]; end
+	var x_small: array[0..3] of lreal := [0.1, 0.2, 0.4, 0.8]; end
+	var x_two: array[0..1] of lreal := [4.0, 9.0]; end
+	var result: lreal; end
+	{st}
+		// Geometric mean = (1*2*4*8)^(1/4) = 64^(1/4) = 2.828...
+		result := Stats_geometric_mean(data:=x_basic);
+		EXPECT_NEAR(2.8284271247, result, 0.001);
+
+		// Geometric mean of all 1s is 1
+		result := Stats_geometric_mean(data:=x_unity);
+		EXPECT_NEAR(1.0, result, EPS);
+
+		// Powers of 2
+		result := Stats_geometric_mean(data:=x_powers);
+		EXPECT_NEAR(4.0, result, EPS);
+
+		// Identical values
+		result := Stats_geometric_mean(data:=x_identical);
+		EXPECT_NEAR(5.0, result, EPS);
+
+		// Wide range precision
+		result := Stats_geometric_mean(data:=x_precision);
+		EXPECT_NEAR(10.0, result, 0.01);
+
+		// scipy.stats.gmean([3,9,27]) = 9.0
+		result := Stats_geometric_mean(data:=x1);
+		EXPECT_NEAR(9.0, result, EPS);
+
+		// scipy.stats.gmean([16,4,2,1]) ≈ 3.36
+		result := Stats_geometric_mean(data:=x2);
+		EXPECT_NEAR(3.36, result, 0.01);
+
+		// scipy.stats.gmean([2,4,8,16]) = 5.656...
+		result := Stats_geometric_mean(data:=x_additional2);
+		EXPECT_NEAR(5.6568542494923808, result, 0.0001);
+
+		// Large magnitude values
+		result := Stats_geometric_mean(data:=x_large);
+		EXPECT_NEAR(282.8427, result, 1.0);
+
+		// Small magnitude values
+		result := Stats_geometric_mean(data:=x_small);
+		EXPECT_NEAR(0.2828427, result, 0.0001);
+
+		// Two elements
+		result := Stats_geometric_mean(data:=x_two);
+		EXPECT_NEAR(6.0, result, 0.0001);
+	{end}
+END_TEST_S
+
+{#undef EPS}

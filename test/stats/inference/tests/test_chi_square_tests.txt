@@ -1,0 +1,230 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/inference/tests/test_chi_square_tests.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/inference/tests/test_chi_square_tests.xml -t omron
+  *)
+{#include <jiecunit.txt>}
+{#include <stats/inference/tests/chi_square_tests.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_chi_square_gof',
+		'test_stats_chi_square_independence'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_stats_chi_square_gof)
+	var
+		observed_1: array[0..3] of lreal := [25.0, 25.0, 25.0, 25.0];
+		expected_1: array[0..3] of lreal := [25.0, 25.0, 25.0, 25.0];
+		observed_2: array[0..2] of lreal := [10.0, 20.0, 30.0];
+		expected_2: array[0..2] of lreal := [20.0, 20.0, 20.0];
+		observed_3: array[0..3] of lreal := [30.0, 20.0, 30.0, 20.0];
+		expected_3: array[0..3] of lreal := [25.0, 25.0, 25.0, 25.0];
+		observed_4: array[0..2] of lreal := [100.0, 50.0, 50.0];
+		expected_4: array[0..2] of lreal := [60.0, 60.0, 80.0];
+		observed_5: array[0..1] of lreal := [50.0, 50.0];
+		expected_5: array[0..1] of lreal := [50.0, 50.0];
+		observed_6: array[0..4] of lreal := [20.0, 20.0, 20.0, 20.0, 20.0];
+		expected_6: array[0..4] of lreal := [20.0, 20.0, 20.0, 20.0, 20.0];
+		observed_7: array[0..3] of lreal := [15.0, 25.0, 30.0, 30.0];
+		expected_7: array[0..3] of lreal := [25.0, 25.0, 25.0, 25.0];
+		observed_8: array[0..2] of lreal := [5.0, 10.0, 85.0];
+		expected_8: array[0..2] of lreal := [33.33, 33.33, 33.34];
+		observed_9: array[0..5] of lreal := [12.0, 18.0, 15.0, 20.0, 18.0, 17.0];
+		expected_9: array[0..5] of lreal := [16.67, 16.67, 16.67, 16.67, 16.67, 16.67];
+		observed_10: array[0..3] of lreal := [40.0, 30.0, 20.0, 10.0];
+		expected_10: array[0..3] of lreal := [35.0, 35.0, 15.0, 15.0];
+		observed_11: array[0..1] of lreal := [100.0, 0.0];
+		expected_11: array[0..1] of lreal := [50.0, 50.0];
+		observed_12: array[0..4] of lreal := [6.0, 8.0, 5.0, 7.0, 4.0];
+		expected_12: array[0..4] of lreal := [6.0, 6.0, 6.0, 6.0, 6.0];
+		result_1: Stats_TestResult;
+		result_2: Stats_TestResult;
+		result_3: Stats_TestResult;
+		result_4: Stats_TestResult;
+		result_5: Stats_TestResult;
+		result_6: Stats_TestResult;
+		result_7: Stats_TestResult;
+		result_8: Stats_TestResult;
+		result_9: Stats_TestResult;
+		result_10: Stats_TestResult;
+		result_11: Stats_TestResult;
+		result_12: Stats_TestResult;
+		stat_tol: lreal := 1.0e-6;
+		pvalue_tol: lreal := 1.0e-4; // CODING_RULES: 統計p値の検証はabs_error=1.0e-4
+	end
+	{st}
+	// Perfect fit (observed == expected)
+	Stats_chi_square_gof(observed:=observed_1, expected:=expected_1, result:=result_1);
+	EXPECT_NEAR(0.0, result_1.statistic, stat_tol);
+	EXPECT_NEAR(1.0, result_1.pvalue, pvalue_tol);
+	EXPECT_NEAR(3.0, result_1.df, EPS);
+
+	// Small deviation
+	Stats_chi_square_gof(observed:=observed_2, expected:=expected_2, result:=result_2);
+	EXPECT_NEAR(10.0, result_2.statistic, stat_tol);
+	EXPECT_NEAR(0.006737946999085, result_2.pvalue, pvalue_tol);
+	EXPECT_NEAR(2.0, result_2.df, EPS);
+
+	// Moderate deviation
+	Stats_chi_square_gof(observed:=observed_3, expected:=expected_3, result:=result_3);
+	EXPECT_NEAR(4.0, result_3.statistic, stat_tol);
+	EXPECT_NEAR(0.261464129949, result_3.pvalue, pvalue_tol);
+	EXPECT_NEAR(3.0, result_3.df, EPS);
+
+	// Larger deviation
+	Stats_chi_square_gof(observed:=observed_4, expected:=expected_4, result:=result_4);
+	EXPECT_NEAR(39.583333333333, result_4.statistic, stat_tol);
+	EXPECT_NEAR(2.538565531905e-09, result_4.pvalue, 1.0e-12);
+	EXPECT_NEAR(2.0, result_4.df, EPS);
+
+	// Perfect fit with 2 categories
+	Stats_chi_square_gof(observed:=observed_5, expected:=expected_5, result:=result_5);
+	EXPECT_NEAR(0.0, result_5.statistic, stat_tol);
+	EXPECT_NEAR(1.0, result_5.pvalue, pvalue_tol);
+	EXPECT_NEAR(1.0, result_5.df, EPS);
+
+	// Perfect fit with 5 categories
+	Stats_chi_square_gof(observed:=observed_6, expected:=expected_6, result:=result_6);
+	EXPECT_NEAR(0.0, result_6.statistic, stat_tol);
+	EXPECT_NEAR(1.0, result_6.pvalue, pvalue_tol);
+	EXPECT_NEAR(4.0, result_6.df, EPS);
+
+	// Moderate skew
+	Stats_chi_square_gof(observed:=observed_7, expected:=expected_7, result:=result_7);
+	EXPECT_NEAR(6.0, result_7.statistic, stat_tol);
+	EXPECT_NEAR(0.111610225095, result_7.pvalue, pvalue_tol);
+	EXPECT_NEAR(3.0, result_7.df, EPS);
+
+	// Extreme skew
+	Stats_chi_square_gof(observed:=observed_8, expected:=expected_8, result:=result_8);
+	EXPECT_NEAR(120.457033705771, result_8.statistic, 1.0e-9);
+	EXPECT_NEAR(6.967668459327e-27, result_8.pvalue, pvalue_tol);
+	EXPECT_NEAR(2.0, result_8.df, EPS);
+
+	// Balanced 6-category test
+	Stats_chi_square_gof(observed:=observed_9, expected:=expected_9, result:=result_9);
+	EXPECT_NEAR(2.359532093581, result_9.statistic, stat_tol);
+	EXPECT_NEAR(0.797484943975, result_9.pvalue, pvalue_tol);
+	EXPECT_NEAR(5.0, result_9.df, EPS);
+
+	// Unequal expected frequencies
+	Stats_chi_square_gof(observed:=observed_10, expected:=expected_10, result:=result_10);
+	EXPECT_NEAR(4.761904761905, result_10.statistic, stat_tol);
+	EXPECT_NEAR(0.190085231904, result_10.pvalue, pvalue_tol);
+	EXPECT_NEAR(3.0, result_10.df, EPS);
+
+	// Extreme case with zero observed
+	Stats_chi_square_gof(observed:=observed_11, expected:=expected_11, result:=result_11);
+	EXPECT_NEAR(100.0, result_11.statistic, stat_tol);
+	EXPECT_NEAR(1.523970604832e-23, result_11.pvalue, pvalue_tol);
+	EXPECT_NEAR(1.0, result_11.df, EPS);
+
+	// Sample size ~30 scenario
+	Stats_chi_square_gof(observed:=observed_12, expected:=expected_12, result:=result_12);
+	EXPECT_NEAR(1.666666666667, result_12.statistic, stat_tol);
+	EXPECT_NEAR(0.796763382263, result_12.pvalue, pvalue_tol);
+	EXPECT_NEAR(4.0, result_12.df, EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_chi_square_independence)
+	var
+		table_case1_2x2: array[0..1, 0..1] of lreal := [10.0, 20.0, 30.0, 40.0];
+		table_case2_2x2: array[0..1, 0..1] of lreal := [20.0, 20.0, 20.0, 20.0];
+		table_case3_2x3: array[0..1, 0..2] of lreal := [30.0, 20.0, 10.0, 10.0, 20.0, 30.0];
+		table_case4_3x2: array[0..2, 0..1] of lreal := [15.0, 35.0, 25.0, 25.0, 10.0, 40.0];
+		table_case5_2x3: array[0..1, 0..2] of lreal := [0.0, 50.0, 50.0, 50.0, 0.0, 50.0];
+		table_case6_4x4: array[0..3, 0..3] of lreal := [20.0, 30.0, 10.0, 1.0, 15.0, 25.0, 20.0, 1.0, 25.0, 15.0, 30.0, 1.0, 10.0, 20.0, 40.0, 1.0];
+		table_case7_2x2: array[0..1, 0..1] of lreal := [25.0, 25.0, 25.0, 25.0];
+		table_case8_3x2: array[0..2, 0..1] of lreal := [50.0, 0.0, 0.0, 50.0, 25.0, 25.0];
+		table_case9_2x4: array[0..1, 0..3] of lreal := [10.0, 20.0, 15.0, 5.0, 5.0, 15.0, 20.0, 10.0];
+		table_case10_4x3: array[0..3, 0..2] of lreal := [12.0, 18.0, 15.0, 20.0, 10.0, 25.0, 8.0, 22.0, 20.0, 15.0, 15.0, 30.0];
+		table_case11_3x3: array[0..2, 0..2] of lreal := [8.0, 5.0, 3.0, 4.0, 3.0, 2.0, 3.0, 1.0, 1.0];
+		table_case12_2x2_skew: array[0..1, 0..1] of lreal := [40.0, 10.0, 5.0, 45.0];
+		result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12: Stats_TestResult;
+		stat_tol: lreal := 1.0e-6;
+		pvalue_tol: lreal := 1.0e-4; // CODING_RULES: 統計p値の検証はabs_error=1.0e-4
+		row_totals_work: array[0..15] of lreal;
+		col_totals_work: array[0..15] of lreal;
+	end
+	{st}
+		// Case 1: Basic 2x2 test
+		Stats_chi_square_independence(table:=table_case1_2x2, result:=result1, row_totals_work:=row_totals_work, col_totals_work:=col_totals_work);
+		EXPECT_NEAR(0.446428571429, result1.statistic, stat_tol);
+		EXPECT_NEAR(0.504035866453, result1.pvalue, pvalue_tol);
+		EXPECT_NEAR(1.0, result1.df, EPS);
+
+		// Case 2: Perfect independence - statistic ~= 0, p-value ~= 1
+		Stats_chi_square_independence(table:=table_case2_2x2, result:=result2, row_totals_work:=row_totals_work, col_totals_work:=col_totals_work);
+		EXPECT_NEAR(0.0, result2.statistic, stat_tol);
+		EXPECT_NEAR(1.0, result2.pvalue, pvalue_tol);
+		EXPECT_NEAR(1.0, result2.df, EPS);
+
+		// Case 3: 2x3 contingency table
+		Stats_chi_square_independence(table:=table_case3_2x3, result:=result3, row_totals_work:=row_totals_work, col_totals_work:=col_totals_work);
+		EXPECT_NEAR(20.0, result3.statistic, stat_tol);
+		EXPECT_NEAR(4.539992976248e-05, result3.pvalue, pvalue_tol);
+		EXPECT_NEAR(2.0, result3.df, EPS);
+
+		// Case 4: 3x2 contingency table
+		Stats_chi_square_independence(table:=table_case4_3x2, result:=result4, row_totals_work:=row_totals_work, col_totals_work:=col_totals_work);
+		EXPECT_NEAR(10.5, result4.statistic, stat_tol);
+		EXPECT_NEAR(0.005247518399181, result4.pvalue, pvalue_tol);
+		EXPECT_NEAR(2.0, result4.df, EPS);
+
+		// Case 5: 2x3 contingency table with zeros
+		Stats_chi_square_independence(table:=table_case5_2x3, result:=result5, row_totals_work:=row_totals_work, col_totals_work:=col_totals_work);
+		EXPECT_NEAR(100.0, result5.statistic, stat_tol);
+		EXPECT_NEAR(1.928749847964e-22, result5.pvalue, pvalue_tol);
+		EXPECT_NEAR(2.0, result5.df, EPS);
+
+		// Case 6: 4x4 contingency table with small final column counts to avoid zero expectations
+		Stats_chi_square_independence(table:=table_case6_4x4, result:=result6, row_totals_work:=row_totals_work, col_totals_work:=col_totals_work);
+		EXPECT_NEAR(30.9278622555, result6.statistic, stat_tol);
+		EXPECT_NEAR(0.000304585728777, result6.pvalue, pvalue_tol);
+		EXPECT_NEAR(9.0, result6.df, EPS);
+
+		// Case 7: 2x2 perfect independence
+		Stats_chi_square_independence(table:=table_case7_2x2, result:=result7, row_totals_work:=row_totals_work, col_totals_work:=col_totals_work);
+		EXPECT_NEAR(0.0, result7.statistic, stat_tol);
+		EXPECT_NEAR(1.0, result7.pvalue, pvalue_tol);
+		EXPECT_NEAR(1.0, result7.df, EPS);
+
+		// Case 8: 3x2 with strong association
+		Stats_chi_square_independence(table:=table_case8_3x2, result:=result8, row_totals_work:=row_totals_work, col_totals_work:=col_totals_work);
+		EXPECT_NEAR(100.0, result8.statistic, stat_tol);
+		EXPECT_NEAR(1.928749847964e-22, result8.pvalue, pvalue_tol);
+		EXPECT_NEAR(2.0, result8.df, EPS);
+
+		// Case 9: 2x4 contingency table
+		Stats_chi_square_independence(table:=table_case9_2x4, result:=result9, row_totals_work:=row_totals_work, col_totals_work:=col_totals_work);
+		EXPECT_NEAR(4.761904761905, result9.statistic, stat_tol);
+		EXPECT_NEAR(0.190085231904, result9.pvalue, pvalue_tol);
+		EXPECT_NEAR(3.0, result9.df, EPS);
+
+		// Case 10: 4x3 with mixed values
+		Stats_chi_square_independence(table:=table_case10_4x3, result:=result10, row_totals_work:=row_totals_work, col_totals_work:=col_totals_work);
+		EXPECT_NEAR(13.565611358339, result10.statistic, stat_tol);
+		EXPECT_NEAR(0.0348833864992, result10.pvalue, pvalue_tol);
+		EXPECT_NEAR(6.0, result10.df, EPS);
+
+		// Case 11: Sample size ~30 (3x3)
+		Stats_chi_square_independence(table:=table_case11_3x3, result:=result11, row_totals_work:=row_totals_work, col_totals_work:=col_totals_work);
+		EXPECT_NEAR(0.398611111111, result11.statistic, stat_tol);
+		EXPECT_NEAR(0.982590458282, result11.pvalue, pvalue_tol);
+		EXPECT_NEAR(4.0, result11.df, EPS);
+
+		// Case 12: 2x2 skewed table ensures Yates correction is applied
+		Stats_chi_square_independence(table:=table_case12_2x2_skew, result:=result12, row_totals_work:=row_totals_work, col_totals_work:=col_totals_work);
+		EXPECT_NEAR(46.707070707071, result12.statistic, stat_tol);
+		EXPECT_NEAR(8.24310500836e-12, result12.pvalue, pvalue_tol);
+		EXPECT_NEAR(1.0, result12.df, EPS);
+	{end}
+END_TEST_S
+
+{#undef EPS}

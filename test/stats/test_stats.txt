@@ -1,156 +1,190 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/stats/test_stats.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -o ./test/stats/test_stats.xml -t omron
- * or
- * $ jiecc ./test/stats/test_stats.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -o ./test/stats/test_stats.xml -t keyence
+ * $ jiecc ./test/stats/test_stats.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/test_stats.xml -t omron
  *)
+{#if _JIECC and (_JIECC_VER < 514)}
+	{#error This test requires Jiecc 5.14 or later.}
+{#endif}
 {#include <jiecunit.txt>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 210)}
+	{#error This test requires JiecUnit 2.10 or later.}
+{#endif}
 {#include <stats/stats.txt>}
 
+{#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_sampleSize',
-		'test_sum',
-		'test_mean',
-		'test_variance',
-		'test_standardDeviation',
-		'test_coefficientOfVariation',
-		'test_skewness',
-		'test_kurtosis',
-		'test_geometricMean',
-		'test_harmonicMean',
-		'test_sampleVariance',
-		'test_standardError',
-		'test_median'
+		'test_stats_arithmetic_mean',
+		'test_stats_weighted_arithmetic_mean',
+		'test_stats_moving_average',
+		'test_stats_pearson',
+		'test_stats_spearman',
+		'test_stats_covariance',
+		'test_stats_covariance_matrix',
+		'test_stats_coefficient_of_variation',
+		'test_stats_relative_stddev',
+		'test_stats_geometric_mean',
+		'test_stats_harmonic_mean',
+		'test_stats_kurtosis',
+		'test_stats_mean_absolute_deviation',
+		'test_stats_median_absolute_deviation',
+		'test_stats_mean',
+		'test_stats_weighted_mean',
+		'test_stats_mean_axis',
+		'test_stats_mean_kahan',
+		'test_stats_trimmed_mean',
+		'test_stats_winsorized_mean',
+		'test_stats_median',
+		'test_stats_mode',
+		'test_stats_percentile',
+		'test_stats_iqr',
+		'test_stats_quartiles_desc',
+		'test_stats_skewness',
+		'test_stats_standard_error_mean',
+		'test_stats_standard_error_proportion',
+		'test_stats_standard_error_difference_of_means',
+		'test_stats_standard_error_difference',
+		'test_stats_standard_error_regression',
+		'test_stats_stddev',
+		'test_stats_population_stddev',
+		'test_stats_sample_stddev',
+		'test_stats_sums_sum',
+		'test_stats_sums_sum_of_squares',
+		'test_stats_sums_sum_of_products',
+		'test_stats_sums_cumsum',
+		'test_stats_sums_fsum',
+		'test_stats_variance',
+		'test_stats_sample_variance',
+		'test_stats_variance_ddof',
+		'test_stats_weighted_variance',
+		'test_stats_variance_two_pass',
+		'test_stats_variance_welford',
+		'test_stats_chi_square_pdf',
+		'test_stats_chi_square_cdf',
+		'test_stats_chi_square_ppf',
+		'test_stats_chi_square_mean',
+		'test_stats_chi_square_variance',
+		'test_stats_exponential_pdf',
+		'test_stats_exponential_cdf',
+		'test_stats_exponential_ppf',
+		'test_stats_exponential_mean',
+		'test_stats_exponential_variance',
+		'test_stats_normal_pdf',
+		'test_stats_normal_cdf',
+		'test_stats_normal_ppf',
+		'test_stats_normal_mean',
+		'test_stats_normal_variance',
+		'test_stats_student_t_pdf',
+		'test_stats_student_t_cdf',
+		'test_stats_student_t_ppf',
+		'test_stats_student_t_mean',
+		'test_stats_student_t_variance',
+		'test_stats_uniform_pdf',
+		'test_stats_uniform_cdf',
+		'test_stats_uniform_ppf',
+		'test_stats_uniform_mean',
+		'test_stats_uniform_variance',
+		'test_stats_erf',
+		'test_stats_gammainc',
+		'test_stats_gammaincc',
+		'test_stats_erfc',
+		'test_stats_gamma',
+		'test_stats_lgamma',
+		'test_stats_beta',
+		'test_stats_beta_incomplete',
+		'test_stats_beta_continued_fraction',
+		'test_stats_binomial_pmf',
+		'test_stats_binomial_cdf',
+		'test_stats_binomial_mean',
+		'test_stats_binomial_variance',
+		'test_stats_binomial_coefficient',
+		'test_stats_poisson_pmf',
+		'test_stats_poisson_cdf',
+		'test_stats_poisson_mean',
+		'test_stats_poisson_variance',
+		'test_stats_hedges_g',
+		'test_stats_cohens_d',
+		'test_stats_ci_mean_known_variance',
+		'test_stats_ci_mean_unknown_variance',
+		'test_stats_ci_proportion',
+		'test_stats_ci_different_levels',
+		'test_stats_ci_mean_t',
+		'test_stats_ci_variance_chi_square',
+		'test_stats_ci_variance',
+		'test_stats_chi_square_gof',
+		'test_stats_chi_square_independence',
+		'test_stats_mann_whitney_u',
+		'test_stats_wilcoxon_signed_rank',
+		'test_stats_jarque_bera',
+		'test_stats_shapiro_wilk',
+		'test_stats_t_test_1samp',
+		'test_stats_t_test_ind',
+		'test_stats_t_test_paired',
+		'test_stats_central_moment',
+		'test_stats_moment',
+		'test_stats_standardized_moment',
+		'test_stats_skewness_from_moments',
+		'test_stats_kurtosis_from_moments',
+		'test_stats_pearson_correlation_normal',
+		'test_stats_linear_regression_normal',
+		'test_stats_sum',
+		'test_stats_sum_kahan',
+		'test_stats_sum_and_count',
+		'test_stats_sum_acc',
+		'test_stats_kahan_sum_acc',
+		'test_stats_mean_acc',
+		'test_stats_welford_update',
+		'test_stats_welford_finalize',
+		'test_stats_quantile',
+		'test_stats_quantile_types',
+		'test_stats_quantiles',
+		'test_stats_rankdata',
+		'test_stats_sorted_copy',
+		'test_stats_select_kth'
 	)
 )
+{#undef _TEST_}
+{#endif}
 
-{#define EPS 1.0e-6}
+{#include "descriptive/test_arithmetic_mean.txt"}
+{#include "descriptive/test_correlation.txt"}
+{#include "descriptive/test_covariance.txt"}
+{#include "descriptive/test_cv.txt"}
+{#include "descriptive/test_geometric_mean.txt"}
+{#include "descriptive/test_harmonic_mean.txt"}
+{#include "descriptive/test_kurtosis.txt"}
+{#include "descriptive/test_mad.txt"}
+{#include "descriptive/test_mean.txt"}
+{#include "descriptive/test_median.txt"}
+{#include "descriptive/test_mode.txt"}
+{#include "descriptive/test_quantiles.txt"}
+{#include "descriptive/test_skewness.txt"}
+{#include "descriptive/test_standard_error.txt"}
+{#include "descriptive/test_stddev.txt"}
+{#include "descriptive/test_sums.txt"}
+{#include "descriptive/test_variance.txt"}
+{#include "distributions/continuous/test_chi_square.txt"}
+{#include "distributions/continuous/test_exponential.txt"}
+{#include "distributions/continuous/test_normal.txt"}
+{#include "distributions/continuous/test_student_t.txt"}
+{#include "distributions/continuous/test_uniform.txt"}
+{#include "distributions/core/test_special_functions.txt"}
+{#include "distributions/discrete/test_binomial.txt"}
+{#include "distributions/discrete/test_poisson.txt"}
+{#include "inference/effect_size/test_effect_size.txt"}
+{#include "inference/estimation/test_confidence_intervals.txt"}
+{#include "inference/tests/test_chi_square_tests.txt"}
+{#include "inference/tests/test_nonparametric_tests.txt"}
+{#include "inference/tests/test_normality_tests.txt"}
+{#include "inference/tests/test_t_tests.txt"}
+{#include "moments/test_central_moments.txt"}
+{#include "moments/test_raw_moments.txt"}
+{#include "moments/test_standardized_moments.txt"}
+{#include "regression/test_correlation_tests.txt"}
+{#include "regression/test_linear_regression.txt"}
+{#include "sequences/test_accumulate.txt"}
+{#include "sequences/test_quantile.txt"}
+{#include "sequences/test_rank.txt"}
+{#include "sequences/test_sort_select.txt"}
 
-TEST_S(test_sampleSize)
-	var
-		x_5: array[0..4] of lreal;
-	end
-	{st}
-	EXPECT_EQ_INT32(5, sampleSize(x_5));
-	{end}
-END_TEST_S
-
-TEST_S(test_sum)
-	var
-		x_5: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
-	end
-	{st}
-	EXPECT_NEAR(20.0, sum(x_5), EPS);
-	{end}
-END_TEST_S
-
-TEST_S(test_mean)
-	var
-		x_5: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
-	end
-	{st}
-	EXPECT_NEAR(4.0, mean(x_5), EPS);
-	{end}
-END_TEST_S
-
-TEST_S(test_variance)
-	var
-		x_5: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
-	end
-	{st}
-	EXPECT_NEAR(10.0, variance(x_5), EPS);
-	{end}
-END_TEST_S
-
-TEST_S(test_standardDeviation)
-	var
-		x_5: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
-	end
-	{st}
-	EXPECT_NEAR(3.162278, standardDeviation(x_5), EPS);
-	{end}
-END_TEST_S
-
-TEST_S(test_coefficientOfVariation)
-	var
-		x_5: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
-	end
-	{st}
-	EXPECT_NEAR(0.7905694, coefficientOfVariation(x_5), EPS);
-	{end}
-END_TEST_S
-
-TEST_S(test_skewness)
-	var
-		x_5: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
-	end
-	{st}
-	EXPECT_NEAR(1.138420, skewness(x_5), EPS);
-	{end}
-END_TEST_S
-
-TEST_S(test_kurtosis)
-	var
-		x_5: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
-	end
-	{st}
-	EXPECT_NEAR(-0.2120000, kurtosis(x_5), EPS);
-	{end}
-END_TEST_S
-
-TEST_S(test_geometricMean)
-	var
-		x_5: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
-	end
-	{st}
-	EXPECT_NEAR(2.992556, geometricMean(x_5), EPS);
-	{end}
-END_TEST_S
-
-TEST_S(test_harmonicMean)
-	var
-		x_5: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
-	end
-	{st}
-	EXPECT_NEAR(2.290076, harmonicMean(x_5), EPS);
-	{end}
-END_TEST_S
-
-TEST_S(test_sampleVariance)
-	var
-		x_5: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
-	end
-	{st}
-	EXPECT_NEAR(12.50000, sampleVariance(x_5), EPS);
-	{end}
-END_TEST_S
-
-TEST_S(test_standardError)
-	var
-		x_5: array[0..4] of lreal := [3.0, 4.0, 10.0, 2.0, 1.0];
-	end
-	{st}
-	EXPECT_NEAR(1.581139, standardError(x_5), EPS);
-	{end}
-END_TEST_S
-
-TEST_S(test_median)
-	var
-		x_5_1: array[0..4] of lreal := [5.0, 7.0, 11.0, 3.0, 2.0];
-		x_5_2: array[0..4] of lreal := [5.0, 7.0, 5.0, 3.0, 2.0];
-		x_6_1: array[0..5] of lreal := [5.0, 7.0, 11.0, 3.0, 2.0, 2.0];
-		x_6_2: array[0..5] of lreal := [5.0, 7.0, 5.0, 3.0, 2.0, 2.0];
-		//
-		w_5: array[0..4] of lreal;
-		w_6: array[0..5] of lreal;
-	end
-	{st}
-	EXPECT_EQ_LREAL(5.0, median(x_5_1, w_5));
-	EXPECT_EQ_LREAL(5.0, median(x_5_2, w_5));
-	EXPECT_EQ_LREAL(4.0, median(x_6_1, w_6));
-	EXPECT_EQ_LREAL(4.0, median(x_6_2, w_6));
-	{end}
-END_TEST_S
-
-{#undef EPS}
+{#undef _TEST_}

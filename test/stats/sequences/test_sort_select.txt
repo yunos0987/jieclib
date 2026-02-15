@@ -1,0 +1,190 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/sequences/test_sort_select.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/sequences/test_sort_select.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <stats/sequences/sort_select.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_stats_sorted_copy',
+		'test_stats_select_kth'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_stats_sorted_copy)
+	var
+		data_unsorted: array[0..4] of lreal := [5.0, 2.0, 8.0, 1.0, 9.0];
+		result_unsorted: array[0..4] of lreal;
+
+		data_ties: array[0..5] of lreal := [3.0, 1.0, 4.0, 1.0, 5.0, 9.0];
+		result_ties: array[0..5] of lreal;
+
+		data_neg: array[0..2] of lreal := [10.0, -5.0, 0.0];
+		result_neg: array[0..2] of lreal;
+
+		data_large: array[0..6] of lreal := [7.0, 2.0, 9.0, 1.0, 5.0, 3.0, 8.0];
+		result_large: array[0..6] of lreal;
+
+		data_mixed: array[0..3] of lreal := [-3.0, 5.0, -1.0, 2.0];
+		result_mixed: array[0..3] of lreal;
+
+		data_sorted_asc: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		result_sorted_asc: array[0..4] of lreal;
+
+		data_sorted_desc: array[0..4] of lreal := [5.0, 4.0, 3.0, 2.0, 1.0];
+		result_sorted_desc: array[0..4] of lreal;
+
+		data_single: array[0..0] of lreal := [42.0];
+		result_single: array[0..0] of lreal;
+
+		data_identical: array[0..3] of lreal := [7.0, 7.0, 7.0, 7.0];
+		result_identical: array[0..3] of lreal;
+	end
+	{st}
+		// Unsorted mixed data
+		Stats_sorted_copy(data:=data_unsorted, sorted:=result_unsorted);
+		EXPECT_NEAR(1.0, result_unsorted[0], EPS);
+		EXPECT_NEAR(2.0, result_unsorted[1], EPS);
+		EXPECT_NEAR(5.0, result_unsorted[2], EPS);
+		EXPECT_NEAR(8.0, result_unsorted[3], EPS);
+		EXPECT_NEAR(9.0, result_unsorted[4], EPS);
+
+		// Data with ties
+		Stats_sorted_copy(data:=data_ties, sorted:=result_ties);
+		EXPECT_NEAR(1.0, result_ties[0], EPS);
+		EXPECT_NEAR(1.0, result_ties[1], EPS);
+		EXPECT_NEAR(3.0, result_ties[2], EPS);
+		EXPECT_NEAR(4.0, result_ties[3], EPS);
+		EXPECT_NEAR(5.0, result_ties[4], EPS);
+		EXPECT_NEAR(9.0, result_ties[5], EPS);
+
+		// Negative and zero values
+		Stats_sorted_copy(data:=data_neg, sorted:=result_neg);
+		EXPECT_NEAR(-5.0, result_neg[0], EPS);
+		EXPECT_NEAR(0.0, result_neg[1], EPS);
+		EXPECT_NEAR(10.0, result_neg[2], EPS);
+
+		// Larger unsorted array
+		Stats_sorted_copy(data:=data_large, sorted:=result_large);
+		EXPECT_NEAR(1.0, result_large[0], EPS);
+		EXPECT_NEAR(2.0, result_large[1], EPS);
+		EXPECT_NEAR(3.0, result_large[2], EPS);
+		EXPECT_NEAR(5.0, result_large[3], EPS);
+		EXPECT_NEAR(7.0, result_large[4], EPS);
+		EXPECT_NEAR(8.0, result_large[5], EPS);
+		EXPECT_NEAR(9.0, result_large[6], EPS);
+
+		// Mixed positive/negative
+		Stats_sorted_copy(data:=data_mixed, sorted:=result_mixed);
+		EXPECT_NEAR(-3.0, result_mixed[0], EPS);
+		EXPECT_NEAR(-1.0, result_mixed[1], EPS);
+		EXPECT_NEAR(2.0, result_mixed[2], EPS);
+		EXPECT_NEAR(5.0, result_mixed[3], EPS);
+
+		// Already sorted ascending
+		Stats_sorted_copy(data:=data_sorted_asc, sorted:=result_sorted_asc);
+		EXPECT_NEAR(1.0, result_sorted_asc[0], EPS);
+		EXPECT_NEAR(2.0, result_sorted_asc[1], EPS);
+		EXPECT_NEAR(3.0, result_sorted_asc[2], EPS);
+		EXPECT_NEAR(4.0, result_sorted_asc[3], EPS);
+		EXPECT_NEAR(5.0, result_sorted_asc[4], EPS);
+
+		// Already sorted descending
+		Stats_sorted_copy(data:=data_sorted_desc, sorted:=result_sorted_desc);
+		EXPECT_NEAR(1.0, result_sorted_desc[0], EPS);
+		EXPECT_NEAR(2.0, result_sorted_desc[1], EPS);
+		EXPECT_NEAR(3.0, result_sorted_desc[2], EPS);
+		EXPECT_NEAR(4.0, result_sorted_desc[3], EPS);
+		EXPECT_NEAR(5.0, result_sorted_desc[4], EPS);
+
+		// Single element
+		Stats_sorted_copy(data:=data_single, sorted:=result_single);
+		EXPECT_NEAR(42.0, result_single[0], EPS);
+
+		// All identical
+		Stats_sorted_copy(data:=data_identical, sorted:=result_identical);
+		EXPECT_NEAR(7.0, result_identical[0], EPS);
+		EXPECT_NEAR(7.0, result_identical[1], EPS);
+		EXPECT_NEAR(7.0, result_identical[2], EPS);
+		EXPECT_NEAR(7.0, result_identical[3], EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_stats_select_kth)
+	var
+		data_unsorted: array[0..4] of lreal := [5.0, 2.0, 8.0, 1.0, 9.0];
+		work_unsorted: array[0..4] of lreal;
+
+		data_ties: array[0..5] of lreal := [3.0, 1.0, 4.0, 1.0, 5.0, 9.0];
+		work_ties: array[0..5] of lreal;
+
+		data_large: array[0..6] of lreal := [7.0, 2.0, 9.0, 1.0, 5.0, 3.0, 8.0];
+		work_large: array[0..6] of lreal;
+
+		data_sorted_asc: array[0..3] of lreal := [10.0, 20.0, 30.0, 40.0];
+		work_sorted_asc: array[0..3] of lreal;
+
+		data_single: array[0..0] of lreal := [42.0];
+		work_single: array[0..0] of lreal;
+
+		data_neg: array[0..4] of lreal := [-1.0, -5.0, 0.0, -3.0, -2.0];
+		work_neg: array[0..4] of lreal;
+
+		data_identical: array[0..3] of lreal := [7.0, 7.0, 7.0, 7.0];
+		work_identical: array[0..3] of lreal;
+	end
+	{st}
+		// Unsorted mixed data - various k values
+		EXPECT_NEAR(1.0, Stats_select_kth(data:=data_unsorted, work:=work_unsorted, k:=0), EPS);
+		EXPECT_NEAR(2.0, Stats_select_kth(data:=data_unsorted, work:=work_unsorted, k:=1), EPS);
+		EXPECT_NEAR(5.0, Stats_select_kth(data:=data_unsorted, work:=work_unsorted, k:=2), EPS);
+		EXPECT_NEAR(8.0, Stats_select_kth(data:=data_unsorted, work:=work_unsorted, k:=3), EPS);
+		EXPECT_NEAR(9.0, Stats_select_kth(data:=data_unsorted, work:=work_unsorted, k:=4), EPS);
+
+		// Data with ties - various k values
+		EXPECT_NEAR(1.0, Stats_select_kth(data:=data_ties, work:=work_ties, k:=0), EPS);
+		EXPECT_NEAR(1.0, Stats_select_kth(data:=data_ties, work:=work_ties, k:=1), EPS);
+		EXPECT_NEAR(3.0, Stats_select_kth(data:=data_ties, work:=work_ties, k:=2), EPS);
+		EXPECT_NEAR(4.0, Stats_select_kth(data:=data_ties, work:=work_ties, k:=3), EPS);
+		EXPECT_NEAR(5.0, Stats_select_kth(data:=data_ties, work:=work_ties, k:=4), EPS);
+		EXPECT_NEAR(9.0, Stats_select_kth(data:=data_ties, work:=work_ties, k:=5), EPS);
+
+		// Larger unsorted array - various k values
+		EXPECT_NEAR(1.0, Stats_select_kth(data:=data_large, work:=work_large, k:=0), EPS);
+		EXPECT_NEAR(2.0, Stats_select_kth(data:=data_large, work:=work_large, k:=1), EPS);
+		EXPECT_NEAR(3.0, Stats_select_kth(data:=data_large, work:=work_large, k:=2), EPS);
+		EXPECT_NEAR(5.0, Stats_select_kth(data:=data_large, work:=work_large, k:=3), EPS);
+		EXPECT_NEAR(7.0, Stats_select_kth(data:=data_large, work:=work_large, k:=4), EPS);
+		EXPECT_NEAR(8.0, Stats_select_kth(data:=data_large, work:=work_large, k:=5), EPS);
+		EXPECT_NEAR(9.0, Stats_select_kth(data:=data_large, work:=work_large, k:=6), EPS);
+
+		// Sorted ascending - various k values
+		EXPECT_NEAR(10.0, Stats_select_kth(data:=data_sorted_asc, work:=work_sorted_asc, k:=0), EPS);
+		EXPECT_NEAR(20.0, Stats_select_kth(data:=data_sorted_asc, work:=work_sorted_asc, k:=1), EPS);
+		EXPECT_NEAR(30.0, Stats_select_kth(data:=data_sorted_asc, work:=work_sorted_asc, k:=2), EPS);
+		EXPECT_NEAR(40.0, Stats_select_kth(data:=data_sorted_asc, work:=work_sorted_asc, k:=3), EPS);
+
+		// Single element - only k=0
+		EXPECT_NEAR(42.0, Stats_select_kth(data:=data_single, work:=work_single, k:=0), EPS);
+
+		// Negative values - various k values
+		EXPECT_NEAR(-5.0, Stats_select_kth(data:=data_neg, work:=work_neg, k:=0), EPS);
+		EXPECT_NEAR(-3.0, Stats_select_kth(data:=data_neg, work:=work_neg, k:=1), EPS);
+		EXPECT_NEAR(-2.0, Stats_select_kth(data:=data_neg, work:=work_neg, k:=2), EPS);
+		EXPECT_NEAR(-1.0, Stats_select_kth(data:=data_neg, work:=work_neg, k:=3), EPS);
+		EXPECT_NEAR(0.0, Stats_select_kth(data:=data_neg, work:=work_neg, k:=4), EPS);
+
+		// All identical - any k returns same value
+		EXPECT_NEAR(7.0, Stats_select_kth(data:=data_identical, work:=work_identical, k:=0), EPS);
+		EXPECT_NEAR(7.0, Stats_select_kth(data:=data_identical, work:=work_identical, k:=1), EPS);
+		EXPECT_NEAR(7.0, Stats_select_kth(data:=data_identical, work:=work_identical, k:=2), EPS);
+		EXPECT_NEAR(7.0, Stats_select_kth(data:=data_identical, work:=work_identical, k:=3), EPS);
+	{end}
+END_TEST_S
+
+{#undef EPS}

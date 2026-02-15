@@ -15,7 +15,7 @@
 		end
 		var_input
 			src_index: dint;
-		end	
+		end
 		var_in_out
 			dst: array[*] of datatype;
 		end
@@ -28,7 +28,7 @@
 			src_i_0, src_i_1: dint;
 			dst_i_0, dst_i_1: dint;
 			src_i, dst_i, actual_n: dint;
-		end	
+		end
 		${st$}
 		src_i_0 := lower_bound(src, 1);
 		if src_index < src_i_0 then
