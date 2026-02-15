@@ -19,7 +19,7 @@ function Math_floor: lreal
 	{st}
 		truncated := lint_to_lreal(trunc(x));
 		frac_part := x - truncated;
-		
+
 		if frac_part < 0.0 then
 			Math_floor := truncated - 1.0;
 		else

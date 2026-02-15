@@ -131,11 +131,11 @@ _DEFINE_ARRAY_BUBBLESORT_DATATYPE(dint)
 			eno := false;
 			return;
 		end_if;
-		
+
 		if actual_n <= 1 then
 			return;
 		end_if;
-		
+
 		width := 1;
 		while width < actual_n do
 			left_idx := i_0;
@@ -258,16 +258,16 @@ _DEFINE_ARRAY_MERGESORT_DATATYPE(dint)
 		sp := 0;
 		stack_lo[0] := i_0;
 		stack_hi[0] := i_0 + actual_n - 1;
-		
+
 		while sp >= 0 do
 			left_idx := stack_lo[sp];
 			right_idx := stack_hi[sp];
 			sp := sp - 1;
-			
+
 			l_ptr := left_idx;
 			r_ptr := right_idx;
 			pivot := self[left_idx + (right_idx - left_idx) / 2];
-			
+
 			while l_ptr <= r_ptr do
 				while TRUE do
 					if ascending then
@@ -281,7 +281,7 @@ _DEFINE_ARRAY_MERGESORT_DATATYPE(dint)
 						exit;
 					end_if;
 				end_while;
-				
+
 				while TRUE do
 					if ascending then
 						cond := self[r_ptr] > pivot;
@@ -294,7 +294,7 @@ _DEFINE_ARRAY_MERGESORT_DATATYPE(dint)
 						exit;
 					end_if;
 				end_while;
-				
+
 				if l_ptr <= r_ptr then
 					tmp := self[l_ptr];
 					self[l_ptr] := self[r_ptr];
@@ -303,7 +303,7 @@ _DEFINE_ARRAY_MERGESORT_DATATYPE(dint)
 					r_ptr := r_ptr - 1;
 				end_if;
 			end_while;
-			
+
 			if left_idx < r_ptr then
 				if l_ptr < i_0 + actual_n - 1 then
 					if (r_ptr - left_idx) > (i_0 + actual_n - 1 - l_ptr) then
