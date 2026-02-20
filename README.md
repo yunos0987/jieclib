@@ -55,6 +55,17 @@ JiecLibに含まれるライブラリと、IEC 61131-10 XMLを生成するため
 
 * [array](./array)
   * 基本的な配列操作ライブラリです。
+  * **配列判定（正規配列）**
+    * [Array_isRegular_lreal](./array/array.txt) / [Array_isRegular_dint](./array/array.txt): 1次元配列の正規性判定
+    * [Array_isRegular2d_x_lreal](./array/array.txt) / [Array_isRegular2d_x_dint](./array/array.txt): 2次元配列の次元ごとの正規性判定
+    * [Array_isRegular2d_lreal](./array/array.txt) / [Array_isRegular2d_dint](./array/array.txt): 2次元配列の正規性判定
+  * **コピー**
+    * [Array_copy_lreal](./array/copy.txt) / [Array_copy_dint](./array/copy.txt): 全要素コピー
+    * [Array_copy_x_lreal](./array/copy.txt) / [Array_copy_x_dint](./array/copy.txt): 範囲指定コピー
+  * **ソート**
+    * [Array_bubblesort_lreal](./array/sort.txt) / [Array_bubblesort_dint](./array/sort.txt): バブルソート
+    * [Array_mergesort_lreal](./array/sort.txt) / [Array_mergesort_dint](./array/sort.txt): マージソート
+    * [Array_quicksort_lreal](./array/sort.txt) / [Array_quicksort_dint](./array/sort.txt): クイックソート
   * IEC 61131-10 XML生成コマンド: `jiecc ./array/array.txt -I. -I./vendor/jiecunit/sys -o ./array/array.xml -t omron`
 * [base64](./base64)
   * メール等で使用されているエンコード方式Base64です。
