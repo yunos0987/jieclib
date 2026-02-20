@@ -1,0 +1,105 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/linalg/solve/test_gaussian.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/solve/test_gaussian.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <linalg/solve/gaussian.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_matrix_solve_gaussian'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-8}
+
+TEST_S(test_matrix_solve_gaussian)
+	var
+		a1: array[0..1, 0..1] of lreal := [2.0, 1.0, 1.0, 2.0];
+		b1: array[0..1] of lreal := [4.0, 5.0];
+		x1: array[0..1] of lreal;
+		a2: array[0..1, 0..1] of lreal := [1.0, 0.0, 0.0, 1.0];
+		b2: array[0..1] of lreal := [3.0, 4.0];
+		x2: array[0..1] of lreal;
+		a3: array[0..2, 0..2] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 10.0];
+		b3: array[0..2] of lreal := [14.0, 32.0, 51.0];
+		x3: array[0..2] of lreal;
+		a4: array[0..1, 0..1] of lreal := [3.0, 1.0, 1.0, 3.0];
+		b4: array[0..1] of lreal := [9.0, 7.0];
+		x4: array[0..1] of lreal;
+		a5: array[0..1, 0..1] of lreal := [2.0, 0.0, 0.0, 3.0];
+		b5: array[0..1] of lreal := [4.0, 6.0];
+		x5: array[0..1] of lreal;
+		a6: array[0..2, 0..2] of lreal := [2.0, 1.0, 0.0, 1.0, 3.0, 1.0, 0.0, 1.0, 2.0];
+		b6: array[0..2] of lreal := [2.0, 1.0, 2.0];
+		x6: array[0..2] of lreal;
+		a7: array[0..1, 0..1] of lreal := [4.0, 2.0, 2.0, 4.0];
+		b7: array[0..1] of lreal := [8.0, 8.0];
+		x7: array[0..1] of lreal;
+		a8: array[0..2, 0..2] of lreal := [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
+		b8: array[0..2] of lreal := [2.0, 3.0, 4.0];
+		x8: array[0..2] of lreal;
+		a9: array[0..1, 0..1] of lreal := [5.0, 2.0, 2.0, 5.0];
+		b9: array[0..1] of lreal := [7.0, 4.0];
+		x9: array[0..1] of lreal;
+		a10: array[0..2, 0..2] of lreal := [3.0, 2.0, 1.0, 2.0, 3.0, 2.0, 1.0, 2.0, 3.0];
+		b10: array[0..2] of lreal := [14.0, 13.0, 14.0];
+		x10: array[0..2] of lreal;
+		a11: array[0..3, 0..3] of lreal := [4.0, -1.0, 0.0, 2.0, -1.0, 5.0, -1.0, 0.0, 0.0, -1.0, 4.0, -1.0, 2.0, 0.0, -1.0, 6.0];
+		b11: array[0..3] of lreal := [1.0, 2.0, 3.0, 4.0];
+		x11: array[0..3] of lreal;
+		a12: array[0..3, 0..3] of lreal := [6.0, 2.0, 1.0, 0.0, 2.0, 9.0, 3.0, 1.0, 1.0, 3.0, 7.0, 2.0, 0.0, 1.0, 2.0, 8.0];
+		b12: array[0..3] of lreal := [5.0, 17.0, 13.0, 11.0];
+		x12: array[0..3] of lreal;
+	end
+	{st}
+	Matrix_solve_gaussian(a:=a1, b:=b1, x:=x1);
+	EXPECT_NEAR(1.0, x1[0], EPS);
+	EXPECT_NEAR(2.0, x1[1], EPS);
+	Matrix_solve_gaussian(a:=a2, b:=b2, x:=x2);
+	EXPECT_NEAR(3.0, x2[0], EPS);
+	EXPECT_NEAR(4.0, x2[1], EPS);
+	Matrix_solve_gaussian(a:=a3, b:=b3, x:=x3);
+	EXPECT_NEAR(-1.0, x3[0], EPS);
+	EXPECT_NEAR(6.0, x3[1], EPS);
+	EXPECT_NEAR(1.0, x3[2], EPS);
+	Matrix_solve_gaussian(a:=a4, b:=b4, x:=x4);
+	EXPECT_NEAR(2.5, x4[0], EPS);
+	EXPECT_NEAR(1.5, x4[1], EPS);
+	Matrix_solve_gaussian(a:=a5, b:=b5, x:=x5);
+	EXPECT_NEAR(2.0, x5[0], EPS);
+	EXPECT_NEAR(2.0, x5[1], EPS);
+	Matrix_solve_gaussian(a:=a6, b:=b6, x:=x6);
+	EXPECT_NEAR(1.25, x6[0], EPS);
+	EXPECT_NEAR(-0.5, x6[1], EPS);
+	EXPECT_NEAR(1.25, x6[2], EPS);
+	Matrix_solve_gaussian(a:=a7, b:=b7, x:=x7);
+	EXPECT_NEAR(1.33333333, x7[0], 1e-7);
+	EXPECT_NEAR(1.33333333, x7[1], 1e-7);
+	Matrix_solve_gaussian(a:=a8, b:=b8, x:=x8);
+	EXPECT_NEAR(2.0, x8[0], EPS);
+	EXPECT_NEAR(3.0, x8[1], EPS);
+	EXPECT_NEAR(4.0, x8[2], EPS);
+	Matrix_solve_gaussian(a:=a9, b:=b9, x:=x9);
+	EXPECT_NEAR(1.28571429, x9[0], 1e-7);
+	EXPECT_NEAR(0.28571429, x9[1], 1e-7);
+	Matrix_solve_gaussian(a:=a10, b:=b10, x:=x10);
+	EXPECT_NEAR(4.0, x10[0], EPS);
+	EXPECT_NEAR(-1.0, x10[1], EPS);
+	EXPECT_NEAR(4.0, x10[2], EPS);
+	Matrix_solve_gaussian(a:=a11, b:=b11, x:=x11);
+	EXPECT_NEAR(-0.02639296, x11[0], 1e-7);
+	EXPECT_NEAR(0.61876833, x11[1], 1e-7);
+	EXPECT_NEAR(1.12023460, x11[2], 1e-7);
+	EXPECT_NEAR(0.86217009, x11[3], 1e-7);
+	Matrix_solve_gaussian(a:=a12, b:=b12, x:=x12);
+	EXPECT_NEAR(0.20180587, x12[0], 1e-7);
+	EXPECT_NEAR(1.42257336, x12[1], 1e-7);
+	EXPECT_NEAR(0.94401806, x12[2], 1e-7);
+	EXPECT_NEAR(0.96117381, x12[3], 1e-7);
+	{end}
+END_TEST_S
+
+{#undef EPS}

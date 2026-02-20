@@ -1,0 +1,253 @@
+(*
+ * Least Squares Solver
+ * $ jiecc ./linalg/solve/least_squares.txt -I. -I./vendor/jiecunit/sys -o ./linalg/solve/least_squares.xml -t omron
+ *)
+{#ifndef __LINALG_SOLVE_LEAST_SQUARES_TXT__}
+{#define __LINALG_SOLVE_LEAST_SQUARES_TXT__}
+
+{#include <sys.txt>}
+{#include <array/array.txt>}
+{#include <math/floor.txt>}
+
+(*{doc 最小二乗法。
+過設定方程式 Ax = b を最小二乗法で設き、最小与乗疑解xを求める。
+@in_out a 係数行列A。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out b 右辺ベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out x 結果の最小二乗疑解ベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error 入力配列が正規配列でない場合、b_sizeとa_rowsまたはx_sizeとa_colsが一致しない場合、a_colsが10を超える場合、法方程式が不整合になる場合、または連立解法（通常系・正則化系）のピボットが0に近い場合。}*)
+function Matrix_solve_least_squares
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 係数行列A。}*)
+		a: array[*, *] of lreal;
+		(*{doc 右辺ベクトル。}*)
+		b: array[*] of lreal;
+	end
+	var_in_out
+		(*{doc 結果の最小二乗疑解ベクトル。}*)
+		x: array[*] of lreal;
+	end
+	var_temp
+		i, j, k, col, row, pivot_row, pivot_count, free_count, rr, cc: dint;
+		m, n: dint;
+		a_size, b_size, x_size: dint;
+		a_rows, a_cols: dint;
+		max_val, factor, tmp, sum_val: lreal;
+		is_pivot: bool;
+		pivot_cols: array[0..9] of dint;
+		free_cols: array[0..9] of dint;
+		x_part: array[0..9] of lreal;
+		null_basis: array[0..9, 0..9] of lreal;
+		gram: array[0..9, 0..9] of lreal;
+		h_vec: array[0..9] of lreal;
+		w: array[0..9] of lreal;
+		normal: array[0..9, 0..9] of lreal;
+		rhs: array[0..9] of lreal;
+	end
+	{st}
+	a_size := Array_isRegular2d_lreal(a);
+	b_size := Array_isRegular_lreal(b);
+	x_size := Array_isRegular_lreal(x);
+	if (a_size = 0) or (b_size = 0) or (x_size = 0) then
+		eno := false;
+		return;
+	end_if;
+
+	a_rows := upper_bound(a, 1) - lower_bound(a, 1) + 1;
+	a_cols := upper_bound(a, 2) - lower_bound(a, 2) + 1;
+	if (b_size <> a_rows) or (x_size <> a_cols) then
+		eno := false;
+		return;
+	end_if;
+	if a_cols > 10 then
+		eno := false;
+		return;
+	end_if;
+
+	m := a_rows;
+	n := a_cols;
+	for i := 0 to n - 1 by 1 do
+		pivot_cols[i] := -1;
+		free_cols[i] := -1;
+		x_part[i] := 0.0;
+		h_vec[i] := 0.0;
+		w[i] := 0.0;
+		rhs[i] := 0.0;
+		for j := 0 to n - 1 by 1 do
+			normal[i, j] := 0.0;
+			null_basis[i, j] := 0.0;
+			gram[i, j] := 0.0;
+		end_for;
+	end_for;
+
+	for i := 0 to n - 1 by 1 do
+		for j := 0 to n - 1 by 1 do
+			sum_val := 0.0;
+			for k := 0 to m - 1 by 1 do
+				sum_val := sum_val + a[k, i] * a[k, j];
+			end_for;
+			normal[i, j] := sum_val;
+		end_for;
+		sum_val := 0.0;
+		for k := 0 to m - 1 by 1 do
+			sum_val := sum_val + a[k, i] * b[k];
+		end_for;
+		rhs[i] := sum_val;
+	end_for;
+
+	row := 0;
+	for col := 0 to n - 1 by 1 do
+		if row >= n then
+			exit;
+		end_if;
+		pivot_row := row;
+		max_val := abs(normal[row, col]);
+		for k := row + 1 to n - 1 by 1 do
+			if abs(normal[k, col]) > max_val then
+				max_val := abs(normal[k, col]);
+				pivot_row := k;
+			end_if;
+		end_for;
+		if max_val > 1e-15 then
+			if pivot_row <> row then
+				for j := 0 to n - 1 by 1 do
+					tmp := normal[row, j];
+					normal[row, j] := normal[pivot_row, j];
+					normal[pivot_row, j] := tmp;
+				end_for;
+				tmp := rhs[row];
+				rhs[row] := rhs[pivot_row];
+				rhs[pivot_row] := tmp;
+			end_if;
+			pivot_cols[row] := col;
+			for k := row + 1 to n - 1 by 1 do
+				factor := normal[k, col] / normal[row, col];
+				for j := 0 to n - 1 by 1 do
+					normal[k, j] := normal[k, j] - factor * normal[row, j];
+				end_for;
+				rhs[k] := rhs[k] - factor * rhs[row];
+			end_for;
+			row := row + 1;
+		end_if;
+	end_for;
+	pivot_count := row;
+
+	for i := pivot_count to n - 1 by 1 do
+		max_val := 0.0;
+		for j := 0 to n - 1 by 1 do
+			if abs(normal[i, j]) > max_val then
+				max_val := abs(normal[i, j]);
+			end_if;
+		end_for;
+		if (max_val < 1e-15) and (abs(rhs[i]) > 1e-12) then
+			eno := false;
+			return;
+		end_if;
+	end_for;
+
+	free_count := 0;
+	for j := 0 to n - 1 by 1 do
+		is_pivot := false;
+		for i := 0 to pivot_count - 1 by 1 do
+			if pivot_cols[i] = j then
+				is_pivot := true;
+			end_if;
+		end_for;
+		if not is_pivot then
+			free_cols[free_count] := j;
+			free_count := free_count + 1;
+		end_if;
+	end_for;
+
+	for j := 0 to n - 1 by 1 do
+		x_part[j] := 0.0;
+	end_for;
+	for i := pivot_count - 1 to 0 by -1 do
+		col := pivot_cols[i];
+		sum_val := rhs[i];
+		for j := col + 1 to n - 1 by 1 do
+			sum_val := sum_val - normal[i, j] * x_part[j];
+		end_for;
+		if abs(normal[i, col]) < 1e-15 then
+			eno := false;
+			return;
+		end_if;
+		x_part[col] := sum_val / normal[i, col];
+	end_for;
+
+	if free_count = 0 then
+		for j := 0 to n - 1 by 1 do
+			x[j] := x_part[j];
+		end_for;
+		return;
+	end_if;
+
+	for i := 0 to n - 1 by 1 do
+		for j := 0 to n - 1 by 1 do
+			sum_val := 0.0;
+			for k := 0 to m - 1 by 1 do
+				sum_val := sum_val + a[k, i] * a[k, j];
+			end_for;
+			if i = j then
+				normal[i, j] := sum_val + 1e-7;
+			else
+				normal[i, j] := sum_val;
+			end_if;
+		end_for;
+		sum_val := 0.0;
+		for k := 0 to m - 1 by 1 do
+			sum_val := sum_val + a[k, i] * b[k];
+		end_for;
+		rhs[i] := sum_val;
+	end_for;
+
+	for i := 0 to n - 1 by 1 do
+		pivot_row := i;
+		max_val := abs(normal[i, i]);
+		for k := i + 1 to n - 1 by 1 do
+			if abs(normal[k, i]) > max_val then
+				max_val := abs(normal[k, i]);
+				pivot_row := k;
+			end_if;
+		end_for;
+		if max_val < 1e-15 then
+			eno := false;
+			return;
+		end_if;
+		if pivot_row <> i then
+			for j := 0 to n - 1 by 1 do
+				tmp := normal[i, j];
+				normal[i, j] := normal[pivot_row, j];
+				normal[pivot_row, j] := tmp;
+			end_for;
+			tmp := rhs[i];
+			rhs[i] := rhs[pivot_row];
+			rhs[pivot_row] := tmp;
+		end_if;
+		for k := i + 1 to n - 1 by 1 do
+			factor := normal[k, i] / normal[i, i];
+			for j := 0 to n - 1 by 1 do
+				normal[k, j] := normal[k, j] - factor * normal[i, j];
+			end_for;
+			rhs[k] := rhs[k] - factor * rhs[i];
+		end_for;
+	end_for;
+
+	for i := n - 1 to 0 by -1 do
+		sum_val := rhs[i];
+		for j := i + 1 to n - 1 by 1 do
+			sum_val := sum_val - normal[i, j] * x[j];
+		end_for;
+		if abs(normal[i, i]) < 1e-15 then
+			eno := false;
+			return;
+		end_if;
+		x[i] := sum_val / normal[i, i];
+	end_for;
+	{end}
+end
+
+{#endif}

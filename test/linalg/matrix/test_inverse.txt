@@ -1,0 +1,108 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/linalg/matrix/test_inverse.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/matrix/test_inverse.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <linalg/matrix/inverse.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_matrix_inverse'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_matrix_inverse)
+	var
+		a1: array[0..1, 0..1] of lreal := [1.0, 0.0, 0.0, 1.0];
+		r1: array[0..1, 0..1] of lreal;
+		a2: array[0..1, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0];
+		r2: array[0..1, 0..1] of lreal;
+		a3: array[0..1, 0..1] of lreal := [2.0, 0.0, 0.0, 3.0];
+		r3: array[0..1, 0..1] of lreal;
+		a4: array[0..1, 0..1] of lreal := [4.0, 7.0, 2.0, 6.0];
+		r4: array[0..1, 0..1] of lreal;
+		a5: array[0..2, 0..2] of lreal := [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
+		r5: array[0..2, 0..2] of lreal;
+		a6: array[0..2, 0..2] of lreal := [1.0, 2.0, 3.0, 0.0, 1.0, 4.0, 5.0, 6.0, 0.0];
+		r6: array[0..2, 0..2] of lreal;
+		a7: array[0..1, 0..1] of lreal := [2.0, 1.0, 5.0, 3.0];
+		r7: array[0..1, 0..1] of lreal;
+		a8: array[0..2, 0..2] of lreal := [2.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 4.0];
+		r8: array[0..2, 0..2] of lreal;
+		a9: array[0..1, 0..1] of lreal := [0.5, 0.25, 1.0, 0.5];
+		r9: array[0..1, 0..1] of lreal;
+		a10: array[0..1, 0..1] of lreal := [3.0, 1.0, 2.0, 1.0];
+		r10: array[0..1, 0..1] of lreal;
+		result_eno: bool;
+	end
+	{st}
+	Matrix_inverse(a:=a1, result:=r1);
+	EXPECT_NEAR(1.0, r1[0, 0], EPS);
+	EXPECT_NEAR(0.0, r1[0, 1], EPS);
+	EXPECT_NEAR(0.0, r1[1, 0], EPS);
+	EXPECT_NEAR(1.0, r1[1, 1], EPS);
+	Matrix_inverse(a:=a2, result:=r2);
+	EXPECT_NEAR(-2.0, r2[0, 0], EPS);
+	EXPECT_NEAR(1.0, r2[0, 1], EPS);
+	EXPECT_NEAR(1.5, r2[1, 0], EPS);
+	EXPECT_NEAR(-0.5, r2[1, 1], EPS);
+	Matrix_inverse(a:=a3, result:=r3);
+	EXPECT_NEAR(0.5, r3[0, 0], EPS);
+	EXPECT_NEAR(0.0, r3[0, 1], EPS);
+	EXPECT_NEAR(0.0, r3[1, 0], EPS);
+	EXPECT_NEAR(0.33333333, r3[1, 1], 1e-7);
+	Matrix_inverse(a:=a4, result:=r4);
+	EXPECT_NEAR(0.6, r4[0, 0], EPS);
+	EXPECT_NEAR(-0.7, r4[0, 1], EPS);
+	EXPECT_NEAR(-0.2, r4[1, 0], EPS);
+	EXPECT_NEAR(0.4, r4[1, 1], EPS);
+	Matrix_inverse(a:=a5, result:=r5);
+	EXPECT_NEAR(1.0, r5[0, 0], EPS);
+	EXPECT_NEAR(0.0, r5[0, 1], EPS);
+	EXPECT_NEAR(0.0, r5[0, 2], EPS);
+	EXPECT_NEAR(0.0, r5[1, 0], EPS);
+	EXPECT_NEAR(1.0, r5[1, 1], EPS);
+	EXPECT_NEAR(0.0, r5[1, 2], EPS);
+	EXPECT_NEAR(0.0, r5[2, 0], EPS);
+	EXPECT_NEAR(0.0, r5[2, 1], EPS);
+	EXPECT_NEAR(1.0, r5[2, 2], EPS);
+	Matrix_inverse(a:=a6, result:=r6);
+	EXPECT_NEAR(-24.0, r6[0, 0], 1e-8);
+	EXPECT_NEAR(18.0, r6[0, 1], 1e-8);
+	EXPECT_NEAR(5.0, r6[0, 2], 1e-8);
+	EXPECT_NEAR(20.0, r6[1, 0], 1e-8);
+	EXPECT_NEAR(-15.0, r6[1, 1], 1e-8);
+	EXPECT_NEAR(-4.0, r6[1, 2], 1e-8);
+	EXPECT_NEAR(-5.0, r6[2, 0], 1e-8);
+	EXPECT_NEAR(4.0, r6[2, 1], 1e-8);
+	EXPECT_NEAR(1.0, r6[2, 2], 1e-8);
+	Matrix_inverse(a:=a7, result:=r7);
+	EXPECT_NEAR(3.0, r7[0, 0], EPS);
+	EXPECT_NEAR(-1.0, r7[0, 1], EPS);
+	EXPECT_NEAR(-5.0, r7[1, 0], EPS);
+	EXPECT_NEAR(2.0, r7[1, 1], EPS);
+	Matrix_inverse(a:=a8, result:=r8);
+	EXPECT_NEAR(0.5, r8[0, 0], EPS);
+	EXPECT_NEAR(0.0, r8[0, 1], EPS);
+	EXPECT_NEAR(0.0, r8[0, 2], EPS);
+	EXPECT_NEAR(0.0, r8[1, 0], EPS);
+	EXPECT_NEAR(0.33333333, r8[1, 1], 1e-7);
+	EXPECT_NEAR(0.0, r8[1, 2], EPS);
+	EXPECT_NEAR(0.0, r8[2, 0], EPS);
+	EXPECT_NEAR(0.0, r8[2, 1], EPS);
+	EXPECT_NEAR(0.25, r8[2, 2], EPS);
+	Matrix_inverse(a:=a9, result:=r9, eno=>result_eno);
+	EXPECT_FALSE(result_eno);
+	Matrix_inverse(a:=a10, result:=r10);
+	EXPECT_NEAR(1.0, r10[0, 0], EPS);
+	EXPECT_NEAR(-1.0, r10[0, 1], EPS);
+	EXPECT_NEAR(-2.0, r10[1, 0], EPS);
+	EXPECT_NEAR(3.0, r10[1, 1], EPS);
+	{end}
+END_TEST_S
+
+{#undef EPS}

@@ -1,0 +1,170 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/linalg/transform/test_scaling.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/transform/test_scaling.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <linalg/transform/scaling.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_matrix_scaling_2d',
+		'test_matrix_scaling_3d'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_matrix_scaling_2d)
+	var
+		sx1: lreal := 1.0;
+		sy1: lreal := 1.0;
+		s1: array[0..2, 0..2] of lreal;
+		sx2: lreal := 2.0;
+		sy2: lreal := 3.0;
+		s2: array[0..2, 0..2] of lreal;
+		sx3: lreal := 0.5;
+		sy3: lreal := 2.0;
+		s3: array[0..2, 0..2] of lreal;
+		sx4: lreal := 0.0;
+		sy4: lreal := 1.0;
+		s4: array[0..2, 0..2] of lreal;
+		sx5: lreal := 1.0;
+		sy5: lreal := 0.0;
+		s5: array[0..2, 0..2] of lreal;
+		sx6: lreal := -1.0;
+		sy6: lreal := 1.0;
+		s6: array[0..2, 0..2] of lreal;
+		sx7: lreal := 1.0;
+		sy7: lreal := -1.0;
+		s7: array[0..2, 0..2] of lreal;
+		sx8: lreal := 10.0;
+		sy8: lreal := 10.0;
+		s8: array[0..2, 0..2] of lreal;
+		sx9: lreal := 0.1;
+		sy9: lreal := 0.1;
+		s9: array[0..2, 0..2] of lreal;
+		sx10: lreal := 2.5;
+		sy10: lreal := 1.5;
+		s10: array[0..2, 0..2] of lreal;
+	end
+	{st}
+	Matrix_scaling_2d(sx:=sx1, sy:=sy1, scaling:=s1);
+	EXPECT_NEAR(1.0, s1[0, 0], EPS);
+	EXPECT_NEAR(1.0, s1[1, 1], EPS);
+	EXPECT_NEAR(1.0, s1[2, 2], EPS);
+	Matrix_scaling_2d(sx:=sx2, sy:=sy2, scaling:=s2);
+	EXPECT_NEAR(2.0, s2[0, 0], EPS);
+	EXPECT_NEAR(3.0, s2[1, 1], EPS);
+	EXPECT_NEAR(1.0, s2[2, 2], EPS);
+	Matrix_scaling_2d(sx:=sx3, sy:=sy3, scaling:=s3);
+	EXPECT_NEAR(0.5, s3[0, 0], EPS);
+	EXPECT_NEAR(2.0, s3[1, 1], EPS);
+	Matrix_scaling_2d(sx:=sx4, sy:=sy4, scaling:=s4);
+	EXPECT_NEAR(0.0, s4[0, 0], EPS);
+	EXPECT_NEAR(1.0, s4[1, 1], EPS);
+	Matrix_scaling_2d(sx:=sx5, sy:=sy5, scaling:=s5);
+	EXPECT_NEAR(1.0, s5[0, 0], EPS);
+	EXPECT_NEAR(0.0, s5[1, 1], EPS);
+	Matrix_scaling_2d(sx:=sx6, sy:=sy6, scaling:=s6);
+	EXPECT_NEAR(-1.0, s6[0, 0], EPS);
+	EXPECT_NEAR(1.0, s6[1, 1], EPS);
+	Matrix_scaling_2d(sx:=sx7, sy:=sy7, scaling:=s7);
+	EXPECT_NEAR(1.0, s7[0, 0], EPS);
+	EXPECT_NEAR(-1.0, s7[1, 1], EPS);
+	Matrix_scaling_2d(sx:=sx8, sy:=sy8, scaling:=s8);
+	EXPECT_NEAR(10.0, s8[0, 0], EPS);
+	EXPECT_NEAR(10.0, s8[1, 1], EPS);
+	Matrix_scaling_2d(sx:=sx9, sy:=sy9, scaling:=s9);
+	EXPECT_NEAR(0.1, s9[0, 0], EPS);
+	EXPECT_NEAR(0.1, s9[1, 1], EPS);
+	Matrix_scaling_2d(sx:=sx10, sy:=sy10, scaling:=s10);
+	EXPECT_NEAR(2.5, s10[0, 0], EPS);
+	EXPECT_NEAR(1.5, s10[1, 1], EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_matrix_scaling_3d)
+	var
+		sx1: lreal := 1.0;
+		sy1: lreal := 1.0;
+		sz1: lreal := 1.0;
+		s1: array[0..3, 0..3] of lreal;
+		sx2: lreal := 2.0;
+		sy2: lreal := 3.0;
+		sz2: lreal := 4.0;
+		s2: array[0..3, 0..3] of lreal;
+		sx3: lreal := 0.5;
+		sy3: lreal := 2.0;
+		sz3: lreal := 1.5;
+		s3: array[0..3, 0..3] of lreal;
+		sx4: lreal := 10.0;
+		sy4: lreal := 10.0;
+		sz4: lreal := 10.0;
+		s4: array[0..3, 0..3] of lreal;
+		sx5: lreal := 0.1;
+		sy5: lreal := 0.1;
+		sz5: lreal := 0.1;
+		s5: array[0..3, 0..3] of lreal;
+		sx6: lreal := -1.0;
+		sy6: lreal := 1.0;
+		sz6: lreal := 1.0;
+		s6: array[0..3, 0..3] of lreal;
+		sx7: lreal := 1.0;
+		sy7: lreal := -1.0;
+		sz7: lreal := 1.0;
+		s7: array[0..3, 0..3] of lreal;
+		sx8: lreal := 1.0;
+		sy8: lreal := 1.0;
+		sz8: lreal := -1.0;
+		s8: array[0..3, 0..3] of lreal;
+		sx9: lreal := 2.5;
+		sy9: lreal := 1.5;
+		sz9: lreal := 0.75;
+		s9: array[0..3, 0..3] of lreal;
+		sx10: lreal := 5.0;
+		sy10: lreal := 5.0;
+		sz10: lreal := 5.0;
+		s10: array[0..3, 0..3] of lreal;
+	end
+	{st}
+	Matrix_scaling_3d(sx:=sx1, sy:=sy1, sz:=sz1, scaling:=s1);
+	EXPECT_NEAR(1.0, s1[0, 0], EPS);
+	EXPECT_NEAR(1.0, s1[1, 1], EPS);
+	EXPECT_NEAR(1.0, s1[2, 2], EPS);
+	Matrix_scaling_3d(sx:=sx2, sy:=sy2, sz:=sz2, scaling:=s2);
+	EXPECT_NEAR(2.0, s2[0, 0], EPS);
+	EXPECT_NEAR(3.0, s2[1, 1], EPS);
+	EXPECT_NEAR(4.0, s2[2, 2], EPS);
+	Matrix_scaling_3d(sx:=sx3, sy:=sy3, sz:=sz3, scaling:=s3);
+	EXPECT_NEAR(0.5, s3[0, 0], EPS);
+	EXPECT_NEAR(2.0, s3[1, 1], EPS);
+	EXPECT_NEAR(1.5, s3[2, 2], EPS);
+	Matrix_scaling_3d(sx:=sx4, sy:=sy4, sz:=sz4, scaling:=s4);
+	EXPECT_NEAR(10.0, s4[0, 0], EPS);
+	EXPECT_NEAR(10.0, s4[1, 1], EPS);
+	EXPECT_NEAR(10.0, s4[2, 2], EPS);
+	Matrix_scaling_3d(sx:=sx5, sy:=sy5, sz:=sz5, scaling:=s5);
+	EXPECT_NEAR(0.1, s5[0, 0], EPS);
+	Matrix_scaling_3d(sx:=sx6, sy:=sy6, sz:=sz6, scaling:=s6);
+	EXPECT_NEAR(-1.0, s6[0, 0], EPS);
+	EXPECT_NEAR(1.0, s6[1, 1], EPS);
+	Matrix_scaling_3d(sx:=sx7, sy:=sy7, sz:=sz7, scaling:=s7);
+	EXPECT_NEAR(1.0, s7[0, 0], EPS);
+	EXPECT_NEAR(-1.0, s7[1, 1], EPS);
+	Matrix_scaling_3d(sx:=sx8, sy:=sy8, sz:=sz8, scaling:=s8);
+	EXPECT_NEAR(1.0, s8[0, 0], EPS);
+	EXPECT_NEAR(-1.0, s8[2, 2], EPS);
+	Matrix_scaling_3d(sx:=sx9, sy:=sy9, sz:=sz9, scaling:=s9);
+	EXPECT_NEAR(2.5, s9[0, 0], EPS);
+	EXPECT_NEAR(1.5, s9[1, 1], EPS);
+	EXPECT_NEAR(0.75, s9[2, 2], EPS);
+	Matrix_scaling_3d(sx:=sx10, sy:=sy10, sz:=sz10, scaling:=s10);
+	EXPECT_NEAR(5.0, s10[0, 0], EPS);
+	EXPECT_NEAR(5.0, s10[1, 1], EPS);
+	EXPECT_NEAR(5.0, s10[2, 2], EPS);
+	{end}
+END_TEST_S
+
+{#undef EPS}

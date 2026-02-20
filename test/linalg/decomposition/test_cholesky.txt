@@ -1,0 +1,106 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/linalg/decomposition/test_cholesky.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/decomposition/test_cholesky.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <linalg/decomposition/cholesky.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_matrix_cholesky_decompose'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_matrix_cholesky_decompose)
+	var
+		a1: array[0..1, 0..1] of lreal := [4.0, 2.0, 2.0, 3.0];
+		l1: array[0..1, 0..1] of lreal;
+		a2: array[0..1, 0..1] of lreal := [9.0, 3.0, 3.0, 2.0];
+		l2: array[0..1, 0..1] of lreal;
+		a3: array[0..1, 0..1] of lreal := [1.0, 0.0, 0.0, 1.0];
+		l3: array[0..1, 0..1] of lreal;
+		a4: array[0..1, 0..1] of lreal := [2.0, 1.0, 1.0, 1.0];
+		l4: array[0..1, 0..1] of lreal;
+		a5: array[0..2, 0..2] of lreal := [4.0, 2.0, 2.0, 2.0, 5.0, 1.0, 2.0, 1.0, 3.0];
+		l5: array[0..2, 0..2] of lreal;
+		a6: array[0..1, 0..1] of lreal := [5.0, 2.0, 2.0, 2.0];
+		l6: array[0..1, 0..1] of lreal;
+		a7: array[0..2, 0..2] of lreal := [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
+		l7: array[0..2, 0..2] of lreal;
+		a8: array[0..1, 0..1] of lreal := [0.5, 0.25, 0.25, 0.5];
+		l8: array[0..1, 0..1] of lreal;
+		a9: array[0..1, 0..1] of lreal := [10.0, 5.0, 5.0, 10.0];
+		l9: array[0..1, 0..1] of lreal;
+		a10: array[0..2, 0..2] of lreal := [4.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 3.0];
+		l10: array[0..2, 0..2] of lreal;
+		a11: array[0..3, 0..3] of lreal := [10.0, 5.0, 2.0, 1.0, 5.0, 11.0, 3.0, 2.0, 2.0, 3.0, 8.0, 1.0, 1.0, 2.0, 1.0, 5.0];
+		l11: array[0..3, 0..3] of lreal;
+		a12: array[0..3, 0..3] of lreal := [4.0, 1.0, 0.0, 0.0, 1.0, 5.0, 1.0, 0.0, 0.0, 1.0, 6.0, 1.0, 0.0, 0.0, 1.0, 7.0];
+		l12: array[0..3, 0..3] of lreal;
+	end
+	{st}
+	Matrix_cholesky_decompose(a:=a1, l:=l1);
+	EXPECT_NEAR(2.0, l1[0, 0], EPS);
+	EXPECT_NEAR(0.0, l1[0, 1], EPS);
+	EXPECT_NEAR(1.0, l1[1, 0], EPS);
+	EXPECT_NEAR(1.41421356, l1[1, 1], 1e-7);
+	Matrix_cholesky_decompose(a:=a2, l:=l2);
+	EXPECT_NEAR(3.0, l2[0, 0], EPS);
+	EXPECT_NEAR(0.0, l2[0, 1], EPS);
+	EXPECT_NEAR(1.0, l2[1, 0], EPS);
+	EXPECT_NEAR(1.0, l2[1, 1], EPS);
+	Matrix_cholesky_decompose(a:=a3, l:=l3);
+	EXPECT_NEAR(1.0, l3[0, 0], EPS);
+	EXPECT_NEAR(0.0, l3[0, 1], EPS);
+	EXPECT_NEAR(0.0, l3[1, 0], EPS);
+	EXPECT_NEAR(1.0, l3[1, 1], EPS);
+	Matrix_cholesky_decompose(a:=a4, l:=l4);
+	EXPECT_NEAR(1.41421356, l4[0, 0], 1e-7);
+	EXPECT_NEAR(0.0, l4[0, 1], EPS);
+	EXPECT_NEAR(0.70710678, l4[1, 0], 1e-7);
+	EXPECT_NEAR(0.70710678, l4[1, 1], 1e-7);
+	Matrix_cholesky_decompose(a:=a5, l:=l5);
+	EXPECT_NEAR(2.0, l5[0, 0], EPS);
+	EXPECT_NEAR(1.0, l5[1, 0], EPS);
+	EXPECT_NEAR(1.0, l5[2, 0], EPS);
+	EXPECT_NEAR(2.0, l5[1, 1], EPS);
+	Matrix_cholesky_decompose(a:=a6, l:=l6);
+	EXPECT_NEAR(2.23606798, l6[0, 0], 1e-7);
+	EXPECT_NEAR(0.89442719, l6[1, 0], 1e-7);
+	EXPECT_NEAR(1.09544512, l6[1, 1], 1e-7);
+	Matrix_cholesky_decompose(a:=a7, l:=l7);
+	EXPECT_NEAR(1.0, l7[0, 0], EPS);
+	EXPECT_NEAR(1.0, l7[1, 1], EPS);
+	EXPECT_NEAR(1.0, l7[2, 2], EPS);
+	Matrix_cholesky_decompose(a:=a8, l:=l8);
+	EXPECT_NEAR(0.70710678, l8[0, 0], 1e-7);
+	EXPECT_NEAR(0.35355339, l8[1, 0], 1e-7);
+	EXPECT_NEAR(0.61237244, l8[1, 1], 1e-7);
+	Matrix_cholesky_decompose(a:=a9, l:=l9);
+	EXPECT_NEAR(3.16227766, l9[0, 0], 1e-7);
+	EXPECT_NEAR(1.58113883, l9[1, 0], 1e-7);
+	EXPECT_NEAR(2.73861279, l9[1, 1], 1e-7);
+	Matrix_cholesky_decompose(a:=a10, l:=l10);
+	EXPECT_NEAR(2.0, l10[0, 0], EPS);
+	EXPECT_NEAR(1.41421356, l10[1, 1], 1e-7);
+	EXPECT_NEAR(1.73205081, l10[2, 2], 1e-7);
+	Matrix_cholesky_decompose(a:=a11, l:=l11);
+	EXPECT_NEAR(3.16227766, l11[0, 0], 1e-7);
+	EXPECT_NEAR(1.58113883, l11[1, 0], 1e-7);
+	EXPECT_NEAR(2.91547595, l11[1, 1], 1e-7);
+	EXPECT_NEAR(0.63245553, l11[2, 0], 1e-7);
+	EXPECT_NEAR(0.68599434, l11[2, 1], 1e-7);
+	Matrix_cholesky_decompose(a:=a12, l:=l12);
+	EXPECT_NEAR(2.0, l12[0, 0], EPS);
+	EXPECT_NEAR(0.5, l12[1, 0], EPS);
+	EXPECT_NEAR(2.17944947, l12[1, 1], 1e-7);
+	EXPECT_NEAR(2.40613252, l12[2, 2], 1e-7);
+	EXPECT_NEAR(2.61290504, l12[3, 3], 1e-7);
+	{end}
+END_TEST_S
+
+{#undef EPS}

@@ -1,0 +1,87 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/linalg/decomposition/test_qr.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/decomposition/test_qr.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <linalg/decomposition/qr.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_matrix_qr_decompose'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_matrix_qr_decompose)
+	var
+		a1: array[0..1, 0..1] of lreal := [1.0, 0.0, 0.0, 1.0];
+		q1: array[0..1, 0..1] of lreal;
+		r1: array[0..1, 0..1] of lreal;
+		a2: array[0..1, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0];
+		q2: array[0..1, 0..1] of lreal;
+		r2: array[0..1, 0..1] of lreal;
+		a3: array[0..1, 0..1] of lreal := [2.0, 1.0, 1.0, 3.0];
+		q3: array[0..1, 0..1] of lreal;
+		r3: array[0..1, 0..1] of lreal;
+		a4: array[0..2, 0..2] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0];
+		q4: array[0..2, 0..2] of lreal;
+		r4: array[0..2, 0..2] of lreal;
+		a5: array[0..1, 0..1] of lreal := [0.5, 0.25, 1.0, 0.5];
+		q5: array[0..1, 0..1] of lreal;
+		r5: array[0..1, 0..1] of lreal;
+		a6: array[0..1, 0..1] of lreal := [2.0, 0.0, 0.0, 3.0];
+		q6: array[0..1, 0..1] of lreal;
+		r6: array[0..1, 0..1] of lreal;
+		a7: array[0..2, 0..2] of lreal := [2.0, 1.0, 1.0, 1.0, 3.0, 1.0, 1.0, 1.0, 2.0];
+		q7: array[0..2, 0..2] of lreal;
+		r7: array[0..2, 0..2] of lreal;
+		a8: array[0..1, 0..1] of lreal := [10.0, 5.0, 5.0, 10.0];
+		q8: array[0..1, 0..1] of lreal;
+		r8: array[0..1, 0..1] of lreal;
+		a9: array[0..2, 0..2] of lreal := [3.0, 2.0, 1.0, 2.0, 3.0, 2.0, 1.0, 2.0, 3.0];
+		q9: array[0..2, 0..2] of lreal;
+		r9: array[0..2, 0..2] of lreal;
+		a10: array[0..2, 0..2] of lreal := [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
+		q10: array[0..2, 0..2] of lreal;
+		r10: array[0..2, 0..2] of lreal;
+		a11: array[0..3, 0..3] of lreal := [1.0, 2.0, 3.0, 4.0, 2.0, 3.0, 4.0, 5.0, 3.0, 4.0, 5.0, 6.0, 4.0, 5.0, 6.0, 7.0];
+		q11: array[0..3, 0..3] of lreal;
+		r11: array[0..3, 0..3] of lreal;
+		a12: array[0..3, 0..3] of lreal := [4.0, -1.0, 0.0, 2.0, -1.0, 4.0, -1.0, 0.0, 0.0, -1.0, 4.0, -1.0, 2.0, 0.0, -1.0, 4.0];
+		q12: array[0..3, 0..3] of lreal;
+		r12: array[0..3, 0..3] of lreal;
+	end
+	{st}
+	Matrix_qr_decompose(a:=a1, q:=q1, r:=r1);
+	EXPECT_NEAR(1.0, q1[0, 0], EPS);
+	EXPECT_NEAR(1.0, r1[0, 0], EPS);
+	Matrix_qr_decompose(a:=a2, q:=q2, r:=r2);
+	EXPECT_NEAR(3.16227766, r2[0, 0], 1.0e-7);
+	Matrix_qr_decompose(a:=a3, q:=q3, r:=r3);
+	EXPECT_NEAR(2.23606798, r3[0, 0], 1.0e-7);
+	Matrix_qr_decompose(a:=a4, q:=q4, r:=r4);
+	EXPECT_NEAR(8.12403840, r4[0, 0], 1.0e-7);
+	Matrix_qr_decompose(a:=a5, q:=q5, r:=r5);
+	EXPECT_NEAR(1.11803399, r5[0, 0], 1.0e-7);
+	Matrix_qr_decompose(a:=a6, q:=q6, r:=r6);
+	EXPECT_NEAR(2.0, r6[0, 0], EPS);
+	EXPECT_NEAR(3.0, r6[1, 1], EPS);
+	Matrix_qr_decompose(a:=a7, q:=q7, r:=r7);
+	EXPECT_NEAR(2.44948974, r7[0, 0], 1.0e-7);
+	Matrix_qr_decompose(a:=a8, q:=q8, r:=r8);
+	EXPECT_NEAR(11.18033989, r8[0, 0], 1.0e-7);
+	Matrix_qr_decompose(a:=a9, q:=q9, r:=r9);
+	EXPECT_NEAR(3.74165739, r9[0, 0], 1.0e-7);
+	Matrix_qr_decompose(a:=a10, q:=q10, r:=r10);
+	EXPECT_NEAR(1.0, r10[0, 0], EPS);
+	Matrix_qr_decompose(a:=a11, q:=q11, r:=r11);
+	EXPECT_NEAR(5.47722558, r11[0, 0], 1.0e-7);
+	Matrix_qr_decompose(a:=a12, q:=q12, r:=r12);
+	EXPECT_NEAR(4.58257570, r12[0, 0], 1.0e-7);
+	{end}
+END_TEST_S
+
+{#undef EPS}

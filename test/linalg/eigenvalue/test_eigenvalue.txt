@@ -1,0 +1,93 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/linalg/eigenvalue/test_eigenvalue.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/eigenvalue/test_eigenvalue.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <linalg/eigenvalue/eigenvalue.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_matrix_eigenvalue_compute'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-7}
+
+TEST_S(test_matrix_eigenvalue_compute)
+	var
+		a1: array[0..1, 0..1] of lreal := [1.0, 0.0, 0.0, 2.0];
+		eigen1: array[0..1] of lreal;
+		a2: array[0..1, 0..1] of lreal := [1.0, 2.0, 2.0, 1.0];
+		eigen2: array[0..1] of lreal;
+		a3: array[0..2, 0..2] of lreal := [2.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 4.0];
+		eigen3: array[0..2] of lreal;
+		a4: array[0..1, 0..1] of lreal := [4.0, -2.0, -2.0, 4.0];
+		eigen4: array[0..1] of lreal;
+		a5: array[0..2, 0..2] of lreal := [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
+		eigen5: array[0..2] of lreal;
+		a6: array[0..1, 0..1] of lreal := [2.0, 1.0, 1.0, 2.0];
+		eigen6: array[0..1] of lreal;
+		a7: array[0..2, 0..2] of lreal := [5.0, 1.0, 0.0, 1.0, 4.0, 0.0, 0.0, 0.0, 3.0];
+		eigen7: array[0..2] of lreal;
+		a8: array[0..1, 0..1] of lreal := [0.0, 1.0, 1.0, 0.0];
+		eigen8: array[0..1] of lreal;
+		a9: array[0..2, 0..2] of lreal := [2.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 2.0];
+		eigen9: array[0..2] of lreal;
+		a10: array[0..1, 0..1] of lreal := [3.0, 1.0, 1.0, 3.0];
+		eigen10: array[0..1] of lreal;
+		a11: array[0..3, 0..3] of lreal := [4.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 1.0];
+		eigen11: array[0..3] of lreal;
+		a12: array[0..3, 0..3] of lreal := [2.0, 1.0, 0.0, 0.0, 1.0, 3.0, 1.0, 0.0, 0.0, 1.0, 3.0, 1.0, 0.0, 0.0, 1.0, 2.0];
+		eigen12: array[0..3] of lreal;
+	end
+	{st}
+	Matrix_eigenvalue_compute(a:=a1, eigenvalues:=eigen1);
+	EXPECT_NEAR(1.0, eigen1[0], EPS);
+	EXPECT_NEAR(2.0, eigen1[1], EPS);
+	Matrix_eigenvalue_compute(a:=a2, eigenvalues:=eigen2);
+	EXPECT_NEAR(-1.0, eigen2[0], EPS);
+	EXPECT_NEAR(3.0, eigen2[1], EPS);
+	Matrix_eigenvalue_compute(a:=a3, eigenvalues:=eigen3);
+	EXPECT_NEAR(2.0, eigen3[0], EPS);
+	EXPECT_NEAR(3.0, eigen3[1], EPS);
+	EXPECT_NEAR(4.0, eigen3[2], EPS);
+	Matrix_eigenvalue_compute(a:=a4, eigenvalues:=eigen4);
+	EXPECT_NEAR(2.0, eigen4[0], EPS);
+	EXPECT_NEAR(6.0, eigen4[1], EPS);
+	Matrix_eigenvalue_compute(a:=a5, eigenvalues:=eigen5);
+	EXPECT_NEAR(1.0, eigen5[0], EPS);
+	EXPECT_NEAR(1.0, eigen5[1], EPS);
+	EXPECT_NEAR(1.0, eigen5[2], EPS);
+	Matrix_eigenvalue_compute(a:=a6, eigenvalues:=eigen6);
+	EXPECT_NEAR(1.0, eigen6[0], EPS);
+	EXPECT_NEAR(3.0, eigen6[1], EPS);
+	Matrix_eigenvalue_compute(a:=a7, eigenvalues:=eigen7);
+	EXPECT_NEAR(3.0, eigen7[0], EPS);
+	EXPECT_NEAR((9.0 - SQRT(5.0))/2.0, eigen7[1], EPS);
+	EXPECT_NEAR((9.0 + SQRT(5.0))/2.0, eigen7[2], EPS);
+	Matrix_eigenvalue_compute(a:=a8, eigenvalues:=eigen8);
+	EXPECT_NEAR(-1.0, eigen8[0], EPS);
+	EXPECT_NEAR(1.0, eigen8[1], EPS);
+	Matrix_eigenvalue_compute(a:=a9, eigenvalues:=eigen9);
+	EXPECT_NEAR(1.0, eigen9[0], EPS);
+	EXPECT_NEAR(1.0, eigen9[1], EPS);
+	EXPECT_NEAR(4.0, eigen9[2], EPS);
+	Matrix_eigenvalue_compute(a:=a10, eigenvalues:=eigen10);
+	EXPECT_NEAR(2.0, eigen10[0], EPS);
+	EXPECT_NEAR(4.0, eigen10[1], EPS);
+	Matrix_eigenvalue_compute(a:=a11, eigenvalues:=eigen11);
+	EXPECT_NEAR(1.0, eigen11[0], EPS);
+	EXPECT_NEAR(2.0, eigen11[1], EPS);
+	EXPECT_NEAR(3.0, eigen11[2], EPS);
+	EXPECT_NEAR(4.0, eigen11[3], EPS);
+	Matrix_eigenvalue_compute(a:=a12, eigenvalues:=eigen12);
+	EXPECT_NEAR(1.0, eigen12[0], EPS);
+	EXPECT_NEAR(3.0 - SQRT(2.0), eigen12[1], EPS);
+	EXPECT_NEAR(3.0, eigen12[2], EPS);
+	EXPECT_NEAR(3.0 + SQRT(2.0), eigen12[3], EPS);
+	{end}
+END_TEST_S
+
+{#undef EPS}

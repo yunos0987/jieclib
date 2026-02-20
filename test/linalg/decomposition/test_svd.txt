@@ -1,0 +1,103 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/linalg/decomposition/test_svd.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/decomposition/test_svd.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <linalg/decomposition/svd.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_matrix_svd_decompose'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_matrix_svd_decompose)
+	var
+		a1: array[0..1, 0..1] of lreal := [1.0, 0.0, 0.0, 1.0];
+		u1: array[0..1, 0..1] of lreal;
+		s1: array[0..1] of lreal;
+		v1: array[0..1, 0..1] of lreal;
+		a2: array[0..1, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0];
+		u2: array[0..1, 0..1] of lreal;
+		s2: array[0..1] of lreal;
+		v2: array[0..1, 0..1] of lreal;
+		a3: array[0..2, 0..2] of lreal := [2.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 4.0];
+		u3: array[0..2, 0..2] of lreal;
+		s3: array[0..2] of lreal;
+		v3: array[0..2, 0..2] of lreal;
+		a4: array[0..1, 0..1] of lreal := [2.0, 1.0, 1.0, 3.0];
+		u4: array[0..1, 0..1] of lreal;
+		s4: array[0..1] of lreal;
+		v4: array[0..1, 0..1] of lreal;
+		a5: array[0..2, 0..2] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0];
+		u5: array[0..2, 0..2] of lreal;
+		s5: array[0..2] of lreal;
+		v5: array[0..2, 0..2] of lreal;
+		a6: array[0..1, 0..1] of lreal := [0.5, 0.25, 1.0, 0.5];
+		u6: array[0..1, 0..1] of lreal;
+		s6: array[0..1] of lreal;
+		v6: array[0..1, 0..1] of lreal;
+		a7: array[0..1, 0..1] of lreal := [10.0, 5.0, 5.0, 10.0];
+		u7: array[0..1, 0..1] of lreal;
+		s7: array[0..1] of lreal;
+		v7: array[0..1, 0..1] of lreal;
+		a8: array[0..2, 0..2] of lreal := [3.0, 2.0, 1.0, 2.0, 3.0, 2.0, 1.0, 2.0, 3.0];
+		u8: array[0..2, 0..2] of lreal;
+		s8: array[0..2] of lreal;
+		v8: array[0..2, 0..2] of lreal;
+		a9: array[0..1, 0..1] of lreal := [10.0, 0.0, 0.0, 1.0];
+		u9: array[0..1, 0..1] of lreal;
+		s9: array[0..1] of lreal;
+		v9: array[0..1, 0..1] of lreal;
+		a10: array[0..2, 0..2] of lreal := [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
+		u10: array[0..2, 0..2] of lreal;
+		s10: array[0..2] of lreal;
+		v10: array[0..2, 0..2] of lreal;
+		a11: array[0..3, 0..3] of lreal := [1.0, 2.0, 3.0, 4.0, 2.0, 3.0, 4.0, 5.0, 3.0, 4.0, 5.0, 6.0, 4.0, 5.0, 6.0, 7.0];
+		u11: array[0..3, 0..3] of lreal;
+		s11: array[0..3] of lreal;
+		v11: array[0..3, 0..3] of lreal;
+		a12: array[0..3, 0..3] of lreal := [5.0, 1.0, 0.0, 2.0, 1.0, 6.0, 1.0, 0.0, 0.0, 1.0, 7.0, 1.0, 2.0, 0.0, 1.0, 8.0];
+		u12: array[0..3, 0..3] of lreal;
+		s12: array[0..3] of lreal;
+		v12: array[0..3, 0..3] of lreal;
+	end
+	{st}
+	Matrix_svd_decompose(a:=a1, u:=u1, s:=s1, v:=v1);
+	EXPECT_NEAR(1.0, s1[0], EPS);
+	EXPECT_NEAR(1.0, s1[1], EPS);
+	Matrix_svd_decompose(a:=a2, u:=u2, s:=s2, v:=v2);
+	EXPECT_NEAR(5.46498570, s2[0], 1.0e-7);
+	EXPECT_NEAR(0.36596619, s2[1], 1.0e-7);
+	Matrix_svd_decompose(a:=a3, u:=u3, s:=s3, v:=v3);
+	EXPECT_NEAR(4.0, s3[0], EPS);
+	EXPECT_NEAR(3.0, s3[1], EPS);
+	EXPECT_NEAR(2.0, s3[2], EPS);
+	Matrix_svd_decompose(a:=a4, u:=u4, s:=s4, v:=v4);
+	EXPECT_NEAR(3.61803399, s4[0], 1.0e-7);
+	Matrix_svd_decompose(a:=a5, u:=u5, s:=s5, v:=v5);
+	EXPECT_NEAR(16.84810335, s5[0], 1.0e-7);
+	Matrix_svd_decompose(a:=a6, u:=u6, s:=s6, v:=v6);
+	EXPECT_NEAR(1.25, s6[0], 1.0e-7);
+	Matrix_svd_decompose(a:=a7, u:=u7, s:=s7, v:=v7);
+	EXPECT_NEAR(15.0, s7[0], 1.0e-7);
+	Matrix_svd_decompose(a:=a8, u:=u8, s:=s8, v:=v8);
+	EXPECT_NEAR(6.37228132, s8[0], 1.0e-7);
+	Matrix_svd_decompose(a:=a9, u:=u9, s:=s9, v:=v9);
+	EXPECT_NEAR(10.0, s9[0], EPS);
+	EXPECT_NEAR(1.0, s9[1], EPS);
+	Matrix_svd_decompose(a:=a10, u:=u10, s:=s10, v:=v10);
+	EXPECT_NEAR(1.0, s10[0], EPS);
+	Matrix_svd_decompose(a:=a11, u:=u11, s:=s11, v:=v11);
+	EXPECT_NEAR(17.16515139, s11[0], 1.0e-6);
+	EXPECT_NEAR(1.16515139, s11[1], 1.0e-6);
+	Matrix_svd_decompose(a:=a12, u:=u12, s:=s12, v:=v12);
+	EXPECT_NEAR(9.52282685, s12[0], 1.0e-6);
+	{end}
+END_TEST_S
+
+{#undef EPS}

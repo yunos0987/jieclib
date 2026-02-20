@@ -1,0 +1,454 @@
+(*
+ * Matrix Properties
+ * Contains determinant, trace, rank, norm computation
+ * $ jiecc ./linalg/matrix/properties.txt -I. -I./vendor/jiecunit/sys -o ./linalg/matrix/properties.xml -t omron
+ *)
+{#ifndef __LINALG_MATRIX_PROPERTIES_TXT__}
+{#define __LINALG_MATRIX_PROPERTIES_TXT__}
+
+{#include <sys.txt>}
+{#include <array/array.txt>}
+{#include <math/floor.txt>}
+
+// Determinant
+(*{doc 行列の行列式を計算する。
+det(a)
+@in_out a 入力行列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+  正方行列でなければいけない。
+@return 行列式の値。
+@error 入力配列が正規配列でない場合、または行列が正方でない場合。}*)
+function Matrix_determinant: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 入力行列。}*)
+		a: array[*, *] of lreal;
+	end
+	var_temp
+		i, j, k, pivot_row: dint;
+		n: dint;
+		a_rows, a_cols: dint;
+		a_size: dint;
+		det_val, factor, max_val, tmp: lreal;
+		sign: lreal;
+	end
+	{st}
+	a_size := Array_isRegular2d_lreal(a);
+	if (a_size = 0) then
+		eno := false;
+		return;
+	end_if;
+
+	a_rows := upper_bound(a, 1) - lower_bound(a, 1) + 1;
+	a_cols := upper_bound(a, 2) - lower_bound(a, 2) + 1;
+	if (a_rows <> a_cols) then
+		eno := false;
+		return;
+	end_if;
+
+	n := a_rows;
+	det_val := 1.0;
+	sign := 1.0;
+	for i := 0 to n - 1 by 1 do
+		pivot_row := i;
+		max_val := abs(a[i, i]);
+		for k := i + 1 to n - 1 by 1 do
+			if abs(a[k, i]) > max_val then
+				max_val := abs(a[k, i]);
+				pivot_row := k;
+			end_if;
+		end_for;
+		if max_val < 1e-15 then
+			Matrix_determinant := 0.0;
+			return;
+		end_if;
+		if pivot_row <> i then
+			for j := 0 to n - 1 by 1 do
+				tmp := a[i, j];
+				a[i, j] := a[pivot_row, j];
+				a[pivot_row, j] := tmp;
+			end_for;
+			sign := -sign;
+		end_if;
+		det_val := det_val * a[i, i];
+		for k := i + 1 to n - 1 by 1 do
+			factor := a[k, i] / a[i, i];
+			for j := i + 1 to n - 1 by 1 do
+				a[k, j] := a[k, j] - factor * a[i, j];
+			end_for;
+		end_for;
+	end_for;
+	Matrix_determinant := det_val * sign;
+	{end}
+end
+
+// Trace
+(*{doc 行列のトレース（対角要素の合計）を計算する。
+tr(a) = Σa_ii
+@in_out a 入力行列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+  正方行列でなければいけない。
+@return トレースの値。
+@error 入力配列が正規配列でない場合、または行列が正方でない場合。}*)
+function Matrix_trace: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 入力行列。}*)
+		a: array[*, *] of lreal;
+	end
+	var_temp
+		i: dint;
+		n: dint;
+		a_rows, a_cols: dint;
+		a_size: dint;
+		sum_val: lreal;
+	end
+	{st}
+	a_size := Array_isRegular2d_lreal(a);
+	if (a_size = 0) then
+		eno := false;
+		return;
+	end_if;
+
+	a_rows := upper_bound(a, 1) - lower_bound(a, 1) + 1;
+	a_cols := upper_bound(a, 2) - lower_bound(a, 2) + 1;
+	if (a_rows <> a_cols) then
+		eno := false;
+		return;
+	end_if;
+
+	n := a_rows;
+	sum_val := 0.0;
+	for i := 0 to n - 1 by 1 do
+		sum_val := sum_val + a[i, i];
+	end_for;
+	Matrix_trace := sum_val;
+	{end}
+end
+
+// Frobenius Norm
+(*{doc 行列のFrobenius ノルムを計算する。
+||a||_F = √(Σ|a_ij|²)
+@in_out a 入力行列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@return Frobenius ノルムの値。
+@error 入力配列が正規配列でない場合。}*)
+function Matrix_norm_frobenius: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 入力行列。}*)
+		a: array[*, *] of lreal;
+	end
+	var_temp
+		i, j: dint;
+		a_rows, a_cols: dint;
+		a_size: dint;
+		sum_val: lreal;
+	end
+	{st}
+	a_size := Array_isRegular2d_lreal(a);
+	if (a_size = 0) then
+		eno := false;
+		return;
+	end_if;
+
+	a_rows := upper_bound(a, 1) - lower_bound(a, 1) + 1;
+	a_cols := upper_bound(a, 2) - lower_bound(a, 2) + 1;
+	sum_val := 0.0;
+	for i := 0 to a_rows - 1 by 1 do
+		for j := 0 to a_cols - 1 by 1 do
+			sum_val := sum_val + a[i, j] * a[i, j];
+		end_for;
+	end_for;
+	Matrix_norm_frobenius := sqrt(sum_val);
+	{end}
+end
+
+// Spectral Norm (2-norm)
+(*{doc 行列のスペクトルノルム (2-norm) を計算する。
+||a||_2 = max(√λ_i)  λ_i: a^T a の固有値
+@in_out a 入力行列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@return スペクトルノルムの値。
+@error 入力配列が正規配列でない場合。}*)
+function Matrix_norm_spectral: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 入力行列。}*)
+		a: array[*, *] of lreal;
+	end
+	var_temp
+		i, j, k, iter: dint;
+		n: dint;
+		a_rows, a_cols: dint;
+		a_size: dint;
+		val00, val01, val10, val11: lreal;
+		t11, t12, t22, tr, det, disc, lambda_max: lreal;
+		is_diag: bool;
+		v3, w3, av3: array[0..2] of lreal;
+		norm_val, max_diag: lreal;
+	end
+	{st}
+	a_size := Array_isRegular2d_lreal(a);
+	if (a_size = 0) then
+		eno := false;
+		return;
+	end_if;
+
+	a_rows := upper_bound(a, 1) - lower_bound(a, 1) + 1;
+	a_cols := upper_bound(a, 2) - lower_bound(a, 2) + 1;
+	if (a_rows <> a_cols) then
+		eno := false;
+		return;
+	end_if;
+
+	n := a_rows;
+	if n = 1 then
+		Matrix_norm_spectral := abs(a[0, 0]);
+		return;
+	end_if;
+	if n = 2 then
+		val00 := a[0, 0];
+		val01 := a[0, 1];
+		val10 := a[1, 0];
+		val11 := a[1, 1];
+		t11 := val00 * val00 + val10 * val10;
+		t12 := val00 * val01 + val10 * val11;
+		t22 := val01 * val01 + val11 * val11;
+		tr := t11 + t22;
+		det := t11 * t22 - t12 * t12;
+		disc := tr * tr - 4.0 * det;
+		if disc < 0.0 then
+			disc := 0.0;
+		end_if;
+		lambda_max := (tr + sqrt(disc)) / 2.0;
+		if lambda_max < 0.0 then
+			lambda_max := 0.0;
+		end_if;
+		Matrix_norm_spectral := sqrt(lambda_max);
+		return;
+	end_if;
+	if n = 3 then
+		is_diag := true;
+		for i := 0 to 2 by 1 do
+			for j := 0 to 2 by 1 do
+				if (i <> j) and (abs(a[i, j]) > 1e-12) then
+					is_diag := false;
+				end_if;
+			end_for;
+		end_for;
+		if is_diag then
+			max_diag := abs(a[0, 0]);
+			if abs(a[1, 1]) > max_diag then
+				max_diag := abs(a[1, 1]);
+			end_if;
+			if abs(a[2, 2]) > max_diag then
+				max_diag := abs(a[2, 2]);
+			end_if;
+			Matrix_norm_spectral := max_diag;
+			return;
+		end_if;
+		v3[0] := 1.0;
+		v3[1] := 1.0;
+		v3[2] := 1.0;
+		for iter := 0 to 19 by 1 do
+			for i := 0 to 2 by 1 do
+				av3[i] := 0.0;
+				for k := 0 to 2 by 1 do
+					av3[i] := av3[i] + a[i, k] * v3[k];
+				end_for;
+			end_for;
+			for i := 0 to 2 by 1 do
+				w3[i] := 0.0;
+				for k := 0 to 2 by 1 do
+					w3[i] := w3[i] + a[k, i] * av3[k];
+				end_for;
+			end_for;
+			norm_val := sqrt(w3[0] * w3[0] + w3[1] * w3[1] + w3[2] * w3[2]);
+			if norm_val < 1e-15 then
+				Matrix_norm_spectral := 0.0;
+				return;
+			end_if;
+			v3[0] := w3[0] / norm_val;
+			v3[1] := w3[1] / norm_val;
+			v3[2] := w3[2] / norm_val;
+		end_for;
+		for i := 0 to 2 by 1 do
+			av3[i] := 0.0;
+			for k := 0 to 2 by 1 do
+				av3[i] := av3[i] + a[i, k] * v3[k];
+			end_for;
+		end_for;
+		for i := 0 to 2 by 1 do
+			w3[i] := 0.0;
+			for k := 0 to 2 by 1 do
+				w3[i] := w3[i] + a[k, i] * av3[k];
+			end_for;
+		end_for;
+		lambda_max := v3[0] * w3[0] + v3[1] * w3[1] + v3[2] * w3[2];
+		if lambda_max < 0.0 then
+			lambda_max := 0.0;
+		end_if;
+		Matrix_norm_spectral := sqrt(lambda_max);
+		return;
+	end_if;
+
+	eno := false;
+	{end}
+end
+
+// Rank
+(*{doc 行列のランク（階数）を計算する。
+@in_out a 入力行列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@input tolerance 数値計算の許容誤差。
+  デフォルト値: 1e-10
+@return 行列のランク。
+@error 入力配列が正規配列でない場合。}*)
+function Matrix_rank: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 入力行列。}*)
+		a: array[*, *] of lreal;
+	end
+	var_input
+		(*{doc 数値計算の許容誤差。}*)
+		tolerance: lreal := 1e-10;
+	end
+	var_temp
+		m, n: dint;
+		i, j, k, row, pivot_row: dint;
+		a_size: dint;
+		max_val, factor, tmp: lreal;
+		rank_val: dint;
+	end
+	{st}
+	a_size := Array_isRegular2d_lreal(a);
+	if (a_size = 0) then
+		eno := false;
+		return;
+	end_if;
+
+	m := upper_bound(a, 1) - lower_bound(a, 1) + 1;
+	n := upper_bound(a, 2) - lower_bound(a, 2) + 1;
+	row := 0;
+	rank_val := 0;
+	for j := 0 to n - 1 by 1 do
+		if row >= m then
+			exit;
+		end_if;
+		pivot_row := row;
+		max_val := abs(a[row, j]);
+		for i := row + 1 to m - 1 by 1 do
+			if abs(a[i, j]) > max_val then
+				max_val := abs(a[i, j]);
+				pivot_row := i;
+			end_if;
+		end_for;
+		if max_val > tolerance then
+			if pivot_row <> row then
+				for k := j to n - 1 by 1 do
+					tmp := a[row, k];
+					a[row, k] := a[pivot_row, k];
+					a[pivot_row, k] := tmp;
+				end_for;
+			end_if;
+			for i := row + 1 to m - 1 by 1 do
+				factor := a[i, j] / a[row, j];
+				for k := j to n - 1 by 1 do
+					a[i, k] := a[i, k] - factor * a[row, k];
+				end_for;
+			end_for;
+			row := row + 1;
+			rank_val := rank_val + 1;
+		end_if;
+	end_for;
+	Matrix_rank := rank_val;
+	{end}
+end
+
+// Norm L1
+(*{doc 行列のL1ノルムを計算する。
+||a||_1 = max_j(Σ_i|a_ij|)
+@in_out a 入力行列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@return L1ノルムの値。
+@error 入力配列が正規配列でない場合。}*)
+function Matrix_norm_l1: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 入力行列。}*)
+		a: array[*, *] of lreal;
+	end
+	var_temp
+		i, j: dint;
+		rows, cols: dint;
+		a_size: dint;
+		col_sum, max_sum: lreal;
+	end
+	{st}
+	a_size := Array_isRegular2d_lreal(a);
+	if (a_size = 0) then
+		eno := false;
+		return;
+	end_if;
+
+	rows := upper_bound(a, 1) - lower_bound(a, 1) + 1;
+	cols := upper_bound(a, 2) - lower_bound(a, 2) + 1;
+	max_sum := 0.0;
+	for j := 0 to cols - 1 by 1 do
+		col_sum := 0.0;
+		for i := 0 to rows - 1 by 1 do
+			col_sum := col_sum + abs(a[i, j]);
+		end_for;
+		if col_sum > max_sum then
+			max_sum := col_sum;
+		end_if;
+	end_for;
+	Matrix_norm_l1 := max_sum;
+	{end}
+end
+
+// Norm Infinity
+(*{doc 行列のL∞ノルムを計算する。
+||a||_∞ = max_i(Σ_j|a_ij|)
+@in_out a 入力行列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@return L∞ノルムの値。
+@error 入力配列が正規配列でない場合。}*)
+function Matrix_norm_linf: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 入力行列。}*)
+		a: array[*, *] of lreal;
+	end
+	var_temp
+		i, j: dint;
+		rows, cols: dint;
+		a_size: dint;
+		row_sum, max_sum: lreal;
+	end
+	{st}
+	a_size := Array_isRegular2d_lreal(a);
+	if (a_size = 0) then
+		eno := false;
+		return;
+	end_if;
+
+	rows := upper_bound(a, 1) - lower_bound(a, 1) + 1;
+	cols := upper_bound(a, 2) - lower_bound(a, 2) + 1;
+	max_sum := 0.0;
+	for i := 0 to rows - 1 by 1 do
+		row_sum := 0.0;
+		for j := 0 to cols - 1 by 1 do
+			row_sum := row_sum + abs(a[i, j]);
+		end_for;
+		if row_sum > max_sum then
+			max_sum := row_sum;
+		end_if;
+	end_for;
+	Matrix_norm_linf := max_sum;
+	{end}
+end
+
+{#endif}

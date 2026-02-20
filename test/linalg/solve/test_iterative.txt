@@ -1,0 +1,119 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/linalg/solve/test_iterative.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/solve/test_iterative.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <linalg/solve/iterative.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_matrix_solve_iterative'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-6}
+
+TEST_S(test_matrix_solve_iterative)
+	var
+		a1: array[0..1, 0..1] of lreal := [2.0, 1.0, 1.0, 2.0];
+		b1: array[0..1] of lreal := [4.0, 5.0];
+		x1: array[0..1] of lreal := [0.0, 0.0];
+		max_iter1: int := 100;
+		tol1: lreal := 1e-8;
+		a2: array[0..1, 0..1] of lreal := [3.0, 1.0, 1.0, 3.0];
+		b2: array[0..1] of lreal := [9.0, 7.0];
+		x2: array[0..1] of lreal := [0.0, 0.0];
+		max_iter2: int := 100;
+		tol2: lreal := 1e-8;
+		a3: array[0..2, 0..2] of lreal := [4.0, -1.0, 0.0, -1.0, 4.0, -1.0, 0.0, -1.0, 4.0];
+		b3: array[0..2] of lreal := [15.0, 10.0, 10.0];
+		x3: array[0..2] of lreal := [0.0, 0.0, 0.0];
+		max_iter3: int := 100;
+		tol3: lreal := 1e-8;
+		a4: array[0..1, 0..1] of lreal := [10.0, 1.0, 1.0, 10.0];
+		b4: array[0..1] of lreal := [11.0, 11.0];
+		x4: array[0..1] of lreal := [0.0, 0.0];
+		max_iter4: int := 100;
+		tol4: lreal := 1e-8;
+		a5: array[0..1, 0..1] of lreal := [5.0, 2.0, 2.0, 5.0];
+		b5: array[0..1] of lreal := [7.0, 4.0];
+		x5: array[0..1] of lreal := [0.0, 0.0];
+		max_iter5: int := 100;
+		tol5: lreal := 1e-8;
+		a6: array[0..2, 0..2] of lreal := [2.0, 0.5, 0.0, 0.5, 2.0, 0.5, 0.0, 0.5, 2.0];
+		b6: array[0..2] of lreal := [2.5, 3.0, 2.5];
+		x6: array[0..2] of lreal := [0.0, 0.0, 0.0];
+		max_iter6: int := 100;
+		tol6: lreal := 1e-8;
+		a7: array[0..1, 0..1] of lreal := [2.0, 0.0, 0.0, 2.0];
+		b7: array[0..1] of lreal := [4.0, 6.0];
+		x7: array[0..1] of lreal := [0.0, 0.0];
+		max_iter7: int := 100;
+		tol7: lreal := 1e-8;
+		a8: array[0..2, 0..2] of lreal := [3.0, 1.0, 0.0, 1.0, 3.0, 1.0, 0.0, 1.0, 3.0];
+		b8: array[0..2] of lreal := [4.0, 4.0, 4.0];
+		x8: array[0..2] of lreal := [0.0, 0.0, 0.0];
+		max_iter8: int := 100;
+		tol8: lreal := 1e-8;
+		a9: array[0..1, 0..1] of lreal := [4.0, 2.0, 2.0, 4.0];
+		b9: array[0..1] of lreal := [8.0, 8.0];
+		x9: array[0..1] of lreal := [0.0, 0.0];
+		max_iter9: int := 100;
+		tol9: lreal := 1e-8;
+		a10: array[0..2, 0..2] of lreal := [10.0, 1.0, 0.0, 1.0, 10.0, 1.0, 0.0, 1.0, 10.0];
+		b10: array[0..2] of lreal := [11.0, 12.0, 11.0];
+		x10: array[0..2] of lreal := [0.0, 0.0, 0.0];
+		max_iter10: int := 100;
+		tol10: lreal := 1e-8;
+		a11: array[0..3, 0..3] of lreal := [8.0, -1.0, 0.0, 1.0, -1.0, 8.0, -1.0, 0.0, 0.0, -1.0, 8.0, -1.0, 1.0, 0.0, -1.0, 8.0];
+		b11: array[0..3] of lreal := [10.0, 8.0, 8.0, 10.0];
+		x11: array[0..3] of lreal := [0.0, 0.0, 0.0, 0.0];
+		max_iter11: int := 100;
+		tol11: lreal := 1e-8;
+	end
+	{st}
+	Matrix_solve_iterative(a:=a1, b:=b1, x:=x1, max_iterations:=max_iter1, tolerance:=tol1);
+	EXPECT_NEAR(1.0, x1[0], EPS);
+	EXPECT_NEAR(2.0, x1[1], EPS);
+	Matrix_solve_iterative(a:=a2, b:=b2, x:=x2, max_iterations:=max_iter2, tolerance:=tol2);
+	EXPECT_NEAR(2.5, x2[0], EPS);
+	EXPECT_NEAR(1.5, x2[1], EPS);
+	Matrix_solve_iterative(a:=a3, b:=b3, x:=x3, max_iterations:=max_iter3, tolerance:=tol3);
+	EXPECT_NEAR(4.91071429, x3[0], 1e-6);
+	EXPECT_NEAR(4.64285714, x3[1], 1e-6);
+	EXPECT_NEAR(3.66071429, x3[2], 1e-6);
+	Matrix_solve_iterative(a:=a4, b:=b4, x:=x4, max_iterations:=max_iter4, tolerance:=tol4);
+	EXPECT_NEAR(1.0, x4[0], EPS);
+	EXPECT_NEAR(1.0, x4[1], EPS);
+	Matrix_solve_iterative(a:=a5, b:=b5, x:=x5, max_iterations:=max_iter5, tolerance:=tol5);
+	EXPECT_NEAR(1.28571429, x5[0], 1e-6);
+	EXPECT_NEAR(0.28571429, x5[1], 1e-6);
+	Matrix_solve_iterative(a:=a6, b:=b6, x:=x6, max_iterations:=max_iter6, tolerance:=tol6);
+	EXPECT_NEAR(1.0, x6[0], EPS);
+	EXPECT_NEAR(1.0, x6[1], EPS);
+	EXPECT_NEAR(1.0, x6[2], EPS);
+	Matrix_solve_iterative(a:=a7, b:=b7, x:=x7, max_iterations:=max_iter7, tolerance:=tol7);
+	EXPECT_NEAR(2.0, x7[0], EPS);
+	EXPECT_NEAR(3.0, x7[1], EPS);
+	Matrix_solve_iterative(a:=a8, b:=b8, x:=x8, max_iterations:=max_iter8, tolerance:=tol8);
+	EXPECT_NEAR(1.14285714, x8[0], 1e-6);
+	EXPECT_NEAR(0.57142857, x8[1], 1e-6);
+	EXPECT_NEAR(1.14285714, x8[2], 1e-6);
+	Matrix_solve_iterative(a:=a9, b:=b9, x:=x9, max_iterations:=max_iter9, tolerance:=tol9);
+	EXPECT_NEAR(1.33333333, x9[0], 1e-6);
+	EXPECT_NEAR(1.33333333, x9[1], 1e-6);
+	Matrix_solve_iterative(a:=a10, b:=b10, x:=x10, max_iterations:=max_iter10, tolerance:=tol10);
+	EXPECT_NEAR(1.0, x10[0], EPS);
+	EXPECT_NEAR(1.0, x10[1], EPS);
+	EXPECT_NEAR(1.0, x10[2], EPS);
+	Matrix_solve_iterative(a:=a11, b:=b11, x:=x11, max_iterations:=max_iter11, tolerance:=tol11);
+	EXPECT_NEAR(1.25806452, x11[0], 1e-6);
+	EXPECT_NEAR(1.32258065, x11[1], 1e-6);
+	EXPECT_NEAR(1.32258065, x11[2], 1e-6);
+	EXPECT_NEAR(1.25806452, x11[3], 1e-6);
+	{end}
+END_TEST_S
+
+{#undef EPS}

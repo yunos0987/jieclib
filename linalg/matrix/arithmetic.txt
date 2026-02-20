@@ -1,0 +1,346 @@
+(*
+ * Matrix Arithmetic Operations
+ * $ jiecc ./linalg/matrix/arithmetic.txt -I. -I./vendor/jiecunit/sys -o ./linalg/matrix/arithmetic.xml -t omron
+ *)
+{#ifndef __LINALG_MATRIX_ARITHMETIC_TXT__}
+{#define __LINALG_MATRIX_ARITHMETIC_TXT__}
+
+{#include <sys.txt>}
+{#include <array/array.txt>}
+{#include <math/floor.txt>}
+
+(*{doc 行列の加算。
+@in_out a 第一の行列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out b 第二の行列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out result 結果行列。
+	正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error 入力行列が正規2次元配列でない場合、またはa/b/resultの行数・列数が一致しない場合。}*)
+function Matrix_add
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 第一の行列。}*)
+		a: array[*, *] of lreal;
+		(*{doc 第二の行列。}*)
+		b: array[*, *] of lreal;
+	end
+	var_in_out
+		(*{doc 結果行列。}*)
+		result: array[*, *] of lreal;
+	end
+	var_temp
+		i, j: dint;
+		a_rows, a_cols: dint;
+		b_rows, b_cols: dint;
+		r_rows, r_cols: dint;
+		a_size, b_size, r_size: dint;
+	end
+	{st}
+	a_size := Array_isRegular2d_lreal(a);
+	b_size := Array_isRegular2d_lreal(b);
+	r_size := Array_isRegular2d_lreal(result);
+	if (a_size = 0) or (b_size = 0) or (r_size = 0) then
+		eno := false;
+		return;
+	end_if;
+
+	a_rows := upper_bound(a, 1) - lower_bound(a, 1) + 1;
+	a_cols := upper_bound(a, 2) - lower_bound(a, 2) + 1;
+	b_rows := upper_bound(b, 1) - lower_bound(b, 1) + 1;
+	b_cols := upper_bound(b, 2) - lower_bound(b, 2) + 1;
+	r_rows := upper_bound(result, 1) - lower_bound(result, 1) + 1;
+	r_cols := upper_bound(result, 2) - lower_bound(result, 2) + 1;
+	if (a_rows <> b_rows) or (a_cols <> b_cols) then
+		eno := false;
+		return;
+	end_if;
+	if (a_rows <> r_rows) or (a_cols <> r_cols) then
+		eno := false;
+		return;
+	end_if;
+
+	for i := 0 to a_rows - 1 by 1 do
+		for j := 0 to a_cols - 1 by 1 do
+			result[i, j] := a[i, j] + b[i, j];
+		end_for;
+	end_for;
+	{end}
+end
+
+(*{doc 行列の減算 (a - b)。
+@in_out a 第一の行列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out b 第二の行列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out result 結果行列。
+	正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error 入力行列が正規2次元配列でない場合、またはa/b/resultの行数・列数が一致しない場合。}*)
+function Matrix_sub
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 第一の行列。}*)
+		a: array[*, *] of lreal;
+		(*{doc 第二の行列。}*)
+		b: array[*, *] of lreal;
+	end
+	var_in_out
+		(*{doc 結果行列。}*)
+		result: array[*, *] of lreal;
+	end
+	var_temp
+		i, j: dint;
+		a_rows, a_cols: dint;
+		b_rows, b_cols: dint;
+		r_rows, r_cols: dint;
+		a_size, b_size, r_size: dint;
+	end
+	{st}
+	a_size := Array_isRegular2d_lreal(a);
+	b_size := Array_isRegular2d_lreal(b);
+	r_size := Array_isRegular2d_lreal(result);
+	if (a_size = 0) or (b_size = 0) or (r_size = 0) then
+		eno := false;
+		return;
+	end_if;
+
+	a_rows := upper_bound(a, 1) - lower_bound(a, 1) + 1;
+	a_cols := upper_bound(a, 2) - lower_bound(a, 2) + 1;
+	b_rows := upper_bound(b, 1) - lower_bound(b, 1) + 1;
+	b_cols := upper_bound(b, 2) - lower_bound(b, 2) + 1;
+	r_rows := upper_bound(result, 1) - lower_bound(result, 1) + 1;
+	r_cols := upper_bound(result, 2) - lower_bound(result, 2) + 1;
+	if (a_rows <> b_rows) or (a_cols <> b_cols) then
+		eno := false;
+		return;
+	end_if;
+	if (a_rows <> r_rows) or (a_cols <> r_cols) then
+		eno := false;
+		return;
+	end_if;
+
+	for i := 0 to a_rows - 1 by 1 do
+		for j := 0 to a_cols - 1 by 1 do
+			result[i, j] := a[i, j] - b[i, j];
+		end_for;
+	end_for;
+	{end}
+end
+
+(*{doc 行列のスカラー倍。
+@in_out a 入力行列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@input scalar スカラー。
+@in_out result 結果行列。
+	正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error 入力行列が正規2次元配列でない場合、またはaとresultの行数・列数が一致しない場合。}*)
+function Matrix_scale
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 入力行列。}*)
+		a: array[*, *] of lreal;
+	end
+	var_input
+		(*{doc スカラー。}*)
+		scalar: lreal;
+	end
+	var_in_out
+		(*{doc 結果行列。}*)
+		result: array[*, *] of lreal;
+	end
+	var_temp
+		i, j: dint;
+		a_rows, a_cols: dint;
+		r_rows, r_cols: dint;
+		a_size, r_size: dint;
+	end
+	{st}
+	a_size := Array_isRegular2d_lreal(a);
+	r_size := Array_isRegular2d_lreal(result);
+	if (a_size = 0) or (r_size = 0) then
+		eno := false;
+		return;
+	end_if;
+
+	a_rows := upper_bound(a, 1) - lower_bound(a, 1) + 1;
+	a_cols := upper_bound(a, 2) - lower_bound(a, 2) + 1;
+	r_rows := upper_bound(result, 1) - lower_bound(result, 1) + 1;
+	r_cols := upper_bound(result, 2) - lower_bound(result, 2) + 1;
+	if (a_rows <> r_rows) or (a_cols <> r_cols) then
+		eno := false;
+		return;
+	end_if;
+
+	for i := 0 to a_rows - 1 by 1 do
+		for j := 0 to a_cols - 1 by 1 do
+			result[i, j] := scalar * a[i, j];
+		end_for;
+	end_for;
+	{end}
+end
+
+(*{doc 行列の乗算 (a × b)。
+@in_out a 第一の行列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out b 第二の行列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out result 結果行列。
+	正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error 入力値が不正な場合、または行列のサイズが互換性がない場合。}*)
+function Matrix_multiply
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 第一の行列。}*)
+		a: array[*, *] of lreal;
+		(*{doc 第二の行列。}*)
+		b: array[*, *] of lreal;
+	end
+	var_in_out
+		(*{doc 結果行列。}*)
+		result: array[*, *] of lreal;
+	end
+	var_temp
+		i, j, k: dint;
+		a_rows, a_cols: dint;
+		b_rows, b_cols: dint;
+		r_rows, r_cols: dint;
+		a_size, b_size, r_size: dint;
+		sum: lreal;
+	end
+	{st}
+	a_size := Array_isRegular2d_lreal(a);
+	b_size := Array_isRegular2d_lreal(b);
+	r_size := Array_isRegular2d_lreal(result);
+	if (a_size = 0) or (b_size = 0) or (r_size = 0) then
+		eno := false;
+		return;
+	end_if;
+
+	a_rows := upper_bound(a, 1) - lower_bound(a, 1) + 1;
+	a_cols := upper_bound(a, 2) - lower_bound(a, 2) + 1;
+	b_rows := upper_bound(b, 1) - lower_bound(b, 1) + 1;
+	b_cols := upper_bound(b, 2) - lower_bound(b, 2) + 1;
+	r_rows := upper_bound(result, 1) - lower_bound(result, 1) + 1;
+	r_cols := upper_bound(result, 2) - lower_bound(result, 2) + 1;
+	if (a_cols <> b_rows) then
+		eno := false;
+		return;
+	end_if;
+	if (r_rows <> a_rows) or (r_cols <> b_cols) then
+		eno := false;
+		return;
+	end_if;
+
+	for i := 0 to r_rows - 1 by 1 do
+		for j := 0 to r_cols - 1 by 1 do
+			sum := 0.0;
+			for k := 0 to a_cols - 1 by 1 do
+				sum := sum + a[i, k] * b[k, j];
+			end_for;
+			result[i, j] := sum;
+		end_for;
+	end_for;
+	{end}
+end
+
+(*{doc 行列の転置 (aT)。
+@in_out a 入力行列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out result 転置された行列。
+	正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error 入力行列が正規2次元配列でない場合、またはresultの行列サイズがaの転置サイズと一致しない場合。}*)
+function Matrix_transpose
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 入力行列。}*)
+		a: array[*, *] of lreal;
+	end
+	var_in_out
+		(*{doc 転置された行列。}*)
+		result: array[*, *] of lreal;
+	end
+	var_temp
+		i, j: dint;
+		a_rows, a_cols: dint;
+		r_rows, r_cols: dint;
+		a_size, r_size: dint;
+	end
+	{st}
+	a_size := Array_isRegular2d_lreal(a);
+	r_size := Array_isRegular2d_lreal(result);
+	if (a_size = 0) or (r_size = 0) then
+		eno := false;
+		return;
+	end_if;
+
+	a_rows := upper_bound(a, 1) - lower_bound(a, 1) + 1;
+	a_cols := upper_bound(a, 2) - lower_bound(a, 2) + 1;
+	r_rows := upper_bound(result, 1) - lower_bound(result, 1) + 1;
+	r_cols := upper_bound(result, 2) - lower_bound(result, 2) + 1;
+	if (r_rows <> a_cols) or (r_cols <> a_rows) then
+		eno := false;
+		return;
+	end_if;
+
+	for i := 0 to a_rows - 1 by 1 do
+		for j := 0 to a_cols - 1 by 1 do
+			result[j, i] := a[i, j];
+		end_for;
+	end_for;
+	{end}
+end
+
+(*{doc 行列とベクトルの乗算 (a × v)。
+@in_out a 入力行列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out v 入力ベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out result 結果ベクトル。
+	正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error 入力値が不正な場合、または行列のサイズとベクトルの次元が互換性がない場合。}*)
+function Matrix_vector_multiply
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 入力行列。}*)
+		a: array[*, *] of lreal;
+		(*{doc 入力ベクトル。}*)
+		v: array[*] of lreal;
+	end
+	var_in_out
+		(*{doc 結果ベクトル。}*)
+		result: array[*] of lreal;
+	end
+	var_temp
+		i, j: dint;
+		a_rows, a_cols: dint;
+		v_size, r_size: dint;
+		a_size: dint;
+		sum: lreal;
+	end
+	{st}
+	a_size := Array_isRegular2d_lreal(a);
+	v_size := Array_isRegular_lreal(v);
+	r_size := Array_isRegular_lreal(result);
+	if (a_size = 0) or (v_size = 0) or (r_size = 0) then
+		eno := false;
+		return;
+	end_if;
+
+	a_rows := upper_bound(a, 1) - lower_bound(a, 1) + 1;
+	a_cols := upper_bound(a, 2) - lower_bound(a, 2) + 1;
+	if (v_size <> a_cols) or (r_size <> a_rows) then
+		eno := false;
+		return;
+	end_if;
+
+	for i := 0 to a_rows - 1 by 1 do
+		sum := 0.0;
+		for j := 0 to a_cols - 1 by 1 do
+			sum := sum + a[i, j] * v[j];
+		end_for;
+		result[i] := sum;
+	end_for;
+	{end}
+end
+
+{#endif}

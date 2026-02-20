@@ -1,0 +1,117 @@
+(*
+ * Eigenvalue Computation
+ * $ jiecc ./linalg/eigenvalue/eigenvalue.txt -I. -I./vendor/jiecunit/sys -o ./linalg/eigenvalue/eigenvalue.xml -t omron
+ *)
+{#ifndef __LINALG_EIGENVALUE_EIGENVALUE_TXT__}
+{#define __LINALG_EIGENVALUE_EIGENVALUE_TXT__}
+
+{#include <sys.txt>}
+{#include <array/array.txt>}
+{#include <math/floor.txt>}
+{#include <math/atan2.txt>}
+
+(*{doc 固有値計算。
+行列の固有値を求める。
+@in_out a 入力行列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out eigenvalues 結果の固有値ベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error 入力値が不正な場合、または収束しない場合。}*)
+function Matrix_eigenvalue_compute
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 入力行列。}*)
+		a: array[*, *] of lreal;
+	end
+	var_in_out
+		(*{doc 結果の固有値ベクトル。}*)
+		eigenvalues: array[*] of lreal;
+	end
+	var_temp
+		i, j, k, p, q, iter, max_idx: dint;
+		n: dint;
+		a_size, e_size: dint;
+		a_rows, a_cols: dint;
+		max_val, apq, app, aqq, phi, c, s_rot, tmp: lreal;
+		tmp_val: lreal;
+	end
+	{st}
+	a_size := Array_isRegular2d_lreal(a);
+	e_size := Array_isRegular_lreal(eigenvalues);
+	if (a_size = 0) or (e_size = 0) then
+		eno := false;
+		return;
+	end_if;
+
+	a_rows := upper_bound(a, 1) - lower_bound(a, 1) + 1;
+	a_cols := upper_bound(a, 2) - lower_bound(a, 2) + 1;
+	if (a_rows <> a_cols) then
+		eno := false;
+		return;
+	end_if;
+	if e_size <> a_rows then
+		eno := false;
+		return;
+	end_if;
+
+	n := a_rows;
+	for iter := 0 to 49 by 1 do
+		max_val := 0.0;
+		p := 0;
+		q := 1;
+		for i := 0 to n - 1 by 1 do
+			for j := i + 1 to n - 1 by 1 do
+				if abs(a[i, j]) > max_val then
+					max_val := abs(a[i, j]);
+					p := i;
+					q := j;
+				end_if;
+			end_for;
+		end_for;
+		if max_val < 1e-12 then
+			exit;
+		end_if;
+
+		app := a[p, p];
+		aqq := a[q, q];
+		apq := a[p, q];
+		phi := 0.5 * Math_atan2(2.0 * apq, aqq - app);
+		c := COS(phi);
+		s_rot := SIN(phi);
+
+		for k := 0 to n - 1 by 1 do
+			if (k <> p) and (k <> q) then
+				tmp := a[p, k];
+				a[p, k] := c * tmp - s_rot * a[q, k];
+				a[k, p] := a[p, k];
+				a[q, k] := s_rot * tmp + c * a[q, k];
+				a[k, q] := a[q, k];
+			end_if;
+		end_for;
+		a[p, p] := c * c * app - 2.0 * c * s_rot * apq + s_rot * s_rot * aqq;
+		a[q, q] := s_rot * s_rot * app + 2.0 * c * s_rot * apq + c * c * aqq;
+		a[p, q] := 0.0;
+		a[q, p] := 0.0;
+	end_for;
+
+	for i := 0 to n - 1 by 1 do
+		eigenvalues[i] := a[i, i];
+	end_for;
+
+	for i := 0 to n - 2 by 1 do
+		max_idx := i;
+		for j := i + 1 to n - 1 by 1 do
+			if eigenvalues[j] < eigenvalues[max_idx] then
+				max_idx := j;
+			end_if;
+		end_for;
+		if max_idx <> i then
+			tmp_val := eigenvalues[i];
+			eigenvalues[i] := eigenvalues[max_idx];
+			eigenvalues[max_idx] := tmp_val;
+		end_if;
+	end_for;
+	{end}
+end
+
+{#endif}
