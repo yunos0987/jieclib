@@ -1,0 +1,421 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/vector/test_norms.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/vector/test_norms.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <vector/norms.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_vector_norm_l1',
+		'test_vector_norm_l2',
+		'test_vector_norm_linf',
+		'test_vector_norm_lp',
+		'test_vector_normalize_l2',
+		'test_vector_distance_l1',
+		'test_vector_distance_l2',
+		'test_vector_distance_linf',
+		'test_vector_is_unit'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_vector_norm_l1)
+	var
+		v1: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		v2: array[0..2] of lreal := [0.0, 0.0, 0.0];
+		v3: array[0..1] of lreal := [-1.0, -2.0];
+		v4: array[0..2] of lreal := [1.5, -2.5, 3.0];
+		v5: array[0..0] of lreal := [10.0];
+		v6: array[0..1] of lreal := [1000.0, 2000.0];
+		v7: array[0..2] of lreal := [0.1, 0.2, 0.3];
+		v8: array[0..2] of lreal := [-5.0, 0.0, 5.0];
+		v9: array[0..3] of lreal := [7.0, 8.0, 9.0, 10.0];
+		v10: array[0..3] of lreal := [2.0, -4.0, 6.0, -8.0];
+		result: lreal;
+	end
+	{st}
+	result := Vector_norm_l1(vector:=v1);
+	EXPECT_NEAR(6.0, result, EPS);
+	result := Vector_norm_l1(vector:=v2);
+	EXPECT_NEAR(0.0, result, EPS);
+	result := Vector_norm_l1(vector:=v3);
+	EXPECT_NEAR(3.0, result, EPS);
+	result := Vector_norm_l1(vector:=v4);
+	EXPECT_NEAR(7.0, result, EPS);
+	result := Vector_norm_l1(vector:=v5);
+	EXPECT_NEAR(10.0, result, EPS);
+	result := Vector_norm_l1(vector:=v6);
+	EXPECT_NEAR(3000.0, result, EPS);
+	result := Vector_norm_l1(vector:=v7);
+	EXPECT_NEAR(0.6, result, EPS);
+	result := Vector_norm_l1(vector:=v8);
+	EXPECT_NEAR(10.0, result, EPS);
+	result := Vector_norm_l1(vector:=v9);
+	EXPECT_NEAR(34.0, result, EPS);
+	result := Vector_norm_l1(vector:=v10);
+	EXPECT_NEAR(20.0, result, EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_vector_norm_l2)
+	var
+		v1: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		v2: array[0..2] of lreal := [0.0, 0.0, 0.0];
+		v3: array[0..1] of lreal := [-1.0, -2.0];
+		v4: array[0..2] of lreal := [1.5, -2.5, 3.0];
+		v5: array[0..0] of lreal := [10.0];
+		v6: array[0..1] of lreal := [1000.0, 2000.0];
+		v7: array[0..2] of lreal := [0.1, 0.2, 0.3];
+		v8: array[0..2] of lreal := [-5.0, 0.0, 5.0];
+		v9: array[0..3] of lreal := [7.0, 8.0, 9.0, 10.0];
+		v10: array[0..3] of lreal := [2.0, -4.0, 6.0, -8.0];
+		result: lreal;
+	end
+	{st}
+	result := Vector_norm_l2(vector:=v1);
+	EXPECT_NEAR(3.7416573867739413, result, 1.0e-12);
+	result := Vector_norm_l2(vector:=v2);
+	EXPECT_NEAR(0.0, result, EPS);
+	result := Vector_norm_l2(vector:=v3);
+	EXPECT_NEAR(2.23606797749979, result, 1.0e-12);
+	result := Vector_norm_l2(vector:=v4);
+	EXPECT_NEAR(4.183300132670378, result, 1.0e-12);
+	result := Vector_norm_l2(vector:=v5);
+	EXPECT_NEAR(10.0, result, EPS);
+	result := Vector_norm_l2(vector:=v6);
+	EXPECT_NEAR(2236.06797749979, result, 1.0e-9);
+	result := Vector_norm_l2(vector:=v7);
+	EXPECT_NEAR(0.37416573867739417, result, 1.0e-12);
+	result := Vector_norm_l2(vector:=v8);
+	EXPECT_NEAR(7.0710678118654755, result, 1.0e-12);
+	result := Vector_norm_l2(vector:=v9);
+	EXPECT_NEAR(17.146428199482248, result, 1.0e-12);
+	result := Vector_norm_l2(vector:=v10);
+	EXPECT_NEAR(10.954451150103322, result, 1.0e-12);
+	{end}
+END_TEST_S
+
+TEST_S(test_vector_norm_linf)
+	var
+		v1: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		v2: array[0..2] of lreal := [0.0, 0.0, 0.0];
+		v3: array[0..1] of lreal := [-1.0, -2.0];
+		v4: array[0..2] of lreal := [1.5, -2.5, 3.0];
+		v5: array[0..0] of lreal := [10.0];
+		v6: array[0..1] of lreal := [1000.0, 2000.0];
+		v7: array[0..2] of lreal := [0.1, 0.2, 0.3];
+		v8: array[0..2] of lreal := [-5.0, 0.0, 5.0];
+		v9: array[0..3] of lreal := [7.0, 8.0, 9.0, 10.0];
+		v10: array[0..3] of lreal := [2.0, -4.0, 6.0, -8.0];
+		result: lreal;
+	end
+	{st}
+	result := Vector_norm_linf(vector:=v1);
+	EXPECT_NEAR(3.0, result, EPS);
+	result := Vector_norm_linf(vector:=v2);
+	EXPECT_NEAR(0.0, result, EPS);
+	result := Vector_norm_linf(vector:=v3);
+	EXPECT_NEAR(2.0, result, EPS);
+	result := Vector_norm_linf(vector:=v4);
+	EXPECT_NEAR(3.0, result, EPS);
+	result := Vector_norm_linf(vector:=v5);
+	EXPECT_NEAR(10.0, result, EPS);
+	result := Vector_norm_linf(vector:=v6);
+	EXPECT_NEAR(2000.0, result, EPS);
+	result := Vector_norm_linf(vector:=v7);
+	EXPECT_NEAR(0.3, result, EPS);
+	result := Vector_norm_linf(vector:=v8);
+	EXPECT_NEAR(5.0, result, EPS);
+	result := Vector_norm_linf(vector:=v9);
+	EXPECT_NEAR(10.0, result, EPS);
+	result := Vector_norm_linf(vector:=v10);
+	EXPECT_NEAR(8.0, result, EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_vector_norm_lp)
+	var
+		v1: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		v2: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		v3: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		v4: array[0..2] of lreal := [0.0, 0.0, 0.0];
+		v5: array[0..1] of lreal := [-1.0, -2.0];
+		v6: array[0..0] of lreal := [10.0];
+		v7: array[0..1] of lreal := [1000.0, 2000.0];
+		v8: array[0..2] of lreal := [0.1, 0.2, 0.3];
+		v9: array[0..2] of lreal := [-5.0, 0.0, 5.0];
+		v10: array[0..3] of lreal := [7.0, 8.0, 9.0, 10.0];
+		result: lreal;
+	end
+	{st}
+	result := Vector_norm_lp(vector:=v1, p:=3.0);
+	EXPECT_NEAR(3.3019272488946263, result, 1.0e-12);
+	result := Vector_norm_lp(vector:=v2, p:=1.0);
+	EXPECT_NEAR(6.0, result, EPS);
+	result := Vector_norm_lp(vector:=v3, p:=2.0);
+	EXPECT_NEAR(3.7416573867739413, result, 1.0e-12);
+	result := Vector_norm_lp(vector:=v4, p:=2.0);
+	EXPECT_NEAR(0.0, result, EPS);
+	result := Vector_norm_lp(vector:=v5, p:=4.0);
+	EXPECT_NEAR(2.0305431848689306, result, 1.0e-12);
+	result := Vector_norm_lp(vector:=v6, p:=3.0);
+	EXPECT_NEAR(10.0, result, EPS);
+	result := Vector_norm_lp(vector:=v7, p:=2.0);
+	EXPECT_NEAR(2236.06797749979, result, 1.0e-9);
+	result := Vector_norm_lp(vector:=v8, p:=1.0);
+	EXPECT_NEAR(0.6, result, EPS);
+	result := Vector_norm_lp(vector:=v9, p:=4.0);
+	EXPECT_NEAR(5.946035575013605, result, 1.0e-12);
+	result := Vector_norm_lp(vector:=v10, p:=2.0);
+	EXPECT_NEAR(17.146428199482248, result, 1.0e-12);
+	{end}
+END_TEST_S
+
+TEST_S(test_vector_normalize_l2)
+	var
+		v1: array[0..2] of lreal := [3.0, 4.0, 0.0];
+		r1: array[0..2] of lreal;
+		v2: array[0..2] of lreal := [1.0, 2.0, 2.0];
+		r2: array[0..2] of lreal;
+		v3: array[0..2] of lreal := [-3.0, 0.0, 4.0];
+		r3: array[0..2] of lreal;
+		v4: array[0..0] of lreal := [10.0];
+		r4: array[0..0] of lreal;
+		v5: array[0..0] of lreal := [-5.0];
+		r5: array[0..0] of lreal;
+		v6: array[0..3] of lreal := [1.0, 1.0, 1.0, 1.0];
+		r6: array[0..3] of lreal;
+		v7: array[0..1] of lreal := [2.0, -2.0];
+		r7: array[0..1] of lreal;
+		v8: array[0..2] of lreal := [0.1, 0.2, 0.2];
+		r8: array[0..2] of lreal;
+		v9: array[0..1] of lreal := [6.0, 8.0];
+		r9: array[0..1] of lreal;
+		v10: array[0..2] of lreal := [-1.0, -2.0, -3.0];
+		r10: array[0..2] of lreal;	end
+	{st}
+	Vector_normalize_l2(vector:=v1, result:=r1);
+	EXPECT_NEAR(0.6, r1[0], EPS);
+	EXPECT_NEAR(0.8, r1[1], EPS);
+	EXPECT_NEAR(0.0, r1[2], EPS);
+	Vector_normalize_l2(vector:=v2, result:=r2);
+	EXPECT_NEAR(0.3333333333333333, r2[0], 1.0e-12);
+	EXPECT_NEAR(0.6666666666666666, r2[1], 1.0e-12);
+	EXPECT_NEAR(0.6666666666666666, r2[2], 1.0e-12);
+	Vector_normalize_l2(vector:=v3, result:=r3);
+	EXPECT_NEAR(-0.6, r3[0], EPS);
+	EXPECT_NEAR(0.0, r3[1], EPS);
+	EXPECT_NEAR(0.8, r3[2], EPS);
+	Vector_normalize_l2(vector:=v4, result:=r4);
+	EXPECT_NEAR(1.0, r4[0], EPS);
+	Vector_normalize_l2(vector:=v5, result:=r5);
+	EXPECT_NEAR(-1.0, r5[0], EPS);
+	Vector_normalize_l2(vector:=v6, result:=r6);
+	EXPECT_NEAR(0.5, r6[0], EPS);
+	EXPECT_NEAR(0.5, r6[1], EPS);
+	EXPECT_NEAR(0.5, r6[2], EPS);
+	EXPECT_NEAR(0.5, r6[3], EPS);
+	Vector_normalize_l2(vector:=v7, result:=r7);
+	EXPECT_NEAR(0.7071067811865475, r7[0], 1.0e-12);
+	EXPECT_NEAR(-0.7071067811865475, r7[1], 1.0e-12);
+	Vector_normalize_l2(vector:=v8, result:=r8);
+	EXPECT_NEAR(0.3333333333333333, r8[0], 1.0e-12);
+	EXPECT_NEAR(0.6666666666666666, r8[1], 1.0e-12);
+	EXPECT_NEAR(0.6666666666666666, r8[2], 1.0e-12);
+	Vector_normalize_l2(vector:=v9, result:=r9);
+	EXPECT_NEAR(0.6, r9[0], EPS);
+	EXPECT_NEAR(0.8, r9[1], EPS);
+	Vector_normalize_l2(vector:=v10, result:=r10);
+	EXPECT_NEAR(-0.2672612419124244, r10[0], 1.0e-12);
+	EXPECT_NEAR(-0.5345224838248488, r10[1], 1.0e-12);
+	EXPECT_NEAR(-0.8017837257372732, r10[2], 1.0e-12);
+	{end}
+END_TEST_S
+
+TEST_S(test_vector_distance_l1)
+	var
+		a1: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		b1: array[0..2] of lreal := [4.0, 5.0, 6.0];
+		a2: array[0..2] of lreal := [0.0, 0.0, 0.0];
+		b2: array[0..2] of lreal := [0.0, 0.0, 0.0];
+		a3: array[0..1] of lreal := [-1.0, -2.0];
+		b3: array[0..1] of lreal := [3.0, 4.0];
+		a4: array[0..2] of lreal := [1.5, -2.5, 3.0];
+		b4: array[0..2] of lreal := [-1.5, 2.5, -3.0];
+		a5: array[0..0] of lreal := [10.0];
+		b5: array[0..0] of lreal := [5.0];
+		a6: array[0..1] of lreal := [1000.0, 2000.0];
+		b6: array[0..1] of lreal := [3000.0, 4000.0];
+		a7: array[0..2] of lreal := [0.1, 0.2, 0.3];
+		b7: array[0..2] of lreal := [0.4, 0.5, 0.6];
+		a8: array[0..2] of lreal := [-5.0, 0.0, 5.0];
+		b8: array[0..2] of lreal := [5.0, 0.0, -5.0];
+		a9: array[0..3] of lreal := [7.0, 8.0, 9.0, 10.0];
+		b9: array[0..3] of lreal := [1.0, 1.0, 1.0, 1.0];
+		a10: array[0..3] of lreal := [2.0, -4.0, 6.0, -8.0];
+		b10: array[0..3] of lreal := [-2.0, 4.0, -6.0, 8.0];
+		result: lreal;
+	end
+	{st}
+	result := Vector_distance_l1(a:=a1, b:=b1);
+	EXPECT_NEAR(9.0, result, EPS);
+	result := Vector_distance_l1(a:=a2, b:=b2);
+	EXPECT_NEAR(0.0, result, EPS);
+	result := Vector_distance_l1(a:=a3, b:=b3);
+	EXPECT_NEAR(10.0, result, EPS);
+	result := Vector_distance_l1(a:=a4, b:=b4);
+	EXPECT_NEAR(14.0, result, EPS);
+	result := Vector_distance_l1(a:=a5, b:=b5);
+	EXPECT_NEAR(5.0, result, EPS);
+	result := Vector_distance_l1(a:=a6, b:=b6);
+	EXPECT_NEAR(4000.0, result, EPS);
+	result := Vector_distance_l1(a:=a7, b:=b7);
+	EXPECT_NEAR(0.9, result, EPS);
+	result := Vector_distance_l1(a:=a8, b:=b8);
+	EXPECT_NEAR(20.0, result, EPS);
+	result := Vector_distance_l1(a:=a9, b:=b9);
+	EXPECT_NEAR(30.0, result, EPS);
+	result := Vector_distance_l1(a:=a10, b:=b10);
+	EXPECT_NEAR(40.0, result, EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_vector_distance_l2)
+	var
+		a1: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		b1: array[0..2] of lreal := [4.0, 5.0, 6.0];
+		a2: array[0..2] of lreal := [0.0, 0.0, 0.0];
+		b2: array[0..2] of lreal := [0.0, 0.0, 0.0];
+		a3: array[0..1] of lreal := [-1.0, -2.0];
+		b3: array[0..1] of lreal := [3.0, 4.0];
+		a4: array[0..2] of lreal := [1.5, -2.5, 3.0];
+		b4: array[0..2] of lreal := [-1.5, 2.5, -3.0];
+		a5: array[0..0] of lreal := [10.0];
+		b5: array[0..0] of lreal := [5.0];
+		a6: array[0..1] of lreal := [1000.0, 2000.0];
+		b6: array[0..1] of lreal := [3000.0, 4000.0];
+		a7: array[0..2] of lreal := [0.1, 0.2, 0.3];
+		b7: array[0..2] of lreal := [0.4, 0.5, 0.6];
+		a8: array[0..2] of lreal := [-5.0, 0.0, 5.0];
+		b8: array[0..2] of lreal := [5.0, 0.0, -5.0];
+		a9: array[0..3] of lreal := [7.0, 8.0, 9.0, 10.0];
+		b9: array[0..3] of lreal := [1.0, 1.0, 1.0, 1.0];
+		a10: array[0..3] of lreal := [2.0, -4.0, 6.0, -8.0];
+		b10: array[0..3] of lreal := [-2.0, 4.0, -6.0, 8.0];
+		result: lreal;
+	end
+	{st}
+	result := Vector_distance_l2(a:=a1, b:=b1);
+	EXPECT_NEAR(5.196152422706632, result, 1.0e-12);
+	result := Vector_distance_l2(a:=a2, b:=b2);
+	EXPECT_NEAR(0.0, result, EPS);
+	result := Vector_distance_l2(a:=a3, b:=b3);
+	EXPECT_NEAR(7.211102550927978, result, 1.0e-12);
+	result := Vector_distance_l2(a:=a4, b:=b4);
+	EXPECT_NEAR(8.366600265340756, result, 1.0e-12);
+	result := Vector_distance_l2(a:=a5, b:=b5);
+	EXPECT_NEAR(5.0, result, EPS);
+	result := Vector_distance_l2(a:=a6, b:=b6);
+	EXPECT_NEAR(2828.42712474619, result, 1.0e-9);
+	result := Vector_distance_l2(a:=a7, b:=b7);
+	EXPECT_NEAR(0.5196152422706632, result, 1.0e-12);
+	result := Vector_distance_l2(a:=a8, b:=b8);
+	EXPECT_NEAR(14.142135623730951, result, 1.0e-12);
+	result := Vector_distance_l2(a:=a9, b:=b9);
+	EXPECT_NEAR(15.165750888103101, result, 1.0e-12);
+	result := Vector_distance_l2(a:=a10, b:=b10);
+	EXPECT_NEAR(21.908902300206645, result, 1.0e-12);
+	{end}
+END_TEST_S
+
+TEST_S(test_vector_distance_linf)
+	var
+		a1: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		b1: array[0..2] of lreal := [4.0, 5.0, 6.0];
+		a2: array[0..2] of lreal := [0.0, 0.0, 0.0];
+		b2: array[0..2] of lreal := [0.0, 0.0, 0.0];
+		a3: array[0..1] of lreal := [-1.0, -2.0];
+		b3: array[0..1] of lreal := [3.0, 4.0];
+		a4: array[0..2] of lreal := [1.5, -2.5, 3.0];
+		b4: array[0..2] of lreal := [-1.5, 2.5, -3.0];
+		a5: array[0..0] of lreal := [10.0];
+		b5: array[0..0] of lreal := [5.0];
+		a6: array[0..1] of lreal := [1000.0, 2000.0];
+		b6: array[0..1] of lreal := [3000.0, 4000.0];
+		a7: array[0..2] of lreal := [0.1, 0.2, 0.3];
+		b7: array[0..2] of lreal := [0.4, 0.5, 0.6];
+		a8: array[0..2] of lreal := [-5.0, 0.0, 5.0];
+		b8: array[0..2] of lreal := [5.0, 0.0, -5.0];
+		a9: array[0..3] of lreal := [7.0, 8.0, 9.0, 10.0];
+		b9: array[0..3] of lreal := [1.0, 1.0, 1.0, 1.0];
+		a10: array[0..3] of lreal := [2.0, -4.0, 6.0, -8.0];
+		b10: array[0..3] of lreal := [-2.0, 4.0, -6.0, 8.0];
+		result: lreal;
+	end
+	{st}
+	result := Vector_distance_linf(a:=a1, b:=b1);
+	EXPECT_NEAR(3.0, result, EPS);
+	result := Vector_distance_linf(a:=a2, b:=b2);
+	EXPECT_NEAR(0.0, result, EPS);
+	result := Vector_distance_linf(a:=a3, b:=b3);
+	EXPECT_NEAR(6.0, result, EPS);
+	result := Vector_distance_linf(a:=a4, b:=b4);
+	EXPECT_NEAR(6.0, result, EPS);
+	result := Vector_distance_linf(a:=a5, b:=b5);
+	EXPECT_NEAR(5.0, result, EPS);
+	result := Vector_distance_linf(a:=a6, b:=b6);
+	EXPECT_NEAR(2000.0, result, EPS);
+	result := Vector_distance_linf(a:=a7, b:=b7);
+	EXPECT_NEAR(0.3, result, EPS);
+	result := Vector_distance_linf(a:=a8, b:=b8);
+	EXPECT_NEAR(10.0, result, EPS);
+	result := Vector_distance_linf(a:=a9, b:=b9);
+	EXPECT_NEAR(9.0, result, EPS);
+	result := Vector_distance_linf(a:=a10, b:=b10);
+	EXPECT_NEAR(16.0, result, EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_vector_is_unit)
+	var
+		v1: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		v2: array[0..2] of lreal := [0.0, 1.0, 0.0];
+		v3: array[0..2] of lreal := [0.0, 0.0, 1.0];
+		v4: array[0..2] of lreal := [0.7071067811865475, 0.7071067811865475, 0.0];
+		v5: array[0..2] of lreal := [0.6, 0.8, 0.0];
+		v6: array[0..2] of lreal := [1.1, 0.0, 0.0];
+		v7: array[0..3] of lreal := [0.5, 0.5, 0.5, 0.5];
+		v8: array[0..2] of lreal := [0.3333333333333333, 0.6666666666666666, 0.6666666666666666];
+		v9: array[0..2] of lreal := [0.2, 0.2, 0.2];
+		v10: array[0..2] of lreal := [-1.0, 0.0, 0.0];
+		result: bool;
+	end
+	{st}
+	result := Vector_is_unit(vector:=v1, tolerance:=1.0e-9);
+	EXPECT_TRUE(result);
+	result := Vector_is_unit(vector:=v2, tolerance:=1.0e-9);
+	EXPECT_TRUE(result);
+	result := Vector_is_unit(vector:=v3, tolerance:=1.0e-9);
+	EXPECT_TRUE(result);
+	result := Vector_is_unit(vector:=v4, tolerance:=1.0e-9);
+	EXPECT_TRUE(result);
+	result := Vector_is_unit(vector:=v5, tolerance:=1.0e-9);
+	EXPECT_TRUE(result);
+	result := Vector_is_unit(vector:=v6, tolerance:=1.0e-9);
+	EXPECT_FALSE(result);
+	result := Vector_is_unit(vector:=v7, tolerance:=1.0e-9);
+	EXPECT_TRUE(result);
+	result := Vector_is_unit(vector:=v8, tolerance:=1.0e-9);
+	EXPECT_TRUE(result);
+	result := Vector_is_unit(vector:=v9, tolerance:=1.0e-9);
+	EXPECT_FALSE(result);
+	result := Vector_is_unit(vector:=v10, tolerance:=1.0e-9);
+	EXPECT_TRUE(result);
+	{end}
+END_TEST_S
+
+{#undef EPS}

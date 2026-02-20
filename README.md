@@ -77,6 +77,26 @@ JiecLibに含まれるライブラリと、IEC 61131-10 XMLを生成するため
   * IEC 61131-10 XML生成コマンド:
     * `jiecc ./math/floor.txt -I. -I./vendor/jiecunit/sys -o ./math/floor.xml -t omron`
     * `jiecc ./math/atan2.txt -I. -I./vendor/jiecunit/sys -o ./math/atan2.xml -t omron`
+* [vector](./vector)
+  * ベクトル演算ライブラリです。
+  * **生成・基本演算**
+    * [Vector_zeros](./vector/constructors.txt) / [Vector_ones](./vector/constructors.txt) / [Vector_from_iterable](./vector/constructors.txt): 生成
+    * [Vector_add](./vector/arithmetic.txt) / [Vector_sub](./vector/arithmetic.txt) / [Vector_scale](./vector/arithmetic.txt): 基本演算
+    * [Vector_dot](./vector/arithmetic.txt): 内積
+    * [Vector_negate](./vector/arithmetic.txt) / [Vector_elementwise_mul](./vector/arithmetic.txt) / [Vector_elementwise_div](./vector/arithmetic.txt): 要素演算
+    * [Vector_linear_combination](./vector/arithmetic.txt) / [Vector_equal](./vector/arithmetic.txt): 線形結合・比較
+  * **外積・幾何**
+    * [Vector_cross_product](./vector/dot.txt) / [Vector_cross_product_magnitude](./vector/dot.txt) / [Vector_cross_product_unit](./vector/dot.txt): 外積
+    * [Vector_scalar_triple_product](./vector/dot.txt) / [Vector_vector_triple_product](./vector/dot.txt): 三重積
+    * [Vector_angle_from_cross_product](./vector/dot.txt) / [Vector_is_parallel](./vector/dot.txt) / [Vector_is_orthogonal](./vector/dot.txt): 角度・平行/直交判定
+  * **ノルム・距離**
+    * [Vector_norm_l1](./vector/norms.txt) / [Vector_norm_l2](./vector/norms.txt) / [Vector_norm_linf](./vector/norms.txt) / [Vector_norm_lp](./vector/norms.txt): ノルム
+    * [Vector_normalize_l2](./vector/norms.txt): 正規化
+    * [Vector_distance_l1](./vector/norms.txt) / [Vector_distance_l2](./vector/norms.txt) / [Vector_distance_linf](./vector/norms.txt): 距離
+    * [Vector_is_unit](./vector/norms.txt): 単位ベクトル判定
+  * **ユーティリティ**
+    * [Vector_utils_is_regular](./vector/utils.txt) / [Vector_utils_is_zero](./vector/utils.txt) / [Vector_utils_normalize](./vector/utils.txt): 補助関数
+  * IEC 61131-10 XML生成コマンド: `jiecc ./vector/vector.txt -I. -I./vendor/jiecunit/sys -o ./vector/vector.xml -t omron`
 * [mersenne_twister](./mersenne_twister)
   * 擬似乱数生成アルゴリズムの一つであるメルセンヌ・ツイスタのIEC 61131-3 ST言語の実装です。
     * [Python言語のrandomモジュール](https://docs.python.org/ja/3.12/library/random.html)でも採用されている高速かつ超長周期の疑似乱数生成アルゴリズムです。その他の詳しい説明は、[メルセンヌ・ツイスタ考案者のウェブサイト](http://www.math.sci.hiroshima-u.ac.jp/m-mat/MT/mt.html)を参照してください。

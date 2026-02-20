@@ -10,4 +10,5 @@ __pycache__
 /ringbuffer/**/*.xml
 /stats/**/*.xml
 /string_lib/**/*.xml
+/vector/**/*.xml
 /xorshift32/**/*.xml

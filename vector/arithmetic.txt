@@ -1,0 +1,426 @@
+(*
+ * Vector Basic Operations
+ * $ jiecc ./vector/arithmetic.txt -I. -I./vendor/jiecunit/sys -o ./vector/arithmetic.xml -t omron
+ *)
+{#ifndef __LINALG_VECTOR_BASIC_OPS_TXT__}
+{#define __LINALG_VECTOR_BASIC_OPS_TXT__}
+
+{#include <sys.txt>}
+{#include <array/array.txt>}
+{#include <math/floor.txt>}
+
+(*{doc ベクトルの加算。
+@in_out a 第一のベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out b 第二のベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out result 結果ベクトル。
+	正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error 入力配列が正規配列でない場合、またはa/b/resultの要素数が一致しない場合。}*)
+function Vector_add
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 第一のベクトル。}*)
+		a: array[*] of lreal;
+		(*{doc 第二のベクトル。}*)
+		b: array[*] of lreal;
+	end
+	var_in_out
+		(*{doc 結果ベクトル。}*)
+		result: array[*] of lreal;
+	end
+	var_temp
+		i, a_size, b_size, r_size: dint;
+	end
+	{st}
+	a_size := Array_isRegular_lreal(a);
+	b_size := Array_isRegular_lreal(b);
+	r_size := Array_isRegular_lreal(result);
+	
+	if (a_size = 0) or (b_size = 0) or (r_size = 0) then
+		eno := false;
+		return;
+	end_if;
+	
+	if (a_size <> b_size) or (a_size <> r_size) then
+		eno := false;
+		return;
+	end_if;
+	
+	for i := 0 to a_size - 1 by 1 do
+		result[i] := a[i] + b[i];
+	end_for;
+	{end}
+end
+
+(*{doc ベクトルの減算 (a - b)。
+@in_out a 第一のベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out b 第二のベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out result 結果ベクトル。
+	正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error 入力配列が正規配列でない場合、またはa/b/resultの要素数が一致しない場合。}*)
+function Vector_sub
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 第一のベクトル。}*)
+		a: array[*] of lreal;
+		(*{doc 第二のベクトル。}*)
+		b: array[*] of lreal;
+	end
+	var_in_out
+		(*{doc 結果ベクトル。}*)
+		result: array[*] of lreal;
+	end
+	var_temp
+		i, a_size, b_size, r_size: dint;
+	end
+	{st}
+	a_size := Array_isRegular_lreal(a);
+	b_size := Array_isRegular_lreal(b);
+	r_size := Array_isRegular_lreal(result);
+	
+	if (a_size = 0) or (b_size = 0) or (r_size = 0) then
+		eno := false;
+		return;
+	end_if;
+	
+	if (a_size <> b_size) or (a_size <> r_size) then
+		eno := false;
+		return;
+	end_if;
+	
+	for i := 0 to a_size - 1 by 1 do
+		result[i] := a[i] - b[i];
+	end_for;
+	{end}
+end
+
+(*{doc ベクトルのスカラー倍。
+@in_out a 入力ベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@input scalar スカラー。
+@in_out result 結果ベクトル。
+	正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error 入力配列が正規配列でない場合、またはaとresultの要素数が一致しない場合。}*)
+function Vector_scale
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 入力ベクトル。}*)
+		a: array[*] of lreal;
+	end
+	var_input
+		(*{doc スカラー。}*)
+		scalar: lreal;
+	end
+	var_in_out
+		(*{doc 結果ベクトル。}*)
+		result: array[*] of lreal;
+	end
+	var_temp
+		i, a_size, r_size: dint;
+	end
+	{st}
+	a_size := Array_isRegular_lreal(a);
+	r_size := Array_isRegular_lreal(result);
+	
+	if (a_size = 0) or (r_size = 0) then
+		eno := false;
+		return;
+	end_if;
+	
+	if (a_size <> r_size) then
+		eno := false;
+		return;
+	end_if;
+	
+	for i := 0 to a_size - 1 by 1 do
+		result[i] := scalar * a[i];
+	end_for;
+	{end}
+end
+
+(*{doc ベクトルのドット積。
+@in_out a 第一のベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out b 第二のベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@return ドット積。
+@error 入力配列が正規配列でない場合、またはaとbの要素数が一致しない場合。}*)
+function Vector_dot: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 第一のベクトル。}*)
+		a: array[*] of lreal;
+		(*{doc 第二のベクトル。}*)
+		b: array[*] of lreal;
+	end
+	var_temp
+		i, a_size, b_size: dint;
+		result_val: lreal;
+	end
+	{st}
+	a_size := Array_isRegular_lreal(a);
+	b_size := Array_isRegular_lreal(b);
+	
+	if (a_size = 0) or (b_size = 0) then
+		eno := false;
+		return;
+	end_if;
+	
+	if (a_size <> b_size) then
+		eno := false;
+		return;
+	end_if;
+	
+	result_val := 0.0;
+	for i := 0 to a_size - 1 by 1 do
+		result_val := result_val + a[i] * b[i];
+	end_for;
+	
+	Vector_dot := result_val;
+	{end}
+end
+
+(*{doc ベクトルの符号反転。
+@in_out a 入力ベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out result 結果ベクトル。
+	正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error 入力配列が正規配列でない場合、またはaとresultの要素数が一致しない場合。}*)
+function Vector_negate
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 入力ベクトル。}*)
+		a: array[*] of lreal;
+	end
+	var_in_out
+		(*{doc 結果ベクトル。}*)
+		result: array[*] of lreal;
+	end
+	var_temp
+		i, a_size, r_size: dint;
+	end
+	{st}
+	a_size := Array_isRegular_lreal(a);
+	r_size := Array_isRegular_lreal(result);
+	
+	if (a_size = 0) or (r_size = 0) then
+		eno := false;
+		return;
+	end_if;
+	
+	if (a_size <> r_size) then
+		eno := false;
+		return;
+	end_if;
+	
+	for i := 0 to a_size - 1 by 1 do
+		result[i] := -a[i];
+	end_for;
+	{end}
+end
+
+(*{doc 要素ごとの積 (Hadamard)。
+@in_out a 第一のベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out b 第二のベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out result 結果ベクトル。
+	正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error 入力配列が正規配列でない場合、またはa/b/resultの要素数が一致しない場合。}*)
+function Vector_elementwise_mul
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 第一のベクトル。}*)
+		a: array[*] of lreal;
+		(*{doc 第二のベクトル。}*)
+		b: array[*] of lreal;
+	end
+	var_in_out
+		(*{doc 結果ベクトル。}*)
+		result: array[*] of lreal;
+	end
+	var_temp
+		i, a_size, b_size, r_size: dint;
+	end
+	{st}
+	a_size := Array_isRegular_lreal(a);
+	b_size := Array_isRegular_lreal(b);
+	r_size := Array_isRegular_lreal(result);
+	
+	if (a_size = 0) or (b_size = 0) or (r_size = 0) then
+		eno := false;
+		return;
+	end_if;
+	if (a_size <> b_size) or (a_size <> r_size) then
+		eno := false;
+		return;
+	end_if;
+	
+	for i := 0 to a_size - 1 by 1 do
+		result[i] := a[i] * b[i];
+	end_for;
+	{end}
+end
+
+(*{doc 要素ごとの除算。
+@in_out a 第一のベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out b 第二のベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out result 結果ベクトル。
+	正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error 入力値が不正な場合、ゼロ除算。}*)
+function Vector_elementwise_div
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 第一のベクトル。}*)
+		a: array[*] of lreal;
+		(*{doc 第二のベクトル。}*)
+		b: array[*] of lreal;
+	end
+	var_in_out
+		(*{doc 結果ベクトル。}*)
+		result: array[*] of lreal;
+	end
+	var_temp
+		i, a_size, b_size, r_size: dint;
+	end
+	{st}
+	a_size := Array_isRegular_lreal(a);
+	b_size := Array_isRegular_lreal(b);
+	r_size := Array_isRegular_lreal(result);
+	
+	if (a_size = 0) or (b_size = 0) or (r_size = 0) then
+		eno := false;
+		return;
+	end_if;
+	if (a_size <> b_size) or (a_size <> r_size) then
+		eno := false;
+		return;
+	end_if;
+	
+	for i := 0 to a_size - 1 by 1 do
+		if (abs(b[i]) < 1e-15) then
+			eno := false;
+			return;
+		end_if;
+		result[i] := a[i] / b[i];
+	end_for;
+	{end}
+end
+
+(*{doc ベクトルの線形結合 sum(coeff[i] * v[i])。
+@in_out vectors ベクトル配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out coefficients 係数配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out result 結果ベクトル。
+	正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error vectorsが正規2次元配列でない場合、coefficients/resultが正規配列でない場合、vectorsの行数とcoefficients要素数が一致しない場合、またはvectorsの列数とresult要素数が一致しない場合。}*)
+function Vector_linear_combination
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc ベクトル配列。}*)
+		vectors: array[*,*] of lreal;
+		(*{doc 係数配列。}*)
+		coefficients: array[*] of lreal;
+	end
+	var_in_out
+		(*{doc 結果ベクトル。}*)
+		result: array[*] of lreal;
+	end
+	var_temp
+		i, j, v_all_size, v_size, c_size, r_size: dint;
+		vec_size: dint;
+	end
+	{st}
+	v_all_size := Array_isRegular2d_lreal(vectors);
+	c_size := Array_isRegular_lreal(coefficients);
+	r_size := Array_isRegular_lreal(result);
+	
+	if (v_all_size = 0) or (c_size = 0) or (r_size = 0) then
+		eno := false;
+		return;
+	end_if;
+
+	v_size := upper_bound(vectors, 1) - lower_bound(vectors, 1) + 1;
+	if (v_size <> c_size) then
+		eno := false;
+		return;
+	end_if;
+	
+	vec_size := upper_bound(vectors, 2) - lower_bound(vectors, 2) + 1;
+	if (vec_size = 0) then
+		eno := false;
+		return;
+	end_if;
+	if (vec_size <> r_size) then
+		eno := false;
+		return;
+	end_if;
+	
+	for j := 0 to r_size - 1 by 1 do
+		result[j] := 0.0;
+	end_for;
+	
+	for i := 0 to v_size - 1 by 1 do
+		for j := 0 to vec_size - 1 by 1 do
+			result[j] := result[j] +
+				coefficients[i] * vectors[i, j];
+		end_for;
+	end_for;
+	{end}
+end
+
+(*{doc ベクトルの一致判定。
+@in_out a 第一のベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out b 第二のベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@input tolerance 許容誤差。
+  デフォルト値: 1e-10
+@return 一致するかどうか。
+@error 入力配列が正規配列でない場合、またはaとbの要素数が一致しない場合。}*)
+function Vector_equal: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 第一のベクトル。}*)
+		a: array[*] of lreal;
+		(*{doc 第二のベクトル。}*)
+		b: array[*] of lreal;
+	end
+	var_input
+		(*{doc 許容誤差。}*)
+		tolerance: lreal := 1e-10;
+	end
+	var_temp
+		i, a_size, b_size: dint;
+	end
+	{st}
+	a_size := Array_isRegular_lreal(a);
+	b_size := Array_isRegular_lreal(b);
+	
+	if (a_size = 0) or (b_size = 0) then
+		eno := false;
+		return;
+	end_if;
+	
+	if (a_size <> b_size) then
+		eno := false;
+		return;
+	end_if;
+	
+	Vector_equal := true;
+	for i := 0 to a_size - 1 by 1 do
+		if (abs(a[i] - b[i]) > tolerance) then
+			Vector_equal := false;
+			return;
+		end_if;
+	end_for;
+	{end}
+end
+
+{#endif}

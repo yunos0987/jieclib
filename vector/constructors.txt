@@ -1,0 +1,92 @@
+(*
+ * $ jiecc ./vector/constructors.txt -I. -I./vendor/jiecunit/sys -o ./vector/constructors.xml -t omron
+ *)
+{#ifndef __VECTOR_CONSTRUCTORS_TXT__}
+{#define __VECTOR_CONSTRUCTORS_TXT__}
+
+{#include <sys.txt>}
+{#include <array/array.txt>}
+
+(*{doc ベクトルをゼロで初期化する。
+@in_out result 結果ベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error resultが正規配列でない場合。}*)
+function Vector_zeros
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		result: array[*] of lreal;
+	end
+	var_temp
+		i, r_size: dint;
+	end
+	{st}
+	r_size := Array_isRegular_lreal(result);
+	if r_size = 0 then
+		eno := false;
+		return;
+	end_if;
+	for i := 0 to r_size - 1 by 1 do
+		result[i] := 0.0;
+	end_for;
+	{end}
+end
+
+(*{doc ベクトルを1で初期化する。
+@in_out result 結果ベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error resultが正規配列でない場合。}*)
+function Vector_ones
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		result: array[*] of lreal;
+	end
+	var_temp
+		i, r_size: dint;
+	end
+	{st}
+	r_size := Array_isRegular_lreal(result);
+	if r_size = 0 then
+		eno := false;
+		return;
+	end_if;
+	for i := 0 to r_size - 1 by 1 do
+		result[i] := 1.0;
+	end_for;
+	{end}
+end
+
+(*{doc ベクトルを別ベクトルからコピーして生成する。
+@in_out source 入力ベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out result 結果ベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error source/resultが正規配列でない場合、または要素数が一致しない場合。}*)
+function Vector_from_iterable
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		source: array[*] of lreal;
+	end
+	var_in_out
+		result: array[*] of lreal;
+	end
+	var_temp
+		i, s_size, r_size: dint;
+	end
+	{st}
+	s_size := Array_isRegular_lreal(source);
+	r_size := Array_isRegular_lreal(result);
+	if (s_size = 0) or (r_size = 0) then
+		eno := false;
+		return;
+	end_if;
+	if s_size <> r_size then
+		eno := false;
+		return;
+	end_if;
+	for i := 0 to s_size - 1 by 1 do
+		result[i] := source[i];
+	end_for;
+	{end}
+end
+
+{#endif}

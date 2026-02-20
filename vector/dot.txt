@@ -1,0 +1,265 @@
+(*
+ * Vector Cross Product
+ * Contains 3D vector cross product implementation
+ * $ jiecc ./vector/dot.txt -I. -I./vendor/jiecunit/sys -o ./vector/dot.xml -t omron
+ *)
+{#ifndef __LINALG_VECTOR_CROSS_PRODUCT_TXT__}
+{#define __LINALG_VECTOR_CROSS_PRODUCT_TXT__}
+
+{#include <sys.txt>}
+{#include <array/array.txt>}
+{#include <math/floor.txt>}
+
+// 3D Vector Cross Product
+(*{doc 3次元ベクトルの外積を計算する。
+result = a × b
+@in_out a 3次元ベクトルA（配列[0..2]）。
+@in_out b 3次元ベクトルB（配列[0..2]）。
+@in_out result 外積を格納する3次元ベクトル配列[0..2]。
+@error 入力配列のサイズが3でない場合。}*)
+function Vector_cross_product
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 3次元ベクトルA。}*)
+		a: array[0..2] of lreal;
+		(*{doc 3次元ベクトルB。}*)
+		b: array[0..2] of lreal;
+	end
+	var_in_out
+		(*{doc 外積を格納する3次元ベクトル。}*)
+		result: array[0..2] of lreal;
+	end
+	{st}
+	result[0] := a[1] * b[2] - a[2] * b[1];
+	result[1] := a[2] * b[0] - a[0] * b[2];
+	result[2] := a[0] * b[1] - a[1] * b[0];
+	{end}
+end
+
+// Cross Product Magnitude
+(*{doc 外積のノルムを計算する。
+||a × b||
+@in_out a 3次元ベクトルA（配列[0..2]）。
+@in_out b 3次元ベクトルB（配列[0..2]）。
+@return 外積のノルム（大きさ）。
+@error 入力配列のサイズが3でない場合。}*)
+function Vector_cross_product_magnitude: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 3次元ベクトルA。}*)
+		a: array[0..2] of lreal;
+		(*{doc 3次元ベクトルB。}*)
+		b: array[0..2] of lreal;
+	end
+	var_temp
+		cx, cy, cz: lreal;
+	end
+	{st}
+	cx := a[1] * b[2] - a[2] * b[1];
+	cy := a[2] * b[0] - a[0] * b[2];
+	cz := a[0] * b[1] - a[1] * b[0];
+	Vector_cross_product_magnitude := sqrt(cx * cx + cy * cy + cz * cz);
+	{end}
+end
+
+// Unit Cross Product
+(*{doc 外積の方向を単位ベクトルで返す。
+(a × b) / ||a × b||
+@in_out a 3次元ベクトルA（配列[0..2]）。
+@in_out b 3次元ベクトルB（配列[0..2]）。 
+@in_out result 正規化された外積を格納する3次元ベクトル配列[0..2]。
+@error 入力配列のサイズが3でない場合、またはベクトルが平行（外積がゼロ）の場合。}*)
+function Vector_cross_product_unit
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 3次元ベクトルA。}*)
+		a: array[0..2] of lreal;
+		(*{doc 3次元ベクトルB。}*)
+		b: array[0..2] of lreal;
+	end
+	var_in_out
+		(*{doc 正規化された外積を格納する3次元ベクトル。}*)
+		result: array[0..2] of lreal;
+	end
+	var_temp
+		cx, cy, cz, mag: lreal;
+	end
+	{st}
+	cx := a[1] * b[2] - a[2] * b[1];
+	cy := a[2] * b[0] - a[0] * b[2];
+	cz := a[0] * b[1] - a[1] * b[0];
+	mag := sqrt(cx * cx + cy * cy + cz * cz);
+	
+	if (mag < 1e-15) then
+		eno := false;
+		return;
+	end_if;
+	
+	result[0] := cx / mag;
+	result[1] := cy / mag;
+	result[2] := cz / mag;
+	{end}
+end
+
+// Scalar Triple Product
+(*{doc スカラー三重積を計算する。
+a・(b × c)
+@in_out a 3次元ベクトルA（配列[0..2]）。
+@in_out b 3次元ベクトルB（配列[0..2]）。
+@in_out c 3次元ベクトルC（配列[0..2]）。
+@return スカラー三重積の値。
+@error 入力配列のサイズが3でない場合。}*)
+function Vector_scalar_triple_product: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 3次元ベクトルA。}*)
+		a: array[0..2] of lreal;
+		(*{doc 3次元ベクトルB。}*)
+		b: array[0..2] of lreal;
+		(*{doc 3次元ベクトルC。}*)
+		c: array[0..2] of lreal;
+	end
+	var_temp
+		bcx, bcy, bcz: lreal;
+	end
+	{st}
+	bcx := b[1] * c[2] - b[2] * c[1];
+	bcy := b[2] * c[0] - b[0] * c[2];
+	bcz := b[0] * c[1] - b[1] * c[0];
+	Vector_scalar_triple_product := a[0] * bcx + a[1] * bcy + a[2] * bcz;
+	{end}
+end
+
+// Vector Triple Product
+(*{doc ベクトル三重積を計算する。
+a × (b × c)
+@in_out a 3次元ベクトルA（配列[0..2]）。
+@in_out b 3次元ベクトルB（配列[0..2]）。
+@in_out c 3次元ベクトルC（配列[0..2]）。
+@in_out result ベクトル三重積を格納する3次元ベクトル配列[0..2]。
+@error 入力配列のサイズが3でない場合。}*)
+function Vector_vector_triple_product
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 3次元ベクトルA。}*)
+		a: array[0..2] of lreal;
+		(*{doc 3次元ベクトルB。}*)
+		b: array[0..2] of lreal;
+		(*{doc 3次元ベクトルC。}*)
+		c: array[0..2] of lreal;
+	end
+	var_in_out
+		(*{doc ベクトル三重積を格納する3次元ベクトル。}*)
+		result: array[0..2] of lreal;
+	end
+	var_temp
+		bcx, bcy, bcz: lreal;
+	end
+	{st}
+	bcx := b[1] * c[2] - b[2] * c[1];
+	bcy := b[2] * c[0] - b[0] * c[2];
+	bcz := b[0] * c[1] - b[1] * c[0];
+	result[0] := a[1] * bcz - a[2] * bcy;
+	result[1] := a[2] * bcx - a[0] * bcz;
+	result[2] := a[0] * bcy - a[1] * bcx;
+	{end}
+end
+
+// Angle Between Vectors
+(*{doc 2つのベクトルのなす角を外積を使って計算する。
+arcsin(||a × b|| / (||a|| * ||b||))
+@in_out a 3次元ベクトルA（配列[0..2]）。
+@in_out b 3次元ベクトルB（配列[0..2]）。
+@return なす角（ラジアン）。
+@error 入力配列のサイズが3でない場合、またはベクトルがゼロベクトルの場合。}*)
+function Vector_angle_from_cross_product: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 3次元ベクトルA。}*)
+		a: array[0..2] of lreal;
+		(*{doc 3次元ベクトルB。}*)
+		b: array[0..2] of lreal;
+	end
+	var_temp
+		cx, cy, cz, cross_mag, a_mag, b_mag: lreal;
+	end
+	{st}
+	cx := a[1] * b[2] - a[2] * b[1];
+	cy := a[2] * b[0] - a[0] * b[2];
+	cz := a[0] * b[1] - a[1] * b[0];
+	cross_mag := sqrt(cx * cx + cy * cy + cz * cz);
+	
+	a_mag := sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
+	b_mag := sqrt(b[0] * b[0] + b[1] * b[1] + b[2] * b[2]);
+	
+	if (a_mag < 1e-15) or (b_mag < 1e-15) then
+		eno := false;
+		return;
+	end_if;
+	
+	Vector_angle_from_cross_product := ASIN(cross_mag / (a_mag * b_mag));
+	{end}
+end
+
+// Vector Relationship Tests
+(*{doc 2つのベクトルが平行かどうかをチェックする。
+||a × b|| ≈ 0
+@in_out a 3次元ベクトルA（配列[0..2]）。
+@in_out b 3次元ベクトルB（配列[0..2]）。
+@input tolerance 許容誤差。
+@return 平行かどうか。
+@error 入力配列のサイズが3でない場合。}*)
+function Vector_is_parallel: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 3次元ベクトルA。}*)
+		a: array[0..2] of lreal;
+		(*{doc 3次元ベクトルB。}*)
+		b: array[0..2] of lreal;
+	end
+	var_input
+		(*{doc 許容誤差。}*)
+		tolerance: lreal;
+	end
+	var_temp
+		cx, cy, cz, cross_mag: lreal;
+	end
+	{st}
+	cx := a[1] * b[2] - a[2] * b[1];
+	cy := a[2] * b[0] - a[0] * b[2];
+	cz := a[0] * b[1] - a[1] * b[0];
+	cross_mag := sqrt(cx * cx + cy * cy + cz * cz);
+	
+	Vector_is_parallel := (cross_mag < tolerance);
+	{end}
+end
+
+(*{doc 2つのベクトルが直交（垂直）かどうかをチェックする。
+a・b ≈ 0
+@in_out a 3次元ベクトルA（配列[0..2]）。
+@in_out b 3次元ベクトルB（配列[0..2]）。
+@input tolerance 許容誤差。
+@return 直交かどうか。
+@error 入力配列のサイズが3でない場合。}*)
+function Vector_is_orthogonal: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 3次元ベクトルA。}*)
+		a: array[0..2] of lreal;
+		(*{doc 3次元ベクトルB。}*)
+		b: array[0..2] of lreal;
+	end
+	var_input
+		(*{doc 許容誤差。}*)
+		tolerance: lreal;
+	end
+	var_temp
+		dot_product: lreal;
+	end
+	{st}
+	dot_product := a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+	Vector_is_orthogonal := (abs(dot_product) < tolerance);
+	{end}
+end
+
+{#endif}

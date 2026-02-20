@@ -1,0 +1,133 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/vector/test_constructors.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/vector/test_constructors.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <vector/constructors.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_vector_zeros',
+		'test_vector_ones',
+		'test_vector_from_iterable'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_vector_zeros)
+	var
+		r1: array[0..2] of lreal;
+		r2: array[0..0] of lreal;
+		r3: array[0..1] of lreal;
+		r4: array[0..4] of lreal;
+	end
+	{st}
+	Vector_zeros(result:=r1);
+	EXPECT_EQ_LREAL(0.0, r1[0]);
+	EXPECT_EQ_LREAL(0.0, r1[1]);
+	EXPECT_EQ_LREAL(0.0, r1[2]);
+
+	Vector_zeros(result:=r2);
+	EXPECT_EQ_LREAL(0.0, r2[0]);
+
+	Vector_zeros(result:=r3);
+	EXPECT_EQ_LREAL(0.0, r3[0]);
+	EXPECT_EQ_LREAL(0.0, r3[1]);
+
+	Vector_zeros(result:=r4);
+	EXPECT_EQ_LREAL(0.0, r4[0]);
+	EXPECT_EQ_LREAL(0.0, r4[1]);
+	EXPECT_EQ_LREAL(0.0, r4[2]);
+	EXPECT_EQ_LREAL(0.0, r4[3]);
+	{end}
+END_TEST_S
+
+TEST_S(test_vector_ones)
+	var
+		r1: array[0..2] of lreal;
+		r2: array[0..0] of lreal;
+		r3: array[0..1] of lreal;
+		r4: array[0..4] of lreal;
+	end
+	{st}
+	Vector_ones(result:=r1);
+	EXPECT_EQ_LREAL(1.0, r1[0]);
+	EXPECT_EQ_LREAL(1.0, r1[1]);
+	EXPECT_EQ_LREAL(1.0, r1[2]);
+
+	Vector_ones(result:=r2);
+	EXPECT_EQ_LREAL(1.0, r2[0]);
+
+	Vector_ones(result:=r3);
+	EXPECT_EQ_LREAL(1.0, r3[0]);
+	EXPECT_EQ_LREAL(1.0, r3[1]);
+
+	Vector_ones(result:=r4);
+	EXPECT_EQ_LREAL(1.0, r4[0]);
+	EXPECT_EQ_LREAL(1.0, r4[1]);
+	EXPECT_EQ_LREAL(1.0, r4[2]);
+	EXPECT_EQ_LREAL(1.0, r4[3]);
+	{end}
+END_TEST_S
+
+TEST_S(test_vector_from_iterable)
+	var
+		s1: array[0..2] of lreal := [1.0, -2.0, 3.5];
+		r1: array[0..2] of lreal;
+		s2: array[0..0] of lreal := [42.0];
+		r2: array[0..0] of lreal;
+		s3: array[0..1] of lreal := [-1.0, 1.0];
+		r3: array[0..1] of lreal;
+		s4: array[0..3] of lreal := [0.1, 0.2, 0.3, 0.4];
+		r4: array[0..3] of lreal;
+		s5: array[0..4] of lreal := [10.0, 20.0, 30.0, 40.0, 50.0];
+		r5: array[0..4] of lreal;
+		s6: array[0..5] of lreal := [-5.0, -4.0, -3.0, -2.0, -1.0, 0.0];
+		r6: array[0..5] of lreal;
+		s7: array[0..6] of lreal := [1.0, 1.0, 2.0, 3.0, 5.0, 8.0, 13.0];
+		r7: array[0..6] of lreal;
+		s8: array[0..7] of lreal := [0.0, -0.5, 0.5, -1.5, 1.5, -2.5, 2.5, 3.5];
+		r8: array[0..7] of lreal;
+		s9: array[0..8] of lreal := [9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0];
+		r9: array[0..8] of lreal;
+		s10: array[0..9] of lreal := [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10];
+		r10: array[0..9] of lreal;
+	end
+	{st}
+	Vector_from_iterable(source:=s1, result:=r1);
+	EXPECT_NEAR(1.0, r1[0], EPS);
+	EXPECT_NEAR(-2.0, r1[1], EPS);
+	EXPECT_NEAR(3.5, r1[2], EPS);
+	Vector_from_iterable(source:=s2, result:=r2);
+	EXPECT_NEAR(42.0, r2[0], EPS);
+	Vector_from_iterable(source:=s3, result:=r3);
+	EXPECT_NEAR(-1.0, r3[0], EPS);
+	EXPECT_NEAR(1.0, r3[1], EPS);
+	Vector_from_iterable(source:=s4, result:=r4);
+	EXPECT_NEAR(0.1, r4[0], EPS);
+	EXPECT_NEAR(0.4, r4[3], EPS);
+	Vector_from_iterable(source:=s5, result:=r5);
+	EXPECT_NEAR(10.0, r5[0], EPS);
+	EXPECT_NEAR(50.0, r5[4], EPS);
+	Vector_from_iterable(source:=s6, result:=r6);
+	EXPECT_NEAR(-5.0, r6[0], EPS);
+	EXPECT_NEAR(0.0, r6[5], EPS);
+	Vector_from_iterable(source:=s7, result:=r7);
+	EXPECT_NEAR(1.0, r7[0], EPS);
+	EXPECT_NEAR(13.0, r7[6], EPS);
+	Vector_from_iterable(source:=s8, result:=r8);
+	EXPECT_NEAR(0.0, r8[0], EPS);
+	EXPECT_NEAR(3.5, r8[7], EPS);
+	Vector_from_iterable(source:=s9, result:=r9);
+	EXPECT_NEAR(9.0, r9[0], EPS);
+	EXPECT_NEAR(1.0, r9[8], EPS);
+	Vector_from_iterable(source:=s10, result:=r10);
+	EXPECT_NEAR(0.01, r10[0], EPS);
+	EXPECT_NEAR(0.10, r10[9], EPS);
+	{end}
+END_TEST_S
+
+{#undef EPS}
