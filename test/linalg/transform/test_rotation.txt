@@ -1,0 +1,149 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/linalg/transform/test_rotation.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/transform/test_rotation.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <linalg/transform/rotation.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_matrix_rotation_2d',
+		'test_matrix_rotation_z'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-7}
+{#define PI 3.14159265358979323846}
+
+TEST_S(test_matrix_rotation_2d)
+	var
+		theta1: lreal := 0.0;
+		r1: array[0..2, 0..2] of lreal;
+		theta2: lreal := 1.57079632679489661923;
+		r2: array[0..2, 0..2] of lreal;
+		theta3: lreal := PI;
+		r3: array[0..2, 0..2] of lreal;
+		theta4: lreal := 4.71238898038468985769;
+		r4: array[0..2, 0..2] of lreal;
+		theta5: lreal := 0.785398163397448309615;
+		r5: array[0..2, 0..2] of lreal;
+		theta6: lreal := 0.523598775598298873077;
+		r6: array[0..2, 0..2] of lreal;
+		theta7: lreal := 6.28318530717958647692;
+		r7: array[0..2, 0..2] of lreal;
+		theta8: lreal := -1.57079632679489661923;
+		r8: array[0..2, 0..2] of lreal;
+		theta9: lreal := 1.04719755119659774615;
+		r9: array[0..2, 0..2] of lreal;
+		theta10: lreal := 0.5;
+		r10: array[0..2, 0..2] of lreal;
+	end
+	{st}
+	Matrix_rotation_2d(theta:=theta1, rotation:=r1);
+	EXPECT_NEAR(1.0, r1[0, 0], EPS);
+	EXPECT_NEAR(0.0, r1[0, 1], EPS);
+	EXPECT_NEAR(0.0, r1[1, 0], EPS);
+	EXPECT_NEAR(1.0, r1[1, 1], EPS);
+	Matrix_rotation_2d(theta:=theta2, rotation:=r2);
+	EXPECT_NEAR(0.0, r2[0, 0], EPS);
+	EXPECT_NEAR(-1.0, r2[0, 1], EPS);
+	EXPECT_NEAR(1.0, r2[1, 0], EPS);
+	EXPECT_NEAR(0.0, r2[1, 1], EPS);
+	Matrix_rotation_2d(theta:=theta3, rotation:=r3);
+	EXPECT_NEAR(-1.0, r3[0, 0], 1.0e-6);
+	EXPECT_NEAR(0.0, r3[0, 1], EPS);
+	EXPECT_NEAR(0.0, r3[1, 0], EPS);
+	EXPECT_NEAR(-1.0, r3[1, 1], 1.0e-6);
+	Matrix_rotation_2d(theta:=theta4, rotation:=r4);
+	EXPECT_NEAR(0.0, r4[0, 0], EPS);
+	EXPECT_NEAR(1.0, r4[0, 1], EPS);
+	EXPECT_NEAR(-1.0, r4[1, 0], EPS);
+	EXPECT_NEAR(0.0, r4[1, 1], EPS);
+	Matrix_rotation_2d(theta:=theta5, rotation:=r5);
+	EXPECT_NEAR(0.70710678, r5[0, 0], 1.0e-6);
+	EXPECT_NEAR(-0.70710678, r5[0, 1], 1.0e-6);
+	EXPECT_NEAR(0.70710678, r5[1, 0], 1.0e-6);
+	EXPECT_NEAR(0.70710678, r5[1, 1], 1.0e-6);
+	Matrix_rotation_2d(theta:=theta6, rotation:=r6);
+	EXPECT_NEAR(0.86602540, r6[0, 0], 1.0e-6);
+	EXPECT_NEAR(-0.5, r6[0, 1], EPS);
+	EXPECT_NEAR(0.5, r6[1, 0], EPS);
+	EXPECT_NEAR(0.86602540, r6[1, 1], 1.0e-6);
+	Matrix_rotation_2d(theta:=theta7, rotation:=r7);
+	EXPECT_NEAR(1.0, r7[0, 0], 1.0e-6);
+	EXPECT_NEAR(0.0, r7[0, 1], EPS);
+	Matrix_rotation_2d(theta:=theta8, rotation:=r8);
+	EXPECT_NEAR(0.0, r8[0, 0], EPS);
+	EXPECT_NEAR(1.0, r8[0, 1], EPS);
+	EXPECT_NEAR(-1.0, r8[1, 0], EPS);
+	EXPECT_NEAR(0.0, r8[1, 1], EPS);
+	Matrix_rotation_2d(theta:=theta9, rotation:=r9);
+	EXPECT_NEAR(0.5, r9[0, 0], EPS);
+	Matrix_rotation_2d(theta:=theta10, rotation:=r10);
+	EXPECT_NEAR(0.87758256, r10[0, 0], 1.0e-6);
+	EXPECT_NEAR(-0.47942554, r10[0, 1], 1.0e-6);
+	{end}
+END_TEST_S
+
+TEST_S(test_matrix_rotation_z)
+	var
+		theta1: lreal := 0.0;
+		r1: array[0..2, 0..2] of lreal;
+		theta2: lreal := 1.57079632679489661923;
+		r2: array[0..2, 0..2] of lreal;
+		theta3: lreal := PI;
+		r3: array[0..2, 0..2] of lreal;
+		theta4: lreal := 0.785398163397448309615;
+		r4: array[0..2, 0..2] of lreal;
+		theta5: lreal := 6.28318530717958647692;
+		r5: array[0..2, 0..2] of lreal;
+		theta6: lreal := 0.523598775598298873077;
+		r6: array[0..2, 0..2] of lreal;
+		theta7: lreal := -1.57079632679489661923;
+		r7: array[0..2, 0..2] of lreal;
+		theta8: lreal := 1.04719755119659774615;
+		r8: array[0..2, 0..2] of lreal;
+		theta9: lreal := 4.71238898038468985769;
+		r9: array[0..2, 0..2] of lreal;
+		theta10: lreal := 0.5;
+		r10: array[0..2, 0..2] of lreal;
+	end
+	{st}
+	Matrix_rotation_z(theta:=theta1, rotation:=r1);
+	EXPECT_NEAR(1.0, r1[0, 0], EPS);
+	EXPECT_NEAR(1.0, r1[2, 2], EPS);
+	Matrix_rotation_z(theta:=theta2, rotation:=r2);
+	EXPECT_NEAR(0.0, r2[0, 0], EPS);
+	EXPECT_NEAR(-1.0, r2[0, 1], EPS);
+	EXPECT_NEAR(1.0, r2[2, 2], EPS);
+	Matrix_rotation_z(theta:=theta3, rotation:=r3);
+	EXPECT_NEAR(-1.0, r3[0, 0], 1.0e-6);
+	EXPECT_NEAR(1.0, r3[2, 2], EPS);
+	Matrix_rotation_z(theta:=theta4, rotation:=r4);
+	EXPECT_NEAR(0.70710678, r4[0, 0], 1.0e-6);
+	EXPECT_NEAR(-0.70710678, r4[0, 1], 1.0e-6);
+	EXPECT_NEAR(1.0, r4[2, 2], EPS);
+	Matrix_rotation_z(theta:=theta5, rotation:=r5);
+	EXPECT_NEAR(1.0, r5[0, 0], 1.0e-6);
+	EXPECT_NEAR(1.0, r5[2, 2], EPS);
+	Matrix_rotation_z(theta:=theta6, rotation:=r6);
+	EXPECT_NEAR(0.86602540, r6[0, 0], 1.0e-6);
+	EXPECT_NEAR(1.0, r6[2, 2], EPS);
+	Matrix_rotation_z(theta:=theta7, rotation:=r7);
+	EXPECT_NEAR(0.0, r7[0, 0], EPS);
+	EXPECT_NEAR(1.0, r7[2, 2], EPS);
+	Matrix_rotation_z(theta:=theta8, rotation:=r8);
+	EXPECT_NEAR(0.5, r8[0, 0], EPS);
+	EXPECT_NEAR(1.0, r8[2, 2], EPS);
+	Matrix_rotation_z(theta:=theta9, rotation:=r9);
+	EXPECT_NEAR(0.0, r9[0, 0], EPS);
+	EXPECT_NEAR(1.0, r9[2, 2], EPS);
+	Matrix_rotation_z(theta:=theta10, rotation:=r10);
+	EXPECT_NEAR(0.87758256, r10[0, 0], 1.0e-6);
+	EXPECT_NEAR(1.0, r10[2, 2], EPS);
+	{end}
+END_TEST_S
+
+{#undef EPS}

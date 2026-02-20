@@ -9,5 +9,7 @@ __pycache__
 /mersenne_twister/**/*.xml
 /ringbuffer/**/*.xml
 /stats/**/*.xml
+/linalg/**/*.xml
 /string_lib/**/*.xml
+/vector/**/*.xml
 /xorshift32/**/*.xml

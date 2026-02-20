@@ -1,0 +1,116 @@
+(*
+ * Matrix Inverse
+ * $ jiecc ./linalg/matrix/inverse.txt -I. -I./vendor/jiecunit/sys -o ./linalg/matrix/inverse.xml -t omron
+ *)
+{#ifndef __LINALG_MATRIX_INVERSE_TXT__}
+{#define __LINALG_MATRIX_INVERSE_TXT__}
+
+{#include <sys.txt>}
+{#include <array/array.txt>}
+{#include <math/floor.txt>}
+
+(*{doc 行列の逆行列を計算する。
+result = a^(-1)
+@in_out a 入力行列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+  正方行列でなければいけない。
+@in_out result 逆行列を格納する配列。
+	正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error 入力配列が正規配列でない場合、行列が正方でない場合、または行列が特異である場合。}*)
+function Matrix_inverse
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 入力行列。}*)
+		a: array[*, *] of lreal;
+	end
+	var_in_out
+		(*{doc 逆行列を格納する配列。}*)
+		result: array[*, *] of lreal;
+	end
+	var_temp
+		i, j, r: dint;
+		n: dint;
+		a_size, r_size: dint;
+		a_rows, a_cols: dint;
+		r_rows, r_cols: dint;
+		pivot_row: dint;
+		pivot_val, factor, max_val, tmp: lreal;
+	end
+	{st}
+	a_size := Array_isRegular2d_lreal(a);
+	r_size := Array_isRegular2d_lreal(result);
+	if (a_size = 0) or (r_size = 0) then
+		eno := false;
+		return;
+	end_if;
+
+	a_rows := upper_bound(a, 1) - lower_bound(a, 1) + 1;
+	a_cols := upper_bound(a, 2) - lower_bound(a, 2) + 1;
+	r_rows := upper_bound(result, 1) - lower_bound(result, 1) + 1;
+	r_cols := upper_bound(result, 2) - lower_bound(result, 2) + 1;
+	if (a_rows <> a_cols) then
+		eno := false;
+		return;
+	end_if;
+	if (r_rows <> a_rows) or (r_cols <> a_cols) then
+		eno := false;
+		return;
+	end_if;
+
+	n := a_rows;
+	for i := 0 to n - 1 by 1 do
+		for j := 0 to n - 1 by 1 do
+			if i = j then
+				result[i, j] := 1.0;
+			else
+				result[i, j] := 0.0;
+			end_if;
+		end_for;
+	end_for;
+
+	for i := 0 to n - 1 by 1 do
+		pivot_row := i;
+		max_val := abs(a[i, i]);
+		for r := i + 1 to n - 1 by 1 do
+			if abs(a[r, i]) > max_val then
+				max_val := abs(a[r, i]);
+				pivot_row := r;
+			end_if;
+		end_for;
+		if max_val < 1e-15 then
+			eno := false;
+			return;
+		end_if;
+		if pivot_row <> i then
+			for j := 0 to n - 1 by 1 do
+				tmp := a[i, j];
+				a[i, j] := a[pivot_row, j];
+				a[pivot_row, j] := tmp;
+				tmp := result[i, j];
+				result[i, j] := result[pivot_row, j];
+				result[pivot_row, j] := tmp;
+			end_for;
+		end_if;
+
+		pivot_val := a[i, i];
+		for j := 0 to n - 1 by 1 do
+			a[i, j] := a[i, j] / pivot_val;
+			result[i, j] := result[i, j] / pivot_val;
+		end_for;
+
+		for r := 0 to n - 1 by 1 do
+			if r <> i then
+				factor := a[r, i];
+				if abs(factor) > 0.0 then
+					for j := 0 to n - 1 by 1 do
+						a[r, j] := a[r, j] - factor * a[i, j];
+						result[r, j] := result[r, j] - factor * result[i, j];
+					end_for;
+				end_if;
+			end_if;
+		end_for;
+	end_for;
+	{end}
+end
+
+{#endif}

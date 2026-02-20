@@ -8,7 +8,9 @@
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
 		'test_array_size',
-		'test_array_isRegular'
+		'test_array_isRegular',
+		'test_array_isRegular2d',
+		'test_array_isRegular2d_x'
 	)
 )
 
@@ -28,6 +30,64 @@ TEST_S(test_array_size)
 	EXPECT_EQ_INT32(1, Array_size_lreal(y_1));
 	EXPECT_EQ_INT32(2, Array_size_lreal(y_2));
 	EXPECT_EQ_INT32(3, Array_size_lreal(y_3));
+	{end}
+END_TEST_S
+
+TEST_S(test_array_isRegular2d)
+	var
+		x_regular: array[0..1, 0..2] of lreal;
+		x_regular_one: array[0..0, 0..0] of lreal;
+		//
+		x_nonregular_lb1: array[1..2, 0..1] of lreal;
+		x_nonregular_lb2: array[0..1, 2..3] of lreal;
+		result: dint;
+	end
+	{st}
+	result := Array_isRegular2d_lreal(x_regular);
+	EXPECT_EQ_INT32(6, result);
+
+	result := Array_isRegular2d_lreal(x_regular_one);
+	EXPECT_EQ_INT32(1, result);
+
+	result := Array_isRegular2d_lreal(x_nonregular_lb1);
+	EXPECT_EQ_INT32(0, result);
+
+	result := Array_isRegular2d_lreal(x_nonregular_lb2);
+	EXPECT_EQ_INT32(0, result);
+	{end}
+END_TEST_S
+
+TEST_S(test_array_isRegular2d_x)
+	var
+		x_regular: array[0..1, 0..2] of lreal;
+		x_nonregular_lb1: array[1..2, 0..2] of lreal;
+		x_nonregular_lb2: array[0..1, 2..4] of lreal;
+		result: dint;
+	end
+	{st}
+	result := Array_isRegular2d_x_lreal(x_regular, 1);
+	EXPECT_EQ_INT32(2, result);
+
+	result := Array_isRegular2d_x_lreal(x_regular, 2);
+	EXPECT_EQ_INT32(3, result);
+
+	result := Array_isRegular2d_x_lreal(x_nonregular_lb1, 1);
+	EXPECT_EQ_INT32(0, result);
+
+	result := Array_isRegular2d_x_lreal(x_nonregular_lb1, 2);
+	EXPECT_EQ_INT32(3, result);
+
+	result := Array_isRegular2d_x_lreal(x_nonregular_lb2, 1);
+	EXPECT_EQ_INT32(2, result);
+
+	result := Array_isRegular2d_x_lreal(x_nonregular_lb2, 2);
+	EXPECT_EQ_INT32(0, result);
+
+	result := Array_isRegular2d_x_lreal(x_regular, 0);
+	EXPECT_EQ_INT32(0, result);
+
+	result := Array_isRegular2d_x_lreal(x_regular, 3);
+	EXPECT_EQ_INT32(0, result);
 	{end}
 END_TEST_S
 

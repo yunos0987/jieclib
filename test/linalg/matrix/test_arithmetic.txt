@@ -1,0 +1,488 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/linalg/matrix/test_arithmetic.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/matrix/test_arithmetic.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <linalg/matrix/arithmetic.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_matrix_add',
+		'test_matrix_sub',
+		'test_matrix_scale',
+		'test_matrix_multiply',
+		'test_matrix_transpose',
+		'test_matrix_vector_multiply'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_matrix_add)
+	var
+		a1: array[0..1, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0];
+		b1: array[0..1, 0..1] of lreal := [5.0, 6.0, 7.0, 8.0];
+		r1: array[0..1, 0..1] of lreal;
+		a2: array[0..1, 0..1] of lreal := [0.0, 0.0, 0.0, 0.0];
+		b2: array[0..1, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0];
+		r2: array[0..1, 0..1] of lreal;
+		a3: array[0..1, 0..1] of lreal := [1.5, -2.5, -3.5, 4.5];
+		b3: array[0..1, 0..1] of lreal := [-1.5, 2.5, 3.5, -4.5];
+		r3: array[0..1, 0..1] of lreal;
+		a4: array[0..1, 0..0] of lreal := [10.0, 20.0];
+		b4: array[0..1, 0..0] of lreal := [5.0, 10.0];
+		r4: array[0..1, 0..0] of lreal;
+		a5: array[0..0, 0..2] of lreal := [1.0, 2.0, 3.0];
+		b5: array[0..0, 0..2] of lreal := [4.0, 5.0, 6.0];
+		r5: array[0..0, 0..2] of lreal;
+		a6: array[0..1, 0..1] of lreal := [0.1, 0.2, 0.3, 0.4];
+		b6: array[0..1, 0..1] of lreal := [0.5, 0.6, 0.7, 0.8];
+		r6: array[0..1, 0..1] of lreal;
+		a7: array[0..1, 0..1] of lreal := [-1.0, -2.0, -3.0, -4.0];
+		b7: array[0..1, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0];
+		r7: array[0..1, 0..1] of lreal;
+		a8: array[0..0, 0..1] of lreal := [100.0, 200.0];
+		b8: array[0..0, 0..1] of lreal := [50.0, 75.0];
+		r8: array[0..0, 0..1] of lreal;
+		a9: array[0..2, 0..2] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0];
+		b9: array[0..2, 0..2] of lreal := [9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0];
+		r9: array[0..2, 0..2] of lreal;
+		a10: array[0..1, 0..1] of lreal := [1e-5, 2e-5, 3e-5, 4e-5];
+		b10: array[0..1, 0..1] of lreal := [5e-5, 6e-5, 7e-5, 8e-5];
+		r10: array[0..1, 0..1] of lreal;
+	end
+	{st}
+	Matrix_add(a:=a1, b:=b1, result:=r1);
+	EXPECT_NEAR(6.0, r1[0, 0], EPS);
+	EXPECT_NEAR(8.0, r1[0, 1], EPS);
+	EXPECT_NEAR(10.0, r1[1, 0], EPS);
+	EXPECT_NEAR(12.0, r1[1, 1], EPS);
+	Matrix_add(a:=a2, b:=b2, result:=r2);
+	EXPECT_NEAR(1.0, r2[0, 0], EPS);
+	EXPECT_NEAR(2.0, r2[0, 1], EPS);
+	EXPECT_NEAR(3.0, r2[1, 0], EPS);
+	EXPECT_NEAR(4.0, r2[1, 1], EPS);
+	Matrix_add(a:=a3, b:=b3, result:=r3);
+	EXPECT_NEAR(0.0, r3[0, 0], EPS);
+	Matrix_add(a:=a4, b:=b4, result:=r4);
+	EXPECT_NEAR(15.0, r4[0, 0], EPS);
+	EXPECT_NEAR(30.0, r4[1, 0], EPS);
+	Matrix_add(a:=a5, b:=b5, result:=r5);
+	EXPECT_NEAR(5.0, r5[0, 0], EPS);
+	EXPECT_NEAR(7.0, r5[0, 1], EPS);
+	EXPECT_NEAR(9.0, r5[0, 2], EPS);
+	Matrix_add(a:=a6, b:=b6, result:=r6);
+	EXPECT_NEAR(0.6, r6[0, 0], EPS);
+	EXPECT_NEAR(0.8, r6[0, 1], EPS);
+	EXPECT_NEAR(1.0, r6[1, 0], EPS);
+	EXPECT_NEAR(1.2, r6[1, 1], EPS);
+	Matrix_add(a:=a7, b:=b7, result:=r7);
+	EXPECT_NEAR(0.0, r7[0, 0], EPS);
+	EXPECT_NEAR(0.0, r7[0, 1], EPS);
+	EXPECT_NEAR(0.0, r7[1, 0], EPS);
+	EXPECT_NEAR(0.0, r7[1, 1], EPS);
+	Matrix_add(a:=a8, b:=b8, result:=r8);
+	EXPECT_NEAR(150.0, r8[0, 0], EPS);
+	EXPECT_NEAR(275.0, r8[0, 1], EPS);
+	Matrix_add(a:=a9, b:=b9, result:=r9);
+	EXPECT_NEAR(10.0, r9[0, 0], EPS);
+	EXPECT_NEAR(10.0, r9[0, 1], EPS);
+	EXPECT_NEAR(10.0, r9[0, 2], EPS);
+	EXPECT_NEAR(10.0, r9[1, 0], EPS);
+	Matrix_add(a:=a10, b:=b10, result:=r10);
+	EXPECT_NEAR(6e-5, r10[0, 0], 1e-15);
+	EXPECT_NEAR(8e-5, r10[0, 1], 1e-15);
+	EXPECT_NEAR(1e-4, r10[1, 0], 1e-15);
+	EXPECT_NEAR(1.2e-4, r10[1, 1], 1e-15);
+	{end}
+END_TEST_S
+
+TEST_S(test_matrix_sub)
+	var
+		a1: array[0..1, 0..1] of lreal := [5.0, 6.0, 7.0, 8.0];
+		b1: array[0..1, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0];
+		r1: array[0..1, 0..1] of lreal;
+		a2: array[0..1, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0];
+		b2: array[0..1, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0];
+		r2: array[0..1, 0..1] of lreal;
+		a3: array[0..1, 0..1] of lreal := [0.0, 0.0, 0.0, 0.0];
+		b3: array[0..1, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0];
+		r3: array[0..1, 0..1] of lreal;
+		a4: array[0..1, 0..1] of lreal := [1.5, 2.5, 3.5, 4.5];
+		b4: array[0..1, 0..1] of lreal := [0.5, 0.5, 0.5, 0.5];
+		r4: array[0..1, 0..1] of lreal;
+		a5: array[0..1, 0..0] of lreal := [10.0, 20.0];
+		b5: array[0..1, 0..0] of lreal := [3.0, 5.0];
+		r5: array[0..1, 0..0] of lreal;
+		a6: array[0..0, 0..2] of lreal := [1.0, 2.0, 3.0];
+		b6: array[0..0, 0..2] of lreal := [1.0, 1.0, 1.0];
+		r6: array[0..0, 0..2] of lreal;
+		a7: array[0..1, 0..1] of lreal := [-1.0, -2.0, -3.0, -4.0];
+		b7: array[0..1, 0..1] of lreal := [-5.0, -6.0, -7.0, -8.0];
+		r7: array[0..1, 0..1] of lreal;
+		a8: array[0..0, 0..1] of lreal := [100.0, 200.0];
+		b8: array[0..0, 0..1] of lreal := [30.0, 50.0];
+		r8: array[0..0, 0..1] of lreal;
+		a9: array[0..2, 0..2] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0];
+		b9: array[0..2, 0..2] of lreal := [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
+		r9: array[0..2, 0..2] of lreal;
+		a10: array[0..1, 0..1] of lreal := [1e-3, 2e-3, 3e-3, 4e-3];
+		b10: array[0..1, 0..1] of lreal := [5e-4, 1e-3, 1.5e-3, 2e-3];
+		r10: array[0..1, 0..1] of lreal;
+	end
+	{st}
+	Matrix_sub(a:=a1, b:=b1, result:=r1);
+	EXPECT_NEAR(4.0, r1[0, 0], EPS);
+	EXPECT_NEAR(4.0, r1[0, 1], EPS);
+	EXPECT_NEAR(4.0, r1[1, 0], EPS);
+	EXPECT_NEAR(4.0, r1[1, 1], EPS);
+	Matrix_sub(a:=a2, b:=b2, result:=r2);
+	EXPECT_NEAR(0.0, r2[0, 0], EPS);
+	EXPECT_NEAR(0.0, r2[0, 1], EPS);
+	EXPECT_NEAR(0.0, r2[1, 0], EPS);
+	EXPECT_NEAR(0.0, r2[1, 1], EPS);
+	Matrix_sub(a:=a3, b:=b3, result:=r3);
+	EXPECT_NEAR(-1.0, r3[0, 0], EPS);
+	EXPECT_NEAR(-2.0, r3[0, 1], EPS);
+	EXPECT_NEAR(-3.0, r3[1, 0], EPS);
+	EXPECT_NEAR(-4.0, r3[1, 1], EPS);
+	Matrix_sub(a:=a4, b:=b4, result:=r4);
+	EXPECT_NEAR(1.0, r4[0, 0], EPS);
+	EXPECT_NEAR(2.0, r4[0, 1], EPS);
+	EXPECT_NEAR(3.0, r4[1, 0], EPS);
+	EXPECT_NEAR(4.0, r4[1, 1], EPS);
+	Matrix_sub(a:=a5, b:=b5, result:=r5);
+	EXPECT_NEAR(7.0, r5[0, 0], EPS);
+	EXPECT_NEAR(15.0, r5[1, 0], EPS);
+	Matrix_sub(a:=a6, b:=b6, result:=r6);
+	EXPECT_NEAR(0.0, r6[0, 0], EPS);
+	EXPECT_NEAR(1.0, r6[0, 1], EPS);
+	EXPECT_NEAR(2.0, r6[0, 2], EPS);
+	Matrix_sub(a:=a7, b:=b7, result:=r7);
+	EXPECT_NEAR(4.0, r7[0, 0], EPS);
+	EXPECT_NEAR(4.0, r7[0, 1], EPS);
+	EXPECT_NEAR(4.0, r7[1, 0], EPS);
+	EXPECT_NEAR(4.0, r7[1, 1], EPS);
+	Matrix_sub(a:=a8, b:=b8, result:=r8);
+	EXPECT_NEAR(70.0, r8[0, 0], EPS);
+	EXPECT_NEAR(150.0, r8[0, 1], EPS);
+	Matrix_sub(a:=a9, b:=b9, result:=r9);
+	EXPECT_NEAR(0.0, r9[0, 0], EPS);
+	EXPECT_NEAR(1.0, r9[0, 1], EPS);
+	EXPECT_NEAR(2.0, r9[0, 2], EPS);
+	EXPECT_NEAR(3.0, r9[1, 0], EPS);
+	EXPECT_NEAR(4.0, r9[1, 1], EPS);
+	Matrix_sub(a:=a10, b:=b10, result:=r10);
+	EXPECT_NEAR(5e-4, r10[0, 0], 1e-15);
+	EXPECT_NEAR(1e-3, r10[0, 1], 1e-15);
+	EXPECT_NEAR(1.5e-3, r10[1, 0], 1e-15);
+	EXPECT_NEAR(2e-3, r10[1, 1], 1e-15);
+	{end}
+END_TEST_S
+
+TEST_S(test_matrix_scale)
+	var
+		a1: array[0..1, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0];
+		s1: lreal := 2.0;
+		r1: array[0..1, 0..1] of lreal;
+		a2: array[0..1, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0];
+		s2: lreal := 0.0;
+		r2: array[0..1, 0..1] of lreal;
+		a3: array[0..1, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0];
+		s3: lreal := -1.0;
+		r3: array[0..1, 0..1] of lreal;
+		a4: array[0..0, 0..1] of lreal := [1.0, 2.0];
+		s4: lreal := 3.5;
+		r4: array[0..0, 0..1] of lreal;
+		a5: array[0..2, 0..0] of lreal := [5.0, 10.0, 15.0];
+		s5: lreal := 0.1;
+		r5: array[0..2, 0..0] of lreal;
+		a6: array[0..1, 0..1] of lreal := [0.5, 0.25, 0.75, 1.0];
+		s6: lreal := 2.0;
+		r6: array[0..1, 0..1] of lreal;
+		a7: array[0..1, 0..1] of lreal := [-1.0, -2.0, -3.0, -4.0];
+		s7: lreal := -2.0;
+		r7: array[0..1, 0..1] of lreal;
+		a8: array[0..0, 0..2] of lreal := [100.0, 200.0, 300.0];
+		s8: lreal := 0.01;
+		r8: array[0..0, 0..2] of lreal;
+		a9: array[0..2, 0..2] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0];
+		s9: lreal := 1.0;
+		r9: array[0..2, 0..2] of lreal;
+		a10: array[0..0, 0..1] of lreal := [1e-5, 2e-5];
+		s10: lreal := 1e5;
+		r10: array[0..0, 0..1] of lreal;
+	end
+	{st}
+	Matrix_scale(a:=a1, scalar:=s1, result:=r1);
+	EXPECT_NEAR(2.0, r1[0, 0], EPS);
+	EXPECT_NEAR(4.0, r1[0, 1], EPS);
+	EXPECT_NEAR(6.0, r1[1, 0], EPS);
+	EXPECT_NEAR(8.0, r1[1, 1], EPS);
+	Matrix_scale(a:=a2, scalar:=s2, result:=r2);
+	EXPECT_NEAR(0.0, r2[0, 0], EPS);
+	EXPECT_NEAR(0.0, r2[0, 1], EPS);
+	EXPECT_NEAR(0.0, r2[1, 0], EPS);
+	EXPECT_NEAR(0.0, r2[1, 1], EPS);
+	Matrix_scale(a:=a3, scalar:=s3, result:=r3);
+	EXPECT_NEAR(-1.0, r3[0, 0], EPS);
+	EXPECT_NEAR(-2.0, r3[0, 1], EPS);
+	EXPECT_NEAR(-3.0, r3[1, 0], EPS);
+	EXPECT_NEAR(-4.0, r3[1, 1], EPS);
+	Matrix_scale(a:=a4, scalar:=s4, result:=r4);
+	EXPECT_NEAR(3.5, r4[0, 0], EPS);
+	EXPECT_NEAR(7.0, r4[0, 1], EPS);
+	Matrix_scale(a:=a5, scalar:=s5, result:=r5);
+	EXPECT_NEAR(0.5, r5[0, 0], EPS);
+	EXPECT_NEAR(1.0, r5[1, 0], EPS);
+	EXPECT_NEAR(1.5, r5[2, 0], EPS);
+	Matrix_scale(a:=a6, scalar:=s6, result:=r6);
+	EXPECT_NEAR(1.0, r6[0, 0], EPS);
+	EXPECT_NEAR(0.5, r6[0, 1], EPS);
+	EXPECT_NEAR(1.5, r6[1, 0], EPS);
+	EXPECT_NEAR(2.0, r6[1, 1], EPS);
+	Matrix_scale(a:=a7, scalar:=s7, result:=r7);
+	EXPECT_NEAR(2.0, r7[0, 0], EPS);
+	EXPECT_NEAR(4.0, r7[0, 1], EPS);
+	EXPECT_NEAR(6.0, r7[1, 0], EPS);
+	EXPECT_NEAR(8.0, r7[1, 1], EPS);
+	Matrix_scale(a:=a8, scalar:=s8, result:=r8);
+	EXPECT_NEAR(1.0, r8[0, 0], EPS);
+	EXPECT_NEAR(2.0, r8[0, 1], EPS);
+	EXPECT_NEAR(3.0, r8[0, 2], EPS);
+	Matrix_scale(a:=a9, scalar:=s9, result:=r9);
+	EXPECT_NEAR(1.0, r9[0, 0], EPS);
+	EXPECT_NEAR(2.0, r9[0, 1], EPS);
+	EXPECT_NEAR(3.0, r9[0, 2], EPS);
+	Matrix_scale(a:=a10, scalar:=s10, result:=r10);
+	EXPECT_NEAR(1.0, r10[0, 0], EPS);
+	EXPECT_NEAR(2.0, r10[0, 1], EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_matrix_multiply)
+	var
+		a1: array[0..1, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0];
+		b1: array[0..1, 0..1] of lreal := [5.0, 6.0, 7.0, 8.0];
+		r1: array[0..1, 0..1] of lreal;
+		a2: array[0..1, 0..1] of lreal := [1.0, 0.0, 0.0, 1.0];
+		b2: array[0..1, 0..1] of lreal := [5.0, 6.0, 7.0, 8.0];
+		r2: array[0..1, 0..1] of lreal;
+		a3: array[0..1, 0..1] of lreal := [2.0, 0.0, 0.0, 3.0];
+		b3: array[0..1, 0..1] of lreal := [1.0, 0.0, 0.0, 1.0];
+		r3: array[0..1, 0..1] of lreal;
+		a4: array[0..0, 0..2] of lreal := [1.0, 2.0, 3.0];
+		b4: array[0..2, 0..0] of lreal := [4.0, 5.0, 6.0];
+		r4: array[0..0, 0..0] of lreal;
+		a5: array[0..2, 0..0] of lreal := [1.0, 2.0, 3.0];
+		b5: array[0..0, 0..2] of lreal := [4.0, 5.0, 6.0];
+		r5: array[0..2, 0..2] of lreal;
+		a6: array[0..1, 0..1] of lreal := [0.0, 0.0, 0.0, 0.0];
+		b6: array[0..1, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0];
+		r6: array[0..1, 0..1] of lreal;
+		a7: array[0..2, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+		b7: array[0..1, 0..2] of lreal := [7.0, 8.0, 9.0, 10.0, 11.0, 12.0];
+		r7: array[0..2, 0..2] of lreal;
+		a8: array[0..0, 0..1] of lreal := [1.5, 2.5];
+		b8: array[0..1, 0..0] of lreal := [2.0, 4.0];
+		r8: array[0..0, 0..0] of lreal;
+		a9: array[0..1, 0..2] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+		b9: array[0..2, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+		r9: array[0..1, 0..1] of lreal;
+		a10: array[0..1, 0..1] of lreal := [2.0, -1.0, 1.0, 3.0];
+		b10: array[0..1, 0..1] of lreal := [1.0, 0.0, 0.0, 1.0];
+		r10: array[0..1, 0..1] of lreal;
+	end
+	{st}
+	Matrix_multiply(a:=a1, b:=b1, result:=r1);
+	EXPECT_NEAR(19.0, r1[0, 0], EPS);
+	EXPECT_NEAR(22.0, r1[0, 1], EPS);
+	EXPECT_NEAR(43.0, r1[1, 0], EPS);
+	EXPECT_NEAR(50.0, r1[1, 1], EPS);
+	Matrix_multiply(a:=a2, b:=b2, result:=r2);
+	EXPECT_NEAR(5.0, r2[0, 0], EPS);
+	EXPECT_NEAR(6.0, r2[0, 1], EPS);
+	EXPECT_NEAR(7.0, r2[1, 0], EPS);
+	EXPECT_NEAR(8.0, r2[1, 1], EPS);
+	Matrix_multiply(a:=a3, b:=b3, result:=r3);
+	EXPECT_NEAR(2.0, r3[0, 0], EPS);
+	EXPECT_NEAR(0.0, r3[0, 1], EPS);
+	EXPECT_NEAR(0.0, r3[1, 0], EPS);
+	EXPECT_NEAR(3.0, r3[1, 1], EPS);
+	Matrix_multiply(a:=a4, b:=b4, result:=r4);
+	EXPECT_NEAR(32.0, r4[0, 0], EPS);
+	Matrix_multiply(a:=a5, b:=b5, result:=r5);
+	EXPECT_NEAR(4.0, r5[0, 0], EPS);
+	EXPECT_NEAR(5.0, r5[0, 1], EPS);
+	EXPECT_NEAR(6.0, r5[0, 2], EPS);
+	Matrix_multiply(a:=a6, b:=b6, result:=r6);
+	EXPECT_NEAR(0.0, r6[0, 0], EPS);
+	EXPECT_NEAR(0.0, r6[0, 1], EPS);
+	EXPECT_NEAR(0.0, r6[1, 0], EPS);
+	EXPECT_NEAR(0.0, r6[1, 1], EPS);
+	Matrix_multiply(a:=a7, b:=b7, result:=r7);
+	EXPECT_NEAR(27.0, r7[0, 0], EPS);
+	EXPECT_NEAR(30.0, r7[0, 1], EPS);
+	EXPECT_NEAR(33.0, r7[0, 2], EPS);
+	EXPECT_NEAR(61.0, r7[1, 0], EPS);
+	Matrix_multiply(a:=a8, b:=b8, result:=r8);
+	EXPECT_NEAR(13.0, r8[0, 0], EPS);
+	Matrix_multiply(a:=a9, b:=b9, result:=r9);
+	EXPECT_NEAR(22.0, r9[0, 0], EPS);
+	EXPECT_NEAR(28.0, r9[0, 1], EPS);
+	EXPECT_NEAR(49.0, r9[1, 0], EPS);
+	EXPECT_NEAR(64.0, r9[1, 1], EPS);
+	Matrix_multiply(a:=a10, b:=b10, result:=r10);
+	EXPECT_NEAR(2.0, r10[0, 0], EPS);
+	EXPECT_NEAR(-1.0, r10[0, 1], EPS);
+	EXPECT_NEAR(1.0, r10[1, 0], EPS);
+	EXPECT_NEAR(3.0, r10[1, 1], EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_matrix_transpose)
+	var
+		a1: array[0..1, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0];
+		r1: array[0..1, 0..1] of lreal;
+		a2: array[0..0, 0..2] of lreal := [1.0, 2.0, 3.0];
+		r2: array[0..2, 0..0] of lreal;
+		a3: array[0..2, 0..0] of lreal := [1.0, 2.0, 3.0];
+		r3: array[0..0, 0..2] of lreal;
+		a4: array[0..1, 0..2] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+		r4: array[0..2, 0..1] of lreal;
+		a5: array[0..2, 0..2] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0];
+		r5: array[0..2, 0..2] of lreal;
+		a6: array[0..1, 0..1] of lreal := [0.0, 0.0, 0.0, 0.0];
+		r6: array[0..1, 0..1] of lreal;
+		a7: array[0..1, 0..1] of lreal := [-1.0, -2.0, -3.0, -4.0];
+		r7: array[0..1, 0..1] of lreal;
+		a8: array[0..0, 0..2] of lreal := [1.5, 2.5, 3.5];
+		r8: array[0..2, 0..0] of lreal;
+		a9: array[0..1, 0..3] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
+		r9: array[0..3, 0..1] of lreal;
+		a10: array[0..0, 0..2] of lreal := [1e-5, 2e-5, 3e-5];
+		r10: array[0..2, 0..0] of lreal;
+	end
+	{st}
+	Matrix_transpose(a:=a1, result:=r1);
+	EXPECT_NEAR(1.0, r1[0, 0], EPS);
+	EXPECT_NEAR(3.0, r1[0, 1], EPS);
+	EXPECT_NEAR(2.0, r1[1, 0], EPS);
+	EXPECT_NEAR(4.0, r1[1, 1], EPS);
+	Matrix_transpose(a:=a2, result:=r2);
+	EXPECT_NEAR(1.0, r2[0, 0], EPS);
+	EXPECT_NEAR(2.0, r2[1, 0], EPS);
+	EXPECT_NEAR(3.0, r2[2, 0], EPS);
+	Matrix_transpose(a:=a3, result:=r3);
+	EXPECT_NEAR(1.0, r3[0, 0], EPS);
+	EXPECT_NEAR(2.0, r3[0, 1], EPS);
+	EXPECT_NEAR(3.0, r3[0, 2], EPS);
+	Matrix_transpose(a:=a4, result:=r4);
+	EXPECT_NEAR(1.0, r4[0, 0], EPS);
+	EXPECT_NEAR(4.0, r4[0, 1], EPS);
+	EXPECT_NEAR(2.0, r4[1, 0], EPS);
+	EXPECT_NEAR(5.0, r4[1, 1], EPS);
+	EXPECT_NEAR(3.0, r4[2, 0], EPS);
+	EXPECT_NEAR(6.0, r4[2, 1], EPS);
+	Matrix_transpose(a:=a5, result:=r5);
+	EXPECT_NEAR(1.0, r5[0, 0], EPS);
+	EXPECT_NEAR(4.0, r5[0, 1], EPS);
+	EXPECT_NEAR(7.0, r5[0, 2], EPS);
+	EXPECT_NEAR(2.0, r5[1, 0], EPS);
+	EXPECT_NEAR(5.0, r5[1, 1], EPS);
+	Matrix_transpose(a:=a6, result:=r6);
+	EXPECT_NEAR(0.0, r6[0, 0], EPS);
+	EXPECT_NEAR(0.0, r6[0, 1], EPS);
+	EXPECT_NEAR(0.0, r6[1, 0], EPS);
+	EXPECT_NEAR(0.0, r6[1, 1], EPS);
+	Matrix_transpose(a:=a7, result:=r7);
+	EXPECT_NEAR(-1.0, r7[0, 0], EPS);
+	EXPECT_NEAR(-3.0, r7[0, 1], EPS);
+	EXPECT_NEAR(-2.0, r7[1, 0], EPS);
+	EXPECT_NEAR(-4.0, r7[1, 1], EPS);
+	Matrix_transpose(a:=a8, result:=r8);
+	EXPECT_NEAR(1.5, r8[0, 0], EPS);
+	EXPECT_NEAR(2.5, r8[1, 0], EPS);
+	EXPECT_NEAR(3.5, r8[2, 0], EPS);
+	Matrix_transpose(a:=a9, result:=r9);
+	EXPECT_NEAR(1.0, r9[0, 0], EPS);
+	EXPECT_NEAR(5.0, r9[0, 1], EPS);
+	EXPECT_NEAR(2.0, r9[1, 0], EPS);
+	EXPECT_NEAR(6.0, r9[1, 1], EPS);
+	Matrix_transpose(a:=a10, result:=r10);
+	EXPECT_NEAR(1e-5, r10[0, 0], 1e-15);
+	EXPECT_NEAR(2e-5, r10[1, 0], 1e-15);
+	EXPECT_NEAR(3e-5, r10[2, 0], 1e-15);
+	{end}
+END_TEST_S
+
+TEST_S(test_matrix_vector_multiply)
+	var
+		a1: array[0..1, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0];
+		v1: array[0..1] of lreal := [5.0, 6.0];
+		r1: array[0..1] of lreal;
+		a2: array[0..1, 0..1] of lreal := [1.0, 0.0, 0.0, 1.0];
+		v2: array[0..1] of lreal := [2.0, 3.0];
+		r2: array[0..1] of lreal;
+		a3: array[0..1, 0..1] of lreal := [2.0, 0.0, 0.0, 3.0];
+		v3: array[0..1] of lreal := [1.0, 1.0];
+		r3: array[0..1] of lreal;
+		a4: array[0..0, 0..2] of lreal := [1.0, 2.0, 3.0];
+		v4: array[0..2] of lreal := [4.0, 5.0, 6.0];
+		r4: array[0..0] of lreal;
+		a5: array[0..2, 0..0] of lreal := [1.0, 2.0, 3.0];
+		v5: array[0..0] of lreal := [5.0];
+		r5: array[0..2] of lreal;
+		a6: array[0..1, 0..1] of lreal := [0.0, 0.0, 0.0, 0.0];
+		v6: array[0..1] of lreal := [1.0, 2.0];
+		r6: array[0..1] of lreal;
+		a7: array[0..2, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+		v7: array[0..1] of lreal := [7.0, 8.0];
+		r7: array[0..2] of lreal;
+		a8: array[0..0, 0..1] of lreal := [1.5, 2.5];
+		v8: array[0..1] of lreal := [2.0, 4.0];
+		r8: array[0..0] of lreal;
+		a9: array[0..1, 0..2] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+		v9: array[0..2] of lreal := [1.0, 1.0, 1.0];
+		r9: array[0..1] of lreal;
+		a10: array[0..1, 0..1] of lreal := [1.0, -1.0, 1.0, 1.0];
+		v10: array[0..1] of lreal := [1.0, 0.0];
+		r10: array[0..1] of lreal;
+	end
+	{st}
+	Matrix_vector_multiply(a:=a1, v:=v1, result:=r1);
+	EXPECT_NEAR(17.0, r1[0], EPS);
+	EXPECT_NEAR(39.0, r1[1], EPS);
+	Matrix_vector_multiply(a:=a2, v:=v2, result:=r2);
+	EXPECT_NEAR(2.0, r2[0], EPS);
+	EXPECT_NEAR(3.0, r2[1], EPS);
+	Matrix_vector_multiply(a:=a3, v:=v3, result:=r3);
+	EXPECT_NEAR(2.0, r3[0], EPS);
+	EXPECT_NEAR(3.0, r3[1], EPS);
+	Matrix_vector_multiply(a:=a4, v:=v4, result:=r4);
+	EXPECT_NEAR(32.0, r4[0], EPS);
+	Matrix_vector_multiply(a:=a5, v:=v5, result:=r5);
+	EXPECT_NEAR(5.0, r5[0], EPS);
+	EXPECT_NEAR(10.0, r5[1], EPS);
+	EXPECT_NEAR(15.0, r5[2], EPS);
+	Matrix_vector_multiply(a:=a6, v:=v6, result:=r6);
+	EXPECT_NEAR(0.0, r6[0], EPS);
+	EXPECT_NEAR(0.0, r6[1], EPS);
+	Matrix_vector_multiply(a:=a7, v:=v7, result:=r7);
+	EXPECT_NEAR(23.0, r7[0], EPS);
+	EXPECT_NEAR(53.0, r7[1], EPS);
+	EXPECT_NEAR(83.0, r7[2], EPS);
+	Matrix_vector_multiply(a:=a8, v:=v8, result:=r8);
+	EXPECT_NEAR(13.0, r8[0], EPS);
+	Matrix_vector_multiply(a:=a9, v:=v9, result:=r9);
+	EXPECT_NEAR(6.0, r9[0], EPS);
+	EXPECT_NEAR(15.0, r9[1], EPS);
+	Matrix_vector_multiply(a:=a10, v:=v10, result:=r10);
+	EXPECT_NEAR(1.0, r10[0], EPS);
+	EXPECT_NEAR(1.0, r10[1], EPS);
+	{end}
+END_TEST_S
+
+{#undef EPS}

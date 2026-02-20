@@ -1,0 +1,107 @@
+(*
+ * Gaussian Elimination Solver
+ * $ jiecc ./linalg/solve/gaussian.txt -I. -I./vendor/jiecunit/sys -o ./linalg/solve/gaussian.xml -t omron
+ *)
+{#ifndef __LINALG_SOLVE_GAUSSIAN_TXT__}
+{#define __LINALG_SOLVE_GAUSSIAN_TXT__}
+
+{#include <sys.txt>}
+{#include <array/array.txt>}
+{#include <math/floor.txt>}
+
+(*{doc ガウス消去法。
+線形連立方程式 Ax = b をガウス消去法で設き、逆速を求める。
+@in_out a 係数行列A。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out b 右辺ベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out x 結果の解ベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error 入力値が不正な場合、または行列が特異である場合。}*)
+function Matrix_solve_gaussian
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 係数行列A。}*)
+		a: array[*, *] of lreal;
+		(*{doc 右辺ベクトル。}*)
+		b: array[*] of lreal;
+	end
+	var_in_out
+		(*{doc 結果の解ベクトル。}*)
+		x: array[*] of lreal;
+	end
+	var_temp
+		i, j, k, pivot_row: dint;
+		n: dint;
+		a_size, b_size, x_size: dint;
+		a_rows, a_cols: dint;
+		max_val, factor, tmp, sum_val: lreal;
+	end
+	{st}
+	a_size := Array_isRegular2d_lreal(a);
+	b_size := Array_isRegular_lreal(b);
+	x_size := Array_isRegular_lreal(x);
+	if (a_size = 0) or (b_size = 0) or (x_size = 0) then
+		eno := false;
+		return;
+	end_if;
+
+	a_rows := upper_bound(a, 1) - lower_bound(a, 1) + 1;
+	a_cols := upper_bound(a, 2) - lower_bound(a, 2) + 1;
+	if (a_rows <> a_cols) then
+		eno := false;
+		return;
+	end_if;
+	if (b_size <> a_rows) or (x_size <> a_rows) then
+		eno := false;
+		return;
+	end_if;
+
+	n := a_rows;
+	for i := 0 to n - 1 by 1 do
+		pivot_row := i;
+		max_val := abs(a[i, i]);
+		for k := i + 1 to n - 1 by 1 do
+			if abs(a[k, i]) > max_val then
+				max_val := abs(a[k, i]);
+				pivot_row := k;
+			end_if;
+		end_for;
+		if max_val < 1e-15 then
+			eno := false;
+			return;
+		end_if;
+		if pivot_row <> i then
+			for j := i to n - 1 by 1 do
+				tmp := a[i, j];
+				a[i, j] := a[pivot_row, j];
+				a[pivot_row, j] := tmp;
+			end_for;
+			tmp := b[i];
+			b[i] := b[pivot_row];
+			b[pivot_row] := tmp;
+		end_if;
+		for k := i + 1 to n - 1 by 1 do
+			factor := a[k, i] / a[i, i];
+			for j := i to n - 1 by 1 do
+				a[k, j] := a[k, j] - factor * a[i, j];
+			end_for;
+			b[k] := b[k] - factor * b[i];
+		end_for;
+	end_for;
+
+	for i := n - 1 to 0 by -1 do
+		sum_val := b[i];
+		for j := i + 1 to n - 1 by 1 do
+			sum_val := sum_val - a[i, j] * x[j];
+		end_for;
+		if abs(a[i, i]) < 1e-15 then
+			eno := false;
+			return;
+		end_if;
+		x[i] := sum_val / a[i, i];
+	end_for;
+	{end}
+end
+
+{#endif}

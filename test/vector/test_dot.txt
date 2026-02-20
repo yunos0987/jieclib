@@ -1,0 +1,514 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/vector/test_dot.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/vector/test_dot.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <vector/dot.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_vector_cross_product',
+		'test_vector_cross_product_magnitude',
+		'test_vector_cross_product_unit',
+		'test_vector_scalar_triple_product',
+		'test_vector_vector_triple_product',
+		'test_vector_angle_from_cross_product',
+		'test_vector_is_parallel',
+		'test_vector_is_orthogonal'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+{#define ANG_EPS 1.0e-6}
+
+TEST_S(test_vector_cross_product)
+	var
+		a1: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		b1: array[0..2] of lreal := [0.0, 1.0, 0.0];
+		r1: array[0..2] of lreal;
+		a2: array[0..2] of lreal := [0.0, 1.0, 0.0];
+		b2: array[0..2] of lreal := [0.0, 0.0, 1.0];
+		r2: array[0..2] of lreal;
+		a3: array[0..2] of lreal := [0.0, 0.0, 1.0];
+		b3: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		r3: array[0..2] of lreal;
+		a4: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		b4: array[0..2] of lreal := [4.0, 5.0, 6.0];
+		r4: array[0..2] of lreal;
+		a5: array[0..2] of lreal := [-1.0, 0.0, 1.0];
+		b5: array[0..2] of lreal := [1.0, 0.0, -1.0];
+		r5: array[0..2] of lreal;
+		a6: array[0..2] of lreal := [2.0, 0.0, 0.0];
+		b6: array[0..2] of lreal := [0.0, 3.0, 0.0];
+		r6: array[0..2] of lreal;
+		a7: array[0..2] of lreal := [0.0, 2.0, 0.0];
+		b7: array[0..2] of lreal := [0.0, 0.0, 3.0];
+		r7: array[0..2] of lreal;
+		a8: array[0..2] of lreal := [0.0, 0.0, 2.0];
+		b8: array[0..2] of lreal := [3.0, 0.0, 0.0];
+		r8: array[0..2] of lreal;
+		a9: array[0..2] of lreal := [1.0, 1.0, 0.0];
+		b9: array[0..2] of lreal := [-1.0, 1.0, 0.0];
+		r9: array[0..2] of lreal;
+		a10: array[0..2] of lreal := [1.0, 2.0, 0.0];
+		b10: array[0..2] of lreal := [2.0, 1.0, 0.0];
+		r10: array[0..2] of lreal;	end
+	{st}
+	Vector_cross_product(a:=a1, b:=b1, result:=r1);
+	EXPECT_NEAR(0.0, r1[0], EPS);
+	EXPECT_NEAR(0.0, r1[1], EPS);
+	EXPECT_NEAR(1.0, r1[2], EPS);
+	Vector_cross_product(a:=a2, b:=b2, result:=r2);
+	EXPECT_NEAR(1.0, r2[0], EPS);
+	EXPECT_NEAR(0.0, r2[1], EPS);
+	EXPECT_NEAR(0.0, r2[2], EPS);
+	Vector_cross_product(a:=a3, b:=b3, result:=r3);
+	EXPECT_NEAR(0.0, r3[0], EPS);
+	EXPECT_NEAR(1.0, r3[1], EPS);
+	EXPECT_NEAR(0.0, r3[2], EPS);
+	Vector_cross_product(a:=a4, b:=b4, result:=r4);
+	EXPECT_NEAR(-3.0, r4[0], EPS);
+	EXPECT_NEAR(6.0, r4[1], EPS);
+	EXPECT_NEAR(-3.0, r4[2], EPS);
+	Vector_cross_product(a:=a5, b:=b5, result:=r5);
+	EXPECT_NEAR(0.0, r5[0], EPS);
+	EXPECT_NEAR(0.0, r5[1], EPS);
+	EXPECT_NEAR(0.0, r5[2], EPS);
+	Vector_cross_product(a:=a6, b:=b6, result:=r6);
+	EXPECT_NEAR(0.0, r6[0], EPS);
+	EXPECT_NEAR(0.0, r6[1], EPS);
+	EXPECT_NEAR(6.0, r6[2], EPS);
+	Vector_cross_product(a:=a7, b:=b7, result:=r7);
+	EXPECT_NEAR(6.0, r7[0], EPS);
+	EXPECT_NEAR(0.0, r7[1], EPS);
+	EXPECT_NEAR(0.0, r7[2], EPS);
+	Vector_cross_product(a:=a8, b:=b8, result:=r8);
+	EXPECT_NEAR(0.0, r8[0], EPS);
+	EXPECT_NEAR(6.0, r8[1], EPS);
+	EXPECT_NEAR(0.0, r8[2], EPS);
+	Vector_cross_product(a:=a9, b:=b9, result:=r9);
+	EXPECT_NEAR(0.0, r9[0], EPS);
+	EXPECT_NEAR(0.0, r9[1], EPS);
+	EXPECT_NEAR(2.0, r9[2], EPS);
+	Vector_cross_product(a:=a10, b:=b10, result:=r10);
+	EXPECT_NEAR(0.0, r10[0], EPS);
+	EXPECT_NEAR(0.0, r10[1], EPS);
+	EXPECT_NEAR(-3.0, r10[2], EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_vector_cross_product_magnitude)
+	var
+		a1: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		b1: array[0..2] of lreal := [0.0, 1.0, 0.0];
+		a2: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		b2: array[0..2] of lreal := [4.0, 5.0, 6.0];
+		a3: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		b3: array[0..2] of lreal := [2.0, 0.0, 0.0];
+		a4: array[0..2] of lreal := [2.0, 0.0, 0.0];
+		b4: array[0..2] of lreal := [0.0, 3.0, 0.0];
+		a5: array[0..2] of lreal := [0.0, 2.0, 0.0];
+		b5: array[0..2] of lreal := [0.0, 0.0, 3.0];
+		a6: array[0..2] of lreal := [0.0, 0.0, 2.0];
+		b6: array[0..2] of lreal := [3.0, 0.0, 0.0];
+		a7: array[0..2] of lreal := [1.0, 1.0, 0.0];
+		b7: array[0..2] of lreal := [-1.0, 1.0, 0.0];
+		a8: array[0..2] of lreal := [1.0, 2.0, 0.0];
+		b8: array[0..2] of lreal := [2.0, 1.0, 0.0];
+		a9: array[0..2] of lreal := [0.0, 1.0, 2.0];
+		b9: array[0..2] of lreal := [2.0, 0.0, 1.0];
+		a10: array[0..2] of lreal := [3.0, 4.0, 0.0];
+		b10: array[0..2] of lreal := [0.0, 0.0, 5.0];
+		result: lreal;
+	end
+	{st}
+	result := Vector_cross_product_magnitude(a:=a1, b:=b1);
+	EXPECT_NEAR(1.0, result, EPS);
+	result := Vector_cross_product_magnitude(a:=a2, b:=b2);
+	EXPECT_NEAR(7.3484692283495345, result, 1.0e-12);
+	result := Vector_cross_product_magnitude(a:=a3, b:=b3);
+	EXPECT_NEAR(0.0, result, EPS);
+	result := Vector_cross_product_magnitude(a:=a4, b:=b4);
+	EXPECT_NEAR(6.0, result, EPS);
+	result := Vector_cross_product_magnitude(a:=a5, b:=b5);
+	EXPECT_NEAR(6.0, result, EPS);
+	result := Vector_cross_product_magnitude(a:=a6, b:=b6);
+	EXPECT_NEAR(6.0, result, EPS);
+	result := Vector_cross_product_magnitude(a:=a7, b:=b7);
+	EXPECT_NEAR(2.0, result, EPS);
+	result := Vector_cross_product_magnitude(a:=a8, b:=b8);
+	EXPECT_NEAR(3.0, result, EPS);
+	result := Vector_cross_product_magnitude(a:=a9, b:=b9);
+	EXPECT_NEAR(4.58257569495584, result, 1.0e-12);
+	result := Vector_cross_product_magnitude(a:=a10, b:=b10);
+	EXPECT_NEAR(25.0, result, EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_vector_cross_product_unit)
+	var
+		a1: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		b1: array[0..2] of lreal := [0.0, 1.0, 0.0];
+		r1: array[0..2] of lreal;
+		a2: array[0..2] of lreal := [0.0, 1.0, 0.0];
+		b2: array[0..2] of lreal := [0.0, 0.0, 1.0];
+		r2: array[0..2] of lreal;
+		a3: array[0..2] of lreal := [0.0, 0.0, 1.0];
+		b3: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		r3: array[0..2] of lreal;
+		a4: array[0..2] of lreal := [2.0, 0.0, 0.0];
+		b4: array[0..2] of lreal := [0.0, 3.0, 0.0];
+		r4: array[0..2] of lreal;
+		a5: array[0..2] of lreal := [1.0, 1.0, 0.0];
+		b5: array[0..2] of lreal := [-1.0, 1.0, 0.0];
+		r5: array[0..2] of lreal;
+		a6: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		b6: array[0..2] of lreal := [4.0, 5.0, 6.0];
+		r6: array[0..2] of lreal;
+		a7: array[0..2] of lreal := [1.0, 2.0, 0.0];
+		b7: array[0..2] of lreal := [2.0, 1.0, 0.0];
+		r7: array[0..2] of lreal;
+		a8: array[0..2] of lreal := [0.0, 1.0, 2.0];
+		b8: array[0..2] of lreal := [2.0, 0.0, 1.0];
+		r8: array[0..2] of lreal;
+		a9: array[0..2] of lreal := [3.0, 4.0, 0.0];
+		b9: array[0..2] of lreal := [0.0, 0.0, 5.0];
+		r9: array[0..2] of lreal;
+		a10: array[0..2] of lreal := [-1.0, 0.0, 1.0];
+		b10: array[0..2] of lreal := [0.0, 1.0, 0.0];
+		r10: array[0..2] of lreal;	end
+	{st}
+	Vector_cross_product_unit(a:=a1, b:=b1, result:=r1);
+	EXPECT_NEAR(0.0, r1[0], EPS);
+	EXPECT_NEAR(0.0, r1[1], EPS);
+	EXPECT_NEAR(1.0, r1[2], EPS);
+	Vector_cross_product_unit(a:=a2, b:=b2, result:=r2);
+	EXPECT_NEAR(1.0, r2[0], EPS);
+	EXPECT_NEAR(0.0, r2[1], EPS);
+	EXPECT_NEAR(0.0, r2[2], EPS);
+	Vector_cross_product_unit(a:=a3, b:=b3, result:=r3);
+	EXPECT_NEAR(0.0, r3[0], EPS);
+	EXPECT_NEAR(1.0, r3[1], EPS);
+	EXPECT_NEAR(0.0, r3[2], EPS);
+	Vector_cross_product_unit(a:=a4, b:=b4, result:=r4);
+	EXPECT_NEAR(0.0, r4[0], EPS);
+	EXPECT_NEAR(0.0, r4[1], EPS);
+	EXPECT_NEAR(1.0, r4[2], EPS);
+	Vector_cross_product_unit(a:=a5, b:=b5, result:=r5);
+	EXPECT_NEAR(0.0, r5[0], EPS);
+	EXPECT_NEAR(0.0, r5[1], EPS);
+	EXPECT_NEAR(1.0, r5[2], EPS);
+	Vector_cross_product_unit(a:=a6, b:=b6, result:=r6);
+	EXPECT_NEAR(-0.4082482904638631, r6[0], 1.0e-12);
+	EXPECT_NEAR(0.8164965809277261, r6[1], 1.0e-12);
+	EXPECT_NEAR(-0.4082482904638631, r6[2], 1.0e-12);
+	Vector_cross_product_unit(a:=a7, b:=b7, result:=r7);
+	EXPECT_NEAR(0.0, r7[0], EPS);
+	EXPECT_NEAR(0.0, r7[1], EPS);
+	EXPECT_NEAR(-1.0, r7[2], EPS);
+	Vector_cross_product_unit(a:=a8, b:=b8, result:=r8);
+	EXPECT_NEAR(0.2182178902359924, r8[0], 1.0e-12);
+	EXPECT_NEAR(0.8728715609439696, r8[1], 1.0e-12);
+	EXPECT_NEAR(-0.4364357804719848, r8[2], 1.0e-12);
+	Vector_cross_product_unit(a:=a9, b:=b9, result:=r9);
+	EXPECT_NEAR(0.8, r9[0], EPS);
+	EXPECT_NEAR(-0.6, r9[1], EPS);
+	EXPECT_NEAR(0.0, r9[2], EPS);
+	Vector_cross_product_unit(a:=a10, b:=b10, result:=r10);
+	EXPECT_NEAR(-0.7071067811865475, r10[0], 1.0e-12);
+	EXPECT_NEAR(0.0, r10[1], EPS);
+	EXPECT_NEAR(-0.7071067811865475, r10[2], 1.0e-12);
+	{end}
+END_TEST_S
+
+TEST_S(test_vector_scalar_triple_product)
+	var
+		a1: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		b1: array[0..2] of lreal := [0.0, 1.0, 0.0];
+		c1: array[0..2] of lreal := [0.0, 0.0, 1.0];
+		a2: array[0..2] of lreal := [0.0, 1.0, 0.0];
+		b2: array[0..2] of lreal := [0.0, 0.0, 1.0];
+		c2: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		a3: array[0..2] of lreal := [0.0, 0.0, 1.0];
+		b3: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		c3: array[0..2] of lreal := [0.0, 1.0, 0.0];
+		a4: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		b4: array[0..2] of lreal := [4.0, 5.0, 6.0];
+		c4: array[0..2] of lreal := [7.0, 8.0, 9.0];
+		a5: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		b5: array[0..2] of lreal := [0.0, 1.0, 0.0];
+		c5: array[0..2] of lreal := [0.0, 0.0, 1.0];
+		a6: array[0..2] of lreal := [2.0, 0.0, 0.0];
+		b6: array[0..2] of lreal := [0.0, 3.0, 0.0];
+		c6: array[0..2] of lreal := [0.0, 0.0, 4.0];
+		a7: array[0..2] of lreal := [1.0, 1.0, 1.0];
+		b7: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		c7: array[0..2] of lreal := [0.0, 1.0, 0.0];
+		a8: array[0..2] of lreal := [-1.0, 2.0, -3.0];
+		b8: array[0..2] of lreal := [4.0, -5.0, 6.0];
+		c8: array[0..2] of lreal := [-7.0, 8.0, -9.0];
+		a9: array[0..2] of lreal := [3.0, 4.0, 5.0];
+		b9: array[0..2] of lreal := [-1.0, 2.0, 0.0];
+		c9: array[0..2] of lreal := [0.0, 1.0, -2.0];
+		a10: array[0..2] of lreal := [0.5, 1.5, -2.0];
+		b10: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		c10: array[0..2] of lreal := [4.0, 5.0, 6.0];
+		result: lreal;
+	end
+	{st}
+	result := Vector_scalar_triple_product(a:=a1, b:=b1, c:=c1);
+	EXPECT_NEAR(1.0, result, EPS);
+	result := Vector_scalar_triple_product(a:=a2, b:=b2, c:=c2);
+	EXPECT_NEAR(1.0, result, EPS);
+	result := Vector_scalar_triple_product(a:=a3, b:=b3, c:=c3);
+	EXPECT_NEAR(1.0, result, EPS);
+	result := Vector_scalar_triple_product(a:=a4, b:=b4, c:=c4);
+	EXPECT_NEAR(0.0, result, EPS);
+	result := Vector_scalar_triple_product(a:=a5, b:=b5, c:=c5);
+	EXPECT_NEAR(1.0, result, EPS);
+	result := Vector_scalar_triple_product(a:=a6, b:=b6, c:=c6);
+	EXPECT_NEAR(24.0, result, EPS);
+	result := Vector_scalar_triple_product(a:=a7, b:=b7, c:=c7);
+	EXPECT_NEAR(1.0, result, EPS);
+	result := Vector_scalar_triple_product(a:=a8, b:=b8, c:=c8);
+	EXPECT_NEAR(0.0, result, EPS);
+	result := Vector_scalar_triple_product(a:=a9, b:=b9, c:=c9);
+	EXPECT_NEAR(-25.0, result, EPS);
+	result := Vector_scalar_triple_product(a:=a10, b:=b10, c:=c10);
+	EXPECT_NEAR(13.5, result, EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_vector_vector_triple_product)
+	var
+		a1: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		b1: array[0..2] of lreal := [0.0, 1.0, 0.0];
+		c1: array[0..2] of lreal := [0.0, 0.0, 1.0];
+		r1: array[0..2] of lreal;
+		a2: array[0..2] of lreal := [0.0, 1.0, 0.0];
+		b2: array[0..2] of lreal := [0.0, 0.0, 1.0];
+		c2: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		r2: array[0..2] of lreal;
+		a3: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		b3: array[0..2] of lreal := [4.0, 5.0, 6.0];
+		c3: array[0..2] of lreal := [7.0, 8.0, 9.0];
+		r3: array[0..2] of lreal;
+		a4: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		b4: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		c4: array[0..2] of lreal := [0.0, 1.0, 0.0];
+		r4: array[0..2] of lreal;
+		a5: array[0..2] of lreal := [0.0, 1.0, 0.0];
+		b5: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		c5: array[0..2] of lreal := [0.0, 1.0, 0.0];
+		r5: array[0..2] of lreal;
+		a6: array[0..2] of lreal := [0.0, 0.0, 1.0];
+		b6: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		c6: array[0..2] of lreal := [0.0, 1.0, 0.0];
+		r6: array[0..2] of lreal;
+		a7: array[0..2] of lreal := [2.0, 0.0, 0.0];
+		b7: array[0..2] of lreal := [0.0, 3.0, 0.0];
+		c7: array[0..2] of lreal := [0.0, 0.0, 4.0];
+		r7: array[0..2] of lreal;
+		a8: array[0..2] of lreal := [1.0, 1.0, 1.0];
+		b8: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		c8: array[0..2] of lreal := [0.0, 1.0, 0.0];
+		r8: array[0..2] of lreal;
+		a9: array[0..2] of lreal := [3.0, 4.0, 5.0];
+		b9: array[0..2] of lreal := [-1.0, 2.0, 0.0];
+		c9: array[0..2] of lreal := [0.0, 1.0, -2.0];
+		r9: array[0..2] of lreal;
+		a10: array[0..2] of lreal := [0.5, 1.5, -2.0];
+		b10: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		c10: array[0..2] of lreal := [4.0, 5.0, 6.0];
+		r10: array[0..2] of lreal;	end
+	{st}
+	Vector_vector_triple_product(a:=a1, b:=b1, c:=c1, result:=r1);
+	EXPECT_NEAR(0.0, r1[0], EPS);
+	EXPECT_NEAR(0.0, r1[1], EPS);
+	EXPECT_NEAR(0.0, r1[2], EPS);
+	Vector_vector_triple_product(a:=a2, b:=b2, c:=c2, result:=r2);
+	EXPECT_NEAR(0.0, r2[0], EPS);
+	EXPECT_NEAR(0.0, r2[1], EPS);
+	EXPECT_NEAR(0.0, r2[2], EPS);
+	Vector_vector_triple_product(a:=a3, b:=b3, c:=c3, result:=r3);
+	EXPECT_NEAR(-24.0, r3[0], EPS);
+	EXPECT_NEAR(-6.0, r3[1], EPS);
+	EXPECT_NEAR(12.0, r3[2], EPS);
+	Vector_vector_triple_product(a:=a4, b:=b4, c:=c4, result:=r4);
+	EXPECT_NEAR(0.0, r4[0], EPS);
+	EXPECT_NEAR(-1.0, r4[1], EPS);
+	EXPECT_NEAR(0.0, r4[2], EPS);
+	Vector_vector_triple_product(a:=a5, b:=b5, c:=c5, result:=r5);
+	EXPECT_NEAR(1.0, r5[0], EPS);
+	EXPECT_NEAR(0.0, r5[1], EPS);
+	EXPECT_NEAR(0.0, r5[2], EPS);
+	Vector_vector_triple_product(a:=a6, b:=b6, c:=c6, result:=r6);
+	EXPECT_NEAR(0.0, r6[0], EPS);
+	EXPECT_NEAR(0.0, r6[1], EPS);
+	EXPECT_NEAR(0.0, r6[2], EPS);
+	Vector_vector_triple_product(a:=a7, b:=b7, c:=c7, result:=r7);
+	EXPECT_NEAR(0.0, r7[0], EPS);
+	EXPECT_NEAR(0.0, r7[1], EPS);
+	EXPECT_NEAR(0.0, r7[2], EPS);
+	Vector_vector_triple_product(a:=a8, b:=b8, c:=c8, result:=r8);
+	EXPECT_NEAR(1.0, r8[0], EPS);
+	EXPECT_NEAR(-1.0, r8[1], EPS);
+	EXPECT_NEAR(0.0, r8[2], EPS);
+	Vector_vector_triple_product(a:=a9, b:=b9, c:=c9, result:=r9);
+	EXPECT_NEAR(6.0, r9[0], EPS);
+	EXPECT_NEAR(-17.0, r9[1], EPS);
+	EXPECT_NEAR(10.0, r9[2], EPS);
+	Vector_vector_triple_product(a:=a10, b:=b10, c:=c10, result:=r10);
+	EXPECT_NEAR(7.5, r10[0], EPS);
+	EXPECT_NEAR(7.5, r10[1], EPS);
+	EXPECT_NEAR(7.5, r10[2], EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_vector_angle_from_cross_product)
+	var
+		a1: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		b1: array[0..2] of lreal := [0.0, 1.0, 0.0];
+		a2: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		b2: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		a3: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		b3: array[0..2] of lreal := [0.0, 0.0, 1.0];
+		a4: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		b4: array[0..2] of lreal := [1.0, 1.0, 0.0];
+		a5: array[0..2] of lreal := [0.0, 1.0, 0.0];
+		b5: array[0..2] of lreal := [1.0, 1.0, 0.0];
+		a6: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		b6: array[0..2] of lreal := [0.8660254037844386, 0.5, 0.0];
+		a7: array[0..2] of lreal := [0.0, 1.0, 0.0];
+		b7: array[0..2] of lreal := [0.0, 1.0, 1.0];
+		a8: array[0..2] of lreal := [1.0, 2.0, 0.0];
+		b8: array[0..2] of lreal := [2.0, 1.0, 0.0];
+		a9: array[0..2] of lreal := [1.0, 1.0, 1.0];
+		b9: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		a10: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		b10: array[0..2] of lreal := [4.0, 5.0, 6.0];
+		result: lreal;
+	end
+	{st}
+	result := Vector_angle_from_cross_product(a:=a1, b:=b1);
+	EXPECT_NEAR(1.5707963267948966, result, ANG_EPS);
+	result := Vector_angle_from_cross_product(a:=a2, b:=b2);
+	EXPECT_NEAR(0.0, result, ANG_EPS);
+	result := Vector_angle_from_cross_product(a:=a3, b:=b3);
+	EXPECT_NEAR(1.5707963267948966, result, ANG_EPS);
+	result := Vector_angle_from_cross_product(a:=a4, b:=b4);
+	EXPECT_NEAR(0.7853981633974483, result, ANG_EPS);
+	result := Vector_angle_from_cross_product(a:=a5, b:=b5);
+	EXPECT_NEAR(0.7853981633974483, result, ANG_EPS);
+	result := Vector_angle_from_cross_product(a:=a6, b:=b6);
+	EXPECT_NEAR(0.5235987755982989, result, ANG_EPS);
+	result := Vector_angle_from_cross_product(a:=a7, b:=b7);
+	EXPECT_NEAR(0.7853981633974483, result, ANG_EPS);
+	result := Vector_angle_from_cross_product(a:=a8, b:=b8);
+	EXPECT_NEAR(0.6435011087932844, result, ANG_EPS);
+	result := Vector_angle_from_cross_product(a:=a9, b:=b9);
+	EXPECT_NEAR(0.9553166181245092, result, ANG_EPS);
+	result := Vector_angle_from_cross_product(a:=a10, b:=b10);
+	EXPECT_NEAR(0.2257261285527342, result, ANG_EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_vector_is_parallel)
+	var
+		a1: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		b1: array[0..2] of lreal := [2.0, 0.0, 0.0];
+		a2: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		b2: array[0..2] of lreal := [-1.0, 0.0, 0.0];
+		a3: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		b3: array[0..2] of lreal := [2.0, 4.0, 6.0];
+		a4: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		b4: array[0..2] of lreal := [-2.0, -4.0, -6.0];
+		a5: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		b5: array[0..2] of lreal := [0.0, 1.0, 0.0];
+		a6: array[0..2] of lreal := [0.0, 1.0, 0.0];
+		b6: array[0..2] of lreal := [0.0, 0.0, 1.0];
+		a7: array[0..2] of lreal := [1.0, 1.0, 0.0];
+		b7: array[0..2] of lreal := [2.0, 2.0, 0.0];
+		a8: array[0..2] of lreal := [1.0, 1.0, 0.0];
+		b8: array[0..2] of lreal := [2.0, -2.0, 0.0];
+		a9: array[0..2] of lreal := [0.0, 0.0, 1.0];
+		b9: array[0..2] of lreal := [0.0, 0.0, 5.0];
+		a10: array[0..2] of lreal := [1.0, 2.0, 0.0];
+		b10: array[0..2] of lreal := [2.0, 1.0, 0.0];
+		result: bool;
+	end
+	{st}
+	result := Vector_is_parallel(a:=a1, b:=b1, tolerance:=1.0e-9);
+	EXPECT_TRUE(result);
+	result := Vector_is_parallel(a:=a2, b:=b2, tolerance:=1.0e-9);
+	EXPECT_TRUE(result);
+	result := Vector_is_parallel(a:=a3, b:=b3, tolerance:=1.0e-9);
+	EXPECT_TRUE(result);
+	result := Vector_is_parallel(a:=a4, b:=b4, tolerance:=1.0e-9);
+	EXPECT_TRUE(result);
+	result := Vector_is_parallel(a:=a5, b:=b5, tolerance:=1.0e-9);
+	EXPECT_FALSE(result);
+	result := Vector_is_parallel(a:=a6, b:=b6, tolerance:=1.0e-9);
+	EXPECT_FALSE(result);
+	result := Vector_is_parallel(a:=a7, b:=b7, tolerance:=1.0e-9);
+	EXPECT_TRUE(result);
+	result := Vector_is_parallel(a:=a8, b:=b8, tolerance:=1.0e-9);
+	EXPECT_FALSE(result);
+	result := Vector_is_parallel(a:=a9, b:=b9, tolerance:=1.0e-9);
+	EXPECT_TRUE(result);
+	result := Vector_is_parallel(a:=a10, b:=b10, tolerance:=1.0e-9);
+	EXPECT_FALSE(result);
+	{end}
+END_TEST_S
+
+TEST_S(test_vector_is_orthogonal)
+	var
+		a1: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		b1: array[0..2] of lreal := [0.0, 1.0, 0.0];
+		a2: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		b2: array[0..2] of lreal := [0.0, 0.0, 1.0];
+		a3: array[0..2] of lreal := [0.0, 1.0, 0.0];
+		b3: array[0..2] of lreal := [0.0, 0.0, 1.0];
+		a4: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		b4: array[0..2] of lreal := [4.0, 5.0, 6.0];
+		a5: array[0..2] of lreal := [1.0, 1.0, 0.0];
+		b5: array[0..2] of lreal := [1.0, -1.0, 0.0];
+		a6: array[0..2] of lreal := [2.0, 0.0, 0.0];
+		b6: array[0..2] of lreal := [0.0, 3.0, 0.0];
+		a7: array[0..2] of lreal := [0.0, 2.0, 0.0];
+		b7: array[0..2] of lreal := [0.0, 0.0, 3.0];
+		a8: array[0..2] of lreal := [0.0, 0.0, 2.0];
+		b8: array[0..2] of lreal := [3.0, 0.0, 0.0];
+		a9: array[0..2] of lreal := [1.0, 2.0, 0.0];
+		b9: array[0..2] of lreal := [2.0, 1.0, 0.0];
+		a10: array[0..2] of lreal := [1.0, -2.0, 3.0];
+		b10: array[0..2] of lreal := [4.0, 2.0, 0.0];
+		result: bool;
+	end
+	{st}
+	result := Vector_is_orthogonal(a:=a1, b:=b1, tolerance:=1.0e-9);
+	EXPECT_TRUE(result);
+	result := Vector_is_orthogonal(a:=a2, b:=b2, tolerance:=1.0e-9);
+	EXPECT_TRUE(result);
+	result := Vector_is_orthogonal(a:=a3, b:=b3, tolerance:=1.0e-9);
+	EXPECT_TRUE(result);
+	result := Vector_is_orthogonal(a:=a4, b:=b4, tolerance:=1.0e-9);
+	EXPECT_FALSE(result);
+	result := Vector_is_orthogonal(a:=a5, b:=b5, tolerance:=1.0e-9);
+	EXPECT_TRUE(result);
+	result := Vector_is_orthogonal(a:=a6, b:=b6, tolerance:=1.0e-9);
+	EXPECT_TRUE(result);
+	result := Vector_is_orthogonal(a:=a7, b:=b7, tolerance:=1.0e-9);
+	EXPECT_TRUE(result);
+	result := Vector_is_orthogonal(a:=a8, b:=b8, tolerance:=1.0e-9);
+	EXPECT_TRUE(result);
+	result := Vector_is_orthogonal(a:=a9, b:=b9, tolerance:=1.0e-9);
+	EXPECT_FALSE(result);
+	result := Vector_is_orthogonal(a:=a10, b:=b10, tolerance:=1.0e-9);
+	EXPECT_TRUE(result);
+	{end}
+END_TEST_S
+
+{#undef EPS}

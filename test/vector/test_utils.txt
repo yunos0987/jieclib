@@ -1,0 +1,160 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/vector/test_utils.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/vector/test_utils.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <vector/utils.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_vector_utils_is_regular',
+		'test_vector_utils_is_zero',
+		'test_vector_utils_normalize'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_vector_utils_is_regular)
+	var
+		v1: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		v2: array[0..0] of lreal := [0.0];
+		v3: array[0..1] of lreal := [1.0, -1.0];
+		v4: array[0..3] of lreal := [0.1, 0.2, 0.3, 0.4];
+		v5: array[0..4] of lreal := [5.0, 4.0, 3.0, 2.0, 1.0];
+		v6: array[0..5] of lreal := [1.0, 0.0, 0.0, 0.0, 0.0, 1.0];
+		v7: array[0..2] of lreal := [-3.0, -2.0, -1.0];
+		v8: array[0..2] of lreal := [1.0e-9, -1.0e-9, 2.0e-9];
+		v9: array[0..6] of lreal := [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
+		v10: array[0..9] of lreal := [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0];
+		result: bool;
+	end
+	{st}
+	result := Vector_utils_is_regular(vector:=v1);
+	EXPECT_TRUE(result);
+	result := Vector_utils_is_regular(vector:=v2);
+	EXPECT_TRUE(result);
+	result := Vector_utils_is_regular(vector:=v3);
+	EXPECT_TRUE(result);
+	result := Vector_utils_is_regular(vector:=v4);
+	EXPECT_TRUE(result);
+	result := Vector_utils_is_regular(vector:=v5);
+	EXPECT_TRUE(result);
+	result := Vector_utils_is_regular(vector:=v6);
+	EXPECT_TRUE(result);
+	result := Vector_utils_is_regular(vector:=v7);
+	EXPECT_TRUE(result);
+	result := Vector_utils_is_regular(vector:=v8);
+	EXPECT_TRUE(result);
+	result := Vector_utils_is_regular(vector:=v9);
+	EXPECT_TRUE(result);
+	result := Vector_utils_is_regular(vector:=v10);
+	EXPECT_TRUE(result);
+	{end}
+END_TEST_S
+
+TEST_S(test_vector_utils_is_zero)
+	var
+		v1: array[0..2] of lreal := [0.0, 0.0, 0.0];
+		v2: array[0..2] of lreal := [0.0, 0.0, 1.0e-6];
+		v3: array[0..2] of lreal := [1.0e-13, -1.0e-13, 5.0e-13];
+		v4: array[0..2] of lreal := [1.0e-11, 0.0, 0.0];
+		v5: array[0..0] of lreal := [0.0];
+		v6: array[0..0] of lreal := [1.0e-10];
+		v7: array[0..3] of lreal := [0.0, 0.0, 0.0, 0.0];
+		v8: array[0..3] of lreal := [0.0, 1.0e-8, 0.0, 0.0];
+		v9: array[0..2] of lreal := [-1.0e-12, 1.0e-12, 0.0];
+		v10: array[0..2] of lreal := [0.0, 0.0, -1.0e-5];
+		result: bool;
+	end
+	{st}
+	result := Vector_utils_is_zero(vector:=v1, tolerance:=1.0e-12);
+	EXPECT_TRUE(result);
+	result := Vector_utils_is_zero(vector:=v2, tolerance:=1.0e-12);
+	EXPECT_FALSE(result);
+	result := Vector_utils_is_zero(vector:=v3, tolerance:=1.0e-12);
+	EXPECT_TRUE(result);
+	result := Vector_utils_is_zero(vector:=v4, tolerance:=1.0e-12);
+	EXPECT_FALSE(result);
+	result := Vector_utils_is_zero(vector:=v5, tolerance:=1.0e-12);
+	EXPECT_TRUE(result);
+	result := Vector_utils_is_zero(vector:=v6, tolerance:=1.0e-12);
+	EXPECT_FALSE(result);
+	result := Vector_utils_is_zero(vector:=v7, tolerance:=1.0e-12);
+	EXPECT_TRUE(result);
+	result := Vector_utils_is_zero(vector:=v8, tolerance:=1.0e-12);
+	EXPECT_FALSE(result);
+	result := Vector_utils_is_zero(vector:=v9, tolerance:=1.0e-12);
+	EXPECT_TRUE(result);
+	result := Vector_utils_is_zero(vector:=v10, tolerance:=1.0e-12);
+	EXPECT_FALSE(result);
+	{end}
+END_TEST_S
+
+TEST_S(test_vector_utils_normalize)
+	var
+		v1: array[0..2] of lreal := [3.0, 4.0, 0.0];
+		r1: array[0..2] of lreal;
+		v2: array[0..2] of lreal := [1.0, 0.0, 0.0];
+		r2: array[0..2] of lreal;
+		v3: array[0..2] of lreal := [0.0, -2.0, 0.0];
+		r3: array[0..2] of lreal;
+		v4: array[0..2] of lreal := [0.0, 0.0, 5.0];
+		r4: array[0..2] of lreal;
+		v5: array[0..1] of lreal := [1.0, 1.0];
+		r5: array[0..1] of lreal;
+		v6: array[0..1] of lreal := [2.0, -2.0];
+		r6: array[0..1] of lreal;
+		v7: array[0..0] of lreal := [10.0];
+		r7: array[0..0] of lreal;
+		v8: array[0..3] of lreal := [1.0, 1.0, 1.0, 1.0];
+		r8: array[0..3] of lreal;
+		v9: array[0..2] of lreal := [-1.0, -2.0, -2.0];
+		r9: array[0..2] of lreal;
+		v10: array[0..2] of lreal := [0.1, 0.2, 0.2];
+		r10: array[0..2] of lreal;
+	end
+	{st}
+	Vector_utils_normalize(vector:=v1, result:=r1, tolerance:=1.0e-15);
+	EXPECT_NEAR(0.6, r1[0], EPS);
+	EXPECT_NEAR(0.8, r1[1], EPS);
+	EXPECT_NEAR(0.0, r1[2], EPS);
+	Vector_utils_normalize(vector:=v2, result:=r2, tolerance:=1.0e-15);
+	EXPECT_NEAR(1.0, r2[0], EPS);
+	EXPECT_NEAR(0.0, r2[1], EPS);
+	EXPECT_NEAR(0.0, r2[2], EPS);
+	Vector_utils_normalize(vector:=v3, result:=r3, tolerance:=1.0e-15);
+	EXPECT_NEAR(0.0, r3[0], EPS);
+	EXPECT_NEAR(-1.0, r3[1], EPS);
+	EXPECT_NEAR(0.0, r3[2], EPS);
+	Vector_utils_normalize(vector:=v4, result:=r4, tolerance:=1.0e-15);
+	EXPECT_NEAR(0.0, r4[0], EPS);
+	EXPECT_NEAR(0.0, r4[1], EPS);
+	EXPECT_NEAR(1.0, r4[2], EPS);
+	Vector_utils_normalize(vector:=v5, result:=r5, tolerance:=1.0e-15);
+	EXPECT_NEAR(0.7071067811865475, r5[0], 1.0e-12);
+	EXPECT_NEAR(0.7071067811865475, r5[1], 1.0e-12);
+	Vector_utils_normalize(vector:=v6, result:=r6, tolerance:=1.0e-15);
+	EXPECT_NEAR(0.7071067811865475, r6[0], 1.0e-12);
+	EXPECT_NEAR(-0.7071067811865475, r6[1], 1.0e-12);
+	Vector_utils_normalize(vector:=v7, result:=r7, tolerance:=1.0e-15);
+	EXPECT_NEAR(1.0, r7[0], EPS);
+	Vector_utils_normalize(vector:=v8, result:=r8, tolerance:=1.0e-15);
+	EXPECT_NEAR(0.5, r8[0], EPS);
+	EXPECT_NEAR(0.5, r8[1], EPS);
+	EXPECT_NEAR(0.5, r8[2], EPS);
+	EXPECT_NEAR(0.5, r8[3], EPS);
+	Vector_utils_normalize(vector:=v9, result:=r9, tolerance:=1.0e-15);
+	EXPECT_NEAR(-0.3333333333333333, r9[0], 1.0e-12);
+	EXPECT_NEAR(-0.6666666666666666, r9[1], 1.0e-12);
+	EXPECT_NEAR(-0.6666666666666666, r9[2], 1.0e-12);
+	Vector_utils_normalize(vector:=v10, result:=r10, tolerance:=1.0e-15);
+	EXPECT_NEAR(0.3333333333333333, r10[0], 1.0e-12);
+	EXPECT_NEAR(0.6666666666666666, r10[1], 1.0e-12);
+	EXPECT_NEAR(0.6666666666666666, r10[2], 1.0e-12);
+	{end}
+END_TEST_S
+
+{#undef EPS}

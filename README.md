@@ -55,10 +55,77 @@ JiecLibに含まれるライブラリと、IEC 61131-10 XMLを生成するため
 
 * [array](./array)
   * 基本的な配列操作ライブラリです。
+  * **配列判定（正規配列）**
+    * [Array_isRegular_lreal](./array/array.txt) / [Array_isRegular_dint](./array/array.txt): 1次元配列の正規性判定
+    * [Array_isRegular2d_x_lreal](./array/array.txt) / [Array_isRegular2d_x_dint](./array/array.txt): 2次元配列の次元ごとの正規性判定
+    * [Array_isRegular2d_lreal](./array/array.txt) / [Array_isRegular2d_dint](./array/array.txt): 2次元配列の正規性判定
+  * **コピー**
+    * [Array_copy_lreal](./array/copy.txt) / [Array_copy_dint](./array/copy.txt): 全要素コピー
+    * [Array_copy_x_lreal](./array/copy.txt) / [Array_copy_x_dint](./array/copy.txt): 範囲指定コピー
+  * **ソート**
+    * [Array_bubblesort_lreal](./array/sort.txt) / [Array_bubblesort_dint](./array/sort.txt): バブルソート
+    * [Array_mergesort_lreal](./array/sort.txt) / [Array_mergesort_dint](./array/sort.txt): マージソート
+    * [Array_quicksort_lreal](./array/sort.txt) / [Array_quicksort_dint](./array/sort.txt): クイックソート
   * IEC 61131-10 XML生成コマンド: `jiecc ./array/array.txt -I. -I./vendor/jiecunit/sys -o ./array/array.xml -t omron`
 * [base64](./base64)
   * メール等で使用されているエンコード方式Base64です。
   * IEC 61131-10 XML生成コマンド: `jiecc ./base64/base64.txt -I. -I./vendor/jiecunit/sys -o ./base64/base64.xml -t omron`
+* [math](./math)
+  * 数学関数ライブラリです。
+  * [Math_floor](./math/floor.txt): 床関数（floor）
+  * [Math_atan2](./math/atan2.txt): 2引数アークタンジェント
+  * IEC 61131-10 XML生成コマンド:
+    * `jiecc ./math/floor.txt -I. -I./vendor/jiecunit/sys -o ./math/floor.xml -t omron`
+    * `jiecc ./math/atan2.txt -I. -I./vendor/jiecunit/sys -o ./math/atan2.xml -t omron`
+* [vector](./vector)
+  * ベクトル演算ライブラリです。
+  * **生成・基本演算**
+    * [Vector_zeros](./vector/constructors.txt) / [Vector_ones](./vector/constructors.txt) / [Vector_from_iterable](./vector/constructors.txt): 生成
+    * [Vector_add](./vector/arithmetic.txt) / [Vector_sub](./vector/arithmetic.txt) / [Vector_scale](./vector/arithmetic.txt): 基本演算
+    * [Vector_dot](./vector/arithmetic.txt): 内積
+    * [Vector_negate](./vector/arithmetic.txt) / [Vector_elementwise_mul](./vector/arithmetic.txt) / [Vector_elementwise_div](./vector/arithmetic.txt): 要素演算
+    * [Vector_linear_combination](./vector/arithmetic.txt) / [Vector_equal](./vector/arithmetic.txt): 線形結合・比較
+  * **外積・幾何**
+    * [Vector_cross_product](./vector/dot.txt) / [Vector_cross_product_magnitude](./vector/dot.txt) / [Vector_cross_product_unit](./vector/dot.txt): 外積
+    * [Vector_scalar_triple_product](./vector/dot.txt) / [Vector_vector_triple_product](./vector/dot.txt): 三重積
+    * [Vector_angle_from_cross_product](./vector/dot.txt) / [Vector_is_parallel](./vector/dot.txt) / [Vector_is_orthogonal](./vector/dot.txt): 角度・平行/直交判定
+  * **ノルム・距離**
+    * [Vector_norm_l1](./vector/norms.txt) / [Vector_norm_l2](./vector/norms.txt) / [Vector_norm_linf](./vector/norms.txt) / [Vector_norm_lp](./vector/norms.txt): ノルム
+    * [Vector_normalize_l2](./vector/norms.txt): 正規化
+    * [Vector_distance_l1](./vector/norms.txt) / [Vector_distance_l2](./vector/norms.txt) / [Vector_distance_linf](./vector/norms.txt): 距離
+    * [Vector_is_unit](./vector/norms.txt): 単位ベクトル判定
+  * **ユーティリティ**
+    * [Vector_utils_is_regular](./vector/utils.txt) / [Vector_utils_is_zero](./vector/utils.txt) / [Vector_utils_normalize](./vector/utils.txt): 補助関数
+  * IEC 61131-10 XML生成コマンド: `jiecc ./vector/vector.txt -I. -I./vendor/jiecunit/sys -o ./vector/vector.xml -t omron`
+* [linalg](./linalg)
+  * 行列中心の線形代数ライブラリです。
+  * **行列演算**
+    * [Matrix_add](./linalg/matrix/arithmetic.txt): 加算
+    * [Matrix_sub](./linalg/matrix/arithmetic.txt): 減算
+    * [Matrix_scale](./linalg/matrix/arithmetic.txt): スカラー倍
+    * [Matrix_multiply](./linalg/matrix/arithmetic.txt): 乗算
+    * [Matrix_transpose](./linalg/matrix/arithmetic.txt): 転置
+    * [Matrix_vector_multiply](./linalg/matrix/arithmetic.txt): 行列とベクトルの乗算
+    * [Matrix_inverse](./linalg/matrix/inverse.txt): 逆行列
+    * [Matrix_determinant](./linalg/matrix/properties.txt) / [Matrix_trace](./linalg/matrix/properties.txt) / [Matrix_rank](./linalg/matrix/properties.txt): 性質判定
+    * [Matrix_norm_frobenius](./linalg/matrix/properties.txt) / [Matrix_norm_spectral](./linalg/matrix/properties.txt) / [Matrix_norm_l1](./linalg/matrix/properties.txt) / [Matrix_norm_linf](./linalg/matrix/properties.txt): 行列ノルム
+  * **分解**
+    * [Matrix_lu_decompose](./linalg/decomposition/lu.txt): LU分解
+    * [Matrix_qr_decompose](./linalg/decomposition/qr.txt): QR分解
+    * [Matrix_cholesky_decompose](./linalg/decomposition/cholesky.txt): コレスキー分解
+    * [Matrix_svd_decompose](./linalg/decomposition/svd.txt): 特異値分解（SVD）
+  * **固有値問題**
+    * [Matrix_eigenvalue_compute](./linalg/eigenvalue/eigenvalue.txt): 固有値計算
+    * [Matrix_eigenvector_compute](./linalg/eigenvalue/eigenvector.txt): 固有ベクトル計算
+  * **連立方程式**
+    * [Matrix_solve_gaussian](./linalg/solve/gaussian.txt): ガウス消去法
+    * [Matrix_solve_iterative](./linalg/solve/iterative.txt): 反復法
+    * [Matrix_solve_least_squares](./linalg/solve/least_squares.txt): 最小二乗法
+  * **座標変換**
+    * [Matrix_rotation_2d](./linalg/transform/rotation.txt) / [Matrix_rotation_z](./linalg/transform/rotation.txt): 回転
+    * [Matrix_scaling_2d](./linalg/transform/scaling.txt) / [Matrix_scaling_3d](./linalg/transform/scaling.txt): 拡大縮小
+    * [Matrix_translation_2d](./linalg/transform/translation.txt) / [Matrix_translation_3d](./linalg/transform/translation.txt): 並進
+  * IEC 61131-10 XML生成コマンド: `jiecc ./linalg/linalg.txt -I. -I./vendor/jiecunit/sys -o ./linalg/linalg.xml -t omron`
 * [mersenne_twister](./mersenne_twister)
   * 擬似乱数生成アルゴリズムの一つであるメルセンヌ・ツイスタのIEC 61131-3 ST言語の実装です。
     * [Python言語のrandomモジュール](https://docs.python.org/ja/3.12/library/random.html)でも採用されている高速かつ超長周期の疑似乱数生成アルゴリズムです。その他の詳しい説明は、[メルセンヌ・ツイスタ考案者のウェブサイト](http://www.math.sci.hiroshima-u.ac.jp/m-mat/MT/mt.html)を参照してください。

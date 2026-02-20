@@ -1,0 +1,47 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./math/atan2.txt -I. -I./vendor/jiecunit/sys -o ./math/atan2.xml -t omron
+ *)
+{#ifndef __MATH_ATAN2_TXT__}
+{#define __MATH_ATAN2_TXT__}
+
+{#include <sys.txt>}
+
+{doc 2引数アークタンジェント関数。
+座標(x, y)の偏角をラジアンで返す。
+結果は-πからπの範囲内。象限を考慮した正しい角度を返す。
+@in y Y座標値
+@in x X座標値
+@return 偏角（ラジアン、-πからπ）}
+function Math_atan2: lreal
+	{#define PI 3.14159265358979323846}
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		{doc Y座標値}
+		y: lreal;
+		{doc X座標値}
+		x: lreal;
+	end
+	{st}
+		if x > 0.0 then
+			Math_atan2 := atan(y / x);
+		elsif x < 0.0 then
+			if y >= 0.0 then
+				Math_atan2 := atan(y / x) + PI;
+			else
+				Math_atan2 := atan(y / x) - PI;
+			end_if;
+		else  // x = 0.0
+			if y > 0.0 then
+				Math_atan2 := PI / 2.0;
+			elsif y < 0.0 then
+				Math_atan2 := -PI / 2.0;
+			else  // y = 0.0
+				Math_atan2 := 0.0;  // 未定義だが0を返す
+			end_if;
+		end_if;
+	{end}
+	{#undef PI}
+end
+
+{#endif}

@@ -1,0 +1,353 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/linalg/matrix/test_properties.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/matrix/test_properties.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <linalg/matrix/properties.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_matrix_determinant',
+		'test_matrix_trace',
+		'test_matrix_norm_frobenius',
+		'test_matrix_norm_spectral',
+		'test_matrix_rank',
+		'test_matrix_norm_l1',
+		'test_matrix_norm_linf'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_matrix_determinant)
+	var
+		a1: array[0..1, 0..1] of lreal := [1.0, 0.0, 0.0, 1.0];
+		det1: lreal;
+		a2: array[0..1, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0];
+		det2: lreal;
+		a3: array[0..1, 0..1] of lreal := [2.0, 0.0, 0.0, 3.0];
+		det3: lreal;
+		a4: array[0..1, 0..1] of lreal := [1.0, 1.0, 1.0, 1.0];
+		det4: lreal;
+		a5: array[0..2, 0..2] of lreal := [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
+		det5: lreal;
+		a6: array[0..2, 0..2] of lreal := [1.0, 2.0, 3.0, 0.0, 1.0, 4.0, 5.0, 6.0, 0.0];
+		det6: lreal;
+		a7: array[0..1, 0..1] of lreal := [2.0, -1.0, 1.0, 3.0];
+		det7: lreal;
+		a8: array[0..2, 0..2] of lreal := [2.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 4.0];
+		det8: lreal;
+		a9: array[0..1, 0..1] of lreal := [0.5, 0.25, 1.0, 0.5];
+		det9: lreal;
+		a10: array[0..2, 0..2] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0];
+		det10: lreal;
+	end
+	{st}
+	det1 := Matrix_determinant(a:=a1);
+	EXPECT_NEAR(1.0, det1, EPS);
+	det2 := Matrix_determinant(a:=a2);
+	EXPECT_NEAR(-2.0, det2, EPS);
+	det3 := Matrix_determinant(a:=a3);
+	EXPECT_NEAR(6.0, det3, EPS);
+	det4 := Matrix_determinant(a:=a4);
+	EXPECT_NEAR(0.0, det4, EPS);
+	det5 := Matrix_determinant(a:=a5);
+	EXPECT_NEAR(1.0, det5, EPS);
+	det6 := Matrix_determinant(a:=a6);
+	EXPECT_NEAR(1.0, det6, 1e-8);
+	det7 := Matrix_determinant(a:=a7);
+	EXPECT_NEAR(7.0, det7, EPS);
+	det8 := Matrix_determinant(a:=a8);
+	EXPECT_NEAR(24.0, det8, EPS);
+	det9 := Matrix_determinant(a:=a9);
+	EXPECT_NEAR(0.0, det9, EPS);
+	det10 := Matrix_determinant(a:=a10);
+	EXPECT_NEAR(0.0, det10, 1e-8);
+	{end}
+END_TEST_S
+
+TEST_S(test_matrix_trace)
+	var
+		a1: array[0..1, 0..1] of lreal := [1.0, 0.0, 0.0, 1.0];
+		tr1: lreal;
+		a2: array[0..1, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0];
+		tr2: lreal;
+		a3: array[0..1, 0..1] of lreal := [5.0, 0.0, 0.0, 7.0];
+		tr3: lreal;
+		a4: array[0..1, 0..1] of lreal := [0.0, 0.0, 0.0, 0.0];
+		tr4: lreal;
+		a5: array[0..2, 0..2] of lreal := [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
+		tr5: lreal;
+		a6: array[0..2, 0..2] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0];
+		tr6: lreal;
+		a7: array[0..1, 0..1] of lreal := [-1.0, -2.0, -3.0, -4.0];
+		tr7: lreal;
+		a8: array[0..2, 0..2] of lreal := [2.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 4.0];
+		tr8: lreal;
+		a9: array[0..1, 0..1] of lreal := [0.5, 0.25, 1.0, 0.5];
+		tr9: lreal;
+		a10: array[0..2, 0..2] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0];
+		tr10: lreal;
+	end
+	{st}
+	tr1 := Matrix_trace(a:=a1);
+	EXPECT_NEAR(2.0, tr1, EPS);
+	tr2 := Matrix_trace(a:=a2);
+	EXPECT_NEAR(5.0, tr2, EPS);
+	tr3 := Matrix_trace(a:=a3);
+	EXPECT_NEAR(12.0, tr3, EPS);
+	tr4 := Matrix_trace(a:=a4);
+	EXPECT_NEAR(0.0, tr4, EPS);
+	tr5 := Matrix_trace(a:=a5);
+	EXPECT_NEAR(3.0, tr5, EPS);
+	tr6 := Matrix_trace(a:=a6);
+	EXPECT_NEAR(15.0, tr6, EPS);
+	tr7 := Matrix_trace(a:=a7);
+	EXPECT_NEAR(-5.0, tr7, EPS);
+	tr8 := Matrix_trace(a:=a8);
+	EXPECT_NEAR(9.0, tr8, EPS);
+	tr9 := Matrix_trace(a:=a9);
+	EXPECT_NEAR(1.0, tr9, EPS);
+	tr10 := Matrix_trace(a:=a10);
+	EXPECT_NEAR(15.0, tr10, EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_matrix_norm_frobenius)
+	var
+		a1: array[0..1, 0..1] of lreal := [1.0, 0.0, 0.0, 1.0];
+		n1: lreal;
+		a2: array[0..1, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0];
+		n2: lreal;
+		a3: array[0..1, 0..1] of lreal := [0.0, 0.0, 0.0, 0.0];
+		n3: lreal;
+		a4: array[0..1, 0..1] of lreal := [3.0, 0.0, 0.0, 4.0];
+		n4: lreal;
+		a5: array[0..2, 0..2] of lreal := [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
+		n5: lreal;
+		a6: array[0..2, 0..2] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0];
+		n6: lreal;
+		a7: array[0..0, 0..2] of lreal := [1.0, 2.0, 3.0];
+		n7: lreal;
+		a8: array[0..1, 0..0] of lreal := [1.0, 2.0];
+		n8: lreal;
+		a9: array[0..1, 0..2] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+		n9: lreal;
+		a10: array[0..2, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+		n10: lreal;
+	end
+	{st}
+	n1 := Matrix_norm_frobenius(a:=a1);
+	EXPECT_NEAR(1.41421356, n1, 1e-7);
+	n2 := Matrix_norm_frobenius(a:=a2);
+	EXPECT_NEAR(5.47722558, n2, 1e-7);
+	n3 := Matrix_norm_frobenius(a:=a3);
+	EXPECT_NEAR(0.0, n3, EPS);
+	n4 := Matrix_norm_frobenius(a:=a4);
+	EXPECT_NEAR(5.0, n4, EPS);
+	n5 := Matrix_norm_frobenius(a:=a5);
+	EXPECT_NEAR(1.73205081, n5, 1e-7);
+	n6 := Matrix_norm_frobenius(a:=a6);
+	EXPECT_NEAR(16.88194301, n6, 1e-7);
+	n7 := Matrix_norm_frobenius(a:=a7);
+	EXPECT_NEAR(3.74165739, n7, 1e-7);
+	n8 := Matrix_norm_frobenius(a:=a8);
+	EXPECT_NEAR(2.23606798, n8, 1e-7);
+	n9 := Matrix_norm_frobenius(a:=a9);
+	EXPECT_NEAR(9.53939201, n9, 1e-7);
+	n10 := Matrix_norm_frobenius(a:=a10);
+	EXPECT_NEAR(9.53939201, n10, 1e-7);
+	{end}
+END_TEST_S
+
+TEST_S(test_matrix_norm_spectral)
+	var
+		a1: array[0..1, 0..1] of lreal := [1.0, 0.0, 0.0, 1.0];
+		n1: lreal;
+		a2: array[0..1, 0..1] of lreal := [2.0, 0.0, 0.0, 3.0];
+		n2: lreal;
+		a3: array[0..1, 0..1] of lreal := [0.0, 0.0, 0.0, 0.0];
+		n3: lreal;
+		a4: array[0..1, 0..1] of lreal := [1.0, 1.0, 1.0, 1.0];
+		n4: lreal;
+		a5: array[0..2, 0..2] of lreal := [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
+		n5: lreal;
+		a6: array[0..1, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0];
+		n6: lreal;
+		a7: array[0..2, 0..2] of lreal := [2.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 4.0];
+		n7: lreal;
+		a8: array[0..1, 0..1] of lreal := [0.5, 0.0, 0.0, 1.5];
+		n8: lreal;
+		a9: array[0..1, 0..1] of lreal := [-1.0, 2.0, 3.0, -4.0];
+		n9: lreal;
+		a10: array[0..1, 0..1] of lreal := [1.0, 0.0, 0.0, 1.0];
+		n10: lreal;
+	end
+	{st}
+	n1 := Matrix_norm_spectral(a:=a1);
+	EXPECT_NEAR(1.0, n1, EPS);
+	n2 := Matrix_norm_spectral(a:=a2);
+	EXPECT_NEAR(3.0, n2, EPS);
+	n3 := Matrix_norm_spectral(a:=a3);
+	EXPECT_NEAR(0.0, n3, EPS);
+	n4 := Matrix_norm_spectral(a:=a4);
+	EXPECT_NEAR(2.0, n4, EPS);
+	n5 := Matrix_norm_spectral(a:=a5);
+	EXPECT_NEAR(1.0, n5, EPS);
+	n6 := Matrix_norm_spectral(a:=a6);
+	EXPECT_NEAR(5.46498570, n6, 1e-7);
+	n7 := Matrix_norm_spectral(a:=a7);
+	EXPECT_NEAR(4.0, n7, EPS);
+	n8 := Matrix_norm_spectral(a:=a8);
+	EXPECT_NEAR(1.5, n8, EPS);
+	n9 := Matrix_norm_spectral(a:=a9);
+	EXPECT_NEAR(5.46498570, n9, 1e-7);
+	n10 := Matrix_norm_spectral(a:=a10);
+	EXPECT_NEAR(1.0, n10, EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_matrix_rank)
+	var
+		a1: array[0..1, 0..1] of lreal := [1.0, 0.0, 0.0, 1.0];
+		rk1: dint;
+		a2: array[0..1, 0..1] of lreal := [1.0, 2.0, 2.0, 4.0];
+		rk2: dint;
+		a3: array[0..1, 0..1] of lreal := [0.0, 0.0, 0.0, 0.0];
+		rk3: dint;
+		a4: array[0..1, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0];
+		rk4: dint;
+		a5: array[0..2, 0..2] of lreal := [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
+		rk5: dint;
+		a6: array[0..2, 0..2] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0];
+		rk6: dint;
+		a7: array[0..1, 0..2] of lreal := [1.0, 2.0, 3.0, 2.0, 4.0, 6.0];
+		rk7: dint;
+		a8: array[0..2, 0..1] of lreal := [1.0, 0.0, 0.0, 1.0, 0.0, 0.0];
+		rk8: dint;
+		a9: array[0..1, 0..2] of lreal := [1.0, 0.0, 0.0, 0.0, 1.0, 0.0];
+		rk9: dint;
+		a10: array[0..2, 0..2] of lreal := [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
+		rk10: dint;
+	end
+	{st}
+	rk1 := Matrix_rank(a:=a1);
+	EXPECT_TRUE(rk1 = 2);
+	rk2 := Matrix_rank(a:=a2);
+	EXPECT_TRUE(rk2 = 1);
+	rk3 := Matrix_rank(a:=a3);
+	EXPECT_TRUE(rk3 = 0);
+	rk4 := Matrix_rank(a:=a4);
+	EXPECT_TRUE(rk4 = 2);
+	rk5 := Matrix_rank(a:=a5);
+	EXPECT_TRUE(rk5 = 3);
+	rk6 := Matrix_rank(a:=a6);
+	EXPECT_TRUE(rk6 = 2);
+	rk7 := Matrix_rank(a:=a7);
+	EXPECT_TRUE(rk7 = 1);
+	rk8 := Matrix_rank(a:=a8);
+	EXPECT_TRUE(rk8 = 2);
+	rk9 := Matrix_rank(a:=a9);
+	EXPECT_TRUE(rk9 = 2);
+	rk10 := Matrix_rank(a:=a10);
+	EXPECT_TRUE(rk10 = 1);
+	{end}
+END_TEST_S
+
+TEST_S(test_matrix_norm_l1)
+	var
+		a1: array[0..1, 0..1] of lreal := [1.0, 0.0, 0.0, 1.0];
+		n1: lreal;
+		a2: array[0..1, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0];
+		n2: lreal;
+		a3: array[0..1, 0..1] of lreal := [0.0, 0.0, 0.0, 0.0];
+		n3: lreal;
+		a4: array[0..1, 0..1] of lreal := [-1.0, -2.0, -3.0, -4.0];
+		n4: lreal;
+		a5: array[0..2, 0..2] of lreal := [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
+		n5: lreal;
+		a6: array[0..1, 0..0] of lreal := [1.0, 2.0];
+		n6: lreal;
+		a7: array[0..0, 0..2] of lreal := [1.0, 2.0, 3.0];
+		n7: lreal;
+		a8: array[0..2, 0..2] of lreal := [2.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 4.0];
+		n8: lreal;
+		a9: array[0..1, 0..2] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+		n9: lreal;
+		a10: array[0..1, 0..1] of lreal := [0.5, 1.5, 2.5, 3.5];
+		n10: lreal;
+	end
+	{st}
+	n1 := Matrix_norm_l1(a:=a1);
+	EXPECT_NEAR(1.0, n1, EPS);
+	n2 := Matrix_norm_l1(a:=a2);
+	EXPECT_NEAR(6.0, n2, EPS);
+	n3 := Matrix_norm_l1(a:=a3);
+	EXPECT_NEAR(0.0, n3, EPS);
+	n4 := Matrix_norm_l1(a:=a4);
+	EXPECT_NEAR(6.0, n4, EPS);
+	n5 := Matrix_norm_l1(a:=a5);
+	EXPECT_NEAR(1.0, n5, EPS);
+	n6 := Matrix_norm_l1(a:=a6);
+	EXPECT_NEAR(3.0, n6, EPS);
+	n7 := Matrix_norm_l1(a:=a7);
+	EXPECT_NEAR(3.0, n7, EPS);
+	n8 := Matrix_norm_l1(a:=a8);
+	EXPECT_NEAR(4.0, n8, EPS);
+	n9 := Matrix_norm_l1(a:=a9);
+	EXPECT_NEAR(9.0, n9, EPS);
+	n10 := Matrix_norm_l1(a:=a10);
+	EXPECT_NEAR(5.0, n10, EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_matrix_norm_linf)
+	var
+		a1: array[0..1, 0..1] of lreal := [1.0, 0.0, 0.0, 1.0];
+		n1: lreal;
+		a2: array[0..1, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0];
+		n2: lreal;
+		a3: array[0..1, 0..1] of lreal := [0.0, 0.0, 0.0, 0.0];
+		n3: lreal;
+		a4: array[0..1, 0..1] of lreal := [-1.0, -2.0, -3.0, -4.0];
+		n4: lreal;
+		a5: array[0..2, 0..2] of lreal := [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
+		n5: lreal;
+		a6: array[0..1, 0..0] of lreal := [1.0, 2.0];
+		n6: lreal;
+		a7: array[0..0, 0..2] of lreal := [1.0, 2.0, 3.0];
+		n7: lreal;
+		a8: array[0..2, 0..2] of lreal := [2.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 4.0];
+		n8: lreal;
+		a9: array[0..1, 0..2] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+		n9: lreal;
+		a10: array[0..1, 0..1] of lreal := [0.5, 1.5, 2.5, 3.5];
+		n10: lreal;
+	end
+	{st}
+	n1 := Matrix_norm_linf(a:=a1);
+	EXPECT_NEAR(1.0, n1, EPS);
+	n2 := Matrix_norm_linf(a:=a2);
+	EXPECT_NEAR(7.0, n2, EPS);
+	n3 := Matrix_norm_linf(a:=a3);
+	EXPECT_NEAR(0.0, n3, EPS);
+	n4 := Matrix_norm_linf(a:=a4);
+	EXPECT_NEAR(7.0, n4, EPS);
+	n5 := Matrix_norm_linf(a:=a5);
+	EXPECT_NEAR(1.0, n5, EPS);
+	n6 := Matrix_norm_linf(a:=a6);
+	EXPECT_NEAR(2.0, n6, EPS);
+	n7 := Matrix_norm_linf(a:=a7);
+	EXPECT_NEAR(6.0, n7, EPS);
+	n8 := Matrix_norm_linf(a:=a8);
+	EXPECT_NEAR(4.0, n8, EPS);
+	n9 := Matrix_norm_linf(a:=a9);
+	EXPECT_NEAR(15.0, n9, EPS);
+	n10 := Matrix_norm_linf(a:=a10);
+	EXPECT_NEAR(6.0, n10, EPS);
+	{end}
+END_TEST_S
+
+{#undef EPS}

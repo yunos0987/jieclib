@@ -1,0 +1,177 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/linalg/transform/test_translation.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/transform/test_translation.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <linalg/transform/translation.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_matrix_translation_2d',
+		'test_matrix_translation_3d'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_matrix_translation_2d)
+	var
+		tx1: lreal := 0.0;
+		ty1: lreal := 0.0;
+		t1: array[0..2, 0..2] of lreal;
+		tx2: lreal := 1.0;
+		ty2: lreal := 2.0;
+		t2: array[0..2, 0..2] of lreal;
+		tx3: lreal := -1.5;
+		ty3: lreal := 2.5;
+		t3: array[0..2, 0..2] of lreal;
+		tx4: lreal := 10.0;
+		ty4: lreal := -5.0;
+		t4: array[0..2, 0..2] of lreal;
+		tx5: lreal := 100.0;
+		ty5: lreal := 100.0;
+		t5: array[0..2, 0..2] of lreal;
+		tx6: lreal := -10.0;
+		ty6: lreal := -10.0;
+		t6: array[0..2, 0..2] of lreal;
+		tx7: lreal := 0.5;
+		ty7: lreal := 0.5;
+		t7: array[0..2, 0..2] of lreal;
+		tx8: lreal := -0.5;
+		ty8: lreal := -0.5;
+		t8: array[0..2, 0..2] of lreal;
+		tx9: lreal := 3.14159;
+		ty9: lreal := 2.71828;
+		t9: array[0..2, 0..2] of lreal;
+		tx10: lreal := -3.5;
+		ty10: lreal := 4.5;
+		t10: array[0..2, 0..2] of lreal;
+	end
+	{st}
+	Matrix_translation_2d(tx:=tx1, ty:=ty1, translation:=t1);
+	EXPECT_NEAR(1.0, t1[0, 0], EPS);
+	EXPECT_NEAR(0.0, t1[0, 2], EPS);
+	EXPECT_NEAR(0.0, t1[1, 2], EPS);
+	Matrix_translation_2d(tx:=tx2, ty:=ty2, translation:=t2);
+	EXPECT_NEAR(1.0, t2[0, 0], EPS);
+	EXPECT_NEAR(1.0, t2[0, 2], EPS);
+	EXPECT_NEAR(2.0, t2[1, 2], EPS);
+	Matrix_translation_2d(tx:=tx3, ty:=ty3, translation:=t3);
+	EXPECT_NEAR(-1.5, t3[0, 2], EPS);
+	EXPECT_NEAR(2.5, t3[1, 2], EPS);
+	Matrix_translation_2d(tx:=tx4, ty:=ty4, translation:=t4);
+	EXPECT_NEAR(10.0, t4[0, 2], EPS);
+	EXPECT_NEAR(-5.0, t4[1, 2], EPS);
+	Matrix_translation_2d(tx:=tx5, ty:=ty5, translation:=t5);
+	EXPECT_NEAR(100.0, t5[0, 2], EPS);
+	EXPECT_NEAR(100.0, t5[1, 2], EPS);
+	Matrix_translation_2d(tx:=tx6, ty:=ty6, translation:=t6);
+	EXPECT_NEAR(-10.0, t6[0, 2], EPS);
+	EXPECT_NEAR(-10.0, t6[1, 2], EPS);
+	Matrix_translation_2d(tx:=tx7, ty:=ty7, translation:=t7);
+	EXPECT_NEAR(0.5, t7[0, 2], EPS);
+	EXPECT_NEAR(0.5, t7[1, 2], EPS);
+	Matrix_translation_2d(tx:=tx8, ty:=ty8, translation:=t8);
+	EXPECT_NEAR(-0.5, t8[0, 2], EPS);
+	EXPECT_NEAR(-0.5, t8[1, 2], EPS);
+	Matrix_translation_2d(tx:=tx9, ty:=ty9, translation:=t9);
+	EXPECT_NEAR(3.14159, t9[0, 2], EPS);
+	EXPECT_NEAR(2.71828, t9[1, 2], EPS);
+	Matrix_translation_2d(tx:=tx10, ty:=ty10, translation:=t10);
+	EXPECT_NEAR(-3.5, t10[0, 2], EPS);
+	EXPECT_NEAR(4.5, t10[1, 2], EPS);
+	{end}
+END_TEST_S
+
+TEST_S(test_matrix_translation_3d)
+	var
+		tx1: lreal := 0.0;
+		ty1: lreal := 0.0;
+		tz1: lreal := 0.0;
+		t1: array[0..3, 0..3] of lreal;
+		tx2: lreal := 1.0;
+		ty2: lreal := 2.0;
+		tz2: lreal := 3.0;
+		t2: array[0..3, 0..3] of lreal;
+		tx3: lreal := -1.0;
+		ty3: lreal := 2.5;
+		tz3: lreal := -3.5;
+		t3: array[0..3, 0..3] of lreal;
+		tx4: lreal := 10.0;
+		ty4: lreal := -5.0;
+		tz4: lreal := 15.0;
+		t4: array[0..3, 0..3] of lreal;
+		tx5: lreal := 100.0;
+		ty5: lreal := 100.0;
+		tz5: lreal := 100.0;
+		t5: array[0..3, 0..3] of lreal;
+		tx6: lreal := -10.0;
+		ty6: lreal := -10.0;
+		tz6: lreal := -10.0;
+		t6: array[0..3, 0..3] of lreal;
+		tx7: lreal := 0.5;
+		ty7: lreal := 0.5;
+		tz7: lreal := 0.5;
+		t7: array[0..3, 0..3] of lreal;
+		tx8: lreal := -0.5;
+		ty8: lreal := -0.5;
+		tz8: lreal := -0.5;
+		t8: array[0..3, 0..3] of lreal;
+		tx9: lreal := 3.14159;
+		ty9: lreal := 2.71828;
+		tz9: lreal := 1.41421;
+		t9: array[0..3, 0..3] of lreal;
+		tx10: lreal := -5.0;
+		ty10: lreal := 5.0;
+		tz10: lreal := 2.5;
+		t10: array[0..3, 0..3] of lreal;
+	end
+	{st}
+	Matrix_translation_3d(tx:=tx1, ty:=ty1, tz:=tz1, translation:=t1);
+	EXPECT_NEAR(1.0, t1[0, 0], EPS);
+	EXPECT_NEAR(0.0, t1[0, 3], EPS);
+	EXPECT_NEAR(0.0, t1[1, 3], EPS);
+	EXPECT_NEAR(0.0, t1[2, 3], EPS);
+	Matrix_translation_3d(tx:=tx2, ty:=ty2, tz:=tz2, translation:=t2);
+	EXPECT_NEAR(1.0, t2[0, 0], EPS);
+	EXPECT_NEAR(1.0, t2[0, 3], EPS);
+	EXPECT_NEAR(2.0, t2[1, 3], EPS);
+	EXPECT_NEAR(3.0, t2[2, 3], EPS);
+	Matrix_translation_3d(tx:=tx3, ty:=ty3, tz:=tz3, translation:=t3);
+	EXPECT_NEAR(-1.0, t3[0, 3], EPS);
+	EXPECT_NEAR(2.5, t3[1, 3], EPS);
+	EXPECT_NEAR(-3.5, t3[2, 3], EPS);
+	Matrix_translation_3d(tx:=tx4, ty:=ty4, tz:=tz4, translation:=t4);
+	EXPECT_NEAR(10.0, t4[0, 3], EPS);
+	EXPECT_NEAR(-5.0, t4[1, 3], EPS);
+	EXPECT_NEAR(15.0, t4[2, 3], EPS);
+	Matrix_translation_3d(tx:=tx5, ty:=ty5, tz:=tz5, translation:=t5);
+	EXPECT_NEAR(100.0, t5[0, 3], EPS);
+	EXPECT_NEAR(100.0, t5[1, 3], EPS);
+	EXPECT_NEAR(100.0, t5[2, 3], EPS);
+	Matrix_translation_3d(tx:=tx6, ty:=ty6, tz:=tz6, translation:=t6);
+	EXPECT_NEAR(-10.0, t6[0, 3], EPS);
+	EXPECT_NEAR(-10.0, t6[1, 3], EPS);
+	EXPECT_NEAR(-10.0, t6[2, 3], EPS);
+	Matrix_translation_3d(tx:=tx7, ty:=ty7, tz:=tz7, translation:=t7);
+	EXPECT_NEAR(0.5, t7[0, 3], EPS);
+	EXPECT_NEAR(0.5, t7[1, 3], EPS);
+	EXPECT_NEAR(0.5, t7[2, 3], EPS);
+	Matrix_translation_3d(tx:=tx8, ty:=ty8, tz:=tz8, translation:=t8);
+	EXPECT_NEAR(-0.5, t8[0, 3], EPS);
+	EXPECT_NEAR(-0.5, t8[1, 3], EPS);
+	EXPECT_NEAR(-0.5, t8[2, 3], EPS);
+	Matrix_translation_3d(tx:=tx9, ty:=ty9, tz:=tz9, translation:=t9);
+	EXPECT_NEAR(3.14159, t9[0, 3], EPS);
+	EXPECT_NEAR(2.71828, t9[1, 3], EPS);
+	EXPECT_NEAR(1.41421, t9[2, 3], EPS);
+	Matrix_translation_3d(tx:=tx10, ty:=ty10, tz:=tz10, translation:=t10);
+	EXPECT_NEAR(-5.0, t10[0, 3], EPS);
+	EXPECT_NEAR(5.0, t10[1, 3], EPS);
+	EXPECT_NEAR(2.5, t10[2, 3], EPS);
+	{end}
+END_TEST_S
+
+{#undef EPS}

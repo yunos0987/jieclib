@@ -1,0 +1,73 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/linalg/eigenvalue/test_eigenvector.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/eigenvalue/test_eigenvector.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <linalg/eigenvalue/eigenvector.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_matrix_eigenvector_compute'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-7}
+
+TEST_S(test_matrix_eigenvector_compute)
+	var
+		a1: array[0..1, 0..1] of lreal := [1.0, 0.0, 0.0, 2.0];
+		ev1: array[0..1] of lreal;
+		a2: array[0..1, 0..1] of lreal := [1.0, 2.0, 2.0, 1.0];
+		ev2: array[0..1] of lreal;
+		a3: array[0..2, 0..2] of lreal := [2.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 4.0];
+		ev3: array[0..2] of lreal;
+		a4: array[0..1, 0..1] of lreal := [4.0, -2.0, -2.0, 4.0];
+		ev4: array[0..1] of lreal;
+		a5: array[0..2, 0..2] of lreal := [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
+		ev5: array[0..2] of lreal;
+		a6: array[0..1, 0..1] of lreal := [2.0, 1.0, 1.0, 2.0];
+		ev6: array[0..1] of lreal;
+		a7: array[0..2, 0..2] of lreal := [5.0, 1.0, 0.0, 1.0, 4.0, 0.0, 0.0, 0.0, 3.0];
+		ev7: array[0..2] of lreal;
+		a8: array[0..1, 0..1] of lreal := [0.0, 1.0, 1.0, 0.0];
+		ev8: array[0..1] of lreal;
+		a9: array[0..2, 0..2] of lreal := [2.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 2.0];
+		ev9: array[0..2] of lreal;
+		a10: array[0..1, 0..1] of lreal := [3.0, 1.0, 1.0, 3.0];
+		ev10: array[0..1] of lreal;
+		a11: array[0..3, 0..3] of lreal := [4.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 1.0];
+		ev11: array[0..3] of lreal;
+		a12: array[0..3, 0..3] of lreal := [2.0, 1.0, 0.0, 0.0, 1.0, 3.0, 1.0, 0.0, 0.0, 1.0, 3.0, 1.0, 0.0, 0.0, 1.0, 2.0];
+		ev12: array[0..3] of lreal;
+	end
+	{st}
+	Matrix_eigenvector_compute(a:=a1, eigenvalue:=1.0, eigenvector:=ev1);
+	EXPECT_NEAR(1.0, abs(ev1[0]), EPS);
+	EXPECT_NEAR(0.0, abs(ev1[1]), EPS);
+	Matrix_eigenvector_compute(a:=a2, eigenvalue:=-1.0, eigenvector:=ev2);
+	EXPECT_NEAR(0.70710678, abs(ev2[0]), 1e-6);
+	EXPECT_NEAR(0.70710678, abs(ev2[1]), 1e-6);
+	Matrix_eigenvector_compute(a:=a3, eigenvalue:=2.0, eigenvector:=ev3);
+	EXPECT_NEAR(1.0, abs(ev3[0]), EPS);
+	Matrix_eigenvector_compute(a:=a4, eigenvalue:=2.0, eigenvector:=ev4);
+	EXPECT_NEAR(0.70710678, abs(ev4[0]), 1e-6);
+	Matrix_eigenvector_compute(a:=a5, eigenvalue:=1.0, eigenvector:=ev5);
+	EXPECT_TRUE((abs(ev5[0]) > 0.5) OR (abs(ev5[1]) > 0.5) OR (abs(ev5[2]) > 0.5));
+	Matrix_eigenvector_compute(a:=a6, eigenvalue:=1.0, eigenvector:=ev6);
+	EXPECT_NEAR(0.70710678, abs(ev6[0]), 1e-6);
+	Matrix_eigenvector_compute(a:=a7, eigenvalue:=3.0, eigenvector:=ev7);
+	EXPECT_NEAR(0.0, abs(ev7[0]), EPS);
+	EXPECT_NEAR(0.0, abs(ev7[1]), EPS);
+	EXPECT_NEAR(1.0, abs(ev7[2]), EPS);
+	Matrix_eigenvector_compute(a:=a8, eigenvalue:=1.0, eigenvector:=ev8);
+	EXPECT_NEAR(0.70710678, abs(ev8[0]), 1e-6);
+	Matrix_eigenvector_compute(a:=a9, eigenvalue:=1.0, eigenvector:=ev9);
+	EXPECT_NEAR(0.70710678, abs(ev9[0]), 1e-6);
+	Matrix_eigenvector_compute(a:=a10, eigenvalue:=2.0, eigenvector:=ev10);
+	EXPECT_NEAR(0.70710678, abs(ev10[0]), 1e-6);
+	{end}
+END_TEST_S
+
+{#undef EPS}

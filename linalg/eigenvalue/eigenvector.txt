@@ -1,0 +1,161 @@
+(*
+ * Eigenvector Computation
+ * $ jiecc ./linalg/eigenvalue/eigenvector.txt -I. -I./vendor/jiecunit/sys -o ./linalg/eigenvalue/eigenvector.xml -t omron
+ *)
+{#ifndef __LINALG_EIGENVALUE_EIGENVECTOR_TXT__}
+{#define __LINALG_EIGENVALUE_EIGENVECTOR_TXT__}
+
+{#include <sys.txt>}
+{#include <array/array.txt>}
+{#include <math/floor.txt>}
+
+(*{doc 対応する固有値の固有ベクトルを求める。
+@in_out a 入力行列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@input eigenvalue 固有ベクトルを求める固有値。
+@in_out eigenvector 結果の固有ベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error 入力配列が正規配列でない場合、aが正方行列でない場合、eigenvectorの要素数がaの行数と一致しない場合、行列サイズが32を超える場合、指定固有値に対して自由変数が得られない場合、または正規化不能な場合。}*)
+function Matrix_eigenvector_compute
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 入力行列。}*)
+		a: array[*, *] of lreal;
+	end
+	var_input
+		(*{doc 固有ベクトルを求める固有値。}*)
+		eigenvalue: lreal;
+	end
+	var_in_out
+		(*{doc 結果の固有ベクトル。}*)
+		eigenvector: array[*] of lreal;
+	end
+	var_temp
+		i, j, k, row, col, pivot_row, free_col, pivot_col: dint;
+		n: dint;
+		a_size, e_size: dint;
+		a_rows, a_cols: dint;
+		pivot_cols: array[0..31] of dint;
+		pivot_count: dint;
+		max_val, factor, tmp, sum_val, norm_val: lreal;
+		is_pivot: bool;
+	end
+	{st}
+	a_size := Array_isRegular2d_lreal(a);
+	e_size := Array_isRegular_lreal(eigenvector);
+	if (a_size = 0) or (e_size = 0) then
+		eno := false;
+		return;
+	end_if;
+
+	a_rows := upper_bound(a, 1) - lower_bound(a, 1) + 1;
+	a_cols := upper_bound(a, 2) - lower_bound(a, 2) + 1;
+	if (a_rows <> a_cols) then
+		eno := false;
+		return;
+	end_if;
+	if e_size <> a_rows then
+		eno := false;
+		return;
+	end_if;
+	if a_rows > 32 then
+		eno := false;
+		return;
+	end_if;
+
+	n := a_rows;
+	for i := 0 to n - 1 by 1 do
+		a[i, i] := a[i, i] - eigenvalue;
+	end_for;
+
+	for i := 0 to 31 by 1 do
+		pivot_cols[i] := -1;
+	end_for;
+	pivot_count := 0;
+	row := 0;
+	for col := 0 to n - 1 by 1 do
+		if row >= n then
+			exit;
+		end_if;
+		pivot_row := row;
+		max_val := abs(a[row, col]);
+		for i := row + 1 to n - 1 by 1 do
+			if abs(a[i, col]) > max_val then
+				max_val := abs(a[i, col]);
+				pivot_row := i;
+			end_if;
+		end_for;
+		if max_val > 1e-12 then
+			if pivot_row <> row then
+				for j := col to n - 1 by 1 do
+					tmp := a[row, j];
+					a[row, j] := a[pivot_row, j];
+					a[pivot_row, j] := tmp;
+				end_for;
+			end_if;
+			pivot_cols[row] := col;
+			pivot_count := pivot_count + 1;
+			for i := row + 1 to n - 1 by 1 do
+				factor := a[i, col] / a[row, col];
+				for j := col to n - 1 by 1 do
+					a[i, j] := a[i, j] - factor * a[row, j];
+				end_for;
+			end_for;
+			row := row + 1;
+		end_if;
+	end_for;
+
+	free_col := n - 1;
+	while free_col >= 0 do
+		is_pivot := false;
+		for i := 0 to pivot_count - 1 by 1 do
+			if pivot_cols[i] = free_col then
+				is_pivot := true;
+			end_if;
+		end_for;
+		if not is_pivot then
+			exit;
+		end_if;
+		free_col := free_col - 1;
+	end_while;
+	if free_col < 0 then
+		eno := false;
+		return;
+	end_if;
+
+	for i := 0 to n - 1 by 1 do
+		eigenvector[i] := 0.0;
+	end_for;
+	eigenvector[free_col] := 1.0;
+
+	for i := pivot_count - 1 to 0 by -1 do
+		pivot_col := pivot_cols[i];
+		if pivot_col >= 0 then
+			sum_val := 0.0;
+			for j := pivot_col + 1 to n - 1 by 1 do
+				sum_val := sum_val + a[i, j] * eigenvector[j];
+			end_for;
+			if abs(a[i, pivot_col]) < 1e-15 then
+				eno := false;
+				return;
+			end_if;
+			eigenvector[pivot_col] := -sum_val / a[i, pivot_col];
+		end_if;
+	end_for;
+
+	norm_val := 0.0;
+	for i := 0 to n - 1 by 1 do
+		norm_val := norm_val + eigenvector[i] * eigenvector[i];
+	end_for;
+	norm_val := sqrt(norm_val);
+	if norm_val < 1e-15 then
+		eno := false;
+		return;
+	end_if;
+	for i := 0 to n - 1 by 1 do
+		eigenvector[i] := eigenvector[i] / norm_val;
+	end_for;
+	{end}
+end
+
+{#endif}

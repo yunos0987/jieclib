@@ -1,0 +1,67 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/linalg/test_linalg.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/test_linalg.xml -t omron
+ *)
+{#if _JIECC and (_JIECC_VER < 514)}
+	{#error This test requires Jiecc 5.14 or later.}
+{#endif}
+{#include <jiecunit.txt>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 210)}
+	{#error This test requires JiecUnit 2.10 or later.}
+{#endif}
+{#include <linalg/linalg.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_matrix_add',
+		'test_matrix_sub',
+		'test_matrix_scale',
+		'test_matrix_multiply',
+		'test_matrix_transpose',
+		'test_matrix_vector_multiply',
+		'test_matrix_inverse',
+		'test_matrix_determinant',
+		'test_matrix_trace',
+		'test_matrix_norm_frobenius',
+		'test_matrix_norm_spectral',
+		'test_matrix_rank',
+		'test_matrix_norm_l1',
+		'test_matrix_norm_linf',
+		'test_matrix_cholesky_decompose',
+		'test_matrix_lu_decompose',
+		'test_matrix_qr_decompose',
+		'test_matrix_svd_decompose',
+		'test_matrix_eigenvalue_compute',
+		'test_matrix_eigenvector_compute',
+		'test_matrix_solve_gaussian',
+		'test_matrix_solve_iterative',
+		'test_matrix_solve_least_squares',
+		'test_matrix_rotation_2d',
+		'test_matrix_rotation_z',
+		'test_matrix_scaling_2d',
+		'test_matrix_scaling_3d',
+		'test_matrix_translation_2d',
+		'test_matrix_translation_3d'
+	)
+)
+{#undef _TEST_}
+{#endif}
+
+{#include "matrix/test_arithmetic.txt"}
+{#include "matrix/test_inverse.txt"}
+{#include "matrix/test_properties.txt"}
+{#include "decomposition/test_cholesky.txt"}
+{#include "decomposition/test_lu.txt"}
+{#include "decomposition/test_qr.txt"}
+{#include "decomposition/test_svd.txt"}
+{#include "eigenvalue/test_eigenvalue.txt"}
+{#include "eigenvalue/test_eigenvector.txt"}
+{#include "solve/test_gaussian.txt"}
+{#include "solve/test_iterative.txt"}
+{#include "solve/test_least_squares.txt"}
+{#include "transform/test_rotation.txt"}
+{#include "transform/test_scaling.txt"}
+{#include "transform/test_translation.txt"}
+
+{#undef _TEST_}

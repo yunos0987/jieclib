@@ -1,0 +1,60 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/vector/test_vector.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/vector/test_vector.xml -t omron
+ *)
+{#if _JIECC and (_JIECC_VER < 514)}
+	{#error This test requires Jiecc 5.14 or later.}
+{#endif}
+{#include <jiecunit.txt>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 210)}
+	{#error This test requires JiecUnit 2.10 or later.}
+{#endif}
+{#include <vector/vector.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_vector_zeros',
+		'test_vector_ones',
+		'test_vector_from_iterable',
+		'test_vector_add',
+		'test_vector_sub',
+		'test_vector_scale',
+		'test_vector_dot',
+		'test_vector_negate',
+		'test_vector_elementwise_mul',
+		'test_vector_elementwise_div',
+		'test_vector_linear_combination',
+		'test_vector_equal',
+		'test_vector_cross_product',
+		'test_vector_cross_product_magnitude',
+		'test_vector_cross_product_unit',
+		'test_vector_scalar_triple_product',
+		'test_vector_vector_triple_product',
+		'test_vector_angle_from_cross_product',
+		'test_vector_is_parallel',
+		'test_vector_is_orthogonal',
+		'test_vector_norm_l1',
+		'test_vector_norm_l2',
+		'test_vector_norm_linf',
+		'test_vector_norm_lp',
+		'test_vector_normalize_l2',
+		'test_vector_distance_l1',
+		'test_vector_distance_l2',
+		'test_vector_distance_linf',
+		'test_vector_is_unit',
+		'test_vector_utils_is_regular',
+		'test_vector_utils_is_zero',
+		'test_vector_utils_normalize'
+	)
+)
+{#undef _TEST_}
+{#endif}
+
+{#include "test_constructors.txt"}
+{#include "test_arithmetic.txt"}
+{#include "test_dot.txt"}
+{#include "test_norms.txt"}
+{#include "test_utils.txt"}
+
+{#undef _TEST_}

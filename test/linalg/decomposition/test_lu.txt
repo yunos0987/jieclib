@@ -1,0 +1,95 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/linalg/decomposition/test_lu.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/decomposition/test_lu.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <linalg/decomposition/lu.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_matrix_lu_decompose'
+	)
+)
+{#endif}
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_matrix_lu_decompose)
+	var
+		a1: array[0..1, 0..1] of lreal := [1.0, 2.0, 3.0, 4.0];
+		l1: array[0..1, 0..1] of lreal;
+		u1: array[0..1, 0..1] of lreal;
+		a2: array[0..1, 0..1] of lreal := [2.0, 1.0, 1.0, 3.0];
+		l2: array[0..1, 0..1] of lreal;
+		u2: array[0..1, 0..1] of lreal;
+		a3: array[0..1, 0..1] of lreal := [1.0, 0.0, 0.0, 1.0];
+		l3: array[0..1, 0..1] of lreal;
+		u3: array[0..1, 0..1] of lreal;
+		a4: array[0..2, 0..2] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0];
+		l4: array[0..2, 0..2] of lreal;
+		u4: array[0..2, 0..2] of lreal;
+		a5: array[0..1, 0..1] of lreal := [2.0, 0.0, 0.0, 3.0];
+		l5: array[0..1, 0..1] of lreal;
+		u5: array[0..1, 0..1] of lreal;
+		a6: array[0..2, 0..2] of lreal := [2.0, 1.0, 1.0, 1.0, 3.0, 1.0, 1.0, 1.0, 2.0];
+		l6: array[0..2, 0..2] of lreal;
+		u6: array[0..2, 0..2] of lreal;
+		a7: array[0..1, 0..1] of lreal := [0.5, 1.5, 2.5, 3.5];
+		l7: array[0..1, 0..1] of lreal;
+		u7: array[0..1, 0..1] of lreal;
+		a8: array[0..2, 0..2] of lreal := [3.0, 2.0, 1.0, 2.0, 3.0, 2.0, 1.0, 2.0, 3.0];
+		l8: array[0..2, 0..2] of lreal;
+		u8: array[0..2, 0..2] of lreal;
+		a9: array[0..1, 0..1] of lreal := [10.0, 5.0, 5.0, 10.0];
+		l9: array[0..1, 0..1] of lreal;
+		u9: array[0..1, 0..1] of lreal;
+		a10: array[0..2, 0..2] of lreal := [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
+		l10: array[0..2, 0..2] of lreal;
+		u10: array[0..2, 0..2] of lreal;
+		a11: array[0..3, 0..3] of lreal := [2.0, 1.0, 3.0, 1.0, 4.0, 3.0, 7.0, 2.0, 6.0, 5.0, 11.0, 3.0, 2.0, 1.0, 4.0, 2.0];
+		l11: array[0..3, 0..3] of lreal;
+		u11: array[0..3, 0..3] of lreal;
+		a12: array[0..3, 0..3] of lreal := [3.0, -1.0, 2.0, 1.0, 6.0, -2.0, 4.0, 2.0, 3.0, 1.0, 5.0, 3.0, 9.0, -3.0, 8.0, 4.0];
+		l12: array[0..3, 0..3] of lreal;
+		u12: array[0..3, 0..3] of lreal;
+		result_eno: bool;
+	end
+	{st}
+	Matrix_lu_decompose(a:=a1, l:=l1, u:=u1);
+	EXPECT_NEAR(1.0, l1[0, 0], 1.0e-9);
+	EXPECT_NEAR(2.0, u1[0, 1], 1.0e-9);
+	Matrix_lu_decompose(a:=a2, l:=l2, u:=u2);
+	EXPECT_NEAR(1.0, l2[0, 0], 1.0e-9);
+	EXPECT_NEAR(2.5, u2[1, 1], 1.0e-8);
+	Matrix_lu_decompose(a:=a3, l:=l3, u:=u3);
+	EXPECT_NEAR(1.0, l3[0, 0], 1.0e-9);
+	EXPECT_NEAR(1.0, u3[1, 1], 1.0e-9);
+	Matrix_lu_decompose(a:=a4, l:=l4, u:=u4, eno=>result_eno);
+	EXPECT_FALSE(result_eno);
+	Matrix_lu_decompose(a:=a5, l:=l5, u:=u5);
+	EXPECT_NEAR(1.0, l5[0, 0], 1.0e-9);
+	EXPECT_NEAR(2.0, u5[0, 0], 1.0e-9);
+	Matrix_lu_decompose(a:=a6, l:=l6, u:=u6);
+	EXPECT_NEAR(1.0, l6[0, 0], 1.0e-9);
+	EXPECT_NEAR(2.0, u6[0, 0], 1.0e-9);
+	Matrix_lu_decompose(a:=a7, l:=l7, u:=u7);
+	EXPECT_NEAR(1.0, l7[0, 0], 1.0e-9);
+	EXPECT_NEAR(0.5, u7[0, 0], 1.0e-9);
+	Matrix_lu_decompose(a:=a8, l:=l8, u:=u8);
+	EXPECT_NEAR(1.0, l8[0, 0], 1.0e-9);
+	EXPECT_NEAR(3.0, u8[0, 0], 1.0e-9);
+	Matrix_lu_decompose(a:=a9, l:=l9, u:=u9);
+	EXPECT_NEAR(1.0, l9[0, 0], 1.0e-9);
+	EXPECT_NEAR(10.0, u9[0, 0], 1.0e-9);
+	Matrix_lu_decompose(a:=a10, l:=l10, u:=u10);
+	EXPECT_NEAR(1.0, l10[0, 0], 1.0e-9);
+	EXPECT_NEAR(1.0, u10[0, 0], 1.0e-9);
+	Matrix_lu_decompose(a:=a11, l:=l11, u:=u11, eno=>result_eno);
+	EXPECT_FALSE(result_eno);
+	Matrix_lu_decompose(a:=a12, l:=l12, u:=u12, eno=>result_eno);
+	EXPECT_FALSE(result_eno);
+	{end}
+END_TEST_S
+
+{#undef EPS}
