@@ -1,0 +1,180 @@
+(*
+ * Test for Math_atan2 function
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/math/test_atan2.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -o ./test/math/test_atan2.xml -t omron
+ * or
+ * $ jiecc ./test/math/test_atan2.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -o ./test/math/test_atan2.xml -t keyence
+ *)
+{#include <jiecunit.txt>}
+{#include <math/atan2.txt>}
+
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_atan2'
+	)
+)
+
+{#define EPS 1.0e-9}
+
+TEST_S(test_atan2)
+	var
+		result: lreal;
+	end
+	{st}
+	// 第1象限 (x > 0, y > 0)
+	result := Math_atan2(y:=1.0000000000, x:=1.0000000000);
+	EXPECT_NEAR(0.7853981634, result, EPS);
+	result := Math_atan2(y:=0.5000000000, x:=1.0000000000);
+	EXPECT_NEAR(0.4636476090, result, EPS);
+	result := Math_atan2(y:=1.0000000000, x:=2.0000000000);
+	EXPECT_NEAR(0.4636476090, result, EPS);
+	result := Math_atan2(y:=4.0000000000, x:=3.0000000000);
+	EXPECT_NEAR(0.9272952180, result, EPS);
+	result := Math_atan2(y:=12.0000000000, x:=5.0000000000);
+	EXPECT_NEAR(1.1760052071, result, EPS);
+	result := Math_atan2(y:=2.0000000000, x:=1.0000000000);
+	EXPECT_NEAR(1.1071487178, result, EPS);
+	result := Math_atan2(y:=0.5000000000, x:=0.5000000000);
+	EXPECT_NEAR(0.7853981634, result, EPS);
+	result := Math_atan2(y:=10.0000000000, x:=10.0000000000);
+	EXPECT_NEAR(0.7853981634, result, EPS);
+	result := Math_atan2(y:=3.0000000000, x:=1.0000000000);
+	EXPECT_NEAR(1.2490457724, result, EPS);
+	result := Math_atan2(y:=2.0000000000, x:=7.0000000000);
+	EXPECT_NEAR(0.2782996590, result, EPS);
+
+	// 第2象限 (x < 0, y > 0)
+	result := Math_atan2(y:=1.0000000000, x:=-1.0000000000);
+	EXPECT_NEAR(2.3561944902, result, EPS);
+	result := Math_atan2(y:=0.5000000000, x:=-1.0000000000);
+	EXPECT_NEAR(2.6779450446, result, EPS);
+	result := Math_atan2(y:=1.0000000000, x:=-2.0000000000);
+	EXPECT_NEAR(2.6779450446, result, EPS);
+	result := Math_atan2(y:=4.0000000000, x:=-3.0000000000);
+	EXPECT_NEAR(2.2142974356, result, EPS);
+	result := Math_atan2(y:=12.0000000000, x:=-5.0000000000);
+	EXPECT_NEAR(1.9655874465, result, EPS);
+	result := Math_atan2(y:=2.0000000000, x:=-1.0000000000);
+	EXPECT_NEAR(2.0344439358, result, EPS);
+	result := Math_atan2(y:=0.5000000000, x:=-0.5000000000);
+	EXPECT_NEAR(2.3561944902, result, EPS);
+	result := Math_atan2(y:=10.0000000000, x:=-10.0000000000);
+	EXPECT_NEAR(2.3561944902, result, EPS);
+	result := Math_atan2(y:=3.0000000000, x:=-1.0000000000);
+	EXPECT_NEAR(1.8925468812, result, EPS);
+	result := Math_atan2(y:=2.0000000000, x:=-7.0000000000);
+	EXPECT_NEAR(2.8632929946, result, EPS);
+
+	// 第3象限 (x < 0, y < 0)
+	result := Math_atan2(y:=-1.0000000000, x:=-1.0000000000);
+	EXPECT_NEAR(-2.3561944902, result, EPS);
+	result := Math_atan2(y:=-0.5000000000, x:=-1.0000000000);
+	EXPECT_NEAR(-2.6779450446, result, EPS);
+	result := Math_atan2(y:=-1.0000000000, x:=-2.0000000000);
+	EXPECT_NEAR(-2.6779450446, result, EPS);
+	result := Math_atan2(y:=-4.0000000000, x:=-3.0000000000);
+	EXPECT_NEAR(-2.2142974356, result, EPS);
+	result := Math_atan2(y:=-12.0000000000, x:=-5.0000000000);
+	EXPECT_NEAR(-1.9655874465, result, EPS);
+	result := Math_atan2(y:=-2.0000000000, x:=-1.0000000000);
+	EXPECT_NEAR(-2.0344439358, result, EPS);
+	result := Math_atan2(y:=-0.5000000000, x:=-0.5000000000);
+	EXPECT_NEAR(-2.3561944902, result, EPS);
+	result := Math_atan2(y:=-10.0000000000, x:=-10.0000000000);
+	EXPECT_NEAR(-2.3561944902, result, EPS);
+	result := Math_atan2(y:=-3.0000000000, x:=-1.0000000000);
+	EXPECT_NEAR(-1.8925468812, result, EPS);
+	result := Math_atan2(y:=-2.0000000000, x:=-7.0000000000);
+	EXPECT_NEAR(-2.8632929946, result, EPS);
+
+	// 第4象限 (x > 0, y < 0)
+	result := Math_atan2(y:=-1.0000000000, x:=1.0000000000);
+	EXPECT_NEAR(-0.7853981634, result, EPS);
+	result := Math_atan2(y:=-0.5000000000, x:=1.0000000000);
+	EXPECT_NEAR(-0.4636476090, result, EPS);
+	result := Math_atan2(y:=-1.0000000000, x:=2.0000000000);
+	EXPECT_NEAR(-0.4636476090, result, EPS);
+	result := Math_atan2(y:=-4.0000000000, x:=3.0000000000);
+	EXPECT_NEAR(-0.9272952180, result, EPS);
+	result := Math_atan2(y:=-12.0000000000, x:=5.0000000000);
+	EXPECT_NEAR(-1.1760052071, result, EPS);
+	result := Math_atan2(y:=-2.0000000000, x:=1.0000000000);
+	EXPECT_NEAR(-1.1071487178, result, EPS);
+	result := Math_atan2(y:=-0.5000000000, x:=0.5000000000);
+	EXPECT_NEAR(-0.7853981634, result, EPS);
+	result := Math_atan2(y:=-10.0000000000, x:=10.0000000000);
+	EXPECT_NEAR(-0.7853981634, result, EPS);
+	result := Math_atan2(y:=-3.0000000000, x:=1.0000000000);
+	EXPECT_NEAR(-1.2490457724, result, EPS);
+	result := Math_atan2(y:=-2.0000000000, x:=7.0000000000);
+	EXPECT_NEAR(-0.2782996590, result, EPS);
+
+	// 軸上のケース
+	result := Math_atan2(y:=0.0000000000, x:=1.0000000000);
+	EXPECT_NEAR(0.0000000000, result, EPS);
+	result := Math_atan2(y:=1.0000000000, x:=0.0000000000);
+	EXPECT_NEAR(1.5707963268, result, EPS);
+	result := Math_atan2(y:=0.0000000000, x:=-1.0000000000);
+	EXPECT_NEAR(3.1415926536, result, EPS);
+	result := Math_atan2(y:=-1.0000000000, x:=0.0000000000);
+	EXPECT_NEAR(-1.5707963268, result, EPS);
+	result := Math_atan2(y:=0.0000000000, x:=0.0000000000);
+	EXPECT_NEAR(0.0000000000, result, EPS);
+	result := Math_atan2(y:=0.0000000000, x:=5.0000000000);
+	EXPECT_NEAR(0.0000000000, result, EPS);
+	result := Math_atan2(y:=5.0000000000, x:=0.0000000000);
+	EXPECT_NEAR(1.5707963268, result, EPS);
+	result := Math_atan2(y:=0.0000000000, x:=-5.0000000000);
+	EXPECT_NEAR(3.1415926536, result, EPS);
+	result := Math_atan2(y:=-5.0000000000, x:=0.0000000000);
+	EXPECT_NEAR(-1.5707963268, result, EPS);
+	result := Math_atan2(y:=0.0000000000, x:=100.0000000000);
+	EXPECT_NEAR(0.0000000000, result, EPS);
+
+	// 特殊な角度
+	result := Math_atan2(y:=1.0000000000, x:=1.7320508076);
+	EXPECT_NEAR(0.5235987756, result, EPS);
+	result := Math_atan2(y:=1.7320508076, x:=1.0000000000);
+	EXPECT_NEAR(1.0471975512, result, EPS);
+	result := Math_atan2(y:=1.0000000000, x:=-1.7320508076);
+	EXPECT_NEAR(2.6179938780, result, EPS);
+	result := Math_atan2(y:=1.7320508076, x:=-1.0000000000);
+	EXPECT_NEAR(2.0943951024, result, EPS);
+	result := Math_atan2(y:=-1.0000000000, x:=-1.7320508076);
+	EXPECT_NEAR(-2.6179938780, result, EPS);
+	result := Math_atan2(y:=-1.7320508076, x:=-1.0000000000);
+	EXPECT_NEAR(-2.0943951024, result, EPS);
+	result := Math_atan2(y:=-1.0000000000, x:=1.7320508076);
+	EXPECT_NEAR(-0.5235987756, result, EPS);
+	result := Math_atan2(y:=-1.7320508076, x:=1.0000000000);
+	EXPECT_NEAR(-1.0471975512, result, EPS);
+	result := Math_atan2(y:=1.4142135624, x:=1.4142135624);
+	EXPECT_NEAR(0.7853981634, result, EPS);
+	result := Math_atan2(y:=1.4142135624, x:=-1.4142135624);
+	EXPECT_NEAR(2.3561944902, result, EPS);
+
+	// 極値（小さな値と大きな値）
+	result := Math_atan2(y:=0.1000000000, x:=1.0000000000);
+	EXPECT_NEAR(0.0996686525, result, EPS);
+	result := Math_atan2(y:=0.0100000000, x:=1.0000000000);
+	EXPECT_NEAR(0.0099996667, result, EPS);
+	result := Math_atan2(y:=0.0010000000, x:=1.0000000000);
+	EXPECT_NEAR(0.0009999997, result, EPS);
+	result := Math_atan2(y:=1.0000000000, x:=0.1000000000);
+	EXPECT_NEAR(1.4711276743, result, EPS);
+	result := Math_atan2(y:=1.0000000000, x:=0.0100000000);
+	EXPECT_NEAR(1.5607966601, result, EPS);
+	result := Math_atan2(y:=1.0000000000, x:=100.0000000000);
+	EXPECT_NEAR(0.0099996667, result, EPS);
+	result := Math_atan2(y:=100.0000000000, x:=1.0000000000);
+	EXPECT_NEAR(1.5607966601, result, EPS);
+	result := Math_atan2(y:=1.0000000000, x:=1000.0000000000);
+	EXPECT_NEAR(0.0009999997, result, EPS);
+	result := Math_atan2(y:=1000.0000000000, x:=1.0000000000);
+	EXPECT_NEAR(1.5697963271, result, EPS);
+	result := Math_atan2(y:=50.0000000000, x:=50.0000000000);
+	EXPECT_NEAR(0.7853981634, result, EPS);
+	{end}
+END_TEST_S
+
+{#undef EPS}

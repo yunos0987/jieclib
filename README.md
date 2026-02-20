@@ -59,6 +59,13 @@ JiecLibに含まれるライブラリと、IEC 61131-10 XMLを生成するため
 * [base64](./base64)
   * メール等で使用されているエンコード方式Base64です。
   * IEC 61131-10 XML生成コマンド: `jiecc ./base64/base64.txt -I. -I./vendor/jiecunit/sys -o ./base64/base64.xml -t omron`
+* [math](./math)
+  * 数学関数ライブラリです。
+  * [Math_floor](./math/floor.txt): 床関数（floor）
+  * [Math_atan2](./math/atan2.txt): 2引数アークタンジェント
+  * IEC 61131-10 XML生成コマンド:
+    * `jiecc ./math/floor.txt -I. -I./vendor/jiecunit/sys -o ./math/floor.xml -t omron`
+    * `jiecc ./math/atan2.txt -I. -I./vendor/jiecunit/sys -o ./math/atan2.xml -t omron`
 * [mersenne_twister](./mersenne_twister)
   * 擬似乱数生成アルゴリズムの一つであるメルセンヌ・ツイスタのIEC 61131-3 ST言語の実装です。
     * [Python言語のrandomモジュール](https://docs.python.org/ja/3.12/library/random.html)でも採用されている高速かつ超長周期の疑似乱数生成アルゴリズムです。その他の詳しい説明は、[メルセンヌ・ツイスタ考案者のウェブサイト](http://www.math.sci.hiroshima-u.ac.jp/m-mat/MT/mt.html)を参照してください。
