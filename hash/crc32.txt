@@ -1,0 +1,198 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./hash/crc32.txt -I. -I./vendor/jiecunit/sys -o ./hash/crc32.xml -t omron
+ *)
+{#ifndef __HASH_CRC32_TXT__}
+{#define __HASH_CRC32_TXT__}
+
+{#include <sys.txt>}
+{#include <sys_conv.txt>}
+{#include <string_lib/string_lib.txt>}
+
+{#define STRING string[STRING_MAX_SIZE]}
+
+(*{doc 1バイトを16進2桁文字列へ変換する。
+@input b 入力バイト。
+@return 小文字16進2桁文字列。}*)
+function private_CRC32_hexbyte: string[2 + 1]
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 入力バイト。}*)
+		b: byte;
+	end
+	var_temp
+		HEX: array[0..15] of string[1 + 1] constant := [
+			'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'
+		];
+		hi, lo: dint;
+	end
+	{st}
+	hi := byte_to_dint(shr(b, 4));
+	lo := byte_to_dint(b and byte#16#0F);
+	private_CRC32_hexbyte := concat(HEX[hi], HEX[lo]);
+	{end}
+end
+
+(*{doc 32bit値を16進8桁文字列へ変換する。
+@input w 入力32bit値。
+@return 16進8桁文字列。}*)
+function private_CRC32_hexword_be: string[8 + 1]
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 入力32bit値。}*)
+		w: udint;
+	end
+	var_temp
+		dw: dword;
+		b0, b1, b2, b3: byte;
+	end
+	{st}
+	dw := udint_to_dword(w);
+	b0 := dword_to_byte(shr(dw, 24) and dword#16#000000FF);
+	b1 := dword_to_byte(shr(dw, 16) and dword#16#000000FF);
+	b2 := dword_to_byte(shr(dw, 8) and dword#16#000000FF);
+	b3 := dword_to_byte(dw and dword#16#000000FF);
+	private_CRC32_hexword_be := jiec_concat(private_CRC32_hexbyte(b0), private_CRC32_hexbyte(b1), private_CRC32_hexbyte(b2), private_CRC32_hexbyte(b3));
+	{end}
+end
+
+(*{doc 文字列のCRC32（8文字16進小文字）を得る。
+@input txt 入力文字列（ASCII想定）。
+@in_out work 入力文字列を展開する作業用バイト配列。
+	必要要素数はlen(txt)以上。
+@return CRC32ハッシュ文字列。
+@error ASCIIコード取得に失敗した場合、またはwork容量不足の場合。}*)
+function CRC32_string: string[8 + 1]
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 入力文字列（ASCII想定）。}*)
+		txt: STRING;
+	end
+	var_in_out
+		(*{doc 作業用バイト配列。必要要素数はlen(txt)以上。}*)
+		work: array[*] of byte;
+	end
+	var_temp
+		w0, w1: dint;
+		input_len: dint;
+		i: dint;
+		code: dint;
+	end
+	{st}
+	w0 := lower_bound(work, 1);
+	w1 := upper_bound(work, 1);
+	input_len := uint_to_dint(len(txt));
+	if input_len > (w1 - w0 + 1) then
+		eno := false;
+		return;
+	end_if;
+
+	for i := 0 to input_len - 1 by 1 do
+		code := String_asciiCharCodeAt(txt, i);
+		if (code < 0) or (code > 127) then
+			eno := false;
+			return;
+		end_if;
+		work[w0 + i] := dint_to_byte(code);
+	end_for;
+	CRC32_string := CRC32_bytes(dat:=work, offset:=0, length:=input_len, work:=work, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+	{end}
+end
+
+(*{doc バイト配列のCRC32（8文字16進小文字）を得る。
+@in_out dat 入力バイト配列。
+@input offset datの開始オフセット。
+	デフォルト値: 0
+@input length ハッシュ対象の要素数。
+	-1を指定するとき、offsetから末尾までを対象とする。
+	デフォルト値: -1
+@in_out work CRC32計算に使用する作業用バイト配列。
+	必要要素数は実入力長以上。
+@return CRC32ハッシュ文字列。
+@error offset/lengthが配列範囲外を指す場合、またはwork容量不足の場合。}*)
+function CRC32_bytes: string[8 + 1]
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 入力バイト配列。}*)
+		dat: array[*] of byte;
+	end
+	var_input
+		(*{doc datの開始オフセット。}*)
+		offset: dint := 0;
+		(*{doc ハッシュ対象の要素数。-1で末尾まで。}*)
+		length: dint := -1;
+	end
+	var_in_out
+		(*{doc 作業用バイト配列。必要要素数は実入力長以上。}*)
+		work: array[*] of byte;
+	end
+	var_temp
+		i0, i1: dint;
+		w0, w1: dint;
+		startindex, endindex: dint;
+		input_len: dint;
+		i, j: dint;
+		crc: dword;
+		POLY: dword := dword#16#EDB88320;
+	end
+	{st}
+	i0 := lower_bound(dat, 1);
+	i1 := upper_bound(dat, 1);
+	w0 := lower_bound(work, 1);
+	w1 := upper_bound(work, 1);
+
+	if length < -1 then
+		eno := false;
+		return;
+	end_if;
+
+	if length = 0 then
+		if (offset < 0) or (offset > (i1 - i0 + 1)) then
+			eno := false;
+			return;
+		end_if;
+		input_len := 0;
+	else
+		startindex := i0 + offset;
+		if length = -1 then
+			endindex := i1;
+		else
+			endindex := startindex + length - 1;
+		end_if;
+		if (startindex < i0) or (endindex < startindex) or (endindex > i1) then
+			eno := false;
+			return;
+		end_if;
+		input_len := endindex - startindex + 1;
+	end_if;
+
+	if input_len > (w1 - w0 + 1) then
+		eno := false;
+		return;
+	end_if;
+
+	for i := 0 to input_len - 1 by 1 do
+		work[w0 + i] := dat[startindex + i];
+	end_for;
+
+	crc := dword#16#FFFFFFFF;
+	for i := 0 to input_len - 1 by 1 do
+		crc := crc xor udint_to_dword(byte_to_udint(work[w0 + i]));
+		for j := 0 to 7 by 1 do
+			if (crc and dword#16#00000001) <> dword#16#00000000 then
+				crc := shr(crc, 1) xor POLY;
+			else
+				crc := shr(crc, 1);
+			end_if;
+		end_for;
+	end_for;
+	crc := crc xor dword#16#FFFFFFFF;
+
+	CRC32_bytes := private_CRC32_hexword_be(dword_to_udint(crc));
+	{end}
+end
+
+{#endif}

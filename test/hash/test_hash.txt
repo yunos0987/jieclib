@@ -4,16 +4,26 @@
  *)
 {#include <jiecunit.txt>}
 
-{#include <hash/md5.txt>}
-
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
+		'test_CRC32_string',
+		'test_CRC32_bytes',
 		'test_MD5_string',
-		'test_MD5_bytes'
+		'test_MD5_bytes',
+		'test_SHA1_string',
+		'test_SHA1_bytes',
+		'test_SHA256_string',
+		'test_SHA256_bytes',
+		'test_SHA512_string',
+		'test_SHA512_bytes'
 	)
 )
 {#undef _TEST_}
 {#endif}
 
+{#include <test/hash/test_crc32.txt>}
 {#include <test/hash/test_md5.txt>}
+{#include <test/hash/test_sha1.txt>}
+{#include <test/hash/test_sha256.txt>}
+{#include <test/hash/test_sha512.txt>}

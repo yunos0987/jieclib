@@ -80,10 +80,26 @@ JiecLibに含まれるライブラリと、IEC 61131-10 XMLを生成するため
     * IEC 61131-10 XML生成コマンド: `jiecc ./encoding/hex.txt -I. -I./vendor/jiecunit/sys -o ./encoding/hex.xml -t omron`
 * [hash](./hash)
   * ハッシュ関連ライブラリです。
+  * **CRC32**
+    * [CRC32_string](./hash/crc32.txt): 文字列入力のCRC32
+    * [CRC32_bytes](./hash/crc32.txt): バイト配列入力のCRC32（`offset`/`length`を指定）
+    * IEC 61131-10 XML生成コマンド: `jiecc ./hash/crc32.txt -I. -I./vendor/jiecunit/sys -o ./hash/crc32.xml -t omron`
   * **MD5**
-    * [MD5_string](./hash/md5.txt): 文字列入力のMD5（`work`配列を指定）
-    * [MD5_bytes](./hash/md5.txt): バイト配列入力のMD5（`offset`/`length`/`work`を指定）
+    * [MD5_string](./hash/md5.txt): 文字列入力のMD5
+    * [MD5_bytes](./hash/md5.txt): バイト配列入力のMD5（`offset`/`length`/を指定）
     * IEC 61131-10 XML生成コマンド: `jiecc ./hash/md5.txt -I. -I./vendor/jiecunit/sys -o ./hash/md5.xml -t omron`
+  * **SHA-1**
+    * [SHA1_string](./hash/sha1.txt): 文字列入力のSHA-1
+    * [SHA1_bytes](./hash/sha1.txt): バイト配列入力のSHA-1（`offset`/`length`を指定）
+    * IEC 61131-10 XML生成コマンド: `jiecc ./hash/sha1.txt -I. -I./vendor/jiecunit/sys -o ./hash/sha1.xml -t omron`
+  * **SHA-256**
+    * [SHA256_string](./hash/sha256.txt): 文字列入力のSHA-256
+    * [SHA256_bytes](./hash/sha256.txt): バイト配列入力のSHA-256（`offset`/`length`を指定）
+    * IEC 61131-10 XML生成コマンド: `jiecc ./hash/sha256.txt -I. -I./vendor/jiecunit/sys -o ./hash/sha256.xml -t omron`
+  * **SHA-512**
+    * [SHA512_string](./hash/sha512.txt): 文字列入力のSHA-512
+    * [SHA512_bytes](./hash/sha512.txt): バイト配列入力のSHA-512（`offset`/`length`を指定）
+    * IEC 61131-10 XML生成コマンド: `jiecc ./hash/sha512.txt -I. -I./vendor/jiecunit/sys -o ./hash/sha512.xml -t omron`
 * [math](./math)
   * 数学関数ライブラリです。
   * [Math_floor](./math/floor.txt): 床関数（floor）

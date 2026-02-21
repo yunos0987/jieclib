@@ -113,7 +113,7 @@ function MD5_string: string[32 + 1]
 
 	for i := 0 to input_len - 1 by 1 do
 		code := String_asciiCharCodeAt(txt, i);
-		if (code < 0) or (code > 255) then
+		if (code < 0) or (code > 127) then
 			eno := false;
 			return;
 		end_if;
