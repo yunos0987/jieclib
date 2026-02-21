@@ -1,0 +1,19 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/hash/test_hash.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -D_TEST_ -o ./test/hash/test_hash.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+
+{#include <hash/md5.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_MD5_string',
+		'test_MD5_bytes'
+	)
+)
+{#undef _TEST_}
+{#endif}
+
+{#include <test/hash/test_md5.txt>}

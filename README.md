@@ -78,6 +78,12 @@ JiecLibに含まれるライブラリと、IEC 61131-10 XMLを生成するため
   * **Hex**
     * [hexencode](./encoding/hex.txt) / [hexdecode](./encoding/hex.txt)
     * IEC 61131-10 XML生成コマンド: `jiecc ./encoding/hex.txt -I. -I./vendor/jiecunit/sys -o ./encoding/hex.xml -t omron`
+* [hash](./hash)
+  * ハッシュ関連ライブラリです。
+  * **MD5**
+    * [MD5_string](./hash/md5.txt): 文字列入力のMD5（`work`配列を指定）
+    * [MD5_bytes](./hash/md5.txt): バイト配列入力のMD5（`offset`/`length`/`work`を指定）
+    * IEC 61131-10 XML生成コマンド: `jiecc ./hash/md5.txt -I. -I./vendor/jiecunit/sys -o ./hash/md5.xml -t omron`
 * [math](./math)
   * 数学関数ライブラリです。
   * [Math_floor](./math/floor.txt): 床関数（floor）
