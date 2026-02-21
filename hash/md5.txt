@@ -1,0 +1,303 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./hash/md5.txt -I. -I./vendor/jiecunit/sys -o ./hash/md5.xml -t omron
+ *)
+{#ifndef __HASH_MD5_TXT__}
+{#define __HASH_MD5_TXT__}
+
+{#include <sys.txt>}
+{#include <sys_conv.txt>}
+{#include <string_lib/string_lib.txt>}
+
+{#define STRING string[STRING_MAX_SIZE]}
+
+(*{doc MD5で使用する32bit整数化を行う。
+@input n 入力整数（64bit）。
+@return nの下位32bitをUDINTとして返す。}*)
+function private_MD5_number: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		n: lint;
+	end
+	{st}
+	private_MD5_number := dword_to_udint(lint_to_dword(n));
+	{end}
+end
+
+(*{doc 32bit値を左ローテートする。
+@input x 入力値。
+@input c ローテートビット数。
+@return 左ローテート後の値。}*)
+function private_MD5_leftrotate: dword
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		x: dword;
+		c: dint;
+	end
+	{st}
+	private_MD5_leftrotate := shl(x, c) or shr(x, 32 - c);
+	{end}
+end
+
+(*{doc 1バイトを16進2桁文字列へ変換する。
+@input b 入力バイト。
+@return 小文字16進2桁文字列。}*)
+function private_MD5_hexbyte: string[2 + 1]
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		b: byte;
+	end
+	var_temp
+		HEX: array[0..15] of string[1 + 1] constant := [
+			'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'
+		];
+		hi, lo: dint;
+	end
+	{st}
+	hi := byte_to_dint(shr(b, 4));
+	lo := byte_to_dint(b and byte#16#0F);
+	private_MD5_hexbyte := concat(HEX[hi], HEX[lo]);
+	{end}
+end
+
+(*{doc 32bit値をリトルエンディアン順で16進8桁文字列へ変換する。
+@input w 入力32bit値。
+@return リトルエンディアン順の16進8桁文字列。}*)
+function private_MD5_hexword_le: string[8 + 1]
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		w: udint;
+	end
+	var_temp
+		dw: dword;
+		b0, b1, b2, b3: byte;
+	end
+	{st}
+	dw := udint_to_dword(w);
+	b0 := dword_to_byte(dw and dword#16#000000FF);
+	b1 := dword_to_byte(shr(dw, 8) and dword#16#000000FF);
+	b2 := dword_to_byte(shr(dw, 16) and dword#16#000000FF);
+	b3 := dword_to_byte(shr(dw, 24) and dword#16#000000FF);
+	private_MD5_hexword_le := jiec_concat(private_MD5_hexbyte(b0), private_MD5_hexbyte(b1), private_MD5_hexbyte(b2), private_MD5_hexbyte(b3));
+	{end}
+end
+
+(*{doc 文字列のMD5ダイジェスト（32文字16進小文字）を得る。
+@input txt 入力文字列（ASCII想定）。
+@in_out work 入力文字列を展開する作業用バイト配列。
+	必要要素数はlen(txt) + 72以上。
+@return MD5ハッシュ文字列。
+@error ASCIIコード取得に失敗した場合、またはwork容量不足の場合。}*)
+function MD5_string: string[32 + 1]
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		txt: STRING;
+	end
+	var_in_out
+		work: array[*] of byte;
+	end
+	var_temp
+		w0, w1: dint;
+		input_len: dint;
+		i: dint;
+		code: dint;
+	end
+	{st}
+	w0 := lower_bound(work, 1);
+	w1 := upper_bound(work, 1);
+	input_len := uint_to_dint(len(txt));
+	if (input_len + 72) > (w1 - w0 + 1) then
+		eno := false;
+		return;
+	end_if;
+
+	for i := 0 to input_len - 1 by 1 do
+		code := String_asciiCharCodeAt(txt, i);
+		if (code < 0) or (code > 127) then
+			eno := false;
+			return;
+		end_if;
+		work[w0 + i] := dint_to_byte(code);
+	end_for;
+	MD5_string := MD5_bytes(dat:=work, offset:=0, length:=input_len, work:=work, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+	{end}
+end
+
+(*{doc バイト配列のMD5ダイジェスト（32文字16進小文字）を得る。
+@in_out dat 入力バイト配列。
+@input offset datの開始オフセット。
+	デフォルト値: 0
+@input length ハッシュ対象の要素数。
+	-1を指定するとき、offsetから末尾までを対象とする。
+	デフォルト値: -1
+@in_out work MD5計算に使用する作業用バイト配列。
+	必要要素数は実入力長 + 72以上。
+@return MD5ハッシュ文字列。
+@error offset/lengthが配列範囲外を指す場合、またはwork容量不足の場合。}*)
+function MD5_bytes: string[32 + 1]
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		dat: array[*] of byte;
+	end
+	var_input
+		offset: dint := 0;
+		length: dint := -1;
+	end
+	var_in_out
+		work: array[*] of byte;
+	end
+	var_temp
+		S: array[0..63] of dint constant := [
+			7,12,17,22,7,12,17,22,7,12,17,22,7,12,17,22,
+			5,9,14,20,5,9,14,20,5,9,14,20,5,9,14,20,
+			4,11,16,23,4,11,16,23,4,11,16,23,4,11,16,23,
+			6,10,15,21,6,10,15,21,6,10,15,21,6,10,15,21
+		];
+		K: array[0..63] of dword constant := [
+			dword#16#D76AA478, dword#16#E8C7B756, dword#16#242070DB, dword#16#C1BDCEEE,
+			dword#16#F57C0FAF, dword#16#4787C62A, dword#16#A8304613, dword#16#FD469501,
+			dword#16#698098D8, dword#16#8B44F7AF, dword#16#FFFF5BB1, dword#16#895CD7BE,
+			dword#16#6B901122, dword#16#FD987193, dword#16#A679438E, dword#16#49B40821,
+			dword#16#F61E2562, dword#16#C040B340, dword#16#265E5A51, dword#16#E9B6C7AA,
+			dword#16#D62F105D, dword#16#02441453, dword#16#D8A1E681, dword#16#E7D3FBC8,
+			dword#16#21E1CDE6, dword#16#C33707D6, dword#16#F4D50D87, dword#16#455A14ED,
+			dword#16#A9E3E905, dword#16#FCEFA3F8, dword#16#676F02D9, dword#16#8D2A4C8A,
+			dword#16#FFFA3942, dword#16#8771F681, dword#16#6D9D6122, dword#16#FDE5380C,
+			dword#16#A4BEEA44, dword#16#4BDECFA9, dword#16#F6BB4B60, dword#16#BEBFBC70,
+			dword#16#289B7EC6, dword#16#EAA127FA, dword#16#D4EF3085, dword#16#04881D05,
+			dword#16#D9D4D039, dword#16#E6DB99E5, dword#16#1FA27CF8, dword#16#C4AC5665,
+			dword#16#F4292244, dword#16#432AFF97, dword#16#AB9423A7, dword#16#FC93A039,
+			dword#16#655B59C3, dword#16#8F0CCC92, dword#16#FFEFF47D, dword#16#85845DD1,
+			dword#16#6FA87E4F, dword#16#FE2CE6E0, dword#16#A3014314, dword#16#4E0811A1,
+			dword#16#F7537E82, dword#16#BD3AF235, dword#16#2AD7D2BB, dword#16#EB86D391
+		];
+		M: array[0..15] of dword;
+		i0, i1: dint;
+		w0, w1: dint;
+		startindex, endindex: dint;
+		input_len, total_len, num_blocks: dint;
+		pad_zero_count: dint;
+		i, j, blk: dint;
+		bit_len: ulint;
+		tmp_bit_len: ulint;
+		h0, h1, h2, h3: dword;
+		a, b, c, d: dword;
+		f: dword;
+		g: dint;
+		temp: dword;
+		tmp64: lint;
+	end
+	{st}
+	i0 := lower_bound(dat, 1);
+	i1 := upper_bound(dat, 1);
+	w0 := lower_bound(work, 1);
+	w1 := upper_bound(work, 1);
+
+	if length < -1 then
+		eno := false;
+		return;
+	end_if;
+
+	if length = 0 then
+		if (offset < 0) or (offset > (i1 - i0 + 1)) then
+			eno := false;
+			return;
+		end_if;
+		input_len := 0;
+	else
+		startindex := i0 + offset;
+		if length = -1 then
+			endindex := i1;
+		else
+			endindex := startindex + length - 1;
+		end_if;
+		if (startindex < i0) or (endindex < startindex) or (endindex > i1) then
+			eno := false;
+			return;
+		end_if;
+		input_len := endindex - startindex + 1;
+	end_if;
+
+	if (input_len + 72) > (w1 - w0 + 1) then
+		eno := false;
+		return;
+	end_if;
+
+	for i := 0 to input_len - 1 by 1 do
+		work[w0 + i] := dat[startindex + i];
+	end_for;
+
+	work[w0 + input_len] := byte#16#80;
+	pad_zero_count := (56 - ((input_len + 1) mod 64) + 64) mod 64;
+	for i := 1 to pad_zero_count by 1 do
+		work[w0 + input_len + i] := byte#16#00;
+	end_for;
+
+	total_len := input_len + 1 + pad_zero_count + 8;
+	bit_len := dint_to_ulint(input_len) * ulint#8;
+	tmp_bit_len := bit_len;
+	for i := 0 to 7 by 1 do
+		work[w0 + total_len - 8 + i] := ulint_to_byte(tmp_bit_len);
+		tmp_bit_len := tmp_bit_len / ulint#256;
+	end_for;
+	num_blocks := total_len / 64;
+
+	h0 := dword#16#67452301;
+	h1 := dword#16#EFCDAB89;
+	h2 := dword#16#98BADCFE;
+	h3 := dword#16#10325476;
+
+	for blk := 0 to num_blocks - 1 by 1 do
+		for i := 0 to 15 by 1 do
+			j := blk * 64 + i * 4;
+			M[i] :=
+				udint_to_dword(byte_to_udint(work[w0 + j])) or
+				shl(udint_to_dword(byte_to_udint(work[w0 + j + 1])), 8) or
+				shl(udint_to_dword(byte_to_udint(work[w0 + j + 2])), 16) or
+				shl(udint_to_dword(byte_to_udint(work[w0 + j + 3])), 24);
+		end_for;
+
+		a := h0;
+		b := h1;
+		c := h2;
+		d := h3;
+
+		for i := 0 to 63 by 1 do
+			if i <= 15 then
+				f := (b and c) or ((not b) and d);
+				g := i;
+			elsif i <= 31 then
+				f := (d and b) or ((not d) and c);
+				g := (5 * i + 1) mod 16;
+			elsif i <= 47 then
+				f := b xor c xor d;
+				g := (3 * i + 5) mod 16;
+			else
+				f := c xor (b or (not d));
+				g := (7 * i) mod 16;
+			end_if;
+
+			tmp64 := udint_to_lint(dword_to_udint(a)) + udint_to_lint(dword_to_udint(f)) + udint_to_lint(dword_to_udint(K[i])) + udint_to_lint(dword_to_udint(M[g]));
+			f := udint_to_dword(private_MD5_number(tmp64));
+			temp := d;
+			d := c;
+			c := b;
+			tmp64 := udint_to_lint(dword_to_udint(b)) + udint_to_lint(dword_to_udint(private_MD5_leftrotate(f, S[i])));
+			b := udint_to_dword(private_MD5_number(tmp64));
+			a := temp;
+		end_for;
+
+		h0 := udint_to_dword(private_MD5_number(udint_to_lint(dword_to_udint(h0)) + udint_to_lint(dword_to_udint(a))));
+		h1 := udint_to_dword(private_MD5_number(udint_to_lint(dword_to_udint(h1)) + udint_to_lint(dword_to_udint(b))));
+		h2 := udint_to_dword(private_MD5_number(udint_to_lint(dword_to_udint(h2)) + udint_to_lint(dword_to_udint(c))));
+		h3 := udint_to_dword(private_MD5_number(udint_to_lint(dword_to_udint(h3)) + udint_to_lint(dword_to_udint(d))));
+	end_for;
+
+	MD5_bytes := jiec_concat(private_MD5_hexword_le(dword_to_udint(h0)), private_MD5_hexword_le(dword_to_udint(h1)), private_MD5_hexword_le(dword_to_udint(h2)), private_MD5_hexword_le(dword_to_udint(h3)));
+	{end}
+end
+
+{#endif}

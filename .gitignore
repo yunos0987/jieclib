@@ -6,6 +6,7 @@ __pycache__
 #
 /test/**/*.xml
 /encoding/**/*.xml
+/hash/**/*.xml
 /mersenne_twister/**/*.xml
 /ringbuffer/**/*.xml
 /stats/**/*.xml

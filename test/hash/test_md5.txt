@@ -1,0 +1,141 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/hash/test_md5.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -D_TEST_ -o ./test/hash/test_md5.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <test/hash/helper_random.txt>}
+
+{#include <hash/md5.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_MD5_string',
+		'test_MD5_bytes'
+	)
+)
+{#endif}
+
+TEST_S(test_MD5_string)
+	var
+		r: string[32 + 1];
+		o: bool;
+		work: array[0..4095] of byte;
+		work_exact: array[0..74] of byte;
+		work_small: array[0..3] of byte;
+		rb1: array[0..8] of byte := [byte#16#97, byte#16#F1, byte#16#E2, byte#16#58, byte#16#EE, byte#16#19, byte#16#D9, byte#16#18, byte#16#C8];
+		rb2: array[0..12] of byte := [byte#16#2A, byte#16#41, byte#16#0D, byte#16#52, byte#16#94, byte#16#C2, byte#16#AF, byte#16#89, byte#16#0F, byte#16#CB, byte#16#B8, byte#16#8E, byte#16#D5];
+	end
+	{st}
+	r := MD5_string(txt:='', work:=work);
+	EXPECT_EQ_STRING('d41d8cd98f00b204e9800998ecf8427e', r);
+
+	r := MD5_string(txt:='a', work:=work);
+	EXPECT_EQ_STRING('0cc175b9c0f1b6a831c399e269772661', r);
+
+	r := MD5_string(txt:='abc', work:=work);
+	EXPECT_EQ_STRING('900150983cd24fb0d6963f7d28e17f72', r);
+	r := MD5_string(txt:='abc', work:=work_exact);
+	EXPECT_EQ_STRING('900150983cd24fb0d6963f7d28e17f72', r);
+
+	r := MD5_string(txt:='message digest', work:=work);
+	EXPECT_EQ_STRING('f96b697d7cb7938d525a2f31aaf161d0', r);
+
+	r := MD5_string(txt:='abcdefghijklmnopqrstuvwxyz', work:=work);
+	EXPECT_EQ_STRING('c3fcd3d76192e4007dfb496cca67e13b', r);
+
+	r := MD5_string(txt:='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', work:=work);
+	EXPECT_EQ_STRING('d174ab98d277d9f5a5611c2c9f419d9f', r);
+
+	r := MD5_string(txt:='12345678901234567890123456789012345678901234567890123456789012345678901234567890', work:=work);
+	EXPECT_EQ_STRING('57edf4a22be3c955ac49da2e2107b67a', r);
+
+	// control codes
+	r := MD5_string(txt:='$09$0A$0D', work:=work);
+	EXPECT_EQ_STRING('a2eb9e283a30bc04c02f39274e19c838', r);
+	r := MD5_string(txt:='fyPoFC21J5SX', work:=work);
+	EXPECT_EQ_STRING('87f2e5640109df9f95664a8f2b72caa8', r);
+	r := MD5_string(txt:='lBvqPXf8e0aO5C9', work:=work);
+	EXPECT_EQ_STRING('5a21fa24af93be15a5022517064e2d46', r);
+	r := MD5_string(txt:='$7F', work:=work);
+	EXPECT_EQ_STRING('83acb6e67e50e31db6ed341dd2de1595', r);
+
+	// symbol characters
+	r := MD5_string(txt:='!@#$$%^&*()_+-=[]{}|;:,./<>?', work:=work);
+	EXPECT_EQ_STRING('17b96640d34587620d50e1c08262ead6', r);
+	r := MD5_string(txt:='12345678901234567890123456789012345678901234567890123456789012345678901234567890', work:=work);
+	EXPECT_EQ_STRING('57edf4a22be3c955ac49da2e2107b67a', r);
+
+	MD5_string(txt:='$E3$81$82', work:=work, eno=>o);
+	EXPECT_FALSE(o);
+	MD5_string(txt:='abc', work:=work_small, eno=>o);
+	EXPECT_FALSE(o);
+	{end}
+END_TEST_S
+
+TEST_S(test_MD5_bytes)
+	var
+		r: string[32 + 1];
+		o: bool;
+		work: array[0..4095] of byte;
+		d0: array[0..0] of byte := [byte#16#00];
+		d1: array[0..2] of byte := [byte#16#61, byte#16#62, byte#16#63];
+		d2: array[0..2] of byte := [byte#16#09, byte#16#0A, byte#16#0D];
+		d3: array[0..6] of byte := [byte#16#00, byte#16#09, byte#16#0A, byte#16#0D, byte#16#7F, byte#16#80, byte#16#FF];
+		d4: array[0..26] of byte := [
+			byte#16#21, byte#16#40, byte#16#23, byte#16#24, byte#16#25, byte#16#5E, byte#16#26, byte#16#2A, byte#16#28,
+			byte#16#29, byte#16#5F, byte#16#2B, byte#16#2D, byte#16#3D, byte#16#5B, byte#16#5D, byte#16#7B, byte#16#7D,
+			byte#16#7C, byte#16#3B, byte#16#3A, byte#16#2C, byte#16#2E, byte#16#2F, byte#16#3C, byte#16#3E, byte#16#3F
+		];
+		d5: array[0..5] of byte := [byte#16#10, byte#16#20, byte#16#30, byte#16#40, byte#16#50, byte#16#60];
+		rb1: array[0..8] of byte := [byte#16#97, byte#16#F1, byte#16#E2, byte#16#58, byte#16#EE, byte#16#19, byte#16#D9, byte#16#18, byte#16#C8];
+		rb2: array[0..12] of byte := [byte#16#2A, byte#16#41, byte#16#0D, byte#16#52, byte#16#94, byte#16#C2, byte#16#AF, byte#16#89, byte#16#0F, byte#16#CB, byte#16#B8, byte#16#8E, byte#16#D5];
+		rb1000: array[0..999] of byte := TEST_HASH_RB1000_LITERAL();
+	end
+	{st}
+	r := MD5_bytes(dat:=d0, length:=0, work:=work);
+	EXPECT_EQ_STRING('d41d8cd98f00b204e9800998ecf8427e', r);
+
+	r := MD5_bytes(dat:=d1, work:=work);
+	EXPECT_EQ_STRING('900150983cd24fb0d6963f7d28e17f72', r);
+
+	r := MD5_bytes(dat:=d0, length:=1, work:=work);
+	EXPECT_EQ_STRING('93b885adfe0da089cdf634904fd59f71', r);
+
+	r := MD5_bytes(dat:=d2, work:=work);
+	EXPECT_EQ_STRING('a2eb9e283a30bc04c02f39274e19c838', r);
+
+	r := MD5_bytes(dat:=d3, work:=work);
+	EXPECT_EQ_STRING('90d4ce59885e74c06f2b01ae95f9c7cc', r);
+	r := MD5_bytes(dat:=rb1, work:=work);
+	EXPECT_EQ_STRING('e3c42515be27af8211a93c02453cdbdc', r);
+	r := MD5_bytes(dat:=rb2, work:=work);
+	EXPECT_EQ_STRING('76191217dd46255735c93cf4396abf6f', r);
+	r := MD5_bytes(dat:=rb1000, work:=work);
+	EXPECT_EQ_STRING('c9f406458c8e2b0a51018eee39193d41', r);
+	r := MD5_bytes(dat:=rb1000, offset:=0, length:=1000, work:=work);
+	EXPECT_EQ_STRING('c9f406458c8e2b0a51018eee39193d41', r);
+
+	r := MD5_bytes(dat:=d4, work:=work);
+	EXPECT_EQ_STRING('17b96640d34587620d50e1c08262ead6', r);
+
+	r := MD5_bytes(dat:=d5, work:=work);
+	EXPECT_EQ_STRING('956f5952b025ef991f52db94f14f70fe', r);
+
+	r := MD5_bytes(dat:=d5, offset:=1, length:=3, work:=work);
+	EXPECT_EQ_STRING('a2024e1aff535374a94dcf78dca6fc1d', r);
+	r := MD5_bytes(dat:=d5, offset:=1, length:=-1, work:=work);
+	EXPECT_EQ_STRING('7c7cf503b111f0cf83d2c438ab985d59', r);
+	r := MD5_bytes(dat:=d5, offset:=6, length:=0, work:=work);
+	EXPECT_EQ_STRING('d41d8cd98f00b204e9800998ecf8427e', r);
+
+	MD5_bytes(dat:=d5, offset:=-1, length:=1, work:=work, eno=>o);
+	EXPECT_FALSE(o);
+	MD5_bytes(dat:=d5, offset:=0, length:=-2, work:=work, eno=>o);
+	EXPECT_FALSE(o);
+	MD5_bytes(dat:=d5, offset:=6, length:=1, work:=work, eno=>o);
+	EXPECT_FALSE(o);
+	MD5_bytes(dat:=d1, work:=d0, eno=>o);
+	EXPECT_FALSE(o);
+	{end}
+END_TEST_S

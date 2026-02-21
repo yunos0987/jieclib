@@ -1,0 +1,122 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/hash/test_sha256.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -D_TEST_ -o ./test/hash/test_sha256.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <test/hash/helper_random.txt>}
+
+{#include <hash/sha256.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_SHA256_string',
+		'test_SHA256_bytes'
+	)
+)
+{#endif}
+
+TEST_S(test_SHA256_string)
+	var
+		r: string[64 + 1];
+		o: bool;
+		work: array[0..4095] of byte;
+		work_exact: array[0..74] of byte;
+		work_small: array[0..70] of byte;
+		rb1: array[0..8] of byte := [byte#16#97, byte#16#F1, byte#16#E2, byte#16#58, byte#16#EE, byte#16#19, byte#16#D9, byte#16#18, byte#16#C8];
+		rb2: array[0..12] of byte := [byte#16#2A, byte#16#41, byte#16#0D, byte#16#52, byte#16#94, byte#16#C2, byte#16#AF, byte#16#89, byte#16#0F, byte#16#CB, byte#16#B8, byte#16#8E, byte#16#D5];
+	end
+	{st}
+	r := SHA256_string(txt:='', work:=work);
+	EXPECT_EQ_STRING('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', r);
+
+	r := SHA256_string(txt:='abc', work:=work);
+	EXPECT_EQ_STRING('ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad', r);
+	r := SHA256_string(txt:='abc', work:=work_exact);
+	EXPECT_EQ_STRING('ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad', r);
+
+	r := SHA256_string(txt:='hello world', work:=work);
+	EXPECT_EQ_STRING('b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9', r);
+
+	r := SHA256_string(txt:='123456789', work:=work);
+	EXPECT_EQ_STRING('15e2b0d3c33891ebb0f1ef609ec419420c20e320ce94c65fbc8c3312448eb225', r);
+
+	r := SHA256_string(txt:='$09$0A$0D', work:=work);
+	EXPECT_EQ_STRING('5f17b566f2cf1c904a2dcffbfedf232ff0aeaf445d5d7c89499e9084091b3858', r);
+	r := SHA256_string(txt:='fyPoFC21J5SX', work:=work);
+	EXPECT_EQ_STRING('df1cc111601f5668b3e8914ab2182af9a61b3798200c3a3489eb4445a1de5d54', r);
+	r := SHA256_string(txt:='lBvqPXf8e0aO5C9', work:=work);
+	EXPECT_EQ_STRING('840649815a5e3a695e7f66fe41984ba1bb06007c3952061fa84930d9243c3f3c', r);
+	r := SHA256_string(txt:='$7F', work:=work);
+	EXPECT_EQ_STRING('620bfdaa346b088fb49998d92f19a7eaf6bfc2fb0aee015753966da1028cb731', r);
+	r := SHA256_string(txt:='12345678901234567890123456789012345678901234567890123456789012345678901234567890', work:=work);
+	EXPECT_EQ_STRING('f371bc4a311f2b009eef952dd83ca80e2b60026c8e935592d0f9c308453c813e', r);
+
+	r := SHA256_string(txt:='!@#$$%^&*()_+-=[]{}|;$':",./<>?`~', work:=work);
+	EXPECT_EQ_STRING('cf05e10aece9040c1c33da10a2d77e49c3ea9fd5b81852ba8946c4aecf8e1feb', r);
+
+	SHA256_string(txt:='$E3$81$82', work:=work, eno=>o);
+	EXPECT_FALSE(o);
+	SHA256_string(txt:='abc', work:=work_small, eno=>o);
+	EXPECT_FALSE(o);
+	{end}
+END_TEST_S
+
+TEST_S(test_SHA256_bytes)
+	var
+		r: string[64 + 1];
+		o: bool;
+		work: array[0..4095] of byte;
+		d0: array[0..0] of byte := [byte#16#00];
+		d1: array[0..2] of byte := [byte#16#00, byte#16#01, byte#16#02];
+		d2: array[0..5] of byte := [byte#16#41, byte#16#42, byte#16#43, byte#16#78, byte#16#79, byte#16#7A];
+		d3: array[0..6] of byte := [byte#16#00, byte#16#09, byte#16#0A, byte#16#0D, byte#16#7F, byte#16#80, byte#16#FF];
+		d4: array[0..5] of byte := [byte#16#10, byte#16#20, byte#16#30, byte#16#40, byte#16#50, byte#16#60];
+		rb1: array[0..8] of byte := [byte#16#97, byte#16#F1, byte#16#E2, byte#16#58, byte#16#EE, byte#16#19, byte#16#D9, byte#16#18, byte#16#C8];
+		rb2: array[0..12] of byte := [byte#16#2A, byte#16#41, byte#16#0D, byte#16#52, byte#16#94, byte#16#C2, byte#16#AF, byte#16#89, byte#16#0F, byte#16#CB, byte#16#B8, byte#16#8E, byte#16#D5];
+		rb1000: array[0..999] of byte := TEST_HASH_RB1000_LITERAL();
+	end
+	{st}
+	r := SHA256_bytes(dat:=d0, length:=0, work:=work);
+	EXPECT_EQ_STRING('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', r);
+
+	r := SHA256_bytes(dat:=d0, length:=1, work:=work);
+	EXPECT_EQ_STRING('6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d', r);
+
+	r := SHA256_bytes(dat:=d1, work:=work);
+	EXPECT_EQ_STRING('ae4b3280e56e2faf83f414a6e3dabe9d5fbe18976544c05fed121accb85b53fc', r);
+
+	r := SHA256_bytes(dat:=d2, work:=work);
+	EXPECT_EQ_STRING('39c38cc4e1fa5edaa96416239c06de453c8a431523274bef050adc47c389bb93', r);
+
+	r := SHA256_bytes(dat:=d3, work:=work);
+	EXPECT_EQ_STRING('4050e63f23641aa7c865cc22c364ee5a896ffbe326e2c75d15553af5ae0e4616', r);
+	r := SHA256_bytes(dat:=rb1, work:=work);
+	EXPECT_EQ_STRING('c1ad944826f0caf865736674fb897f7a4594fc06c9cdf19f6dd1dc9a0d69bbca', r);
+	r := SHA256_bytes(dat:=rb2, work:=work);
+	EXPECT_EQ_STRING('f77038f16d15accc5222b3c329582f688f67af9df2615fa1f16e45c3cdf1c571', r);
+	r := SHA256_bytes(dat:=rb1000, work:=work);
+	EXPECT_EQ_STRING('d98c5cb07cc19f46ba8c79aa9202b33deb91ceb884803189654337911387273d', r);
+	r := SHA256_bytes(dat:=rb1000, offset:=0, length:=1000, work:=work);
+	EXPECT_EQ_STRING('d98c5cb07cc19f46ba8c79aa9202b33deb91ceb884803189654337911387273d', r);
+
+	r := SHA256_bytes(dat:=d4, offset:=0, length:=5, work:=work);
+	EXPECT_EQ_STRING('fbcb89ad6e6b6c69d2ec9623ed1fad1529bd39c1b766519d6dbaa3b9d1a3d527', r);
+
+	r := SHA256_bytes(dat:=d4, offset:=1, length:=3, work:=work);
+	EXPECT_EQ_STRING('898d4b8a45a4aed37a9c71f04b1e9981c89d55008f147d3e10552810d2d7e0ec', r);
+	r := SHA256_bytes(dat:=d4, offset:=1, length:=-1, work:=work);
+	EXPECT_EQ_STRING('7f6472c7a1afec8e7db81d2e71da1cd5871283e9ba22b8651b0a88ce10f871a8', r);
+	r := SHA256_bytes(dat:=d4, offset:=6, length:=0, work:=work);
+	EXPECT_EQ_STRING('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', r);
+
+	SHA256_bytes(dat:=d4, offset:=-1, length:=1, work:=work, eno=>o);
+	EXPECT_FALSE(o);
+	SHA256_bytes(dat:=d4, offset:=0, length:=-2, work:=work, eno=>o);
+	EXPECT_FALSE(o);
+	SHA256_bytes(dat:=d4, offset:=6, length:=1, work:=work, eno=>o);
+	EXPECT_FALSE(o);
+	SHA256_bytes(dat:=d1, work:=d0, eno=>o);
+	EXPECT_FALSE(o);
+	{end}
+END_TEST_S
