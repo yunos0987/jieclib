@@ -1,0 +1,150 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./encoding/percent.txt -I. -I./vendor/jiecunit/sys -o ./encoding/percent.xml -t omron
+ *)
+{#ifndef __ENCODING_PERCENT_TXT__}
+{#define __ENCODING_PERCENT_TXT__}
+
+{#include <sys.txt>}
+{#include <string_lib/string_lib.txt>}
+
+{#define STRING string[STRING_MAX_SIZE]}
+
+{#define CODE_0 48}
+{#define CODE_9 57}
+{#define CODE_A 65}
+{#define CODE_F 70}
+{#define CODE_Z 90}
+{#define CODE_a 97}
+{#define CODE_f 102}
+{#define CODE_z 122}
+
+(*{doc 16進文字の1桁を数値へ変換する。
+@input code ASCIIコード。
+@return 0..15の値。16進文字でない場合、-1。}*)
+function percent_hex_nibble: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		code: dint;
+	end
+	{st}
+	if (code >= CODE_0) and (code <= CODE_9) then
+		percent_hex_nibble := code - CODE_0;
+		return;
+	end_if;
+	if (code >= CODE_A) and (code <= CODE_F) then
+		percent_hex_nibble := code - CODE_A + 10;
+		return;
+	end_if;
+	if (code >= CODE_a) and (code <= CODE_f) then
+		percent_hex_nibble := code - CODE_a + 10;
+		return;
+	end_if;
+	percent_hex_nibble := -1;
+	{end}
+end
+
+(*{doc 文字列をパーセントエンコード（URLエンコード）する。
+@input txt 入力文字列。
+@return エンコード後文字列。
+@error 入力文字のASCIIコード取得に失敗した場合。}*)
+function percentencode: STRING
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		txt: STRING;
+	end
+	var_temp
+		HEX: array[0..15] of string[1 + 1] constant := [
+			'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
+		];
+		i, l, code: dint;
+		hi, lo: dint;
+		out: STRING;
+	end
+	{st}
+	out := '';
+	l := uint_to_dint(len(txt));
+	for i := 0 to l - 1 by 1 do
+		code := String_asciiCharCodeAt(txt, i);
+		if code < 0 then
+			eno := false;
+			return;
+		end_if;
+
+		if ((code >= CODE_0) and (code <= CODE_9)) or ((code >= CODE_A) and (code <= CODE_Z)) or ((code >= CODE_a) and (code <= CODE_z)) or (code = 45) or (code = 46) or (code = 95) or (code = 126) then
+			out := concat(out, String_fromAsciiCharCode1(code));
+		else
+			hi := byte_to_dint(shr(dint_to_byte(code), 4));
+			lo := byte_to_dint(dint_to_byte(code) and byte#16#0F);
+			out := concat(out, '%');
+			out := concat(out, HEX[hi]);
+			out := concat(out, HEX[lo]);
+		end_if;
+	end_for;
+	percentencode := out;
+	{end}
+end
+
+(*{doc パーセントエンコード文字列をデコードする。
+@input txt 入力文字列。
+@return デコード後文字列。
+@error %に続く2桁の16進数が不正な場合、またはASCIIコード取得に失敗した場合。}*)
+function percentdecode: STRING
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		txt: STRING;
+	end
+	var_temp
+		i, l, code: dint;
+		h1, h2: dint;
+		decoded_code: dint;
+		out: STRING;
+	end
+	{st}
+	out := '';
+	l := uint_to_dint(len(txt));
+	i := 0;
+	while i < l do
+		code := String_asciiCharCodeAt(txt, i);
+		if code < 0 then
+			eno := false;
+			return;
+		end_if;
+
+		if code = 37 then
+			if i + 2 >= l then
+				eno := false;
+				return;
+			end_if;
+			h1 := percent_hex_nibble(String_asciiCharCodeAt(txt, i + 1));
+			h2 := percent_hex_nibble(String_asciiCharCodeAt(txt, i + 2));
+			if (h1 < 0) or (h2 < 0) then
+				eno := false;
+				return;
+			end_if;
+			decoded_code := h1 * 16 + h2;
+			if decoded_code > 127 then
+				eno := false;
+				return;
+			end_if;
+			out := concat(out, String_fromAsciiCharCode1(decoded_code));
+			i := i + 3;
+		else
+			out := concat(out, String_fromAsciiCharCode1(code));
+			i := i + 1;
+		end_if;
+	end_while;
+	percentdecode := out;
+	{end}
+end
+
+{#undef CODE_0}
+{#undef CODE_9}
+{#undef CODE_A}
+{#undef CODE_F}
+{#undef CODE_Z}
+{#undef CODE_a}
+{#undef CODE_f}
+{#undef CODE_z}
+
+{#endif}

@@ -1,0 +1,80 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/encoding/test_hex.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -D_TEST_ -o ./test/encoding/test_hex.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+
+{#include <encoding/hex.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_hexencode',
+		'test_hexdecode'
+	)
+)
+{#endif}
+
+TEST_S(test_hexencode)
+	var
+		d1: array[0..4] of byte := [byte#16#00, byte#16#01, byte#16#2A, byte#16#FF, byte#16#B3];
+		o: bool;
+		r: STRING;
+	end
+	{st}
+	r := hexencode(dat:=d1, eno=>o);
+	EXPECT_TRUE(o);
+	EXPECT_EQ_STRING('00012AFFB3', r);
+
+	r := hexencode(dat:=d1, offset:=1, length:=3, eno=>o);
+	EXPECT_TRUE(o);
+	EXPECT_EQ_STRING('012AFF', r);
+
+	r := hexencode(dat:=d1, offset:=4, length:=1, eno=>o);
+	EXPECT_TRUE(o);
+	EXPECT_EQ_STRING('B3', r);
+
+	r := hexencode(dat:=d1, offset:=5, length:=1, eno=>o);
+	EXPECT_FALSE(o);
+
+	r := hexencode(dat:=d1, offset:=0, length:=0, eno=>o);
+	EXPECT_FALSE(o);
+	{end}
+END_TEST_S
+
+TEST_S(test_hexdecode)
+	var
+		d: array[0..7] of byte;
+		n: dint;
+		o: bool;
+	end
+	{st}
+	n := hexdecode(txt:='00012AFFB3', dat:=d);
+	EXPECT_EQ_INT32(5, n);
+	EXPECT_EQ_BYTE(byte#16#00, d[0]);
+	EXPECT_EQ_BYTE(byte#16#01, d[1]);
+	EXPECT_EQ_BYTE(byte#16#2A, d[2]);
+	EXPECT_EQ_BYTE(byte#16#FF, d[3]);
+	EXPECT_EQ_BYTE(byte#16#B3, d[4]);
+
+	n := hexdecode(txt:='0a0b0C0d', dat:=d);
+	EXPECT_EQ_INT32(4, n);
+	EXPECT_EQ_BYTE(byte#16#0A, d[0]);
+	EXPECT_EQ_BYTE(byte#16#0B, d[1]);
+	EXPECT_EQ_BYTE(byte#16#0C, d[2]);
+	EXPECT_EQ_BYTE(byte#16#0D, d[3]);
+
+	n := hexdecode(txt:='A1', offset:=2, dat:=d);
+	EXPECT_EQ_INT32(1, n);
+	EXPECT_EQ_BYTE(byte#16#A1, d[2]);
+
+	hexdecode(txt:='ABC', dat:=d, eno=>o);
+	EXPECT_FALSE(o);
+	hexdecode(txt:='ZZ', dat:=d, eno=>o);
+	EXPECT_FALSE(o);
+	hexdecode(txt:='0G', dat:=d, eno=>o);
+	EXPECT_FALSE(o);
+	hexdecode(txt:='001122334455667788', dat:=d, eno=>o);
+	EXPECT_FALSE(o);
+	{end}
+END_TEST_S

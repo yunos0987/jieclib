@@ -1,0 +1,106 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/encoding/test_percent.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -D_TEST_ -o ./test/encoding/test_percent.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+
+{#include <encoding/percent.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_percentencode',
+		'test_percentdecode'
+	)
+)
+{#endif}
+
+TEST_S(test_percentencode)
+	var
+		r: STRING;
+		o: bool;
+	end
+	{st}
+	r := percentencode(txt:='');
+	EXPECT_EQ_STRING('', r);
+	r := percentencode(txt:='abcXYZ012');
+	EXPECT_EQ_STRING('abcXYZ012', r);
+	r := percentencode(txt:='a-b.c_d~');
+	EXPECT_EQ_STRING('a-b.c_d~', r);
+	r := percentencode(txt:='hello world');
+	EXPECT_EQ_STRING('hello%20world', r);
+	r := percentencode(txt:='A+B=C');
+	EXPECT_EQ_STRING('A%2BB%3DC', r);
+	r := percentencode(txt:='100%');
+	EXPECT_EQ_STRING('100%25', r);
+	r := percentencode(txt:='/path?x=1&y=2');
+	EXPECT_EQ_STRING('%2Fpath%3Fx%3D1%26y%3D2', r);
+	r := percentencode(txt:='"quoted"');
+	EXPECT_EQ_STRING('%22quoted%22', r);
+	r := percentencode(txt:='#$$&+,/:;=?@');
+	EXPECT_EQ_STRING('%23%24%26%2B%2C%2F%3A%3B%3D%3F%40', r);
+	r := percentencode(txt:='[]{}<>');
+	EXPECT_EQ_STRING('%5B%5D%7B%7D%3C%3E', r);
+	// control characters
+	r := percentencode(txt:='A$09B');
+	EXPECT_EQ_STRING('A%09B', r);
+	r := percentencode(txt:='$09$0A');
+	EXPECT_EQ_STRING('%09%0A', r);
+	// multi-byte (UTF-8 bytes)
+	percentencode(txt:='$E3$81$82', eno=>o);
+	EXPECT_FALSE(o);
+	{end}
+END_TEST_S
+
+TEST_S(test_percentdecode)
+	var
+		t: STRING;
+		o: bool;
+	end
+	{st}
+	t := percentdecode(txt:='', eno=>o);
+	EXPECT_TRUE(o);
+	EXPECT_EQ_STRING('', t);
+	// normal cases
+	t := percentdecode(txt:='abcXYZ012');
+	EXPECT_EQ_STRING('abcXYZ012', t);
+	t := percentdecode(txt:='hello%20world');
+	EXPECT_EQ_STRING('hello world', t);
+	t := percentdecode(txt:='A%2BB%3DC');
+	EXPECT_EQ_STRING('A+B=C', t);
+	t := percentdecode(txt:='100%25');
+	EXPECT_EQ_STRING('100%', t);
+	t := percentdecode(txt:='%2Fpath%3Fx%3D1%26y%3D2');
+	EXPECT_EQ_STRING('/path?x=1&y=2', t);
+	t := percentdecode(txt:='%22quoted%22');
+	EXPECT_EQ_STRING('"quoted"', t);
+	t := percentdecode(txt:='%23%24%26%2B%2C%2F%3A%3B%3D%3F%40');
+	EXPECT_EQ_STRING('#$$&+,/:;=?@', t);
+	t := percentdecode(txt:='%5b%5d%7b%7d%3c%3e');
+	EXPECT_EQ_STRING('[]{}<>', t);
+	// control characters
+	t := percentdecode(txt:='A%09B', eno=>o);
+	EXPECT_TRUE(o);
+	EXPECT_EQ_STRING('A$09B', t);
+	t := percentdecode(txt:='%09%0A', eno=>o);
+	EXPECT_TRUE(o);
+	EXPECT_EQ_STRING('$09$0A', t);
+	// multi-byte (UTF-8 bytes)
+	percentdecode(txt:='%E3%81%82', eno=>o);
+	EXPECT_FALSE(o);
+	// error cases
+	percentdecode(txt:='%', eno=>o);
+	EXPECT_FALSE(o);
+	percentdecode(txt:='%2', eno=>o);
+	EXPECT_FALSE(o);
+	percentdecode(txt:='%GG', eno=>o);
+	EXPECT_FALSE(o);
+	percentdecode(txt:='abc%4Z', eno=>o);
+	EXPECT_FALSE(o);
+	// mixed invalid patterns
+	percentdecode(txt:='abc%20def%4Zghi', eno=>o);
+	EXPECT_FALSE(o);
+	percentdecode(txt:='ok%2Fng%', eno=>o);
+	EXPECT_FALSE(o);
+	{end}
+END_TEST_S

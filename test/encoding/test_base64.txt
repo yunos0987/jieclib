@@ -1,16 +1,19 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/base64/test_base64.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/base64/test_base64.xml -t omron
+ * $ jiecc ./test/encoding/test_base64.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -D_TEST_ -o ./test/encoding/test_base64.xml -t omron
  *)
 {#include <jiecunit.txt>}
-{#include <base64/base64.txt>}
 
+{#include <encoding/base64.txt>}
+
+{#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
 		'test_base64encode',
 		'test_base64decode'
 	)
 )
+{#endif}
 
 TEST_S(test_base64encode)
 	var
@@ -75,15 +78,18 @@ END_TEST_S
 
 TEST_S(test_base64decode)
 	var
+		l: dint;
 		x_4096: array[4096] of byte;
 	end
 	{st}
 	//
-	EXPECT_EQ_INT32(2, base64decode(txt:='XYZ=', dat:=x_4096));
+	l := base64decode(txt:='XYZ=', dat:=x_4096);
+	EXPECT_EQ_INT32(2, l);
 	EXPECT_EQ_BYTE(byte#16#5d, x_4096[0]);
 	EXPECT_EQ_BYTE(byte#16#86, x_4096[1]);
 	//
-	EXPECT_EQ_INT32(8, base64decode(txt:='AgMFBwsNERc=', dat:=x_4096));
+	l := base64decode(txt:='AgMFBwsNERc=', dat:=x_4096);
+	EXPECT_EQ_INT32(8, l);
 	EXPECT_EQ_BYTE(byte#16#02, x_4096[0]);
 	EXPECT_EQ_BYTE(byte#16#03, x_4096[1]);
 	EXPECT_EQ_BYTE(byte#16#05, x_4096[2]);
@@ -93,55 +99,65 @@ TEST_S(test_base64decode)
 	EXPECT_EQ_BYTE(byte#16#11, x_4096[6]);
 	EXPECT_EQ_BYTE(byte#16#17, x_4096[7]);
 	//
-	EXPECT_EQ_INT32(1, base64decode(txt:='AA==', dat:=x_4096));
+	l := base64decode(txt:='AA==', dat:=x_4096);
+	EXPECT_EQ_INT32(1, l);
 	EXPECT_EQ_BYTE(byte#16#00, x_4096[0]);
 	//
-	EXPECT_EQ_INT32(2, base64decode(txt:='AAA=', dat:=x_4096));
+	l := base64decode(txt:='AAA=', dat:=x_4096);
+	EXPECT_EQ_INT32(2, l);
 	EXPECT_EQ_BYTE(byte#16#00, x_4096[0]);
 	EXPECT_EQ_BYTE(byte#16#00, x_4096[1]);
 	//
-	EXPECT_EQ_INT32(3, base64decode(txt:='AAAA', dat:=x_4096));
+	l := base64decode(txt:='AAAA', dat:=x_4096);
+	EXPECT_EQ_INT32(3, l);
 	EXPECT_EQ_BYTE(byte#16#00, x_4096[0]);
 	EXPECT_EQ_BYTE(byte#16#00, x_4096[1]);
 	EXPECT_EQ_BYTE(byte#16#00, x_4096[2]);
 	//
-	EXPECT_EQ_INT32(3, base64decode(txt:='AQID', dat:=x_4096));
+	l := base64decode(txt:='AQID', dat:=x_4096);
+	EXPECT_EQ_INT32(3, l);
 	EXPECT_EQ_BYTE(byte#16#01, x_4096[0]);
 	EXPECT_EQ_BYTE(byte#16#02, x_4096[1]);
 	EXPECT_EQ_BYTE(byte#16#03, x_4096[2]);
 	//
-	EXPECT_EQ_INT32(5, base64decode(txt:='AgMFBws=', dat:=x_4096));
+	l := base64decode(txt:='AgMFBws=', dat:=x_4096);
+	EXPECT_EQ_INT32(5, l);
 	EXPECT_EQ_BYTE(byte#16#02, x_4096[0]);
 	EXPECT_EQ_BYTE(byte#16#03, x_4096[1]);
 	EXPECT_EQ_BYTE(byte#16#05, x_4096[2]);
 	EXPECT_EQ_BYTE(byte#16#07, x_4096[3]);
 	EXPECT_EQ_BYTE(byte#16#0b, x_4096[4]);
 	//
-	EXPECT_EQ_INT32(3, base64decode(txt:='q83v', dat:=x_4096));
+	l := base64decode(txt:='q83v', dat:=x_4096);
+	EXPECT_EQ_INT32(3, l);
 	EXPECT_EQ_BYTE(byte#16#ab, x_4096[0]);
 	EXPECT_EQ_BYTE(byte#16#cd, x_4096[1]);
 	EXPECT_EQ_BYTE(byte#16#ef, x_4096[2]);
 	//
-	EXPECT_EQ_INT32(4, base64decode(txt:='3q2+7w==', dat:=x_4096));
+	l := base64decode(txt:='3q2+7w==', dat:=x_4096);
+	EXPECT_EQ_INT32(4, l);
 	EXPECT_EQ_BYTE(byte#16#de, x_4096[0]);
 	EXPECT_EQ_BYTE(byte#16#ad, x_4096[1]);
 	EXPECT_EQ_BYTE(byte#16#be, x_4096[2]);
 	EXPECT_EQ_BYTE(byte#16#ef, x_4096[3]);
 	//
-	EXPECT_EQ_INT32(4, base64decode(txt:='fwAB/w==', dat:=x_4096));
+	l := base64decode(txt:='fwAB/w==', dat:=x_4096);
+	EXPECT_EQ_INT32(4, l);
 	EXPECT_EQ_BYTE(byte#16#7f, x_4096[0]);
 	EXPECT_EQ_BYTE(byte#16#00, x_4096[1]);
 	EXPECT_EQ_BYTE(byte#16#01, x_4096[2]);
 	EXPECT_EQ_BYTE(byte#16#ff, x_4096[3]);
 	//
-	EXPECT_EQ_INT32(5, base64decode(txt:='SGVsbG8=', dat:=x_4096)); // Hello
+	l := base64decode(txt:='SGVsbG8=', dat:=x_4096); // Hello
+	EXPECT_EQ_INT32(5, l);
 	EXPECT_EQ_BYTE(byte#16#48, x_4096[0]);
 	EXPECT_EQ_BYTE(byte#16#65, x_4096[1]);
 	EXPECT_EQ_BYTE(byte#16#6c, x_4096[2]);
 	EXPECT_EQ_BYTE(byte#16#6c, x_4096[3]);
 	EXPECT_EQ_BYTE(byte#16#6f, x_4096[4]);
 	//
-	EXPECT_EQ_INT32(8, base64decode(txt:='U29mdHdhcmU=', dat:=x_4096));
+	l := base64decode(txt:='U29mdHdhcmU=', dat:=x_4096);
+	EXPECT_EQ_INT32(8, l);
 	EXPECT_EQ_BYTE(byte#16#53, x_4096[0]);
 	EXPECT_EQ_BYTE(byte#16#6f, x_4096[1]);
 	EXPECT_EQ_BYTE(byte#16#66, x_4096[2]);
@@ -151,7 +167,8 @@ TEST_S(test_base64decode)
 	EXPECT_EQ_BYTE(byte#16#72, x_4096[6]);
 	EXPECT_EQ_BYTE(byte#16#65, x_4096[7]);
 	//
-	EXPECT_EQ_INT32(48, base64decode(txt:='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/', dat:=x_4096));
+	l := base64decode(txt:='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/', dat:=x_4096);
+	EXPECT_EQ_INT32(48, l);
 	EXPECT_EQ_BYTE(byte#16#00, x_4096[0]);
 	EXPECT_EQ_BYTE(byte#16#10, x_4096[1]);
 	EXPECT_EQ_BYTE(byte#16#83, x_4096[2]);

@@ -67,9 +67,17 @@ JiecLibに含まれるライブラリと、IEC 61131-10 XMLを生成するため
     * [Array_mergesort_lreal](./array/sort.txt) / [Array_mergesort_dint](./array/sort.txt): マージソート
     * [Array_quicksort_lreal](./array/sort.txt) / [Array_quicksort_dint](./array/sort.txt): クイックソート
   * IEC 61131-10 XML生成コマンド: `jiecc ./array/array.txt -I. -I./vendor/jiecunit/sys -o ./array/array.xml -t omron`
-* [base64](./base64)
-  * メール等で使用されているエンコード方式Base64です。
-  * IEC 61131-10 XML生成コマンド: `jiecc ./base64/base64.txt -I. -I./vendor/jiecunit/sys -o ./base64/base64.xml -t omron`
+* [encoding](./encoding)
+  * エンコーディング関連ライブラリです。
+  * **Base64**
+    * [base64encode](./encoding/base64.txt) / [base64decode](./encoding/base64.txt)
+    * IEC 61131-10 XML生成コマンド: `jiecc ./encoding/base64.txt -I. -I./vendor/jiecunit/sys -o ./encoding/base64.xml -t omron`
+  * **Percent（URLエンコード）**
+    * [percentencode](./encoding/percent.txt) / [percentdecode](./encoding/percent.txt)
+    * IEC 61131-10 XML生成コマンド: `jiecc ./encoding/percent.txt -I. -I./vendor/jiecunit/sys -o ./encoding/percent.xml -t omron`
+  * **Hex**
+    * [hexencode](./encoding/hex.txt) / [hexdecode](./encoding/hex.txt)
+    * IEC 61131-10 XML生成コマンド: `jiecc ./encoding/hex.txt -I. -I./vendor/jiecunit/sys -o ./encoding/hex.xml -t omron`
 * [math](./math)
   * 数学関数ライブラリです。
   * [Math_floor](./math/floor.txt): 床関数（floor）
