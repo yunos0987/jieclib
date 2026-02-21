@@ -1,16 +1,23 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./base64/base64.txt -I. -I./vendor/jiecunit/sys -o ./base64/base64.xml -t omron
+ * $ jiecc ./encoding/base64.txt -I. -I./vendor/jiecunit/sys -o ./encoding/base64.xml -t omron
  *)
-{#ifndef __BASE_64_TXT__}
-{#define __BASE_64_TXT__}
+{#ifndef __ENCODING_BASE64_TXT__}
+{#define __ENCODING_BASE64_TXT__}
 
 {#include <sys.txt>}
 {#include <string_lib/string_lib.txt>}
 
-{#define CHAR_MAX_BYTE 4}
 {#define STRING string[STRING_MAX_SIZE]}
 
+(*{doc バイト配列をBase64文字列へエンコードする。
+@in_out dat 入力バイト配列。
+@input offset datの開始オフセット。
+	デフォルト値: 0
+@input length エンコード対象の要素数。
+	-1を指定するとき、offsetから末尾までを対象とする。
+	デフォルト値: -1
+@error offset/lengthが配列範囲外を指す場合。}*)
 function base64encode: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_in_out
@@ -95,19 +102,22 @@ function base64encode: STRING
 	{end}
 end
 
-(**
- * @return number of data size.
- *)
+(*{doc Base64文字列をデコードし、バイト配列へ格納する。
+@input txt 入力Base64文字列。
+@in_out dat デコード結果を書き込む配列。
+@input offset datへの書き込み開始オフセット。
+  デフォルト値: 0
+@return datへ格納したバイト数。}*)
 function base64decode: dint
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		txt: STRING (*{doc: input base64 text.}*);
 	end
-	var_input
-		offset: dint := 0;
-	end
 	var_in_out
 		dat: array[*] of byte;
+	end
+	var_input
+		offset: dint := 0;
 	end
 	var_temp
 		C2B: array[128] of byte constant := [
@@ -126,23 +136,23 @@ function base64decode: dint
 	end
 	{st}
 	l := len(txt);
-	p := 1;
+	p := 0;
 	o := offset;
-	while p <= l do
+	while p < l do
 		// b1
 		repeat
-			b1 := C2B[asciiCharCodeAt(txt, p)];
+			b1 := C2B[String_asciiCharCodeAt(txt, p)];
 			p := p + 1;
-			until (p > l) or (b1 <> byte#255)
+			until (p >= l) or (b1 <> byte#255)
 		end_repeat;
 		if b1 = byte#255 then
 			exit;
 		end_if;
 		// b2
 		repeat
-			b2 := C2B[asciiCharCodeAt(txt, p)];
+			b2 := C2B[String_asciiCharCodeAt(txt, p)];
 			p := p + 1;
-			until (p > l) or (b2 <> byte#255)
+			until (p >= l) or (b2 <> byte#255)
 		end_repeat;
 		if b2 = byte#255 then
 			exit;
@@ -151,14 +161,14 @@ function base64decode: dint
 		o := o + 1;
 		// b3
 		repeat
-			b3 := dint_to_byte(asciiCharCodeAt(txt, p));
+			b3 := dint_to_byte(String_asciiCharCodeAt(txt, p));
 			p := p + 1;
 			if b3 = byte#61 then
 				base64decode := o - offset;
 				return;
 			end_if;
 			b3 := C2B[byte_to_usint(b3)];
-			until (p > l) or (b3 <> byte#255)
+			until (p >= l) or (b3 <> byte#255)
 		end_repeat;
 		if b3 = byte#255 then
 			exit;
@@ -167,14 +177,14 @@ function base64decode: dint
 		o := o + 1;
 		// b4
 		repeat
-			b4 := dint_to_byte(asciiCharCodeAt(txt, p));
+			b4 := dint_to_byte(String_asciiCharCodeAt(txt, p));
 			p := p + 1;
 			if b4 = byte#61 then
 				base64decode := o - offset;
 				return;
 			end_if;
 			b4 := C2B[byte_to_usint(b4)];
-			until (p > l) or (b4 <> byte#255)
+			until (p >= l) or (b4 <> byte#255)
 		end_repeat;
 		if b4 = byte#255 then
 			exit;
