@@ -1,18 +1,20 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/mersenne_twister/test_mersenne_twister.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/mersenne_twister/test_mersenne_twister.xml -t omron
+ * $ jiecc ./test/random/test_mersenne_twister.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -D_TEST_ -o ./test/random/test_mersenne_twister.xml -t omron
  * or
- * $ jiecc ./test/mersenne_twister/test_mersenne_twister.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/mersenne_twister/test_mersenne_twister.xml -t keyence
+ * $ jiecc ./test/random/test_mersenne_twister.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -D_TEST_ -o ./test/random/test_mersenne_twister.xml -t keyence
  *)
 {#include <jiecunit.txt>}
-{#include <mersenne_twister/mersenne_twister.txt>}
+{#include <random/mersenne_twister.txt>}
 
+{#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
 		'test_MersenneTwister_nextUDINT',
 		'test_MersenneTwister_nextLREAL'
 	)
 )
+{#endif}
 
 TEST_S(test_MersenneTwister_nextUDINT)
 	var

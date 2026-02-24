@@ -1,0 +1,19 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/random/test_random.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -D_TEST_ -o ./test/random/test_random.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_MersenneTwister_nextUDINT',
+		'test_MersenneTwister_nextLREAL',
+		'test_xorshift32'
+	)
+)
+{#undef _TEST_}
+{#endif}
+
+{#include <test/random/test_mersenne_twister.txt>}
+{#include <test/random/test_xorshift32.txt>}

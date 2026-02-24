@@ -176,11 +176,15 @@ JiecLibに含まれるライブラリと、IEC 61131-10 XMLを生成するため
     * [Matrix_scaling_2d](./linalg/transform/scaling.txt) / [Matrix_scaling_3d](./linalg/transform/scaling.txt): 拡大縮小
     * [Matrix_translation_2d](./linalg/transform/translation.txt) / [Matrix_translation_3d](./linalg/transform/translation.txt): 並進
   * IEC 61131-10 XML生成コマンド: `jiecc ./linalg/linalg.txt -I. -I./vendor/jiecunit/sys -o ./linalg/linalg.xml -t omron`
-* [mersenne_twister](./mersenne_twister)
-  * 擬似乱数生成アルゴリズムの一つであるメルセンヌ・ツイスタのIEC 61131-3 ST言語の実装です。
-    * [Python言語のrandomモジュール](https://docs.python.org/ja/3.12/library/random.html)でも採用されている高速かつ超長周期の疑似乱数生成アルゴリズムです。その他の詳しい説明は、[メルセンヌ・ツイスタ考案者のウェブサイト](http://www.math.sci.hiroshima-u.ac.jp/m-mat/MT/mt.html)を参照してください。
-    * なお、[オリジナルに近いIEC 61131-3 ST言語ソースコードはこちら](http://blog.graviness.com/?eid=949297)にあります。
-  * IEC 61131-10 XML生成コマンド: `jiecc ./mersenne_twister/mersenne_twister.txt -I. -I./vendor/jiecunit/sys -o ./mersenne_twister/mersenne_twister.xml -t omron`
+* [random](./random)
+  * 乱数生成ライブラリです。
+  * **Mersenne Twister**
+    * [mersenne_twister](./random/mersenne_twister.txt): 高速かつ超長周期の疑似乱数生成アルゴリズム
+    * [Python言語のrandomモジュール](https://docs.python.org/ja/3.12/library/random.html)でも採用されています。
+    * IEC 61131-10 XML生成コマンド: `jiecc ./random/mersenne_twister.txt -I. -I./vendor/jiecunit/sys -o ./random/mersenne_twister.xml -t omron`
+  * **Xorshift32**
+    * [xorshift32](./random/xorshift32.txt): 軽量で高速な疑似乱数生成アルゴリズム
+    * IEC 61131-10 XML生成コマンド: `jiecc ./random/xorshift32.txt -I. -I./vendor/jiecunit/sys -o ./random/xorshift32.xml -t omron`
 * [ringbuffer](./ringbuffer)
   * FIFO形式のリングバッファです。
     * バッファのデータ型を簡単に拡張できます。
@@ -202,10 +206,6 @@ JiecLibに含まれるライブラリと、IEC 61131-10 XMLを生成するため
     * 文字列操作に関するIEC 61131-3の特徴として、文字のインデクスは0始まりではなく、1始まりです。例えば、FIND('abcde', 'cd') は3を得ます。本ライブラリは、0始まりに統一しています。
     * ASCII範囲外の文字の操作については、IEC 61131-3規格の範囲では限りがあります。ASCII範囲内で運用することをお勧めします。ASCII範囲外の文字を操作するには、ベンダー提供の組み込みPOUを使用するか、ベンダーの文字列型の文字コードが明確であれば、自作することを検討してください。
   * IEC 61131-10 XML生成コマンド: `jiecc ./string_lib/string_lib.txt -I. -I./vendor/jiecunit/sys -o ./string_lib/string_lib.xml -t omron`
-* [xorshift32](./xorshift32)
-  * 疑似乱数生成アルゴリズムxorshiftです。
-  * IEC 61131-10 XML生成コマンド: `jiecc ./xorshift32/xorshift32.txt -I. -I./vendor/jiecunit/sys -o ./xorshift32/xorshift32.xml -t omron`
-
 ## JiecLib開発者向け
 
 JiecLibプロジェクトの一部のライブラリは、外部の[JiecUnit](https://github.com/yunos0987/jiecunit)に依存しています。JiecLibプロジェクトは、外部依存のライブラリ管理のため、Git submodule を使用します。

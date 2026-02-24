@@ -7,10 +7,9 @@ __pycache__
 /test/**/*.xml
 /encoding/**/*.xml
 /hash/**/*.xml
-/mersenne_twister/**/*.xml
+/random/**/*.xml
 /ringbuffer/**/*.xml
 /stats/**/*.xml
 /linalg/**/*.xml
 /string_lib/**/*.xml
 /vector/**/*.xml
-/xorshift32/**/*.xml
