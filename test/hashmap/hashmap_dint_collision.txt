@@ -1,0 +1,18 @@
+function HashMap_dint_collision_hash: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: string[16 + 1];
+	end
+	{st}
+	HashMap_dint_collision_hash := udint#1;
+	{end}
+end
+
+{#define HashMapName dint_collision}
+{#define HashMapCapacity 8}
+{#define HashMapKeyMaxLength 16}
+{#define HashMapKeyEqualsFunction String_equals}
+{#define HashMapKeyHashFunction HashMap_dint_collision_hash}
+{#define HashMapKeyType string[HashMapKeyMaxLength + 1]}
+{#define HashMapValueType dint}
+{#include <hashmap/hashmap_gen.txt>}

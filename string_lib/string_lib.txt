@@ -243,6 +243,143 @@ function String_upper: STRING
 end
 {#define String_toUpperCase String_upper}
 
+{doc 文字列同士を比較する}
+function String_equals: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: STRING;
+	end
+	var_input
+		other: STRING;
+	end
+	{st}
+	String_equals := self = other;
+	{end}
+end
+
+{doc ASCII文字列同士を大文字小文字を無視して比較する}
+function String_equalsAsciiIgnoreCase: bool
+	{#define CHARCODE_A 16#41}
+	{#define CHARCODE_Z 16#5a}
+	{#define DIFF_CHARCODE_U2L 16#20}
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: STRING;
+	end
+	var_input
+		other: STRING;
+	end
+	var_temp
+		index, l: dint;
+		self_code, other_code: dint;
+	end
+	{st}
+	l := len(self);
+	if l <> len(other) then
+		String_equalsAsciiIgnoreCase := false;
+		return;
+	end_if;
+
+	for index := 0 to l - 1 by 1 do
+		self_code := String_asciiCharCodeAt(self, index);
+		other_code := String_asciiCharCodeAt(other, index);
+
+		if (self_code < 0) or (other_code < 0) then
+			eno := false;
+			return;
+		end_if;
+
+		if (CHARCODE_A <= self_code) and (self_code <= CHARCODE_Z) then
+			self_code := self_code + DIFF_CHARCODE_U2L;
+		end_if;
+		if (CHARCODE_A <= other_code) and (other_code <= CHARCODE_Z) then
+			other_code := other_code + DIFF_CHARCODE_U2L;
+		end_if;
+
+		if self_code <> other_code then
+			String_equalsAsciiIgnoreCase := false;
+			return;
+		end_if;
+	end_for;
+
+	String_equalsAsciiIgnoreCase := true;
+	{end}
+	{#undef CHARCODE_A}
+	{#undef CHARCODE_Z}
+	{#undef DIFF_CHARCODE_U2L}
+end
+
+{doc 文字列のFNV-1a(32bit, udint)ハッシュ値を取得する}
+function String_hash: udint
+	{#define FNV_OFFSET_BASIS udint#2166136261}
+	{#define FNV_PRIME udint#16777619}
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: STRING;
+	end
+	var_temp
+		h: udint;
+		index, l: dint;
+		code: dint;
+	end
+	{st}
+	h := FNV_OFFSET_BASIS;
+	l := len(self);
+	for index := 0 to l - 1 by 1 do
+		code := String_asciiCharCodeAt(self, index);
+		if code < 0 then
+			eno := false;
+			return;
+		end_if;
+		h := dword_to_udint(udint_to_dword(h) xor udint_to_dword(dint_to_udint(code)));
+		h := h * FNV_PRIME;
+	end_for;
+	String_hash := h;
+	{end}
+	{#undef FNV_OFFSET_BASIS}
+	{#undef FNV_PRIME}
+end
+
+{doc 文字列のFNV-1a(32bit, udint)ハッシュ値をASCII大文字小文字無視で取得する}
+function String_hashAsciiIgnoreCase: udint
+	{#define FNV_OFFSET_BASIS udint#2166136261}
+	{#define FNV_PRIME udint#16777619}
+	{#define CHARCODE_A 16#41}
+	{#define CHARCODE_Z 16#5a}
+	{#define DIFF_CHARCODE_U2L 16#20}
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: STRING;
+	end
+	var_temp
+		h: udint;
+		index, l: dint;
+		code: dint;
+	end
+	{st}
+	h := FNV_OFFSET_BASIS;
+	l := len(self);
+	for index := 0 to l - 1 by 1 do
+		code := String_asciiCharCodeAt(self, index);
+		if code < 0 then
+			eno := false;
+			return;
+		end_if;
+		if (CHARCODE_A <= code) and (code <= CHARCODE_Z) then
+			code := code + DIFF_CHARCODE_U2L;
+		end_if;
+		h := dword_to_udint(udint_to_dword(h) xor udint_to_dword(dint_to_udint(code)));
+		h := h * FNV_PRIME;
+	end_for;
+	String_hashAsciiIgnoreCase := h;
+	{end}
+	{#undef FNV_OFFSET_BASIS}
+	{#undef FNV_PRIME}
+	{#undef CHARCODE_A}
+	{#undef CHARCODE_Z}
+	{#undef DIFF_CHARCODE_U2L}
+end
+
 {doc 指定の文字列を削除する}
 function String_remove: STRING
 	_PROLOGUE_OF_FUNCTION_()

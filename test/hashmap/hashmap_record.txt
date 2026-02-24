@@ -1,0 +1,18 @@
+{#ifndef __HASHMAP_RECORD_VALUE_T__}
+{#define __HASHMAP_RECORD_VALUE_T__}
+type
+	HashMap_RecordValue_t: struct
+		id: dint;
+		level: dint;
+		active: bool;
+	end
+end
+{#endif}
+{#define HashMapName record}
+{#define HashMapCapacity 8}
+{#define HashMapKeyMaxLength 16}
+{#define HashMapKeyEqualsFunction String_equals}
+{#define HashMapKeyHashFunction String_hash}
+{#define HashMapKeyType string[HashMapKeyMaxLength + 1]}
+{#define HashMapValueType HashMap_RecordValue_t}
+{#include <hashmap/hashmap_gen.txt>}

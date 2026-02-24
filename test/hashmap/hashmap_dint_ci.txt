@@ -1,0 +1,8 @@
+{#define HashMapName dint_ci}
+{#define HashMapCapacity 8}
+{#define HashMapKeyMaxLength 16}
+{#define HashMapKeyEqualsFunction String_equalsAsciiIgnoreCase}
+{#define HashMapKeyHashFunction String_hashAsciiIgnoreCase}
+{#define HashMapKeyType string[HashMapKeyMaxLength + 1]}
+{#define HashMapValueType dint}
+{#include <hashmap/hashmap_gen.txt>}

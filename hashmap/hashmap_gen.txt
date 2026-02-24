@@ -1,0 +1,570 @@
+(*
+	================================================================================
+	HashMap Template Generator - Macro-based Generic HashMap Implementation
+	================================================================================
+	
+	このファイルは、パラメータマクロで型を指定して HashMapのインスタンスを生成する
+	テンプレートファイルです。
+	
+	使用方法：
+	1. 以下の「必須マクロ」を定義
+	2. このファイルを #include
+	
+	必須マクロ：
+	  - HashMapName (dint, string[100], myRecord など)
+	    → 型名のサフィックスになる。例: HashMapName=dint で HashMap_dint_t が生成
+	  - HashMapKeyType
+	    → キーの型。例: string[128], dint, lreal, myRecord等
+	  - HashMapValueType
+	    → HashMap に格納する値の型。例: dint, string[100], myRecord等
+	  - HashMapKeyEqualsFunction
+	    → キー比較関数。型に応じて実装を指定
+	      例: String_equals, String_equalsAsciiIgnoreCase, Dint_equals
+	  - HashMapKeyHashFunction
+	    → キーのハッシュ関数。型に応じて実装を指定
+	      例: String_hash, Dint_hash
+
+	オプションマクロ （デフォルト値あり）：
+	  - HashMapCapacity (デフォルト: 256)
+	    → テーブルの容量(スロット数)
+	  - HashMapMaxLoadPermille (デフォルト: 800)
+	    → 最大ロードファクタ (パーミル単位。800 = 80%)
+
+	例（stringキー）：
+	  {#define HashMapName str}
+	  {#define HashMapValueType dint}
+	  {#define HashMapKeyType string[128]}
+	  {#define HashMapKeyEqualsFunction String_equals}
+	  {#define HashMapKeyHashFunction String_hash}
+	  {#include <hashmap/hashmap_gen.txt>}
+
+	例（dintキー）：
+	  {#define HashMapName dint}
+	  {#define HashMapValueType dint}
+	  {#define HashMapKeyType dint}
+	  {#define HashMapKeyEqualsFunction Dint_equals}
+	  {#define HashMapKeyHashFunction Dint_hash}
+	  {#include <hashmap/hashmap_gen.txt>}
+	
+	アルゴリズム：
+	  Robin Hood ハッシング（線形探査, プローブ距離追跡, 挿入時の逆シフト削除）
+	================================================================================
+*)
+
+{#include <sys.txt>}
+{#include <sys_conv.txt>}
+{#include <string_lib/string_lib.txt>}
+
+{#define HASHMAP_SLOT_EMPTY byte#0}
+{#define HASHMAP_SLOT_USED  byte#1}
+
+{#ifndef HashMapName}
+	{#error require HashMapName macro.}
+{#endif}
+
+{#ifndef HashMapKeyType}
+	{#error require HashMapKeyType macro.}
+{#endif}
+{#if not defined(HashMapKeyEqualsFunction) or not defined(HashMapKeyHashFunction)}
+	{#define HashMapKeyEqualsFunction String_equals}
+	{#define HashMapKeyHashFunction String_hash}
+{#endif}
+
+{#ifndef HashMapValueType}
+	{#error require HashMapValueType macro.}
+{#endif}
+
+{#ifndef HashMapCapacity}
+	{#define HashMapCapacity 256}
+{#else}
+	{#if HashMapCapacity <= 0}
+		{#error HashMapCapacity must be positive.}
+	{#endif}
+{#endif}
+
+{#ifndef HashMapMaxLoadPermille}
+	{#define HashMapMaxLoadPermille 800}
+{#endif}
+
+{#define _HASHMAP_CORE_TYPE_(T)                HashMap_@@T@@_t}
+{#define _HASHMAP_ENTRY_TYPE_(T)               HashMap_@@T@@_Entry_t}
+{#define _HASHMAP_PRIVATE_PROBE_DISTANCE_(T)   HashMap_@@T@@_static_robinhood_probedist}
+{#define _HASHMAP_PRIVATE_FIND_(T)             HashMap_@@T@@_static_robinhood_find}
+{#define _HASHMAP_INIT_(T)                     HashMap_@@T@@_init}
+{#define _HASHMAP_UPSERT_(T)                   HashMap_@@T@@_upsert}
+{#define _HASHMAP_TRY_GET_(T)                  HashMap_@@T@@_try_get}
+{#define _HASHMAP_REMOVE_(T)                   HashMap_@@T@@_remove}
+{#define _HASHMAP_CONTAINS_(T)                 HashMap_@@T@@_contains}
+{#define _HASHMAP_COUNT_(T)                    HashMap_@@T@@_count}
+{#define _HASHMAP_CLEAR_(T)                    HashMap_@@T@@_clear}
+
+{#define HASHMAP_CORE_TYPE(T)                  _HASHMAP_CORE_TYPE_(T)}
+{#define HASHMAP_ENTRY_TYPE(T)                 _HASHMAP_ENTRY_TYPE_(T)}
+{#define HASHMAP_PRIVATE_PROBE_DISTANCE(T)     _HASHMAP_PRIVATE_PROBE_DISTANCE_(T)}
+{#define HASHMAP_PRIVATE_FIND(T)               _HASHMAP_PRIVATE_FIND_(T)}
+{#define HASHMAP_INIT(T)                       _HASHMAP_INIT_(T)}
+{#define HASHMAP_UPSERT(T)                     _HASHMAP_UPSERT_(T)}
+{#define HASHMAP_TRY_GET(T)                    _HASHMAP_TRY_GET_(T)}
+{#define HASHMAP_REMOVE(T)                     _HASHMAP_REMOVE_(T)}
+{#define HASHMAP_CONTAINS(T)                   _HASHMAP_CONTAINS_(T)}
+{#define HASHMAP_COUNT(T)                      _HASHMAP_COUNT_(T)}
+{#define HASHMAP_CLEAR(T)                      _HASHMAP_CLEAR_(T)}
+
+{#define HashMapCoreType            HASHMAP_CORE_TYPE(HashMapName)}
+{#define HashMapEntryType           HASHMAP_ENTRY_TYPE(HashMapName)}
+{#define _HASHMAP_IDEAL_INDEX(hash) (udint_to_dint((hash) mod dint_to_udint(HashMapCapacity)))}
+{#define HashMap_private_static_robinhood_probedist HASHMAP_PRIVATE_PROBE_DISTANCE(HashMapName)}
+{#define HashMap_private_static_robinhood_find HASHMAP_PRIVATE_FIND(HashMapName)}
+{#define HashMap_init               HASHMAP_INIT(HashMapName)}
+{#define HashMap_upsert             HASHMAP_UPSERT(HashMapName)}
+{#define HashMap_try_get            HASHMAP_TRY_GET(HashMapName)}
+{#define HashMap_remove             HASHMAP_REMOVE(HashMapName)}
+{#define HashMap_contains           HASHMAP_CONTAINS(HashMapName)}
+{#define HashMap_count              HASHMAP_COUNT(HashMapName)}
+{#define HashMap_clear              HASHMAP_CLEAR(HashMapName)}
+
+type
+	HashMapEntryType: struct
+		state: byte;
+		hash: udint;
+		key: HashMapKeyType;
+		value: HashMapValueType;
+	end
+end
+
+type
+	HashMapCoreType: struct
+		count: dint;
+		entries: array[HashMapCapacity] of HashMapEntryType;
+	end
+end
+
+(*{doc プローブ距離を計算します。
+Robin Hood ハッシングにおいて、エントリの実際の位置とハッシュテーブル内でのイデアル位置との距離を求めます。
+@input idx テーブル内のエントリの実際の位置。
+@input ideal_idx ハッシュ値から計算されたイデアル位置。
+@input capacity テーブルの容量。
+@return プローブ距離（0 = イデアル位置に存在）。
+@error 入力パラメータが無効な場合。}*)
+function HashMap_private_static_robinhood_probedist: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		idx: dint;
+		ideal_idx: dint;
+		capacity: dint;
+	end
+	{st}
+	if (capacity <= 0) or (idx < 0) or (idx >= capacity) or (ideal_idx < 0) or (ideal_idx >= capacity) then
+		eno := false;
+		return;
+	end_if;
+
+	if idx >= ideal_idx then
+		HashMap_private_static_robinhood_probedist := idx - ideal_idx;
+	else
+		HashMap_private_static_robinhood_probedist := idx + capacity - ideal_idx;
+	end_if;
+	{end}
+end
+
+(*{doc キーをテーブル内で探し、スロットを返します。
+Robin Hood 不変条件を保持しながらプローブを実施します。存在しない場合は見つかった最初の「挿入位置」を返します。
+@inout table HashMapのエントリテーブル。
+@input key 検索するキー。
+@input key_hash キーのハッシュ値。
+@output slot 見つかった場合のエントリインデックス、見つからない場合は -1。
+@output did_find true = キーが見つかった、false = 見つからなかった。
+@return 正常に探索完了した場合 true。
+@error テーブル処理エラーの場合。}*)
+function HashMap_private_static_robinhood_find: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		table: array[*] of HashMapEntryType;
+	end
+	var_input
+		key: HashMapKeyType;
+		key_hash: udint;
+	end
+	var_output
+		slot: dint;
+		did_find: bool;
+	end
+	var_temp
+		start_idx: dint;
+		probe: dint;
+		idx: dint;
+		entry_ideal: dint;
+		entry_probe: dint;
+		is_eq: bool;
+	end
+	{st}
+	start_idx := _HASHMAP_IDEAL_INDEX(key_hash);
+
+	for probe := 0 to HashMapCapacity - 1 by 1 do
+		idx := (start_idx + probe) mod HashMapCapacity;
+
+		if table[idx].state = HASHMAP_SLOT_EMPTY then
+			slot := -1;
+			did_find := false;
+			HashMap_private_static_robinhood_find := true;
+			return;
+		end_if;
+
+		entry_ideal := _HASHMAP_IDEAL_INDEX(table[idx].hash);
+		entry_probe := HashMap_private_static_robinhood_probedist(idx:=idx, ideal_idx:=entry_ideal, capacity:=HashMapCapacity, eno=>eno);
+		if not eno then
+			return;
+		end_if;
+		if entry_probe < probe then
+			slot := -1;
+			did_find := false;
+			HashMap_private_static_robinhood_find := true;
+			return;
+		end_if;
+
+		if table[idx].hash = key_hash then
+			is_eq := HashMapKeyEqualsFunction(table[idx].key, key);
+			if is_eq then
+				slot := idx;
+				did_find := true;
+				HashMap_private_static_robinhood_find := true;
+				return;
+			end_if;
+		end_if;
+	end_for;
+
+	slot := -1;
+	did_find := false;
+	HashMap_private_static_robinhood_find := true;
+	{end}
+end
+
+(*{doc HashMapを初期化します。
+すべてのスロットを HASHMAP_SLOT_EMPTY に設定し、カウンタをリセットします。既存のデータはすべて失われます。
+@inout self 初期化対象の HashMap インスタンス。
+@return 初期化成功した場合 true。}*)
+function HashMap_init: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out self: HashMapCoreType; end
+	var_temp
+		i: dint;
+	end
+	{st}
+	self.count := 0;
+
+	for i := 0 to HashMapCapacity - 1 by 1 do
+		self.entries[i].state := HASHMAP_SLOT_EMPTY;
+		self.entries[i].hash := udint#0;
+		self.entries[i].key := '';
+	end_for;
+
+	HashMap_init := true;
+	{end}
+end
+
+(*{doc キー/値ペアをHashMapに挿入または更新します。
+キーが既に存在する場合は値を更新（replaced=true）します。存在しない場合は新規挿入（replaced=false）します。ロードファクタが制限を超えた場合は挿入失敗になります。
+@inout self HashMap インスタンス。
+@input key キー（最大 HashMapKeyMaxLen文字）。
+@input value 格納する値。
+@output replaced true = キーが既に存在して値を更新、false = キーが新規に挿入。
+@return 挿入/更新成功した場合 true。
+@error キー長超過、ロードファクタ超過、その他エラーの場合。}*)
+function HashMap_upsert: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out self: HashMapCoreType; end
+	var_input
+		key: HashMapKeyType;
+		value: HashMapValueType;
+	end
+	var_output
+		replaced: bool;
+	end
+	var_temp
+		key_hash: udint;
+		slot: dint;
+		did_find: bool;
+		max_count: dint;
+		cur_hash: udint;
+		cur_key: HashMapKeyType;
+		cur_value: HashMapValueType;
+		cur_start: dint;
+		cur_probe: dint;
+		idx: dint;
+		entry_ideal: dint;
+		entry_probe: dint;
+		tmp_hash: udint;
+		tmp_key: HashMapKeyType;
+		tmp_value: HashMapValueType;
+		i: dint;
+	end
+	{st}
+
+	key_hash := HashMapKeyHashFunction(key);
+	HashMap_private_static_robinhood_find(table:=self.entries, key:=key, key_hash:=key_hash, slot=>slot, did_find=>did_find, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+	if did_find then
+		self.entries[slot].value := value;
+		replaced := true;
+		HashMap_upsert := true;
+		return;
+	end_if;
+
+	max_count := max((HashMapCapacity * HashMapMaxLoadPermille) / 1000, 1);
+	if self.count >= max_count then
+		replaced := false;
+		HashMap_upsert := false;
+		return;
+	end_if;
+
+	cur_hash := key_hash;
+	cur_key := key;
+	cur_value := value;
+	cur_start := _HASHMAP_IDEAL_INDEX(cur_hash);
+	cur_probe := 0;
+
+	for i := 0 to HashMapCapacity - 1 by 1 do
+		idx := (cur_start + cur_probe) mod HashMapCapacity;
+
+		if self.entries[idx].state = HASHMAP_SLOT_EMPTY then
+			self.entries[idx].state := HASHMAP_SLOT_USED;
+			self.entries[idx].hash := cur_hash;
+			self.entries[idx].key := cur_key;
+			self.entries[idx].value := cur_value;
+			self.count := self.count + 1;
+			replaced := false;
+			HashMap_upsert := true;
+			return;
+		end_if;
+
+		entry_ideal := _HASHMAP_IDEAL_INDEX(self.entries[idx].hash);
+		entry_probe := HashMap_private_static_robinhood_probedist(idx:=idx, ideal_idx:=entry_ideal, capacity:=HashMapCapacity, eno=>eno);
+		if not eno then
+			return;
+		end_if;
+
+		if entry_probe < cur_probe then
+			tmp_hash := self.entries[idx].hash;
+			tmp_key := self.entries[idx].key;
+			tmp_value := self.entries[idx].value;
+
+			self.entries[idx].hash := cur_hash;
+			self.entries[idx].key := cur_key;
+			self.entries[idx].value := cur_value;
+
+			cur_hash := tmp_hash;
+			cur_key := tmp_key;
+			cur_value := tmp_value;
+			cur_start := _HASHMAP_IDEAL_INDEX(cur_hash);
+			cur_probe := entry_probe;
+		end_if;
+
+		cur_probe := cur_probe + 1;
+	end_for;
+
+	replaced := false;
+	HashMap_upsert := false;
+	{end}
+end
+
+(*{doc キーに対応する値を取得します。
+キーが見つかった場合、値を value に設定して true を返します。見つからない場合は false を返します。
+@inout self HashMap インスタンス。
+@input key 検索するキー。
+@inout value キーが見つかった場合、格納された値が設定される。
+@return キーが見つかり値を取得した場合 true。
+@error キーが見つからない、またはエラーの場合 false。}*)
+function HashMap_try_get: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out self: HashMapCoreType; end
+	var_input
+		key: HashMapKeyType;
+	end
+	var_in_out
+		value: HashMapValueType;
+	end
+	var_temp
+		key_hash: udint;
+		slot: dint;
+		did_find: bool;
+	end
+	{st}
+	key_hash := HashMapKeyHashFunction(key);
+
+	HashMap_private_static_robinhood_find(table:=self.entries, key:=key, key_hash:=key_hash, slot=>slot, did_find=>did_find, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+	if not did_find then
+		HashMap_try_get := false;
+		return;
+	end_if;
+
+	value := self.entries[slot].value;
+	HashMap_try_get := true;
+	{end}
+end
+
+(*{doc キーに対応するエントリをHashMapから削除します。
+削除後は、後続するエントリをバックシフト（逆シフト）して Robin Hood 不変条件を保持します。
+@inout self HashMap インスタンス。
+@input key 削除するキー（最大 HashMapKeyMaxLen文字）。
+@return キーが見つかり削除成功した場合 true。
+@error キーが見つからない、またはエラーの場合 false。}*)
+function HashMap_remove: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out self: HashMapCoreType; end
+	var_input
+		key: HashMapKeyType;
+	end
+	var_temp
+		key_hash: udint;
+		slot: dint;
+		did_find: bool;
+		j, k: dint;
+		next_ideal: dint;
+		next_probe: dint;
+	end
+	{st}
+	key_hash := HashMapKeyHashFunction(key);
+	HashMap_private_static_robinhood_find(table:=self.entries, key:=key, key_hash:=key_hash, slot=>slot, did_find=>did_find, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+	if not did_find then
+		HashMap_remove := false;
+		return;
+	end_if;
+
+	j := slot;
+	k := (j + 1) mod HashMapCapacity;
+	while self.entries[k].state = HASHMAP_SLOT_USED do
+		next_ideal := _HASHMAP_IDEAL_INDEX(self.entries[k].hash);
+		next_probe := HashMap_private_static_robinhood_probedist(idx:=k, ideal_idx:=next_ideal, capacity:=HashMapCapacity, eno=>eno);
+		if not eno then
+			return;
+		end_if;
+		if next_probe = 0 then
+			exit;
+		end_if;
+
+		self.entries[j] := self.entries[k];
+		j := k;
+		k := (k + 1) mod HashMapCapacity;
+	end_while;
+
+	self.entries[j].state := HASHMAP_SLOT_EMPTY;
+	self.entries[j].hash := udint#0;
+	self.entries[j].key := '';
+	self.count := self.count - 1;
+
+	HashMap_remove := true;
+	{end}
+end
+
+(*{doc キーが HashMap に存在するかを確認します。
+値の取得は行いません。
+@inout self HashMap インスタンス。
+@input key 検索するキー（最大 HashMapKeyMaxLen文字）。
+@return キーが存在する場合 true。
+@error キーが存在しない、またはエラーの場合 false。}*)
+function HashMap_contains: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out self: HashMapCoreType; end
+	var_input
+		key: HashMapKeyType;
+	end
+	var_temp
+		key_hash: udint;
+		slot: dint;
+		did_find: bool;
+	end
+	{st}
+	key_hash := HashMapKeyHashFunction(key);
+	HashMap_private_static_robinhood_find(table:=self.entries, key:=key, key_hash:=key_hash, slot=>slot, did_find=>did_find, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+
+	HashMap_contains := did_find;
+	{end}
+end
+
+(*{doc HashMap に格納されている要素の個数を返します。
+@inout self HashMap インスタンス。
+@return 格納された要素数。}*)
+function HashMap_count: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out self: HashMapCoreType; end
+	{st}
+	HashMap_count := self.count;
+	{end}
+end
+
+(*{doc HashMap 内のすべてのエントリを削除し、初期状態に戻します。
+初期化（init）と異なり、内部状態をリセットするのみで、メモリの再割り当ては行いません。
+@inout self HashMap インスタンス。
+@return クリア成功した場合 true。}*)
+function HashMap_clear: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out self: HashMapCoreType; end
+	var_temp
+		i: dint;
+	end
+	{st}
+	for i := 0 to HashMapCapacity - 1 by 1 do
+		self.entries[i].state := HASHMAP_SLOT_EMPTY;
+		self.entries[i].hash := udint#0;
+		self.entries[i].key := '';
+	end_for;
+	self.count := 0;
+
+	HashMap_clear := true;
+	{end}
+end
+
+{#undef  HashMapName}
+{#undef  HashMapCapacity}
+{#undef  HashMapValueType}
+{#undef  HashMapCoreType}
+{#undef  HashMapEntryType}
+{#undef  _HASHMAP_IDEAL_INDEX}
+{#undef  HashMap_private_static_robinhood_probedist}
+{#undef  HashMap_private_static_robinhood_find}
+{#undef  HashMap_init}
+{#undef  HashMap_upsert}
+{#undef  HashMap_try_get}
+{#undef  HashMap_remove}
+{#undef  HashMap_contains}
+{#undef  HashMap_count}
+{#undef  HashMap_clear}
+{#undef  HashMapKeyType}
+{#undef  HashMapKeyEqualsFunction}
+{#undef  HashMapKeyHashFunction}
+{#undef  HashMapMaxLoadPermille}
+{#undef  _HASHMAP_CORE_TYPE_}
+{#undef  _HASHMAP_ENTRY_TYPE_}
+{#undef  _HASHMAP_PRIVATE_PROBE_DISTANCE_}
+{#undef  _HASHMAP_PRIVATE_FIND_}
+{#undef  _HASHMAP_INIT_}
+{#undef  _HASHMAP_UPSERT_}
+{#undef  _HASHMAP_TRY_GET_}
+{#undef  _HASHMAP_REMOVE_}
+{#undef  _HASHMAP_CONTAINS_}
+{#undef  _HASHMAP_COUNT_}
+{#undef  _HASHMAP_CLEAR_}
+{#undef  HASHMAP_CORE_TYPE}
+{#undef  HASHMAP_ENTRY_TYPE}
+{#undef  HASHMAP_PRIVATE_PROBE_DISTANCE}
+{#undef  HASHMAP_PRIVATE_FIND}
+{#undef  HASHMAP_INIT}
+{#undef  HASHMAP_UPSERT}
+{#undef  HASHMAP_TRY_GET}
+{#undef  HASHMAP_REMOVE}
+{#undef  HASHMAP_CONTAINS}
+{#undef  HASHMAP_COUNT}
+{#undef  HASHMAP_CLEAR}
+{#undef  HASHMAP_SLOT_EMPTY}
+{#undef  HASHMAP_SLOT_USED}
