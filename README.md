@@ -100,6 +100,26 @@ JiecLibに含まれるライブラリと、IEC 61131-10 XMLを生成するため
     * [SHA512_string](./hash/sha512.txt): 文字列入力のSHA-512
     * [SHA512_bytes](./hash/sha512.txt): バイト配列入力のSHA-512（`offset`/`length`を指定）
     * IEC 61131-10 XML生成コマンド: `jiecc ./hash/sha512.txt -I. -I./vendor/jiecunit/sys -o ./hash/sha512.xml -t omron`
+* [hashmap](./hashmap)
+  * Robin Hood hashing ベースの連想配列（HashMap）テンプレートです。
+  * 単一の固定型ライブラリではなく、`hashmap/hashmap_gen.txt` を `#include` する際にマクロで型・容量・比較関数・ハッシュ関数を指定してインスタンス生成します。
+  * 主な生成関数:
+    * `HashMap_<name>_init`
+    * `HashMap_<name>_upsert`
+    * `HashMap_<name>_try_get`
+    * `HashMap_<name>_remove`
+    * `HashMap_<name>_contains`
+    * `HashMap_<name>_count`
+    * `HashMap_<name>_clear`
+  * 生成例（stringキー / dint値）:
+    * `{#define HashMapName mymap}`
+    * `{#define HashMapCapacity 256}`
+    * `{#define HashMapKeyType string[128]}`
+    * `{#define HashMapKeyEqualsFunction String_equals}`
+    * `{#define HashMapKeyHashFunction String_hash}`
+    * `{#define HashMapValueType dint}`
+    * `{#include <hashmap/hashmap_gen.txt>}`
+  * テスト用XML生成コマンド: `jiecc ./test/hashmap/test_hashmap.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/hashmap/test_hashmap.xml -t omron`
 * [math](./math)
   * 数学関数ライブラリです。
   * [Math_floor](./math/floor.txt): 床関数（floor）

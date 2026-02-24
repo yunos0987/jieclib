@@ -1,0 +1,518 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/hashmap/test_hashmap.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/hashmap/test_hashmap.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include "hashmap_dint.txt"}
+{#include "hashmap_record.txt"}
+{#include "hashmap_dint_ci.txt"}
+{#include "hashmap_dint_collision.txt"}
+
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_hashmap_dint_init',
+		'test_hashmap_dint_upsert',
+		'test_hashmap_dint_contains',
+		'test_hashmap_dint_remove',
+		'test_hashmap_dint_count',
+		'test_hashmap_dint_clear',
+		'test_hashmap_dint_collision_upsert',
+		'test_hashmap_dint_collision_try_get',
+		'test_hashmap_dint_collision_remove',
+		'test_hashmap_dint_collision_contains',
+		'test_hashmap_dint_collision_count',
+		'test_hashmap_dint_usecase',
+		'test_hashmap_record_usecase',
+		'test_hashmap_case_insensitive'
+	)
+)
+
+TEST_S(test_hashmap_dint_init)
+	var
+		hm1: HashMap_dint_t;
+		hm2: HashMap_dint_t;
+		value: dint;
+		replaced: bool;
+	end
+	{st}
+	// Test that a newly initialized hashmap is empty and does not contain any keys.
+	EXPECT_TRUE(HashMap_dint_init(hm1));
+	EXPECT_EQ_INT32(0, HashMap_dint_count(hm1));
+	EXPECT_FALSE(HashMap_dint_contains(hm1, ''));
+	EXPECT_FALSE(HashMap_dint_contains(hm1, 'key'));
+
+	// re-init should reset the hashmap
+	EXPECT_TRUE(HashMap_dint_init(hm2));
+	ASSERT_TRUE(HashMap_dint_upsert(hm2, 'key', 2, replaced));
+	ASSERT_TRUE(HashMap_dint_contains(hm2, 'key'));
+	EXPECT_TRUE(HashMap_dint_init(hm2)); // re-init
+	EXPECT_EQ_INT32(0, HashMap_dint_count(hm2));
+	EXPECT_FALSE(HashMap_dint_contains(hm2, ''));
+	EXPECT_FALSE(HashMap_dint_contains(hm2, 'key'));
+	{end}
+END_TEST_S
+
+TEST_S(test_hashmap_dint_upsert)
+	var
+		hm_basic: HashMap_dint_t;
+		hm_empty_key: HashMap_dint_t;
+		hm_update: HashMap_dint_t;
+		hm_case_sensitive: HashMap_dint_t;
+		hm_capacity: HashMap_dint_t;
+		value: dint;
+		replaced: bool;
+	end
+	{st}
+	// Test that upsert correctly inserts new keys and updates existing keys, and that the replaced flag is set appropriately.
+	ASSERT_TRUE(HashMap_dint_init(hm_basic));
+	EXPECT_TRUE(HashMap_dint_upsert(hm_basic, 'u1', 2, replaced));
+	EXPECT_FALSE(replaced);
+	EXPECT_TRUE(HashMap_dint_try_get(hm_basic, 'u1', value));
+	EXPECT_EQ_INT32(2, value);
+
+	// upsert with empty key
+	ASSERT_TRUE(HashMap_dint_init(hm_empty_key));
+	EXPECT_TRUE(HashMap_dint_upsert(hm_empty_key, '', -2, replaced));
+	EXPECT_FALSE(replaced);
+	EXPECT_TRUE(HashMap_dint_try_get(hm_empty_key, '', value));
+	EXPECT_EQ_INT32(-2, value);
+
+	// Test that upsert works correctly after re-initialization.
+	ASSERT_TRUE(HashMap_dint_init(hm_update));
+	EXPECT_TRUE(HashMap_dint_upsert(hm_update, 'u1', 2, replaced));
+	EXPECT_FALSE(replaced);
+	EXPECT_TRUE(HashMap_dint_upsert(hm_update, 'u1', 3, replaced));
+	EXPECT_TRUE(replaced);
+	EXPECT_TRUE(HashMap_dint_try_get(hm_update, 'u1', value));
+	EXPECT_EQ_INT32(3, value);
+
+	// Test that upsert works correctly with case-sensitive keys.
+	ASSERT_TRUE(HashMap_dint_init(hm_case_sensitive));
+	EXPECT_TRUE(HashMap_dint_upsert(hm_case_sensitive, 'X', 2, replaced));
+	EXPECT_FALSE(replaced);
+	EXPECT_TRUE(HashMap_dint_upsert(hm_case_sensitive, 'x', 3, replaced));
+	EXPECT_FALSE(replaced);
+	EXPECT_TRUE(HashMap_dint_try_get(hm_case_sensitive, 'X', value));
+	EXPECT_EQ_INT32(2, value);
+	EXPECT_TRUE(HashMap_dint_try_get(hm_case_sensitive, 'x', value));
+	EXPECT_EQ_INT32(3, value);
+
+	// Test that upsert fails when exceeding configured max load.
+	// HashMapCapacity=8 and default HashMapMaxLoadPermille=800 -> max_count=6.
+	ASSERT_TRUE(HashMap_dint_init(hm_capacity));
+	EXPECT_TRUE(HashMap_dint_upsert(hm_capacity, 'c1', 1, replaced));
+	EXPECT_FALSE(replaced);
+	EXPECT_TRUE(HashMap_dint_upsert(hm_capacity, 'c2', 2, replaced));
+	EXPECT_FALSE(replaced);
+	EXPECT_TRUE(HashMap_dint_upsert(hm_capacity, 'c3', 3, replaced));
+	EXPECT_FALSE(replaced);
+	EXPECT_TRUE(HashMap_dint_upsert(hm_capacity, 'c4', 4, replaced));
+	EXPECT_FALSE(replaced);
+	EXPECT_TRUE(HashMap_dint_upsert(hm_capacity, 'c5', 5, replaced));
+	EXPECT_FALSE(replaced);
+	EXPECT_TRUE(HashMap_dint_upsert(hm_capacity, 'c6', 6, replaced));
+	EXPECT_FALSE(replaced);
+	EXPECT_EQ_INT32(6, HashMap_dint_count(hm_capacity));
+
+	EXPECT_FALSE(HashMap_dint_upsert(hm_capacity, 'c7', 7, replaced));
+	EXPECT_EQ_INT32(6, HashMap_dint_count(hm_capacity));
+	EXPECT_FALSE(HashMap_dint_contains(hm_capacity, 'c7'));
+	{end}
+END_TEST_S
+
+TEST_S(test_hashmap_dint_contains)
+	var
+		hm_empty: HashMap_dint_t;
+		hm_notempty: HashMap_dint_t;
+		replaced: bool;
+	end
+	{st}
+	ASSERT_TRUE(HashMap_dint_init(hm_empty));
+	EXPECT_FALSE(HashMap_dint_contains(hm_empty, ''));
+	EXPECT_FALSE(HashMap_dint_contains(hm_empty, 'x'));
+
+	ASSERT_TRUE(HashMap_dint_init(hm_notempty));
+	ASSERT_TRUE(HashMap_dint_upsert(hm_notempty, 'x', 2, replaced));
+	EXPECT_TRUE(HashMap_dint_contains(hm_notempty, 'x'));
+	EXPECT_FALSE(HashMap_dint_contains(hm_notempty, 'X'));
+	EXPECT_FALSE(HashMap_dint_contains(hm_notempty, 'y'));
+	{end}
+END_TEST_S
+
+TEST_S(test_hashmap_dint_remove)
+	var
+		hm_empty: HashMap_dint_t;
+		hm_notempty: HashMap_dint_t;
+		hm_case_sensitive: HashMap_dint_t;
+		replaced: bool;
+	end
+	{st}
+	// Test that remove correctly removes existing keys and returns false when trying to remove non-existent keys.
+	ASSERT_TRUE(HashMap_dint_init(hm_empty));
+	EXPECT_FALSE(HashMap_dint_remove(hm_empty, ''));
+	EXPECT_EQ_INT32(0, HashMap_dint_count(hm_empty));
+	EXPECT_FALSE(HashMap_dint_remove(hm_empty, 'x'));
+	EXPECT_EQ_INT32(0, HashMap_dint_count(hm_empty));
+
+	// Test that remove works correctly on a non-empty hashmap.
+	ASSERT_TRUE(HashMap_dint_init(hm_notempty));
+	ASSERT_TRUE(HashMap_dint_upsert(hm_notempty, 'x', 2, replaced));
+	ASSERT_TRUE(HashMap_dint_upsert(hm_notempty, 'y', 3, replaced));
+	ASSERT_EQ_INT32(2, HashMap_dint_count(hm_notempty));
+
+	EXPECT_TRUE(HashMap_dint_remove(hm_notempty, 'x'));
+	EXPECT_FALSE(HashMap_dint_contains(hm_notempty, 'x'));
+	EXPECT_TRUE(HashMap_dint_contains(hm_notempty, 'y'));
+	EXPECT_EQ_INT32(1, HashMap_dint_count(hm_notempty));
+
+	EXPECT_FALSE(HashMap_dint_remove(hm_notempty, 'x'));
+	EXPECT_EQ_INT32(1, HashMap_dint_count(hm_notempty));
+
+	// Test that remove works correctly with case-sensitive keys.
+	ASSERT_TRUE(HashMap_dint_init(hm_case_sensitive));
+	ASSERT_TRUE(HashMap_dint_upsert(hm_case_sensitive, 'X', 2, replaced));
+	EXPECT_FALSE(HashMap_dint_remove(hm_case_sensitive, 'x'));
+	EXPECT_EQ_INT32(1, HashMap_dint_count(hm_case_sensitive));
+	{end}
+END_TEST_S
+
+TEST_S(test_hashmap_dint_count)
+	var
+		hm_empty: HashMap_dint_t;
+		hm_notempty: HashMap_dint_t;
+		hm_upsert_twice: HashMap_dint_t;
+		replaced: bool;
+	end
+	{st}
+	// Test that count returns the correct number of key-value pairs in the hashmap, and that it updates correctly after insertions and removals.
+	ASSERT_TRUE(HashMap_dint_init(hm_empty));
+	EXPECT_EQ_INT32(0, HashMap_dint_count(hm_empty));
+
+	// Test that count updates correctly after insertions.
+	ASSERT_TRUE(HashMap_dint_init(hm_notempty));
+	ASSERT_TRUE(HashMap_dint_upsert(hm_notempty, 'n1', 2, replaced));
+	ASSERT_TRUE(HashMap_dint_upsert(hm_notempty, 'n2', 3, replaced));
+	EXPECT_EQ_INT32(2, HashMap_dint_count(hm_notempty));
+
+	// Test that count updates twice when upserting the same key.
+	ASSERT_TRUE(HashMap_dint_init(hm_upsert_twice));
+	ASSERT_TRUE(HashMap_dint_upsert(hm_upsert_twice, 'k1', 2, replaced));
+	ASSERT_TRUE(HashMap_dint_upsert(hm_upsert_twice, 'k1', 3, replaced));
+	EXPECT_EQ_INT32(1, HashMap_dint_count(hm_upsert_twice));
+	{end}
+END_TEST_S
+
+TEST_S(test_hashmap_dint_clear)
+	var
+		hm_empty: HashMap_dint_t;
+		hm_notempty: HashMap_dint_t;
+		value: dint;
+		replaced: bool;
+	end
+	{st}
+	// Test that clear removes all key-value pairs from the hashmap and resets the count to zero, and that it works correctly on both empty and non-empty hashmaps.
+	ASSERT_TRUE(HashMap_dint_init(hm_empty));
+	EXPECT_TRUE(HashMap_dint_clear(hm_empty));
+	EXPECT_EQ_INT32(0, HashMap_dint_count(hm_empty));
+
+	// Test that clear works correctly on a non-empty hashmap.
+	ASSERT_TRUE(HashMap_dint_init(hm_notempty));
+	ASSERT_TRUE(HashMap_dint_upsert(hm_notempty, 'z1', 1, replaced));
+	ASSERT_TRUE(HashMap_dint_upsert(hm_notempty, 'z2', 2, replaced));
+
+	EXPECT_TRUE(HashMap_dint_clear(hm_notempty));
+	EXPECT_EQ_INT32(0, HashMap_dint_count(hm_notempty));
+	EXPECT_FALSE(HashMap_dint_contains(hm_notempty, 'z1'));
+	EXPECT_FALSE(HashMap_dint_contains(hm_notempty, 'z2'));
+	{end}
+END_TEST_S
+
+TEST_S(test_hashmap_dint_usecase)
+	var
+		hm: HashMap_dint_t;
+		value: dint;
+		replaced: bool;
+	end
+	{st}
+	EXPECT_TRUE(HashMap_dint_init(hm));
+	EXPECT_EQ_INT32(0, HashMap_dint_count(hm));
+
+	EXPECT_TRUE(HashMap_dint_upsert(hm, 'k1', 11, replaced));
+	EXPECT_FALSE(replaced);
+	EXPECT_EQ_INT32(1, HashMap_dint_count(hm));
+
+	EXPECT_TRUE(HashMap_dint_contains(hm, 'k1'));
+	EXPECT_TRUE(HashMap_dint_try_get(hm, 'k1', value));
+	EXPECT_EQ_INT32(11, value);
+
+	EXPECT_TRUE(HashMap_dint_upsert(hm, 'k1', 13, replaced));
+	EXPECT_TRUE(replaced);
+	EXPECT_TRUE(HashMap_dint_try_get(hm, 'k1', value));
+	EXPECT_EQ_INT32(13, value);
+	EXPECT_EQ_INT32(1, HashMap_dint_count(hm));
+
+	EXPECT_TRUE(HashMap_dint_remove(hm, 'k1'));
+	EXPECT_EQ_INT32(0, HashMap_dint_count(hm));
+	EXPECT_FALSE(HashMap_dint_contains(hm, 'k1'));
+	EXPECT_FALSE(HashMap_dint_try_get(hm, 'k1', value));
+	{end}
+END_TEST_S
+
+TEST_S(test_hashmap_record_usecase)
+	var
+		hm: HashMap_record_t;
+		inval: HashMap_RecordValue_t;
+		outval: HashMap_RecordValue_t;
+		replaced: bool;
+	end
+	{st}
+	EXPECT_TRUE(HashMap_record_init(hm));
+
+	inval.id := 10;
+	inval.level := 3;
+	inval.active := true;
+	EXPECT_TRUE(HashMap_record_upsert(hm, 'user-A', inval, replaced));
+	EXPECT_FALSE(replaced);
+
+	EXPECT_TRUE(HashMap_record_try_get(hm, 'user-A', outval));
+	EXPECT_EQ_INT32(10, outval.id);
+	EXPECT_EQ_INT32(3, outval.level);
+	EXPECT_TRUE(outval.active);
+
+	inval.id := 10;
+	inval.level := 9;
+	inval.active := false;
+	EXPECT_TRUE(HashMap_record_upsert(hm, 'user-A', inval, replaced));
+	EXPECT_TRUE(replaced);
+
+	EXPECT_TRUE(HashMap_record_try_get(hm, 'user-A', outval));
+	EXPECT_EQ_INT32(10, outval.id);
+	EXPECT_EQ_INT32(9, outval.level);
+	EXPECT_FALSE(outval.active);
+
+	EXPECT_TRUE(HashMap_record_remove(hm, 'user-A'));
+	EXPECT_FALSE(HashMap_record_contains(hm, 'user-A'));
+	{end}
+END_TEST_S
+
+TEST_S(test_hashmap_case_insensitive)
+	var
+		hm: HashMap_dint_ci_t;
+		value: dint;
+		replaced: bool;
+	end
+	{st}
+	ASSERT_TRUE(HashMap_dint_ci_init(hm));
+	ASSERT_TRUE(HashMap_dint_ci_upsert(hm, 'KeyX', 21, replaced));
+	ASSERT_FALSE(replaced);
+	// contains
+	EXPECT_TRUE(HashMap_dint_ci_contains(hm, 'KeyX'));
+	EXPECT_TRUE(HashMap_dint_ci_contains(hm, 'keyx'));
+	EXPECT_TRUE(HashMap_dint_ci_contains(hm, 'KEYX'));
+	EXPECT_TRUE(HashMap_dint_ci_contains(hm, 'kEYx'));
+	EXPECT_FALSE(HashMap_dint_ci_contains(hm, 'KeyY'));
+	// try_get
+	EXPECT_TRUE(HashMap_dint_ci_try_get(hm, 'KeyX', value));
+	EXPECT_EQ_INT32(21, value);
+	EXPECT_TRUE(HashMap_dint_ci_try_get(hm, 'keyx', value));
+	EXPECT_EQ_INT32(21, value);
+	EXPECT_TRUE(HashMap_dint_ci_try_get(hm, 'KEYX', value));
+	EXPECT_EQ_INT32(21, value);
+	EXPECT_TRUE(HashMap_dint_ci_try_get(hm, 'kEYx', value));
+	EXPECT_EQ_INT32(21, value);
+	EXPECT_FALSE(HashMap_dint_ci_try_get(hm, 'KeyY', value));
+	{end}
+END_TEST_S
+
+TEST_S(test_hashmap_dint_collision_upsert)
+	var
+		hm1: HashMap_dint_collision_t;
+		hm2: HashMap_dint_collision_t;
+		hm3: HashMap_dint_collision_t;
+		replaced: bool;
+		value: dint;
+	end
+	{st}
+	// forced collisions: all keys share the same hash value
+		// Arrange
+	ASSERT_TRUE(HashMap_dint_collision_init(hm1));
+		// Act
+	EXPECT_TRUE(HashMap_dint_collision_upsert(hm1, 'a', 10, replaced));
+	EXPECT_FALSE(replaced);
+	EXPECT_TRUE(HashMap_dint_collision_upsert(hm1, 'b', 20, replaced));
+	EXPECT_FALSE(replaced);
+	EXPECT_TRUE(HashMap_dint_collision_upsert(hm1, 'c', 30, replaced));
+	EXPECT_FALSE(replaced);
+		// Assert
+	EXPECT_EQ_INT32(3, HashMap_dint_collision_count(hm1));
+	EXPECT_TRUE(HashMap_dint_collision_try_get(hm1, 'a', value));
+	EXPECT_EQ_INT32(10, value);
+	EXPECT_TRUE(HashMap_dint_collision_try_get(hm1, 'b', value));
+	EXPECT_EQ_INT32(20, value);
+	EXPECT_TRUE(HashMap_dint_collision_try_get(hm1, 'c', value));
+	EXPECT_EQ_INT32(30, value);
+
+	// update existing keys
+		// Arrange
+	ASSERT_TRUE(HashMap_dint_collision_init(hm2));
+	EXPECT_TRUE(HashMap_dint_collision_upsert(hm2, 'a', 10, replaced));
+	EXPECT_FALSE(replaced);
+	EXPECT_TRUE(HashMap_dint_collision_upsert(hm2, 'b', 20, replaced));
+	EXPECT_FALSE(replaced);
+	EXPECT_TRUE(HashMap_dint_collision_upsert(hm2, 'c', 30, replaced));
+	EXPECT_FALSE(replaced);
+		// Act
+	EXPECT_TRUE(HashMap_dint_collision_upsert(hm2, 'a', 11, replaced));
+	EXPECT_TRUE(replaced);
+	EXPECT_TRUE(HashMap_dint_collision_upsert(hm2, 'b', 21, replaced));
+	EXPECT_TRUE(replaced);
+		// Assert
+	EXPECT_EQ_INT32(3, HashMap_dint_collision_count(hm2));
+	EXPECT_TRUE(HashMap_dint_collision_try_get(hm2, 'a', value));
+	EXPECT_EQ_INT32(11, value);
+	EXPECT_TRUE(HashMap_dint_collision_try_get(hm2, 'b', value));
+	EXPECT_EQ_INT32(21, value);
+	EXPECT_TRUE(HashMap_dint_collision_try_get(hm2, 'c', value));
+	EXPECT_EQ_INT32(30, value);
+
+	// capacity overflow (HashMapCapacity=8, HashMapMaxLoadPermille=800 => max_count=6)
+		// Arrange
+	ASSERT_TRUE(HashMap_dint_collision_init(hm3));
+	EXPECT_TRUE(HashMap_dint_collision_upsert(hm3, 'k1', 1, replaced));
+	EXPECT_FALSE(replaced);
+	EXPECT_TRUE(HashMap_dint_collision_upsert(hm3, 'k2', 2, replaced));
+	EXPECT_FALSE(replaced);
+	EXPECT_TRUE(HashMap_dint_collision_upsert(hm3, 'k3', 3, replaced));
+	EXPECT_FALSE(replaced);
+	EXPECT_TRUE(HashMap_dint_collision_upsert(hm3, 'k4', 4, replaced));
+	EXPECT_FALSE(replaced);
+	EXPECT_TRUE(HashMap_dint_collision_upsert(hm3, 'k5', 5, replaced));
+	EXPECT_FALSE(replaced);
+	EXPECT_TRUE(HashMap_dint_collision_upsert(hm3, 'k6', 6, replaced));
+	EXPECT_FALSE(replaced);
+		// Act & Assert
+	EXPECT_EQ_INT32(6, HashMap_dint_collision_count(hm3));
+	EXPECT_FALSE(HashMap_dint_collision_upsert(hm3, 'k7', 7, replaced));
+	EXPECT_EQ_INT32(6, HashMap_dint_collision_count(hm3));
+	EXPECT_FALSE(HashMap_dint_collision_contains(hm3, 'k7'));
+	{end}
+END_TEST_S
+
+TEST_S(test_hashmap_dint_collision_try_get)
+	var
+		hm: HashMap_dint_collision_t;
+		value: dint;
+		replaced: bool;
+	end
+	{st}
+	// Test that try_get correctly retrieves values for existing keys and returns false for non-existent keys, even when there are hash collisions.
+		// Arrange
+	ASSERT_TRUE(HashMap_dint_collision_init(hm));
+	ASSERT_TRUE(HashMap_dint_collision_upsert(hm, 'a', 10, replaced));
+	ASSERT_TRUE(HashMap_dint_collision_upsert(hm, 'b', 20, replaced));
+	ASSERT_TRUE(HashMap_dint_collision_upsert(hm, 'c', 30, replaced));
+		// Act & Assert
+	EXPECT_TRUE(HashMap_dint_collision_try_get(hm, 'a', value));
+	EXPECT_EQ_INT32(10, value);
+	EXPECT_TRUE(HashMap_dint_collision_try_get(hm, 'b', value));
+	EXPECT_EQ_INT32(20, value);
+	EXPECT_TRUE(HashMap_dint_collision_try_get(hm, 'c', value));
+	EXPECT_EQ_INT32(30, value);
+	EXPECT_FALSE(HashMap_dint_collision_try_get(hm, '', value));
+	{end}
+END_TEST_S
+
+TEST_S(test_hashmap_dint_collision_remove)
+	var
+		hm_remove1: HashMap_dint_collision_t;
+		hm_remove_all: HashMap_dint_collision_t;
+		value: dint;
+		replaced: bool;
+	end
+	{st}
+	// Test that remove correctly removes existing keys and returns false when trying to remove non-existent keys, even when there are hash collisions.
+		// Arrange
+	ASSERT_TRUE(HashMap_dint_collision_init(hm_remove1));
+	ASSERT_TRUE(HashMap_dint_collision_upsert(hm_remove1, 'a', 10, replaced));
+	ASSERT_TRUE(HashMap_dint_collision_upsert(hm_remove1, 'b', 20, replaced));
+	ASSERT_TRUE(HashMap_dint_collision_upsert(hm_remove1, 'c', 30, replaced));
+		// Act
+	EXPECT_TRUE(HashMap_dint_collision_remove(hm_remove1, 'b'));
+		// Assert
+	EXPECT_TRUE(HashMap_dint_collision_try_get(hm_remove1, 'a', value));
+	EXPECT_EQ_INT32(10, value);
+	EXPECT_FALSE(HashMap_dint_collision_try_get(hm_remove1, 'b', value));
+	EXPECT_TRUE(HashMap_dint_collision_try_get(hm_remove1, 'c', value));
+	EXPECT_EQ_INT32(30, value);
+	EXPECT_EQ_INT32(2, HashMap_dint_collision_count(hm_remove1));
+
+	// Remove all keys
+		// Arrange
+	ASSERT_TRUE(HashMap_dint_collision_init(hm_remove_all));
+	ASSERT_TRUE(HashMap_dint_collision_upsert(hm_remove_all, 'a', 10, replaced));
+	ASSERT_TRUE(HashMap_dint_collision_upsert(hm_remove_all, 'b', 20, replaced));
+	ASSERT_TRUE(HashMap_dint_collision_upsert(hm_remove_all, 'c', 30, replaced));
+		// Act
+	EXPECT_TRUE(HashMap_dint_collision_remove(hm_remove_all, 'a'));
+	EXPECT_TRUE(HashMap_dint_collision_remove(hm_remove_all, 'b'));
+	EXPECT_TRUE(HashMap_dint_collision_remove(hm_remove_all, 'c'));
+		// Assert
+	EXPECT_FALSE(HashMap_dint_collision_contains(hm_remove_all, 'a'));
+	EXPECT_FALSE(HashMap_dint_collision_contains(hm_remove_all, 'b'));
+	EXPECT_FALSE(HashMap_dint_collision_contains(hm_remove_all, 'c'));
+	EXPECT_EQ_INT32(0, HashMap_dint_collision_count(hm_remove_all));
+	{end}
+END_TEST_S
+
+TEST_S(test_hashmap_dint_collision_contains)
+	var
+		hm: HashMap_dint_collision_t;
+		replaced: bool;
+	end
+	{st}
+	// Test that contains correctly identifies existing keys and returns false for non-existent keys, even when there are hash collisions.
+		// Arrange
+	ASSERT_TRUE(HashMap_dint_collision_init(hm));
+	ASSERT_TRUE(HashMap_dint_collision_upsert(hm, 'a', 10, replaced));
+	ASSERT_TRUE(HashMap_dint_collision_upsert(hm, 'b', 20, replaced));
+	ASSERT_TRUE(HashMap_dint_collision_upsert(hm, 'c', 30, replaced));
+		// Act & Assert
+	EXPECT_TRUE(HashMap_dint_collision_contains(hm, 'a'));
+	EXPECT_TRUE(HashMap_dint_collision_contains(hm, 'b'));
+	EXPECT_TRUE(HashMap_dint_collision_contains(hm, 'c'));
+	EXPECT_FALSE(HashMap_dint_collision_contains(hm, 'z'));
+	{end}
+END_TEST_S
+
+TEST_S(test_hashmap_dint_collision_count)
+	var
+		hm: HashMap_dint_collision_t;
+		replaced: bool;
+	end
+	{st}
+	ASSERT_TRUE(HashMap_dint_collision_init(hm));
+	EXPECT_EQ_INT32(0, HashMap_dint_collision_count(hm));
+
+	ASSERT_TRUE(HashMap_dint_collision_upsert(hm, 'a', 10, replaced));
+	EXPECT_FALSE(replaced);
+	EXPECT_EQ_INT32(1, HashMap_dint_collision_count(hm));
+
+	ASSERT_TRUE(HashMap_dint_collision_upsert(hm, 'b', 20, replaced));
+	EXPECT_FALSE(replaced);
+	EXPECT_EQ_INT32(2, HashMap_dint_collision_count(hm));
+
+	ASSERT_TRUE(HashMap_dint_collision_upsert(hm, 'c', 30, replaced));
+	EXPECT_FALSE(replaced);
+	EXPECT_EQ_INT32(3, HashMap_dint_collision_count(hm));
+
+	ASSERT_TRUE(HashMap_dint_collision_upsert(hm, 'b', 22, replaced));
+	EXPECT_TRUE(replaced);
+	EXPECT_EQ_INT32(3, HashMap_dint_collision_count(hm));
+
+	EXPECT_TRUE(HashMap_dint_collision_remove(hm, 'a'));
+	EXPECT_EQ_INT32(2, HashMap_dint_collision_count(hm));
+
+	EXPECT_FALSE(HashMap_dint_collision_remove(hm, 'missing'));
+	EXPECT_EQ_INT32(2, HashMap_dint_collision_count(hm));
+	{end}
+END_TEST_S
