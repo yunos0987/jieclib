@@ -17,6 +17,10 @@ DEFINE_CONFIGURATION(
 		'test_String_asciiCharCodeAt',
 		'test_String_fromAsciiCharCode',
 		'test_String_lower_upper',
+		'test_String_equals',
+		'test_String_equalsAsciiIgnoreCase',
+		'test_String_hash',
+		'test_String_hashAsciiIgnoreCase',
 		'test_String_remove',
 		'test_String_reverse',
 		'test_String_startswith',
@@ -331,6 +335,101 @@ TEST_S(test_String_lower_upper)
 		'$50$51$52$53$54$55$56$57$58$59$5A$5B$5C$5D$5E$5F'
 		'$60$61$62$63$64$65$66$67$68$69$6A$6B$6C$6D$6E$6F'
 		'$70$71$72$73$74$75$76$77$78$79$7A$7B$7C$7D$7E$7F'));
+	{end}
+END_TEST_S
+
+TEST_S(test_String_equals)
+	var
+		s1: STRING;
+		s2: STRING;
+		r: bool;
+	end
+	{st}
+	s1 := '';
+	s2 := '';
+	r := String_equals(s1, s2);
+	EXPECT_EQ_BOOL(true, r);
+	s1 := 'abc';
+	s2 := 'abc';
+	r := String_equals(s1, s2);
+	EXPECT_EQ_BOOL(true, r);
+	s1 := 'abc';
+	s2 := 'ABC';
+	r := String_equals(s1, s2);
+	EXPECT_EQ_BOOL(false, r);
+	s1 := 'abc012_+-';
+	s2 := 'aBc012_+-';
+	r := String_equals(s1, s2);
+	EXPECT_EQ_BOOL(false, r);
+	s1 := 'abc';
+	s2 := 'ab';
+	r := String_equals(s1, s2);
+	EXPECT_EQ_BOOL(false, r);
+	r := String_equals(s2, s1);
+	EXPECT_EQ_BOOL(false, r);
+	{end}
+END_TEST_S
+
+TEST_S(test_String_equalsAsciiIgnoreCase)
+	var
+		s1: STRING;
+		s2: STRING;
+		r: bool;
+	end
+	{st}
+	s1 := '';
+	s2 := '';
+	r := String_equalsAsciiIgnoreCase(s1, s2);
+	EXPECT_EQ_BOOL(true, r);
+	s1 := 'abc';
+	s2 := 'abc';
+	r := String_equalsAsciiIgnoreCase(s1, s2);
+	EXPECT_EQ_BOOL(true, r);
+	s1 := 'abc';
+	s2 := 'ABC';
+	r := String_equalsAsciiIgnoreCase(s1, s2);
+	EXPECT_EQ_BOOL(true, r);
+	s1 := 'AbC012_+-';
+	s2 := 'aBc012_+-';
+	r := String_equalsAsciiIgnoreCase(s1, s2);
+	EXPECT_EQ_BOOL(true, r);
+	s1 := 'abc';
+	s2 := 'ab';
+	r := String_equalsAsciiIgnoreCase(s1, s2);
+	EXPECT_EQ_BOOL(false, r);
+	s1 := 'abc';
+	s2 := 'abd';
+	r := String_equalsAsciiIgnoreCase(s1, s2);
+	EXPECT_EQ_BOOL(false, r);
+	s1 := 'abc!';
+	s2 := 'abc';
+	r := String_equalsAsciiIgnoreCase(s1, s2);
+	EXPECT_EQ_BOOL(false, r);
+	s1 := 'abc';
+	s2 := 'abc$7E';
+	r := String_equalsAsciiIgnoreCase(s1, s2);
+	EXPECT_EQ_BOOL(false, r);
+	{end}
+END_TEST_S
+
+TEST_S(test_String_hash)
+	{st}
+	EXPECT_EQ_UDINT(udint#2166136261, String_hash(''));
+	EXPECT_EQ_UDINT(udint#3826002220, String_hash('a'));
+	EXPECT_EQ_UDINT(udint#3289118412, String_hash('A'));
+	EXPECT_EQ_UDINT(udint#1335831723, String_hash('hello'));
+	EXPECT_EQ_UDINT(udint#3214735720, String_hash('foobar'));
+	{end}
+END_TEST_S
+
+TEST_S(test_String_hashAsciiIgnoreCase)
+	{st}
+	EXPECT_EQ_UDINT(udint#2166136261, String_hashAsciiIgnoreCase(''));
+	EXPECT_EQ_UDINT(udint#3826002220, String_hashAsciiIgnoreCase('a'));
+	EXPECT_EQ_UDINT(udint#3826002220, String_hashAsciiIgnoreCase('A'));
+	EXPECT_EQ_UDINT(udint#1335831723, String_hashAsciiIgnoreCase('hello'));
+	EXPECT_EQ_UDINT(udint#1335831723, String_hashAsciiIgnoreCase('Hello'));
+	EXPECT_EQ_UDINT(udint#3214735720, String_hashAsciiIgnoreCase('foobar'));
 	{end}
 END_TEST_S
 
