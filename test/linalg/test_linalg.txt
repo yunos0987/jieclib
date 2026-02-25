@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/linalg/test_linalg.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/test_linalg.xml -t omron
+ * $ jiecc ./test/linalg/test_linalg.txt -I. -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/test_linalg.xml -t omron
  *)
 {#if _JIECC and (_JIECC_VER < 514)}
 	{#error This test requires Jiecc 5.14 or later.}

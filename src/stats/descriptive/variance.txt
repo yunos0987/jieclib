@@ -1,0 +1,314 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/stats/descriptive/variance.txt -I./src -I./vendor/jiecunit/sys -o ./src/stats/descriptive/variance.xml -t omron
+ *)
+{#ifndef __STATS_VARIANCE_TXT__}
+{#define __STATS_VARIANCE_TXT__}
+
+{#include <sys.txt>}
+{#include <array/array.txt>}
+{#include <stats/sequences/accumulate.txt>}
+
+(*{doc 母分散 (ddof=0) を計算
+@inout data サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@input n 先頭n個を使用する。
+  デフォルト値: -1
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_variance: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
+		data: array[*] of lreal;
+	end
+	var_input
+		(*{doc 先頭n個を使用する。}*)
+		n: dint := -1;
+	end
+	{st}
+	Stats_variance := Stats_variance_ddof(data:=data, n:=n, ddof:=0, eno=>eno);
+	{end}
+end
+
+(*{doc 標本分散 (ddof=1) を計算
+@inout data サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@input n 先頭n個を使用する。
+  デフォルト値: -1
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_sample_variance: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
+		data: array[*] of lreal;
+	end
+	var_input
+		(*{doc 先頭n個を使用する。}*)
+		n: dint := -1;
+	end
+	{st}
+	Stats_sample_variance := Stats_variance_ddof(data:=data, n:=n, ddof:=1, eno=>eno);
+	{end}
+end
+
+(*{doc 一般分散 (ddof 指定) を計算
+@inout data サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@input n 先頭n個を使用する。
+  デフォルト値: -1
+@input ddof 自由度補正。
+  デフォルト値: 0
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_variance_ddof: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
+		data: array[*] of lreal;
+	end
+	var_input
+		(*{doc 先頭n個を使用する。}*)
+		n: dint := -1;
+		(*{doc 自由度補正。}*)
+		ddof: dint := 0;
+	end
+	var_temp
+		actual_n: dint;
+		i: dint;
+		s, m: lreal;
+		acc: lreal;
+		diff: lreal;
+		den: dint;
+	end
+	{st}
+	actual_n := Array_isRegular_lreal(data);
+	if (actual_n = 0) or (n > actual_n) then
+		eno := false;
+		return;
+	end_if;
+	if n >= 0 then
+		actual_n := n;
+	end_if;
+
+	den := actual_n - ddof;
+	if den <= 0 then
+		eno := false;
+		return;
+	end_if;
+
+	s := Stats_sum(x:=data, n:=actual_n, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+	m := s / dint_to_lreal(actual_n);
+	acc := 0.0;
+	for i := 0 to actual_n - 1 do
+		diff := data[i] - m;
+		acc := acc + diff * diff;
+	end_for;
+	Stats_variance_ddof := acc / dint_to_lreal(den);
+	{end}
+end
+
+(*{doc 重み付き分散 (母分散相当: sum(w*(x-mean)^2)/sum(w))
+@inout data サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout weights 重みを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@input n 先頭n個を使用する。
+  デフォルト値: -1
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_weighted_variance: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
+		data: array[*] of lreal;
+		(*{doc 重みを含む配列。}*)
+		weights: array[*] of lreal;
+	end
+	var_input
+		(*{doc 先頭n個を使用する。}*)
+		n: dint := -1;
+	end
+	var_temp
+		ndata, nweight: dint;
+		actual_n: dint;
+		i: dint;
+		s_w, s, m: lreal;
+		acc: lreal;
+		diff: lreal;
+	end
+	{st}
+	ndata := Array_isRegular_lreal(data);
+	if (ndata = 0) or (n > ndata) then
+		eno := false;
+		return;
+	end_if;
+	nweight := Array_isRegular_lreal(weights);
+	if (nweight = 0) or (n > nweight) then
+		eno := false;
+		return;
+	end_if;
+
+	if n < 0 then
+		if ndata <> nweight then
+			eno := false;
+			return;
+		end_if;
+		actual_n := ndata;
+	else
+		actual_n := n;
+	end_if;
+
+	s := Stats_sum(x:=data, n:=actual_n, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+	s_w := Stats_sum(x:=weights, n:=actual_n, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+
+	s := 0.0;
+	for i := 0 to actual_n - 1 do
+		if weights[i] < 0.0 then
+			eno := false;
+			return;
+		end_if;
+		s := s + weights[i] * data[i];
+	end_for;
+	if abs(s_w) = 0.0 then
+		eno := false;
+		return;
+	end_if;
+	m := s / s_w;
+	acc := 0.0;
+	for i := 0 to actual_n - 1 do
+		diff := data[i] - m;
+		acc := acc + weights[i] * diff * diff;
+	end_for;
+	Stats_weighted_variance := acc / s_w;
+	{end}
+end
+
+(*{doc 数値安定な2パス法 (ddof 指定)
+@inout data サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@input n 先頭n個を使用する。
+  デフォルト値: -1
+@input ddof 自由度補正。
+  デフォルト値: 0
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_variance_two_pass: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
+		data: array[*] of lreal;
+	end
+	var_input
+		(*{doc 先頭n個を使用する。}*)
+		n: dint := -1;
+		(*{doc 自由度補正。}*)
+		ddof: dint := 0;
+	end
+	var_temp
+		actual_n: dint;
+		i: dint;
+		s, m: lreal;
+		acc: lreal;
+		diff: lreal;
+		den: dint;
+	end
+	{st}
+	actual_n := Array_isRegular_lreal(data);
+	if (actual_n = 0) or (n > actual_n) then
+		eno := false;
+		return;
+	end_if;
+	if n >= 0 then
+		actual_n := n;
+	end_if;
+
+	den := actual_n - ddof;
+	if den <= 0 then
+		eno := false;
+		return;
+	end_if;
+	s := Stats_sum(x:=data, n:=actual_n, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+	m := s / dint_to_lreal(actual_n);
+	acc := 0.0;
+	for i := 0 to actual_n - 1 do
+		diff := data[i] - m;
+		acc := acc + diff * diff;
+	end_for;
+	Stats_variance_two_pass := acc / dint_to_lreal(den);
+	{end}
+end
+
+(*{doc 数値安定なWelford法 (ddof 指定)
+@inout data サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@input n 先頭n個を使用する。
+  デフォルト値: -1
+@input ddof 自由度補正。
+  デフォルト値: 0
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_variance_welford: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
+		data: array[*] of lreal;
+	end
+	var_input
+		(*{doc 先頭n個を使用する。}*)
+		n: dint := -1;
+		(*{doc 自由度補正。}*)
+		ddof: dint := 0;
+	end
+	var_temp
+		actual_n: dint;
+		i: dint;
+		m: lreal;
+		M2: lreal;
+		delta1: lreal;
+		delta2: lreal;
+		den: dint;
+	end
+	{st}
+	actual_n := Array_isRegular_lreal(data);
+	if (actual_n = 0) or (n > actual_n) then
+		eno := false;
+		return;
+	end_if;
+	if n >= 0 then
+		actual_n := n;
+	end_if;
+
+	den := actual_n - ddof;
+	if den <= 0 then
+		eno := false;
+		return;
+	end_if;
+
+	m := 0.0;
+	M2 := 0.0;
+	for i := 0 to actual_n - 1 do
+		delta1 := data[i] - m;
+		m := m + delta1 / dint_to_lreal(i + 1);
+		delta2 := data[i] - m;
+		M2 := M2 + delta1 * delta2;
+	end_for;
+	Stats_variance_welford := M2 / dint_to_lreal(den);
+	{end}
+end
+
+{#endif}
+

@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/random/test_random.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -D_TEST_ -o ./test/random/test_random.xml -t omron
+ * $ jiecc ./test/random/test_random.txt -I. -I./src -I./vendor/jiecunit -I./vendor/jiecunit/sys -D_TEST_ -o ./test/random/test_random.xml -t omron
  *)
 {#include <jiecunit.txt>}
 

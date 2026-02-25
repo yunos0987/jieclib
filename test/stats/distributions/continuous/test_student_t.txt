@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/stats/distributions/continuous/test_student_t.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/distributions/continuous/test_student_t.xml -t omron
+ * $ jiecc ./test/stats/distributions/continuous/test_student_t.txt -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/distributions/continuous/test_student_t.xml -t omron
  *)
 {#include <jiecunit.txt>}
 {#include <stats/distributions/continuous/student_t.txt>}

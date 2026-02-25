@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/stats/inference/tests/test_t_tests.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/inference/tests/test_t_tests.xml -t omron
+ * $ jiecc ./test/stats/inference/tests/test_t_tests.txt -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/inference/tests/test_t_tests.xml -t omron
  *)
 {#include <jiecunit.txt>}
 {#include <stats/inference/tests/t_tests.txt>}

@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/stats/descriptive/test_harmonic_mean.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/descriptive/test_harmonic_mean.xml -t omron
+ * $ jiecc ./test/stats/descriptive/test_harmonic_mean.txt -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/descriptive/test_harmonic_mean.xml -t omron
  *)
 {#include <jiecunit.txt>}
 {#include <stats/descriptive/harmonic_mean.txt>}

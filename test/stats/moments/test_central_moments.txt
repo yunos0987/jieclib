@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/stats/moments/test_central_moments.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/moments/test_central_moments.xml -t omron
+ * $ jiecc ./test/stats/moments/test_central_moments.txt -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/moments/test_central_moments.xml -t omron
  *)
 {#include <jiecunit.txt>}
 {#include <stats/moments/central_moments.txt>}

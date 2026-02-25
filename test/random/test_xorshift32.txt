@@ -1,8 +1,8 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/random/test_xorshift32.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -D_TEST_ -o ./test/random/test_xorshift32.xml -t omron
+ * $ jiecc ./test/random/test_xorshift32.txt -I./src -I./vendor/jiecunit -I./vendor/jiecunit/sys -D_TEST_ -o ./test/random/test_xorshift32.xml -t omron
  * or
- * $ jiecc ./test/random/test_xorshift32.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -D_TEST_ -o ./test/random/test_xorshift32.xml -t keyence
+ * $ jiecc ./test/random/test_xorshift32.txt -I./src -I./vendor/jiecunit -I./vendor/jiecunit/sys -D_TEST_ -o ./test/random/test_xorshift32.xml -t keyence
  *)
 {#include <jiecunit.txt>}
 {#include <random/xorshift32.txt>}

@@ -1,0 +1,20 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/vector/vector.txt -I./src -I./vendor/jiecunit/sys -o ./src/vector/vector.xml -t omron
+ *)
+{#ifndef __VECTOR_VECTOR_TXT__}
+{#define __VECTOR_VECTOR_TXT__}
+
+{#if _JIECC and (_JIECC_VER < 514)}
+	{#error This library requires Jiecc 5.14 or later.}
+{#endif}
+
+{#include <sys.txt>}
+
+{#include "constructors.txt"}
+{#include "arithmetic.txt"}
+{#include "norms.txt"}
+{#include "dot.txt"}
+{#include "utils.txt"}
+
+{#endif}

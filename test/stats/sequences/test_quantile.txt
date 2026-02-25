@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/stats/sequences/test_quantile.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/sequences/test_quantile.xml -t omron
+ * $ jiecc ./test/stats/sequences/test_quantile.txt -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/sequences/test_quantile.xml -t omron
  *)
 {#include <jiecunit.txt>}
 {#include <stats/sequences/quantile.txt>}

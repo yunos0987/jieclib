@@ -1,0 +1,101 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/stats/descriptive/kurtosis.txt -I./src -I./vendor/jiecunit/sys -o ./src/stats/descriptive/kurtosis.xml -t omron
+ *)
+{#ifndef __STATS_DESCRIPTIVE_KURTOSIS_TXT__}
+{#define __STATS_DESCRIPTIVE_KURTOSIS_TXT__}
+
+{#include <sys.txt>}
+{#include <stats/moments/standardized_moments.txt>}
+
+(*{doc 尖度。Kurtosis。fisher_true=true: Fisher尖度（正規分布で0）、fisher_true=false: Pearson尖度（正規分布で3）。
+bias=true: 標本尖度、bias=false: 不偏推定（調整あり）。
+@inout data サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@input n 先頭n個を使用する。
+  デフォルト値: -1
+@input fisher_true true: Fisher尖度, false: Pearson尖度
+@input bias true: 標本尖度, false: 不偏推定
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_kurtosis: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
+		data: array[*] of lreal;
+	end
+	var_input
+		(*{doc 先頭n個を使用する。}*)
+		n: dint := -1;
+		(*{doc true: Fisher尖度, false: Pearson尖度。}*)
+		fisher_true: bool;
+		(*{doc true: 標本尖度, false: 不偏推定。}*)
+		bias: bool;
+	end
+	var_temp
+		actual_n: dint;
+		kurt, m2, m4, mean_val, sum2, sum4, nf, ratio: lreal;
+		i: dint;
+	end
+	{st}
+	actual_n := Array_isRegular_lreal(data);
+	if (actual_n = 0) or (n > actual_n) then
+		eno := false;
+		return;
+	end_if;
+	if n >= 0 then
+		actual_n := n;
+	end_if;
+
+	if actual_n < 4 then
+		eno := false;
+		return;
+	end_if;
+
+	nf := dint_to_lreal(actual_n);
+
+	if bias then
+		// Biased estimator: use standardized moment directly
+		kurt := private_Stats_kurtosis_from_data(data:=data, n:=actual_n, eno=>eno);
+		if not eno then
+			return;
+		end_if;
+
+		if not fisher_true then
+			kurt := kurt + 3.0;
+		end_if;
+	else
+		// Unbiased estimator: G2 = 1/(n-2)/(n-3) * ((n^2-1)*m4/m2^2 - 3*(n-1)^2)
+		mean_val := Stats_mean(data:=data, n:=actual_n);
+		sum2 := 0.0;
+		sum4 := 0.0;
+		i := 0;
+		while i < actual_n do
+			ratio := data[i] - mean_val;
+			sum2 := sum2 + ratio * ratio;
+			sum4 := sum4 + ratio * ratio * ratio * ratio;
+			i := i + 1;
+		end_while;
+
+		m2 := sum2 / nf;
+		m4 := sum4 / nf;
+
+		if m2 = 0.0 then
+			eno := false;
+			return;
+		end_if;
+
+		// Unbiased excess kurtosis
+		kurt := 1.0 / dint_to_lreal(actual_n - 2) / dint_to_lreal(actual_n - 3) * ((nf * nf - 1.0) * m4 / (m2 * m2) - 3.0 * dint_to_lreal(actual_n - 1) * dint_to_lreal(actual_n - 1));
+
+		if not fisher_true then
+			kurt := kurt + 3.0;
+		end_if;
+	end_if;
+
+	Stats_kurtosis := kurt;
+	{end}
+end
+
+{#endif}
+

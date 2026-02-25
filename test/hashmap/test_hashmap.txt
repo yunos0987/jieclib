@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/hashmap/test_hashmap.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/hashmap/test_hashmap.xml -t omron
+ * $ jiecc ./test/hashmap/test_hashmap.txt -I. -I./src -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/hashmap/test_hashmap.xml -t omron
  *)
 {#include <jiecunit.txt>}
 {#include "hashmap_dint.txt"}

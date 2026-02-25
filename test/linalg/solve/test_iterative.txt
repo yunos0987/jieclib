@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/linalg/solve/test_iterative.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/solve/test_iterative.xml -t omron
+ * $ jiecc ./test/linalg/solve/test_iterative.txt -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/solve/test_iterative.xml -t omron
  *)
 {#include <jiecunit.txt>}
 {#include <linalg/solve/iterative.txt>}

@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/linalg/decomposition/test_svd.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/decomposition/test_svd.xml -t omron
+ * $ jiecc ./test/linalg/decomposition/test_svd.txt -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/decomposition/test_svd.xml -t omron
  *)
 {#include <jiecunit.txt>}
 {#include <linalg/decomposition/svd.txt>}

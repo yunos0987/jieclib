@@ -1,0 +1,33 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/math/floor.txt -I./src -I./vendor/jiecunit/sys -o ./src/math/floor.xml -t omron
+ *)
+{#ifndef __MATH_FLOOR_TXT__}
+{#define __MATH_FLOOR_TXT__}
+
+{#include <sys.txt>}
+
+{doc 与えられた値以下の最大の整数を返す（床関数）
+  floor(2.7) = 2.0, floor(-2.7) = -3.0}
+function Math_floor: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		x: lreal;
+	end
+	var_temp
+		truncated: lreal;
+		frac_part: lreal;
+	end
+	{st}
+		truncated := lint_to_lreal(trunc(x));
+		frac_part := x - truncated;
+
+		if frac_part < 0.0 then
+			Math_floor := truncated - 1.0;
+		else
+			Math_floor := truncated;
+		end_if;
+	{end}
+end
+
+{#endif}

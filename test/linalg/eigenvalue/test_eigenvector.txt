@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/linalg/eigenvalue/test_eigenvector.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/eigenvalue/test_eigenvector.xml -t omron
+ * $ jiecc ./test/linalg/eigenvalue/test_eigenvector.txt -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/eigenvalue/test_eigenvector.xml -t omron
  *)
 {#include <jiecunit.txt>}
 {#include <linalg/eigenvalue/eigenvector.txt>}

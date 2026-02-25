@@ -1,0 +1,298 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/hash/sha1.txt -I./src -I./vendor/jiecunit/sys -o ./src/hash/sha1.xml -t omron
+ *)
+{#ifndef __HASH_SHA1_TXT__}
+{#define __HASH_SHA1_TXT__}
+
+{#include <sys.txt>}
+{#include <sys_conv.txt>}
+{#include <string_lib/string_lib.txt>}
+
+{#define STRING string[STRING_MAX_SIZE]}
+
+(*{doc SHA1で使用する32bit整数化を行う。
+@input n 入力整数（64bit）。
+@return nの下位32bitをUDINTとして返す。}*)
+function private_SHA1_number: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 入力整数（64bit）。}*)
+		n: lint;
+	end
+	{st}
+	private_SHA1_number := dword_to_udint(lint_to_dword(n));
+	{end}
+end
+
+(*{doc 32bit値を左ローテートする。
+@input x 入力値。
+@input c ローテートビット数。
+@return 左ローテート後の値。}*)
+function private_SHA1_leftrotate: dword
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 入力値。}*)
+		x: dword;
+		(*{doc ローテートビット数。}*)
+		c: dint;
+	end
+	{st}
+	private_SHA1_leftrotate := shl(x, c) or shr(x, 32 - c);
+	{end}
+end
+
+(*{doc 1バイトを16進2桁文字列へ変換する。
+@input b 入力バイト。
+@return 小文字16進2桁文字列。}*)
+function private_SHA1_hexbyte: string[2 + 1]
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 入力バイト。}*)
+		b: byte;
+	end
+	var_temp
+		HEX: array[0..15] of string[1 + 1] constant := [
+			'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'
+		];
+		hi, lo: dint;
+	end
+	{st}
+	hi := byte_to_dint(shr(b, 4));
+	lo := byte_to_dint(b and byte#16#0F);
+	private_SHA1_hexbyte := concat(HEX[hi], HEX[lo]);
+	{end}
+end
+
+(*{doc 32bit値を16進8桁文字列へ変換する。
+@input w 入力32bit値。
+@return 16進8桁文字列。}*)
+function private_SHA1_hexword_be: string[8 + 1]
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 入力32bit値。}*)
+		w: dword;
+	end
+	var_temp
+		b0, b1, b2, b3: byte;
+	end
+	{st}
+	b0 := dword_to_byte(shr(w, 24) and dword#16#000000FF);
+	b1 := dword_to_byte(shr(w, 16) and dword#16#000000FF);
+	b2 := dword_to_byte(shr(w, 8) and dword#16#000000FF);
+	b3 := dword_to_byte(w and dword#16#000000FF);
+	private_SHA1_hexword_be := jiec_concat(private_SHA1_hexbyte(b0), private_SHA1_hexbyte(b1), private_SHA1_hexbyte(b2), private_SHA1_hexbyte(b3));
+	{end}
+end
+
+(*{doc 文字列のSHA-1ダイジェスト（40文字16進小文字）を得る。
+@input txt 入力文字列（ASCII想定）。
+@in_out work 入力文字列を展開する作業用バイト配列。
+	必要要素数はlen(txt) + 72以上。
+@return SHA-1ハッシュ文字列。
+@error ASCIIコード取得に失敗した場合、またはwork容量不足の場合。}*)
+function SHA1_string: string[40 + 1]
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 入力文字列（ASCII想定）。}*)
+		txt: STRING;
+	end
+	var_in_out
+		(*{doc 作業用バイト配列。必要要素数はlen(txt) + 72以上。}*)
+		work: array[*] of byte;
+	end
+	var_temp
+		w0, w1: dint;
+		input_len: dint;
+		i: dint;
+		code: dint;
+	end
+	{st}
+	w0 := lower_bound(work, 1);
+	w1 := upper_bound(work, 1);
+	input_len := uint_to_dint(len(txt));
+	if (input_len + 72) > (w1 - w0 + 1) then
+		eno := false;
+		return;
+	end_if;
+
+	for i := 0 to input_len - 1 by 1 do
+		code := String_asciiCharCodeAt(txt, i);
+		if (code < 0) or (code > 127) then
+			eno := false;
+			return;
+		end_if;
+		work[w0 + i] := dint_to_byte(code);
+	end_for;
+
+	SHA1_string := SHA1_bytes(dat:=work, offset:=0, length:=input_len, work:=work, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+	{end}
+end
+
+(*{doc バイト配列のSHA-1ダイジェスト（40文字16進小文字）を得る。
+@in_out dat 入力バイト配列。
+@input offset datの開始オフセット。
+	デフォルト値: 0
+@input length ハッシュ対象の要素数。
+	-1を指定するとき、offsetから末尾までを対象とする。
+	デフォルト値: -1
+@in_out work SHA-1計算に使用する作業用バイト配列。
+	必要要素数は実入力長 + 72以上。
+@return SHA-1ハッシュ文字列。
+@error offset/lengthが配列範囲外を指す場合、またはwork容量不足の場合。}*)
+function SHA1_bytes: string[40 + 1]
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 入力バイト配列。}*)
+		dat: array[*] of byte;
+	end
+	var_input
+		(*{doc datの開始オフセット。}*)
+		offset: dint := 0;
+		(*{doc ハッシュ対象の要素数。-1で末尾まで。}*)
+		length: dint := -1;
+	end
+	var_in_out
+		(*{doc 作業用バイト配列。必要要素数は実入力長 + 72以上。}*)
+		work: array[*] of byte;
+	end
+	var_temp
+		W: array[0..79] of dword;
+		i0, i1: dint;
+		w0, w1: dint;
+		startindex, endindex: dint;
+		input_len, total_len, num_blocks: dint;
+		pad_zero_count: dint;
+		i, t, blk, j: dint;
+		bit_len: ulint;
+		tmp_bit_len: ulint;
+		h0, h1, h2, h3, h4: dword;
+		a, b, c, d, e: dword;
+		f, k, temp: dword;
+		tmp64: lint;
+	end
+	{st}
+	i0 := lower_bound(dat, 1);
+	i1 := upper_bound(dat, 1);
+	w0 := lower_bound(work, 1);
+	w1 := upper_bound(work, 1);
+
+	if length < -1 then
+		eno := false;
+		return;
+	end_if;
+
+	if length = 0 then
+		if (offset < 0) or (offset > (i1 - i0 + 1)) then
+			eno := false;
+			return;
+		end_if;
+		input_len := 0;
+	else
+		startindex := i0 + offset;
+		if length = -1 then
+			endindex := i1;
+		else
+			endindex := startindex + length - 1;
+		end_if;
+		if (startindex < i0) or (endindex < startindex) or (endindex > i1) then
+			eno := false;
+			return;
+		end_if;
+		input_len := endindex - startindex + 1;
+	end_if;
+
+	if (input_len + 72) > (w1 - w0 + 1) then
+		eno := false;
+		return;
+	end_if;
+
+	for i := 0 to input_len - 1 by 1 do
+		work[w0 + i] := dat[startindex + i];
+	end_for;
+
+	work[w0 + input_len] := byte#16#80;
+	pad_zero_count := (56 - ((input_len + 1) mod 64) + 64) mod 64;
+	for i := 1 to pad_zero_count by 1 do
+		work[w0 + input_len + i] := byte#16#00;
+	end_for;
+
+	total_len := input_len + 1 + pad_zero_count + 8;
+	bit_len := dint_to_ulint(input_len) * ulint#8;
+	tmp_bit_len := bit_len;
+	for i := 0 to 7 by 1 do
+		work[w0 + total_len - 1 - i] := ulint_to_byte(tmp_bit_len);
+		tmp_bit_len := tmp_bit_len / ulint#256;
+	end_for;
+	num_blocks := total_len / 64;
+
+	h0 := dword#16#67452301;
+	h1 := dword#16#EFCDAB89;
+	h2 := dword#16#98BADCFE;
+	h3 := dword#16#10325476;
+	h4 := dword#16#C3D2E1F0;
+
+	for blk := 0 to num_blocks - 1 by 1 do
+		for t := 0 to 15 by 1 do
+			j := w0 + blk * 64 + t * 4;
+			W[t] :=
+				shl(udint_to_dword(byte_to_udint(work[j])), 24) or
+				shl(udint_to_dword(byte_to_udint(work[j + 1])), 16) or
+				shl(udint_to_dword(byte_to_udint(work[j + 2])), 8) or
+				udint_to_dword(byte_to_udint(work[j + 3]));
+		end_for;
+		for t := 16 to 79 by 1 do
+			W[t] := private_SHA1_leftrotate(W[t - 3] xor W[t - 8] xor W[t - 14] xor W[t - 16], 1);
+		end_for;
+
+		a := h0;
+		b := h1;
+		c := h2;
+		d := h3;
+		e := h4;
+
+		for t := 0 to 79 by 1 do
+			if t <= 19 then
+				f := (b and c) or ((not b) and d);
+				k := dword#16#5A827999;
+			elsif t <= 39 then
+				f := b xor c xor d;
+				k := dword#16#6ED9EBA1;
+			elsif t <= 59 then
+				f := (b and c) or (b and d) or (c and d);
+				k := dword#16#8F1BBCDC;
+			else
+				f := b xor c xor d;
+				k := dword#16#CA62C1D6;
+			end_if;
+
+			tmp64 := udint_to_lint(dword_to_udint(private_SHA1_leftrotate(a, 5))) + udint_to_lint(dword_to_udint(f)) + udint_to_lint(dword_to_udint(e)) + udint_to_lint(dword_to_udint(k)) + udint_to_lint(dword_to_udint(W[t]));
+			temp := udint_to_dword(private_SHA1_number(tmp64));
+			e := d;
+			d := c;
+			c := private_SHA1_leftrotate(b, 30);
+			b := a;
+			a := temp;
+		end_for;
+
+		h0 := udint_to_dword(private_SHA1_number(udint_to_lint(dword_to_udint(h0)) + udint_to_lint(dword_to_udint(a))));
+		h1 := udint_to_dword(private_SHA1_number(udint_to_lint(dword_to_udint(h1)) + udint_to_lint(dword_to_udint(b))));
+		h2 := udint_to_dword(private_SHA1_number(udint_to_lint(dword_to_udint(h2)) + udint_to_lint(dword_to_udint(c))));
+		h3 := udint_to_dword(private_SHA1_number(udint_to_lint(dword_to_udint(h3)) + udint_to_lint(dword_to_udint(d))));
+		h4 := udint_to_dword(private_SHA1_number(udint_to_lint(dword_to_udint(h4)) + udint_to_lint(dword_to_udint(e))));
+	end_for;
+
+	SHA1_bytes := jiec_concat(
+		private_SHA1_hexword_be(h0),
+		private_SHA1_hexword_be(h1),
+		private_SHA1_hexword_be(h2),
+		private_SHA1_hexword_be(h3),
+		private_SHA1_hexword_be(h4)
+	);
+	{end}
+end
+
+{#endif}

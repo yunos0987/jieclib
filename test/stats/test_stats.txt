@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/stats/test_stats.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/test_stats.xml -t omron
+ * $ jiecc ./test/stats/test_stats.txt -I. -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/test_stats.xml -t omron
  *)
 {#if _JIECC and (_JIECC_VER < 514)}
 	{#error This test requires Jiecc 5.14 or later.}

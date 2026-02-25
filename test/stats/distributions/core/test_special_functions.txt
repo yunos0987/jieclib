@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/stats/distributions/core/test_special_functions.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/distributions/core/test_special_functions.xml -t omron
+ * $ jiecc ./test/stats/distributions/core/test_special_functions.txt -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/distributions/core/test_special_functions.xml -t omron
  *)
 {#include <jiecunit.txt>}
 {#include <stats/distributions/core/special_functions.txt>}

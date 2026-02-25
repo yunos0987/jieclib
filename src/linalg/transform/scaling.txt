@@ -1,0 +1,116 @@
+(*
+ * Scaling Transformation Matrices
+ * $ jiecc ./src/linalg/transform/scaling.txt -I./src -I./vendor/jiecunit/sys -o ./src/linalg/transform/scaling.xml -t omron
+ *)
+{#ifndef __LINALG_TRANSFORM_SCALING_TXT__}
+{#define __LINALG_TRANSFORM_SCALING_TXT__}
+
+{#include <sys.txt>}
+{#include <array/array.txt>}
+{#include <math/floor.txt>}
+
+(*{doc 2次元スケーリング行列の生成。
+@input sx クスケーリング因数 (x軸)。
+@input sy クスケーリング因数 (y軸)。
+@in_out scaling 2x2スケーリング行列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error scalingが正規2次元配列でない場合、またはscalingが3x3でない場合。}*)
+function Matrix_scaling_2d
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc クスケーリング因数 (x軸)。}*)
+		sx: lreal;
+		(*{doc クスケーリング因数 (y軸)。}*)
+		sy: lreal;
+	end
+	var_in_out
+		(*{doc 2x2スケーリング行列。}*)
+		scaling: array[*, *] of lreal;
+	end
+	var_temp
+		r_size: dint;
+		rows, cols: dint;
+	end
+	{st}
+	r_size := Array_isRegular2d_lreal(scaling);
+	if r_size = 0 then
+		eno := false;
+		return;
+	end_if;
+	rows := upper_bound(scaling, 1) - lower_bound(scaling, 1) + 1;
+	cols := upper_bound(scaling, 2) - lower_bound(scaling, 2) + 1;
+	if (rows <> 3) or (cols <> 3) then
+		eno := false;
+		return;
+	end_if;
+
+	scaling[0, 0] := sx;
+	scaling[0, 1] := 0.0;
+	scaling[0, 2] := 0.0;
+	scaling[1, 0] := 0.0;
+	scaling[1, 1] := sy;
+	scaling[1, 2] := 0.0;
+	scaling[2, 0] := 0.0;
+	scaling[2, 1] := 0.0;
+	scaling[2, 2] := 1.0;
+	{end}
+end
+
+(*{doc 3次元スケーリング行列の生成。
+@input sx クスケーリング因数 (x軸)。
+@input sy クスケーリング因数 (y軸)。
+@input sz クスケーリング因数 (z軸)。
+@in_out scaling 3x3スケーリング行列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error scalingが正規2次元配列でない場合、またはscalingが4x4でない場合。}*)
+function Matrix_scaling_3d
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc クスケーリング因数 (x軸)。}*)
+		sx: lreal;
+		(*{doc クスケーリング因数 (y軸)。}*)
+		sy: lreal;
+		(*{doc クスケーリング因数 (z軸)。}*)
+		sz: lreal;
+	end
+	var_in_out
+		(*{doc 3x3スケーリング行列。}*)
+		scaling: array[*, *] of lreal;
+	end
+	var_temp
+		r_size: dint;
+		rows, cols: dint;
+	end
+	{st}
+	r_size := Array_isRegular2d_lreal(scaling);
+	if r_size = 0 then
+		eno := false;
+		return;
+	end_if;
+	rows := upper_bound(scaling, 1) - lower_bound(scaling, 1) + 1;
+	cols := upper_bound(scaling, 2) - lower_bound(scaling, 2) + 1;
+	if (rows <> 4) or (cols <> 4) then
+		eno := false;
+		return;
+	end_if;
+
+	scaling[0, 0] := sx;
+	scaling[0, 1] := 0.0;
+	scaling[0, 2] := 0.0;
+	scaling[0, 3] := 0.0;
+	scaling[1, 0] := 0.0;
+	scaling[1, 1] := sy;
+	scaling[1, 2] := 0.0;
+	scaling[1, 3] := 0.0;
+	scaling[2, 0] := 0.0;
+	scaling[2, 1] := 0.0;
+	scaling[2, 2] := sz;
+	scaling[2, 3] := 0.0;
+	scaling[3, 0] := 0.0;
+	scaling[3, 1] := 0.0;
+	scaling[3, 2] := 0.0;
+	scaling[3, 3] := 1.0;
+	{end}
+end
+
+{#endif}

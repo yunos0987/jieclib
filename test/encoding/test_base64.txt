@@ -1,10 +1,10 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/encoding/test_base64.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -D_TEST_ -o ./test/encoding/test_base64.xml -t omron
+ * $ jiecc ./test/encoding/test_base64.txt -I. -I./src -I./vendor/jiecunit -I./vendor/jiecunit/sys -D_TEST_ -o ./test/encoding/test_base64.xml -t omron
  *)
 {#include <jiecunit.txt>}
 
-{#include <encoding/base64.txt>}
+{#include <src/encoding/base64.txt>}
 
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(

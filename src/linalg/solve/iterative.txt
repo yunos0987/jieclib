@@ -1,0 +1,99 @@
+(*
+ * Iterative Solver
+ * $ jiecc ./src/linalg/solve/iterative.txt -I./src -I./vendor/jiecunit/sys -o ./src/linalg/solve/iterative.xml -t omron
+ *)
+{#ifndef __LINALG_SOLVE_ITERATIVE_TXT__}
+{#define __LINALG_SOLVE_ITERATIVE_TXT__}
+
+{#include <sys.txt>}
+{#include <array/array.txt>}
+{#include <math/floor.txt>}
+
+(*{doc 反複接触法。
+線形連立方程式 Ax = b を反複接触法(Gauss-Seidel法など)で設き、逆速を求める。
+@in_out a 係数行列A。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out b 右辺ベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out x 結果の解ベクトル。初期推定値を上乗せ。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@input max_iterations 最大反複回数。
+@input tolerance 許容値。
+@error 入力値が不正な場合、または収束しない場合。}*)
+function Matrix_solve_iterative
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 係数行列A。}*)
+		a: array[*, *] of lreal;
+		(*{doc 右辺ベクトル。}*)
+		b: array[*] of lreal;
+		(*{doc 結果の解ベクトル。初期推定値を上乗せ。}*)
+		x: array[*] of lreal;
+	end
+	var_input
+		(*{doc 最大反複回数。}*)
+		max_iterations: dint := 1000;
+		(*{doc 許容値。}*)
+		tolerance: lreal := 1e-6;
+	end
+	var_temp
+		i, j, iter: dint;
+		n: dint;
+		a_size, b_size, x_size: dint;
+		a_rows, a_cols: dint;
+		sum_val, new_val, diff, max_diff: lreal;
+	end
+	{st}
+	a_size := Array_isRegular2d_lreal(a);
+	b_size := Array_isRegular_lreal(b);
+	x_size := Array_isRegular_lreal(x);
+	if (a_size = 0) or (b_size = 0) or (x_size = 0) then
+		eno := false;
+		return;
+	end_if;
+
+	a_rows := upper_bound(a, 1) - lower_bound(a, 1) + 1;
+	a_cols := upper_bound(a, 2) - lower_bound(a, 2) + 1;
+	if (a_rows <> a_cols) then
+		eno := false;
+		return;
+	end_if;
+	if (b_size <> a_rows) or (x_size <> a_rows) then
+		eno := false;
+		return;
+	end_if;
+
+	n := a_rows;
+	for i := 0 to n - 1 by 1 do
+		if abs(a[i, i]) < 1e-15 then
+			eno := false;
+			return;
+		end_if;
+	end_for;
+
+	for iter := 0 to max_iterations - 1 by 1 do
+		max_diff := 0.0;
+		for i := 0 to n - 1 by 1 do
+			sum_val := 0.0;
+			for j := 0 to n - 1 by 1 do
+				if j <> i then
+					sum_val := sum_val + a[i, j] * x[j];
+				end_if;
+			end_for;
+			new_val := (b[i] - sum_val) / a[i, i];
+			diff := abs(new_val - x[i]);
+			if diff > max_diff then
+				max_diff := diff;
+			end_if;
+			x[i] := new_val;
+		end_for;
+		if max_diff < tolerance then
+			return;
+		end_if;
+	end_for;
+
+	eno := false;
+	{end}
+end
+
+{#endif}

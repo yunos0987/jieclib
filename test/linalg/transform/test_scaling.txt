@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/linalg/transform/test_scaling.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/transform/test_scaling.xml -t omron
+ * $ jiecc ./test/linalg/transform/test_scaling.txt -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/transform/test_scaling.xml -t omron
  *)
 {#include <jiecunit.txt>}
 {#include <linalg/transform/scaling.txt>}
