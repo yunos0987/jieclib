@@ -1,10 +1,10 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/encoding/test_percent.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -D_TEST_ -o ./test/encoding/test_percent.xml -t omron
+ * $ jiecc ./test/encoding/test_percent.txt -I. -I./src -I./vendor/jiecunit -I./vendor/jiecunit/sys -D_TEST_ -o ./test/encoding/test_percent.xml -t omron
  *)
 {#include <jiecunit.txt>}
 
-{#include <encoding/percent.txt>}
+{#include <src/encoding/percent.txt>}
 
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(

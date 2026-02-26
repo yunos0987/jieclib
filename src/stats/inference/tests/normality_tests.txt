@@ -1,0 +1,394 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/stats/inference/tests/normality_tests.txt -I./src -I./vendor/jiecunit/sys -o ./src/stats/inference/tests/normality_tests.xml -t omron
+ *)
+{#ifndef __STATS_INFERENCE_TESTS_NORMALITY_TESTS_TXT__}
+{#define __STATS_INFERENCE_TESTS_NORMALITY_TESTS_TXT__}
+
+{#include <sys.txt>}
+{#include <array/sort.txt>}
+{#include <stats/descriptive/skewness.txt>}
+{#include <stats/descriptive/kurtosis.txt>}
+{#include <stats/inference/tests/test_core.txt>}
+
+(*{doc Jarque-Bera 正規性検定。H0: データは正規分布に従う
+JB = n/6 * (S^2 + K^2/4)。S=skewness, K=kurtosis。
+@inout data サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout result 結果を格納する。
+@error 入力値が不正な場合。}*)
+function Stats_jarque_bera
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc データ。}*)
+		data: array[*] of lreal;
+		(*{doc 検定結果。}*)
+		result: Stats_TestResult;
+	end
+	var_temp
+		n: dint;
+		skew: lreal;
+		kurt: lreal;
+		jb_stat: lreal;
+	end
+	{st}
+		n := Array_size(data);
+		if n < 4 then
+			eno := false;
+			return;
+		end_if;
+
+		skew := Stats_skewness(data:=data, bias:=true, eno=>eno);
+		if not eno then
+			return;
+		end_if;
+		kurt := Stats_kurtosis(data:=data, fisher_true:=true, bias:=true, eno=>eno);
+		if not eno then
+			return;
+		end_if;
+
+		jb_stat := dint_to_lreal(n) / 6.0 * (skew * skew + kurt * kurt / 4.0);
+
+		// JB 統計量は漸近的にカイ二乗分布。f=2。に従う
+		result.statistic := jb_stat;
+		result.pvalue := Stats_p_value_chi_square_right(chi_sq:=jb_stat, df:=2.0);
+		result.df := 2.0;
+		result.ci_lower := 0.0;
+		result.ci_upper := 0.0;
+		result.effect_size := 0.0;
+	{end}
+end
+
+(*{doc シャピロ・ウィルク正規性検定（Shapiro-Wilk test）。
+H0: データは正規分布に従う
+W = (Σ a_i x_(i))^2 / Σ(x_i - x̄)^2
+Algorithm: Exact coefficients for n=4-7 (from SciPy C tables)
+AS R94 polynomial correction for n>7
+p-value: Royston transformation (Royston 1993)
+@inout data サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout result 結果を格納する。
+@inout work1 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout work2 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout work3 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error 入力値が不正な場合。}*)
+function Stats_shapiro_wilk
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc データ。}*)
+		data: array[*] of lreal;
+		(*{doc 検定結果。}*)
+		result: Stats_TestResult;
+		(*{doc ソート済みデータ。}*)
+		work1: array[*] of lreal;
+		(*{doc m ベクトル。}*)
+		work2: array[*] of lreal;
+		(*{doc a HALF 係数。}*)
+		work3: array[*] of lreal;
+	end
+	var_temp
+		n: dint;
+		n2: dint;
+		i, j: dint;
+
+		// basic stats
+		xbar, s2: lreal;
+
+		// AS R94 constants / polynomials
+		g:  array[2] of lreal := [-2.273, 0.459];
+		c1: array[6] of lreal := [0.0, 0.221157, -0.147981, -2.07119, 4.434685, -2.706056];
+		c2: array[6] of lreal := [0.0, 0.042981, -0.293762, -1.752461, 5.682633, -3.582633];
+
+		// p-value polynomials (match swilk.f)
+		c3: array[4] of lreal := [0.5440, -0.39978, 0.025054, -0.0006714];
+		c4: array[4] of lreal := [1.3822, -0.77857, 0.062767, -0.0020322];
+		c5: array[4] of lreal := [-1.5861, -0.31082, -0.083751, 0.0038915];
+		c6: array[3] of lreal := [-0.4803, -0.082676, 0.0030302];
+
+		// small constants from swilk.f
+		sqrth: lreal := 0.7071067812;
+		pi6:   lreal := 1.909859;
+		stqr:  lreal := 1.047198;
+		small: lreal := 1e-19;
+
+		// coefficient generation
+		an, an25, p: lreal;
+		summ2, ssumm2, rsn, a1, a2, fac: lreal;
+		poly_val, tmp: lreal;
+
+		// correlation-form W computation (swilk.f core)
+		range: lreal;
+		sx, sa: lreal;
+		ssx, ssa, sax: lreal;
+		xi, ai, xsx, asa: lreal;
+		ssassx: lreal;
+		w1, w_stat: lreal;
+
+		// p-value
+		y, mu, sigma, z, gamma_val, ln_an: lreal;
+
+		// exact FULL coefficients for small n (swilk / SciPy)
+		a_exact_4: array[4] of lreal := [0.68726426, 0.16633649, -0.16633649, -0.68726426];
+		a_exact_5: array[5] of lreal := [0.66463930, 0.24135992, 0.00000000, -0.24135992, -0.66463930];
+		a_exact_6: array[6] of lreal := [0.64297120, 0.28071252, 0.08825254, -0.08825254, -0.28071252, -0.64297120];
+		a_exact_7: array[7] of lreal := [0.62310576, 0.30302212, 0.14112695, 0.00000000, -0.14112695, -0.30302212, -0.62310576];
+	end
+	{st}
+
+		// --- size / buffers ---
+		n := Array_size(data);
+		if n < 3 then
+			eno := false;
+			return;
+		end_if;
+
+		if (n > Array_size(work1)) or (n > Array_size(work2)) or (n > Array_size(work3)) then
+			eno := false;
+			return;
+		end_if;
+
+		n2 := n / 2;
+		if n2 <= 0 then
+			eno := false;
+			return;
+		end_if;
+
+		// --- copy & sort ---
+		for i := 0 to n - 1 do
+			work1[i] := data[i];
+		end_for;
+		Array_quicksort_n_lreal(self:=work1, n:=n, ascending:=true);
+
+		// --- mean ---
+		xbar := 0.0;
+		for i := 0 to n - 1 do
+			xbar := xbar + work1[i];
+		end_for;
+		xbar := xbar / dint_to_lreal(n);
+
+		// --- sum of squared deviations ---
+		s2 := 0.0;
+		for i := 0 to n - 1 do
+			tmp := work1[i] - xbar;
+			s2 := s2 + tmp * tmp;
+		end_for;
+
+		// zero variance
+		if s2 = 0.0 then
+			result.statistic := 1.0;
+			result.pvalue := 1.0;
+			result.df := dint_to_lreal(n);
+			result.ci_lower := 0.0;
+			result.ci_upper := 0.0;
+			result.effect_size := 0.0;
+			return;
+		end_if;
+
+		// range check (SciPy warns; we return 1,1)
+		range := work1[n - 1] - work1[0];
+		if range < small then
+			result.statistic := 1.0;
+			result.pvalue := 1.0;
+			result.df := dint_to_lreal(n);
+			result.ci_lower := 0.0;
+			result.ci_upper := 0.0;
+			result.effect_size := 0.0;
+			return;
+		end_if;
+
+		// --- build HALF coefficients work3[0..n2-1] ---
+		if n = 3 then
+			work3[0] := sqrth;
+
+		elsif n = 4 then
+			// convert FULL exact -> HALF (left side)
+			work3[0] := a_exact_4[0];
+			work3[1] := a_exact_4[1];
+
+		elsif n = 5 then
+			work3[0] := a_exact_5[0];
+			work3[1] := a_exact_5[1];
+
+		elsif n = 6 then
+			work3[0] := a_exact_6[0];
+			work3[1] := a_exact_6[1];
+			work3[2] := a_exact_6[2];
+
+		elsif n = 7 then
+			work3[0] := a_exact_7[0];
+			work3[1] := a_exact_7[1];
+			work3[2] := a_exact_7[2];
+
+		else
+			// n >= 8 : AS R94
+			an := dint_to_lreal(n);
+			an25 := an + 0.25;
+
+			// m[i]
+			summ2 := 0.0;
+			for i := 0 to n2 - 1 do
+				p := (dint_to_lreal(i + 1) - 0.375) / an25;
+				work2[i] := Stats_normal_ppf(p:=p, mu:=0.0, sigma:=1.0);
+				summ2 := summ2 + work2[i] * work2[i];
+			end_for;
+
+			summ2 := summ2 * 2.0;
+			ssumm2 := sqrt(summ2);
+			rsn := 1.0 / sqrt(an);
+
+			// poly(c1,6,rsn)
+			poly_val := c1[0];
+			tmp := rsn * c1[5];
+			tmp := (tmp + c1[4]) * rsn;
+			tmp := (tmp + c1[3]) * rsn;
+			tmp := (tmp + c1[2]) * rsn;
+			tmp := (tmp + c1[1]) * rsn;
+			poly_val := poly_val + tmp;
+			a1 := poly_val - (work2[0] / ssumm2);
+
+			// poly(c2,6,rsn)
+			poly_val := c2[0];
+			tmp := rsn * c2[5];
+			tmp := (tmp + c2[4]) * rsn;
+			tmp := (tmp + c2[3]) * rsn;
+			tmp := (tmp + c2[2]) * rsn;
+			tmp := (tmp + c2[1]) * rsn;
+			poly_val := poly_val + tmp;
+			a2 := -work2[1] / ssumm2 + poly_val;
+
+			fac := sqrt((summ2 - 2.0 * work2[0] * work2[0] - 2.0 * work2[1] * work2[1]) /
+						(1.0 - 2.0 * a1 * a1 - 2.0 * a2 * a2));
+
+			work3[0] := a1;
+			work3[1] := a2;
+			for i := 2 to n2 - 1 do
+				work3[i] := -work2[i] / fac;
+			end_for;
+		end_if;
+
+		// --- swilk.f correlation block (0-based) ---
+		// coefficient for position i is:
+		//   if i < j: +work3[i]
+		//   if i > j: -work3[j] where j = n-1-i
+		//   if i = j (center): 0
+
+		// first pass: means sx, sa
+		sx := 0.0;
+		sa := 0.0;
+		for i := 0 to n - 1 do
+			j := (n - 1) - i;
+
+			xi := work1[i] / range;
+			sx := sx + xi;
+
+			if i < j then
+				ai := work3[i];
+			elsif i > j then
+				ai := -work3[j];
+			else
+				ai := 0.0;
+			end_if;
+
+			sa := sa + ai;
+		end_for;
+
+		sx := sx / dint_to_lreal(n);
+		sa := sa / dint_to_lreal(n);
+
+		// second pass: sums
+		ssx := 0.0;
+		ssa := 0.0;
+		sax := 0.0;
+
+		for i := 0 to n - 1 do
+			j := (n - 1) - i;
+
+			xi := work1[i] / range;
+
+			if i < j then
+				ai := work3[i];
+			elsif i > j then
+				ai := -work3[j];
+			else
+				ai := 0.0;
+			end_if;
+
+			xsx := xi - sx;
+			asa := ai - sa;
+
+			ssx := ssx + xsx * xsx;
+			ssa := ssa + asa * asa;
+			sax := sax + asa * xsx;
+		end_for;
+
+		ssassx := sqrt(ssa * ssx);
+
+		// stable w1 = 1 - w
+		w1 := (ssassx - sax) * (ssassx + sax) / (ssa * ssx);
+
+		if w1 < 0.0 then w1 := 0.0; end_if;
+		if w1 > 1.0 then w1 := 1.0; end_if;
+
+		w_stat := 1.0 - w1;
+
+		if w_stat < 0.0 then w_stat := 0.0; end_if;
+		if w_stat > 1.0 then w_stat := 1.0; end_if;
+
+		result.statistic := w_stat;
+
+		// --- p-value (AS R94 / SciPy) ---
+		if n = 3 then
+			y := asin(sqrt(w_stat));
+			result.pvalue := pi6 * (y - stqr);
+			if result.pvalue < 0.0 then result.pvalue := 0.0; end_if;
+			if result.pvalue > 1.0 then result.pvalue := 1.0; end_if;
+
+		else
+			if w1 <= 0.0 then
+				result.pvalue := 1.0;
+			else
+				y := ln(w1);
+				an := dint_to_lreal(n);
+
+				if n <= 11 then
+					gamma_val := g[0] + g[1] * an;
+
+					if y >= gamma_val then
+						result.pvalue := small;
+					else
+						y := -ln(gamma_val - y);
+
+						mu := c3[0] + c3[1] * an + c3[2] * an * an + c3[3] * an * an * an;
+						sigma := exp(c4[0] + c4[1] * an + c4[2] * an * an + c4[3] * an * an * an);
+
+						z := (y - mu) / sigma;
+						result.pvalue := 1.0 - Stats_normal_cdf(x:=z, mu:=0.0, sigma:=1.0);
+					end_if;
+
+				else
+					ln_an := ln(an);
+
+					mu := c5[0] + c5[1] * ln_an + c5[2] * ln_an * ln_an + c5[3] * ln_an * ln_an * ln_an;
+					sigma := exp(c6[0] + c6[1] * ln_an + c6[2] * ln_an * ln_an);
+
+					z := (y - mu) / sigma;
+					result.pvalue := 1.0 - Stats_normal_cdf(x:=z, mu:=0.0, sigma:=1.0);
+				end_if;
+
+				if result.pvalue < small then result.pvalue := small; end_if;
+				if result.pvalue > 1.0 then result.pvalue := 1.0; end_if;
+			end_if;
+		end_if;
+
+		result.df := dint_to_lreal(n);
+		result.ci_lower := 0.0;
+		result.ci_upper := 0.0;
+		result.effect_size := 0.0;
+	{end}
+end
+
+{#endif}
+

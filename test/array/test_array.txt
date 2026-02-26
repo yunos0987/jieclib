@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/array/test_array.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -o ./test/array/test_array.xml -t omron
+ * $ jiecc ./test/array/test_array.txt -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -o ./test/array/test_array.xml -t omron
  *)
 {#include <jiecunit.txt>}
 {#include <array/array.txt>}

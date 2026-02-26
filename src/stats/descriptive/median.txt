@@ -1,0 +1,69 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/stats/descriptive/median.txt -I./src -I./vendor/jiecunit/sys -o ./src/stats/descriptive/median.xml -t omron
+ *)
+{#ifndef __STATS_DESCRIPTIVE_MEDIAN_TXT__}
+{#define __STATS_DESCRIPTIVE_MEDIAN_TXT__}
+
+{#include <sys.txt>}
+{#include <array/array.txt>}
+{#include <array/copy.txt>}
+{#include <stats/sequences/sort_select.txt>}
+
+(*{doc 中央値
+@inout data サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@input n 先頭n個を使用する。
+  デフォルト値: -1
+@inout work1 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout work2 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_median: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
+		data: array[*] of lreal;
+	end
+	var_input
+		(*{doc 先頭n個を使用する。}*)
+		n: dint := -1;
+	end
+	var_in_out
+		(*{doc 作業配列。}*)
+		work1: array[*] of lreal;
+		(*{doc 作業配列。}*)
+		work2: array[*] of lreal;
+	end
+	var_temp
+		actual_n: dint;
+		k: dint;
+		v1, v2: lreal;
+	end
+	{st}
+	actual_n := Array_isRegular_lreal(data);
+	if (actual_n = 0) or (n > actual_n) then
+		eno := false;
+		return;
+	end_if;
+	if n >= 0 then
+		actual_n := n;
+	end_if;
+
+	Array_copy_x_lreal(src:=data, src_index:=0, dst:=work1, dst_index:=0, n:=actual_n);
+	if (actual_n mod 2) = 1 then
+		k := actual_n / 2;
+		Stats_median := Stats_select_kth(data:=work1, k:=k, n:=actual_n, work:=work2);
+	else
+		k := actual_n / 2;
+		v1 := Stats_select_kth(data:=work1, k:=k - 1, n:=actual_n, work:=work2);
+		v2 := Stats_select_kth(data:=work1, k:=k, n:=actual_n, work:=work2);
+		Stats_median := (v1 + v2) / 2.0;
+	end_if;
+	{end}
+end
+
+{#endif}
+

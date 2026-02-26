@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/stats/regression/test_linear_regression.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/regression/test_linear_regression.xml -t omron
+ * $ jiecc ./test/stats/regression/test_linear_regression.txt -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/regression/test_linear_regression.xml -t omron
  *)
 {#include <jiecunit.txt>}
 {#include <stats/regression/linear_regression.txt>}

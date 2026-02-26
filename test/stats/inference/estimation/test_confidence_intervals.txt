@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/stats/inference/estimation/test_confidence_intervals.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/inference/estimation/test_confidence_intervals.xml -t omron
+ * $ jiecc ./test/stats/inference/estimation/test_confidence_intervals.txt -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/inference/estimation/test_confidence_intervals.xml -t omron
  *)
 {#include <jiecunit.txt>}
 {#include <stats/inference/estimation/confidence_intervals.txt>}

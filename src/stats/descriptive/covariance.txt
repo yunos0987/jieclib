@@ -1,0 +1,161 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/stats/descriptive/covariance.txt -I./src -I./vendor/jiecunit/sys -o ./src/stats/descriptive/covariance.xml -t omron
+ *)
+{#ifndef __STATS_DESCRIPTIVE_COVARIANCE_TXT__}
+{#define __STATS_DESCRIPTIVE_COVARIANCE_TXT__}
+
+{#include <sys.txt>}
+{#include <stats/descriptive/mean.txt>}
+
+(*{doc 共分散（ddof = 自由度調整）
+cov(x, y) = sum((x_i - mean_x) * (y_i - mean_y)) / (n - ddof)
+@inout x サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout y サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@input n 先頭n個を使用する。
+  デフォルト値: -1
+@input ddof 自由度補正。
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_covariance: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
+		x: array[*] of lreal;
+		(*{doc サンプルデータを含む配列。}*)
+		y: array[*] of lreal;
+	end
+	var_input
+		(*{doc 先頭n個を使用する。}*)
+		n: dint := -1;
+		(*{doc 自由度補正。}*)
+		ddof: dint;
+	end
+	var_temp
+		n_x, n_y, actual_n, i: dint;
+		mean_x, mean_y, sum_prod: lreal;
+	end
+	{st}
+	n_x := Array_isRegular_lreal(x);
+	n_y := Array_isRegular_lreal(y);
+	if (n_x <= 0) or (n_y <= 0) then
+		eno := false;
+		return;
+	end_if;
+
+	actual_n := n_x;
+	if n >= 0 then
+		actual_n := n;
+	end_if;
+	if (actual_n < 2) or (n_y < actual_n) or (actual_n > n_x) then
+		eno := false;
+		return;
+	end_if;
+
+	if ddof >= actual_n then
+		eno := false;
+		return;
+	end_if;
+
+	mean_x := Stats_mean(data:=x, n:=actual_n);
+	mean_y := Stats_mean(data:=y, n:=actual_n);
+
+	sum_prod := 0.0;
+	for i := 0 to actual_n - 1 do
+		sum_prod := sum_prod + (x[i] - mean_x) * (y[i] - mean_y);
+	end_for;
+
+	Stats_covariance := sum_prod / dint_to_lreal(actual_n - ddof);
+	{end}
+end
+
+(*{doc 共分散行列（n×n 行列、対角は分散）
+@inout data サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@input ddof 自由度補正。
+@inout result 結果を格納する配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error 入力値が不正な場合。}*)
+function Stats_covariance_matrix
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
+		data: array[*, *] of lreal;
+	end
+	var_input
+		(*{doc 自由度補正。}*)
+		ddof: dint;
+	end
+	var_in_out
+		(*{doc 結果を格納する配列。}*)
+		result: array[*, *] of lreal;
+	end
+	var_temp
+		rows, cols, i, j, k: dint;
+		mean_i, mean_j, sum_prod: lreal;
+		result_rows, result_cols: dint;
+	end
+	{st}
+	rows := upper_bound(data, 1) - lower_bound(data, 1) + 1;
+	cols := upper_bound(data, 2) - lower_bound(data, 2) + 1;
+	result_rows := upper_bound(result, 1) - lower_bound(result, 1) + 1;
+	result_cols := upper_bound(result, 2) - lower_bound(result, 2) + 1;
+
+	if (rows < 2) or (cols < 1) then
+		eno := false;
+		return;
+	end_if;
+
+	if (result_rows <> cols) or (result_cols <> cols) then
+		eno := false;
+		return;
+	end_if;
+
+	if ddof >= rows then
+		eno := false;
+		return;
+	end_if;
+
+	// Initialize result matrix
+	for i := 0 to cols - 1 do
+		for j := 0 to cols - 1 do
+			result[lower_bound(result, 1) + i, lower_bound(result, 2) + j] := 0.0;
+		end_for;
+	end_for;
+
+	// 各列ペアの共分散を直接計算
+	for i := 0 to cols - 1 do
+		for j := 0 to cols - 1 do
+			// Calculate mean for column i
+			mean_i := 0.0;
+			for k := 0 to rows - 1 do
+				mean_i := mean_i + data[lower_bound(data, 1) + k, lower_bound(data, 2) + i];
+			end_for;
+			mean_i := mean_i / dint_to_lreal(rows);
+
+			// Calculate mean for column j
+			mean_j := 0.0;
+			for k := 0 to rows - 1 do
+				mean_j := mean_j + data[lower_bound(data, 1) + k, lower_bound(data, 2) + j];
+			end_for;
+			mean_j := mean_j / dint_to_lreal(rows);
+
+			// Calculate covariance
+			sum_prod := 0.0;
+			for k := 0 to rows - 1 do
+				sum_prod := sum_prod + (data[lower_bound(data, 1) + k, lower_bound(data, 2) + i] - mean_i) * (data[lower_bound(data, 1) + k, lower_bound(data, 2) + j] - mean_j);
+			end_for;
+
+			if rows - ddof > 0 then
+				result[lower_bound(result, 1) + i, lower_bound(result, 2) + j] := sum_prod / dint_to_lreal(rows - ddof);
+			else
+				result[lower_bound(result, 1) + i, lower_bound(result, 2) + j] := 0.0;
+			end_if;
+		end_for;
+	end_for;
+	{end}
+end
+
+{#endif}

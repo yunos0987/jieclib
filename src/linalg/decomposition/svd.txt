@@ -1,0 +1,199 @@
+(*
+ * SVD Decomposition
+ * $ jiecc ./src/linalg/decomposition/svd.txt -I./src -I./vendor/jiecunit/sys -o ./src/linalg/decomposition/svd.xml -t omron
+ *)
+{#ifndef __LINALG_DECOMPOSITION_SVD_TXT__}
+{#define __LINALG_DECOMPOSITION_SVD_TXT__}
+
+{#include <sys.txt>}
+{#include <array/array.txt>}
+{#include <math/floor.txt>}
+{#include <math/atan2.txt>}
+
+(*{doc 特異値分解（SVD）。
+行列をSVDし、複数の行列と特異値を得る。A = U * Σ * V^Tが成立する。
+@in_out a 入力行列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out u 結果の左特異ベクトル行列U。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out s 結果の特異値ベクトル。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@in_out v 結果の右特異ベクトル行列V。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error 入力配列が正規配列でない場合、aが正方行列でない場合、u/vの行列サイズがaと一致しない場合、またはsの要素数がaの行数と一致しない場合。}*)
+function Matrix_svd_decompose
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 入力行列。}*)
+		a: array[*, *] of lreal;
+	end
+	var_in_out
+		(*{doc 結果の左特異ベクトル行列U。}*)
+		u: array[*, *] of lreal;
+		(*{doc 結果の特異値ベクトル。}*)
+		s: array[*] of lreal;
+		(*{doc 結果の右特異ベクトル行列V。}*)
+		v: array[*, *] of lreal;
+	end
+	var_temp
+		i, j, k, p, q, iter, max_idx: dint;
+		n: dint;
+		a_size, u_size, v_size, s_size: dint;
+		a_rows, a_cols: dint;
+		u_rows, u_cols: dint;
+		v_rows, v_cols: dint;
+		apq, app, aqq, phi, c, s_rot, tau: lreal;
+		max_val, tmp, sum_val: lreal;
+		tmp_s: lreal;
+	end
+	{st}
+	a_size := Array_isRegular2d_lreal(a);
+	u_size := Array_isRegular2d_lreal(u);
+	v_size := Array_isRegular2d_lreal(v);
+	s_size := Array_isRegular_lreal(s);
+	if (a_size = 0) or (u_size = 0) or (v_size = 0) or (s_size = 0) then
+		eno := false;
+		return;
+	end_if;
+
+	a_rows := upper_bound(a, 1) - lower_bound(a, 1) + 1;
+	a_cols := upper_bound(a, 2) - lower_bound(a, 2) + 1;
+	u_rows := upper_bound(u, 1) - lower_bound(u, 1) + 1;
+	u_cols := upper_bound(u, 2) - lower_bound(u, 2) + 1;
+	v_rows := upper_bound(v, 1) - lower_bound(v, 1) + 1;
+	v_cols := upper_bound(v, 2) - lower_bound(v, 2) + 1;
+	if (a_rows <> a_cols) then
+		eno := false;
+		return;
+	end_if;
+	if (u_rows <> a_rows) or (u_cols <> a_cols) then
+		eno := false;
+		return;
+	end_if;
+	if (v_rows <> a_rows) or (v_cols <> a_cols) then
+		eno := false;
+		return;
+	end_if;
+	if s_size <> a_rows then
+		eno := false;
+		return;
+	end_if;
+
+	n := a_rows;
+	for i := 0 to n - 1 by 1 do
+		for j := 0 to n - 1 by 1 do
+			sum_val := 0.0;
+			for k := 0 to n - 1 by 1 do
+				sum_val := sum_val + a[k, i] * a[k, j];
+			end_for;
+			v[i, j] := sum_val;
+		end_for;
+	end_for;
+
+	for i := 0 to n - 1 by 1 do
+		for j := 0 to n - 1 by 1 do
+			if i = j then
+				u[i, j] := 1.0;
+			else
+				u[i, j] := 0.0;
+			end_if;
+		end_for;
+	end_for;
+
+	for iter := 0 to 49 by 1 do
+		max_val := 0.0;
+		p := 0;
+		q := 1;
+		for i := 0 to n - 1 by 1 do
+			for j := i + 1 to n - 1 by 1 do
+				if abs(v[i, j]) > max_val then
+					max_val := abs(v[i, j]);
+					p := i;
+					q := j;
+				end_if;
+			end_for;
+		end_for;
+		if max_val < 1e-12 then
+			exit;
+		end_if;
+
+		app := v[p, p];
+		aqq := v[q, q];
+		apq := v[p, q];
+		phi := 0.5 * Math_atan2(2.0 * apq, aqq - app);
+		c := COS(phi);
+		s_rot := SIN(phi);
+
+		for k := 0 to n - 1 by 1 do
+			if (k <> p) and (k <> q) then
+				tmp := v[p, k];
+				v[p, k] := c * tmp - s_rot * v[q, k];
+				v[k, p] := v[p, k];
+				v[q, k] := s_rot * tmp + c * v[q, k];
+				v[k, q] := v[q, k];
+			end_if;
+		end_for;
+		v[p, p] := c * c * app - 2.0 * c * s_rot * apq + s_rot * s_rot * aqq;
+		v[q, q] := s_rot * s_rot * app + 2.0 * c * s_rot * apq + c * c * aqq;
+		v[p, q] := 0.0;
+		v[q, p] := 0.0;
+
+		for k := 0 to n - 1 by 1 do
+			tmp := u[k, p];
+			u[k, p] := c * tmp - s_rot * u[k, q];
+			u[k, q] := s_rot * tmp + c * u[k, q];
+		end_for;
+	end_for;
+
+	for i := 0 to n - 1 by 1 do
+		if v[i, i] < 0.0 then
+			s[i] := 0.0;
+		else
+			s[i] := sqrt(v[i, i]);
+		end_if;
+	end_for;
+
+	for i := 0 to n - 2 by 1 do
+		max_idx := i;
+		for j := i + 1 to n - 1 by 1 do
+			if s[j] > s[max_idx] then
+				max_idx := j;
+			end_if;
+		end_for;
+		if max_idx <> i then
+			tmp_s := s[i];
+			s[i] := s[max_idx];
+			s[max_idx] := tmp_s;
+			for k := 0 to n - 1 by 1 do
+				tmp := u[k, i];
+				u[k, i] := u[k, max_idx];
+				u[k, max_idx] := tmp;
+			end_for;
+		end_if;
+	end_for;
+
+	for i := 0 to n - 1 by 1 do
+		for j := 0 to n - 1 by 1 do
+			v[i, j] := u[i, j];
+		end_for;
+	end_for;
+
+	for j := 0 to n - 1 by 1 do
+		if s[j] > 1e-15 then
+			for i := 0 to n - 1 by 1 do
+				sum_val := 0.0;
+				for k := 0 to n - 1 by 1 do
+					sum_val := sum_val + a[i, k] * v[k, j];
+				end_for;
+				u[i, j] := sum_val / s[j];
+			end_for;
+		else
+			for i := 0 to n - 1 by 1 do
+				u[i, j] := 0.0;
+			end_for;
+		end_if;
+	end_for;
+	{end}
+end
+
+{#endif}

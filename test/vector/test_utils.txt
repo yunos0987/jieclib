@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/vector/test_utils.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/vector/test_utils.xml -t omron
+ * $ jiecc ./test/vector/test_utils.txt -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/vector/test_utils.xml -t omron
  *)
 {#include <jiecunit.txt>}
 {#include <vector/utils.txt>}

@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/stats/inference/effect_size/test_effect_size.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/inference/effect_size/test_effect_size.xml -t omron
+ * $ jiecc ./test/stats/inference/effect_size/test_effect_size.txt -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/inference/effect_size/test_effect_size.xml -t omron
  *)
 {#include <jiecunit.txt>}
 {#include <stats/inference/effect_size/effect_size.txt>}

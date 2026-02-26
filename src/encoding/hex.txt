@@ -1,0 +1,167 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/encoding/hex.txt -I./src -I./vendor/jiecunit/sys -o ./src/encoding/hex.xml -t omron
+ *)
+{#ifndef __ENCODING_HEX_TXT__}
+{#define __ENCODING_HEX_TXT__}
+
+{#include <sys.txt>}
+{#include <string_lib/string_lib.txt>}
+
+{#define STRING string[STRING_MAX_SIZE]}
+{#define CODE_0 48}
+{#define CODE_9 57}
+{#define CODE_A 65}
+{#define CODE_F 70}
+{#define CODE_a 97}
+{#define CODE_f 102}
+
+(*{doc 16進文字の1桁を数値へ変換する。
+@input code ASCIIコード。
+@return 0..15の値。16進文字でない場合、-1。}*)
+function hex_nibble: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		code: dint;
+	end
+	{st}
+	if (code >= CODE_0) and (code <= CODE_9) then
+		hex_nibble := code - CODE_0;
+		return;
+	end_if;
+	if (code >= CODE_A) and (code <= CODE_F) then
+		hex_nibble := code - CODE_A + 10;
+		return;
+	end_if;
+	if (code >= CODE_a) and (code <= CODE_f) then
+		hex_nibble := code - CODE_a + 10;
+		return;
+	end_if;
+	hex_nibble := -1;
+	{end}
+end
+
+(*{doc バイト配列を16進文字列へエンコードする。
+@in_out dat 入力バイト配列。
+@input offset datの開始オフセット。
+  デフォルト値: 0
+@input length エンコード対象の要素数。
+  -1を指定するとき、offsetから末尾までを対象とする。
+  デフォルト値: -1
+@return 16進文字列（大文字）。
+@error offset/lengthが配列範囲外を指す場合。}*)
+function hexencode: STRING
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		dat: array[*] of byte;
+	end
+	var_input
+		offset: dint := 0;
+		length: dint := -1;
+	end
+	var_temp
+		HEX: array[0..15] of string[1 + 1] constant := [
+			'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
+		];
+		i0, i1, i: dint;
+		startindex, endindex: dint;
+		b: byte;
+		hi, lo: dint;
+		out: STRING;
+	end
+	{st}
+	out := '';
+	i0 := lower_bound(dat, 1);
+	i1 := upper_bound(dat, 1);
+	startindex := i0 + offset;
+	if length = -1 then
+		endindex := i1;
+	else
+		endindex := startindex + length - 1;
+	end_if;
+	if (startindex < i0) or (endindex < startindex) or (endindex > i1) then
+		eno := false;
+		return;
+	end_if;
+
+	for i := startindex to endindex by 1 do
+		b := dat[i];
+		hi := byte_to_dint(shr(b, 4));
+		lo := byte_to_dint(b and byte#16#0F);
+		out := concat(out, HEX[hi]);
+		out := concat(out, HEX[lo]);
+	end_for;
+
+	hexencode := out;
+	{end}
+end
+
+(*{doc 16進文字列をデコードし、バイト配列へ格納する。
+@input txt 入力16進文字列。
+@in_out dat デコード結果を書き込む配列。
+@input offset datへの書き込み開始オフセット。
+  デフォルト値: 0
+@return datへ格納したバイト数。
+@error 文字列長が奇数、16進文字が不正、またはdat範囲外へ書き込む場合。}*)
+function hexdecode: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		txt: STRING;
+	end
+	var_in_out
+		dat: array[*] of byte;
+	end
+	var_input
+		offset: dint := 0;
+	end
+	var_temp
+		l, i: dint;
+		i0, i1: dint;
+		need_count: dint;
+		o: dint;
+		h1, h2: dint;
+		c1, c2: dint;
+	end
+	{st}
+	l := uint_to_dint(len(txt));
+	if (l mod 2) <> 0 then
+		eno := false;
+		return;
+	end_if;
+
+	need_count := l / 2;
+	i0 := lower_bound(dat, 1);
+	i1 := upper_bound(dat, 1);
+	if (offset < 0) or ((i0 + offset + need_count - 1) > i1) then
+		eno := false;
+		return;
+	end_if;
+
+	o := i0 + offset;
+	i := 0;
+	while i < l do
+		c1 := String_asciiCharCodeAt(txt, i);
+		c2 := String_asciiCharCodeAt(txt, i + 1);
+		h1 := hex_nibble(c1);
+		h2 := hex_nibble(c2);
+		if (h1 < 0) or (h2 < 0) then
+			eno := false;
+			return;
+		end_if;
+		dat[o] := shl(dint_to_byte(h1), 4) or dint_to_byte(h2);
+		o := o + 1;
+		i := i + 2;
+	end_while;
+
+	hexdecode := need_count;
+	{end}
+end
+
+{#undef CODE_0}
+{#undef CODE_9}
+{#undef CODE_A}
+{#undef CODE_F}
+{#undef CODE_a}
+{#undef CODE_f}
+
+{#endif}

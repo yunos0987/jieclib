@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/linalg/matrix/test_properties.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/matrix/test_properties.xml -t omron
+ * $ jiecc ./test/linalg/matrix/test_properties.txt -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/matrix/test_properties.xml -t omron
  *)
 {#include <jiecunit.txt>}
 {#include <linalg/matrix/properties.txt>}

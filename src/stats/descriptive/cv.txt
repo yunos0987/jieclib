@@ -1,0 +1,119 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/stats/descriptive/cv.txt -I./src -I./vendor/jiecunit/sys -o ./src/stats/descriptive/cv.xml -t omron
+ *)
+{#ifndef __STATS_DESCRIPTIVE_CV_TXT__}
+{#define __STATS_DESCRIPTIVE_CV_TXT__}
+
+{#include <sys.txt>}
+{#include <stats/descriptive/mean.txt>}
+{#include <stats/descriptive/variance.txt>}
+
+(*{doc 変動係数。Coefficient of variation。
+CV = std / mean。平均に対する標準偏差の比率。
+@inout data サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@input n 先頭n個を使用する。
+  デフォルト値: -1
+@input ddof 自由度補正。
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_coefficient_of_variation: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
+		data: array[*] of lreal;
+	end
+	var_input
+		(*{doc 先頭n個を使用する。}*)
+		n: dint := -1;
+		(*{doc 自由度補正。}*)
+		ddof: dint;
+	end
+	var_temp
+		actual_n: dint;
+		mean_val, std_val, var_val: lreal;
+	end
+	{st}
+	actual_n := Array_isRegular_lreal(data);
+	if (actual_n = 0) or (n > actual_n) then
+		eno := false;
+		return;
+	end_if;
+	if n >= 0 then
+		actual_n := n;
+	end_if;
+
+	if (ddof < 0) or (ddof > 1) then
+		eno := false;
+		return;
+	end_if;
+
+	if actual_n - ddof = 0 then
+		eno := false;
+		return;
+	end_if;
+
+	mean_val := Stats_mean(data:=data, n:=actual_n);
+
+	// Mean too close to zero makes CV undefined
+	if abs(mean_val) < 1e-15 then
+		eno := false;
+		return;
+	end_if;
+
+	// Calculate variance based on ddof
+	if ddof = 0 then
+		var_val := Stats_variance(data:=data, n:=actual_n, eno=>eno);
+	else
+		var_val := Stats_sample_variance(data:=data, n:=actual_n, eno=>eno);
+	end_if;
+
+	std_val := sqrt(var_val);
+	Stats_coefficient_of_variation := std_val / abs(mean_val);
+	{end}
+end
+
+(*{doc 相対標準偏差。CV と同じだが百分率で返す。
+@inout data サンプルデータを含む配列。
+	正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@input n 先頭n個を使用する。
+	デフォルト値: -1
+@input ddof 自由度補正。
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_relative_stddev: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+				(*{doc サンプルデータを含む配列。}*)
+		data: array[*] of lreal;
+	end
+	var_input
+		(*{doc 先頭n個を使用する。}*)
+		n: dint := -1;
+		(*{doc 自由度補正。}*)
+		ddof: dint;
+	end
+	var_temp
+		actual_n: dint;
+	end
+	{st}
+	actual_n := Array_isRegular_lreal(data);
+	if actual_n = 0 then
+		eno := false;
+		return;
+	end_if;
+	if n > actual_n then
+		eno := false;
+		return;
+	end_if;
+	if n >= 0 then
+		actual_n := n;
+	end_if;
+
+	Stats_relative_stddev := Stats_coefficient_of_variation(data:=data, n:=actual_n, ddof:=ddof, eno=>eno) * 100.0;
+	{end}
+end
+
+{#endif}
+

@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/stats/distributions/continuous/test_chi_square.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/distributions/continuous/test_chi_square.xml -t omron
+ * $ jiecc ./test/stats/distributions/continuous/test_chi_square.txt -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/distributions/continuous/test_chi_square.xml -t omron
  *)
 {#include <jiecunit.txt>}
 {#include <stats/distributions/continuous/chi_square.txt>}

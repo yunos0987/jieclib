@@ -1,9 +1,9 @@
 (*
  * Test for Math_atan2 function
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/math/test_atan2.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -o ./test/math/test_atan2.xml -t omron
+ * $ jiecc ./test/math/test_atan2.txt -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -o ./test/math/test_atan2.xml -t omron
  * or
- * $ jiecc ./test/math/test_atan2.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -o ./test/math/test_atan2.xml -t keyence
+ * $ jiecc ./test/math/test_atan2.txt -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -o ./test/math/test_atan2.xml -t keyence
  *)
 {#include <jiecunit.txt>}
 {#include <math/atan2.txt>}

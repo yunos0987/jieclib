@@ -1,10 +1,10 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/encoding/test_hex.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -D_TEST_ -o ./test/encoding/test_hex.xml -t omron
+ * $ jiecc ./test/encoding/test_hex.txt -I. -I./src -I./vendor/jiecunit -I./vendor/jiecunit/sys -D_TEST_ -o ./test/encoding/test_hex.xml -t omron
  *)
 {#include <jiecunit.txt>}
 
-{#include <encoding/hex.txt>}
+{#include <src/encoding/hex.txt>}
 
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(

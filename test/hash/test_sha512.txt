@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/hash/test_sha512.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -D_TEST_ -o ./test/hash/test_sha512.xml -t omron
+ * $ jiecc ./test/hash/test_sha512.txt -I. -I./src -I./vendor/jiecunit -I./vendor/jiecunit/sys -D_TEST_ -o ./test/hash/test_sha512.xml -t omron
  *)
 {#include <jiecunit.txt>}
 {#include <test/hash/helper_random.txt>}

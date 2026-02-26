@@ -1,0 +1,141 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/stats/sequences/rank.txt -I./src -I./vendor/jiecunit/sys -o ./src/stats/sequences/rank.xml -t omron
+ *)
+{#ifndef __STATS_SEQUENCES_RANK_TXT__}
+{#define __STATS_SEQUENCES_RANK_TXT__}
+
+{#include <sys.txt>}
+{#include <array/array.txt>}
+{#include <array/copy.txt>}
+{#include <array/sort.txt>}
+
+(*{doc サンプルの順位を得る。
+dataの順位をrankに格納する。
+rank_type: 0=average, 1=min, 2=max, 3=first
+@inout data サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@input n 先頭n個を使用する。
+  デフォルト値: -1
+@input rank_type 順位の付け方。
+  デフォルト値: 0
+@inout rank 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout work1 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@inout work2 作業配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@error 入力値が不正な場合。}*)
+function Stats_rankdata
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
+		data: array[*] of lreal;
+	end
+	var_input
+		(*{doc データのサイズ（-1の場合は配列dataのサイズを使用）}*)
+		n: dint := -1;
+		(*{doc 位置タイプ。}*)
+		rank_type: dint := 0;
+	end
+	var_in_out
+		(*{doc dataの順位を格納する配列}*)
+		rank: array[*] of lreal;
+		(*{doc 作業用配列（dataと同じサイズ以上）}*)
+		work1: array[*] of lreal;
+		(*{doc インデックス用作業配列（dataと同じサイズ以上）}*)
+		work2: array[*] of dint;
+	end
+	var_temp
+		actual_n: dint;
+		ndata, nrank, nwork1, nwork2: dint;
+		i, j: dint;
+		start, endp: dint;
+		rank_value: lreal;
+		tmpd: lreal;
+		tmpi: dint;
+	end
+	{st}
+		ndata := Array_isRegular_lreal(data);
+		if ndata = 0 then
+			eno := false;
+			return;
+		end_if;
+		nrank := Array_isRegular_lreal(rank);
+		if nrank = 0 then
+			eno := false;
+			return;
+		end_if;
+		nwork1 := Array_isRegular_lreal(work1);
+		if nwork1 = 0 then
+			eno := false;
+			return;
+		end_if;
+		nwork2 := Array_isRegular_dint(work2);
+		if nwork2 = 0 then
+			eno := false;
+			return;
+		end_if;
+
+		if n >= 0 then
+			actual_n := n;
+		else
+			actual_n := ndata;
+		end_if;
+
+		if actual_n < 1 then
+			eno := false;
+			return;
+		end_if;
+
+		if (nrank < actual_n) or (nwork1 < actual_n) or (nwork2 < actual_n) then
+			eno := false;
+			return;
+		end_if;
+
+		for i := 0 to actual_n - 1 do
+			work1[i] := data[i];
+			work2[i] := i;
+		end_for;
+
+		// workとidxを値で昇順ソート（単純な挿入ソートで十分）
+		for i := 1 to actual_n - 1 do
+			tmpd := work1[i];
+			tmpi := work2[i];
+			j := i - 1;
+			while (j >= 0) and (work1[j] > tmpd) do
+				work1[j + 1] := work1[j];
+				work2[j + 1] := work2[j];
+				j := j - 1;
+			end_while;
+			work1[j + 1] := tmpd;
+			work2[j + 1] := tmpi;
+		end_for;
+
+		// 同値の範囲ごとに順位を計算
+		i := 0;
+		while i < actual_n do
+			start := i;
+			while (i + 1 < actual_n) and (work1[i + 1] = work1[i]) do
+				i := i + 1;
+			end_while;
+			endp := i; // inclusive
+			case rank_type of
+			0: // average rank
+				rank_value := (dint_to_lreal(start + 1) + dint_to_lreal(endp + 1)) / 2.0;
+			1: // min rank
+				rank_value := dint_to_lreal(start + 1);
+			2: // max rank
+				rank_value := dint_to_lreal(endp + 1);
+			3: // first rank (same as min in this context)
+				rank_value := dint_to_lreal(start + 1);
+			end_case;
+			for j := start to endp do
+				rank[work2[j]] := rank_value;
+			end_for;
+			i := i + 1;
+		end_while;
+	{end}
+end
+
+{#endif}

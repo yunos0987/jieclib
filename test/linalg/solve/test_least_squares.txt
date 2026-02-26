@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/linalg/solve/test_least_squares.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/solve/test_least_squares.xml -t omron
+ * $ jiecc ./test/linalg/solve/test_least_squares.txt -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/solve/test_least_squares.xml -t omron
  *)
 {#include <jiecunit.txt>}
 {#include <linalg/solve/least_squares.txt>}

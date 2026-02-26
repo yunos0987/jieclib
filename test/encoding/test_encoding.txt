@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/encoding/test_encoding.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/encoding/test_encoding.xml -t omron
+ * $ jiecc ./test/encoding/test_encoding.txt -I. -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/encoding/test_encoding.xml -t omron
  *)
 {#if _JIECC and (_JIECC_VER < 514)}
 	{#error This test requires Jiecc 5.14 or later.}
@@ -10,9 +10,9 @@
 	{#error This test requires JiecUnit 2.10 or later.}
 {#endif}
 
-{#include <encoding/base64.txt>}
-{#include <encoding/percent.txt>}
-{#include <encoding/hex.txt>}
+{#include <src/encoding/base64.txt>}
+{#include <src/encoding/percent.txt>}
+{#include <src/encoding/hex.txt>}
 
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(

@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/linalg/matrix/test_inverse.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/matrix/test_inverse.xml -t omron
+ * $ jiecc ./test/linalg/matrix/test_inverse.txt -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/linalg/matrix/test_inverse.xml -t omron
  *)
 {#include <jiecunit.txt>}
 {#include <linalg/matrix/inverse.txt>}

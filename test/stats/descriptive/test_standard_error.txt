@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/stats/descriptive/test_standard_error.txt -I. -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/descriptive/test_standard_error.xml -t omron
+ * $ jiecc ./test/stats/descriptive/test_standard_error.txt -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/descriptive/test_standard_error.xml -t omron
  *)
 {#include <jiecunit.txt>}
 {#include <stats/descriptive/standard_error.txt>}

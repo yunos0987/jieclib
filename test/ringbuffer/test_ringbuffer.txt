@@ -1,8 +1,8 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/ringbuffer/test_ringbuffer.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/ringbuffer/test_ringbuffer.xml -t omron
+ * $ jiecc ./test/ringbuffer/test_ringbuffer.txt -I./src -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/ringbuffer/test_ringbuffer.xml -t omron
  * or
- * $ jiecc ./test/ringbuffer/test_ringbuffer.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/ringbuffer/test_ringbuffer.xml -t keyence
+ * $ jiecc ./test/ringbuffer/test_ringbuffer.txt -I./src -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/ringbuffer/test_ringbuffer.xml -t keyence
  *)
 {#include <jiecunit.txt>}
 {#include <ringbuffer/ringbuffer.txt>}

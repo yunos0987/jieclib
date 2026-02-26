@@ -1,0 +1,545 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/hash/sha512.txt -I./src -I./vendor/jiecunit/sys -o ./src/hash/sha512.xml -t omron
+ *)
+{#ifndef __HASH_SHA512_TXT__}
+{#define __HASH_SHA512_TXT__}
+
+{#include <sys.txt>}
+{#include <sys_conv.txt>}
+{#include <string_lib/string_lib.txt>}
+
+{#define STRING string[STRING_MAX_SIZE]}
+
+(*{doc 1バイトを16進2桁文字列へ変換する。
+@input b 入力バイト。
+@return 小文字16進2桁文字列。}*)
+function private_SHA512_hexbyte: string[2 + 1]
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 入力バイト。}*)
+		b: byte;
+	end
+	var_temp
+		HEX: array[0..15] of string[1 + 1] constant := [
+			'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'
+		];
+		hi, lo: dint;
+	end
+	{st}
+	hi := byte_to_dint(shr(b, 4));
+	lo := byte_to_dint(b and byte#16#0F);
+	private_SHA512_hexbyte := concat(HEX[hi], HEX[lo]);
+	{end}
+end
+
+(*{doc 32bit値を16進8桁文字列へ変換する。
+@input w 入力32bit値。
+@return 16進8桁文字列。}*)
+function private_SHA512_hexword_be: string[8 + 1]
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 入力32bit値。}*)
+		w: dword;
+	end
+	var_temp
+		b0, b1, b2, b3: byte;
+	end
+	{st}
+	b0 := dword_to_byte(shr(w, 24) and dword#16#000000FF);
+	b1 := dword_to_byte(shr(w, 16) and dword#16#000000FF);
+	b2 := dword_to_byte(shr(w, 8) and dword#16#000000FF);
+	b3 := dword_to_byte(w and dword#16#000000FF);
+	private_SHA512_hexword_be := jiec_concat(private_SHA512_hexbyte(b0), private_SHA512_hexbyte(b1), private_SHA512_hexbyte(b2), private_SHA512_hexbyte(b3));
+	{end}
+end
+
+(*{doc 64bit加算の下位32bitを計算する。
+@input xl 第1項の下位32bit。
+@input yl 第2項の下位32bit。
+@return 加算結果の下位32bit。}*)
+function private_SHA512_add2_lo: dword
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 第1項の下位32bit。}*)
+		xl: dword;
+		(*{doc 第2項の下位32bit。}*)
+		yl: dword;
+	end
+	var_temp
+		s: ulint;
+	end
+	{st}
+	s := dword_to_ulint(xl) + dword_to_ulint(yl);
+	private_SHA512_add2_lo := ulint_to_dword(s);
+	{end}
+end
+
+(*{doc 64bit加算の上位32bitを計算する。
+@input xh 第1項の上位32bit。
+@input xl 第1項の下位32bit。
+@input yh 第2項の上位32bit。
+@input yl 第2項の下位32bit。
+@return 加算結果の上位32bit。}*)
+function private_SHA512_add2_hi: dword
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 第1項の上位32bit。}*)
+		xh: dword;
+		(*{doc 第1項の下位32bit。}*)
+		xl: dword;
+		(*{doc 第2項の上位32bit。}*)
+		yh: dword;
+		(*{doc 第2項の下位32bit。}*)
+		yl: dword;
+	end
+	var_temp
+		s: ulint;
+		carry: ulint;
+	end
+	{st}
+	s := dword_to_ulint(xl) + dword_to_ulint(yl);
+	if s >= ulint#16#100000000 then
+		carry := ulint#1;
+	else
+		carry := ulint#0;
+	end_if;
+	s := dword_to_ulint(xh) + dword_to_ulint(yh) + carry;
+	private_SHA512_add2_hi := ulint_to_dword(s);
+	{end}
+end
+
+(*{doc 64bit値（上位/下位）を右ローテートした結果の上位32bitを得る。
+@input xh 入力値の上位32bit。
+@input xl 入力値の下位32bit。
+@input n ローテートビット数（0..63）。
+@return ローテート結果の上位32bit。}*)
+function private_SHA512_rotr_hi: dword
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 入力値の上位32bit。}*)
+		xh: dword;
+		(*{doc 入力値の下位32bit。}*)
+		xl: dword;
+		(*{doc ローテートビット数（0..63）。}*)
+		n: dint;
+	end
+	var_temp
+		m: dint;
+	end
+	{st}
+	if n = 0 then
+		private_SHA512_rotr_hi := xh;
+		return;
+	end_if;
+	if n < 32 then
+		private_SHA512_rotr_hi := shr(xh, n) or shl(xl, 32 - n);
+	elsif n = 32 then
+		private_SHA512_rotr_hi := xl;
+	else
+		m := n - 32;
+		private_SHA512_rotr_hi := shr(xl, m) or shl(xh, 32 - m);
+	end_if;
+	{end}
+end
+
+(*{doc 64bit値（上位/下位）を右ローテートした結果の下位32bitを得る。
+@input xh 入力値の上位32bit。
+@input xl 入力値の下位32bit。
+@input n ローテートビット数（0..63）。
+@return ローテート結果の下位32bit。}*)
+function private_SHA512_rotr_lo: dword
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 入力値の上位32bit。}*)
+		xh: dword;
+		(*{doc 入力値の下位32bit。}*)
+		xl: dword;
+		(*{doc ローテートビット数（0..63）。}*)
+		n: dint;
+	end
+	var_temp
+		m: dint;
+	end
+	{st}
+	if n = 0 then
+		private_SHA512_rotr_lo := xl;
+		return;
+	end_if;
+	if n < 32 then
+		private_SHA512_rotr_lo := shr(xl, n) or shl(xh, 32 - n);
+	elsif n = 32 then
+		private_SHA512_rotr_lo := xh;
+	else
+		m := n - 32;
+		private_SHA512_rotr_lo := shr(xh, m) or shl(xl, 32 - m);
+	end_if;
+	{end}
+end
+
+(*{doc 64bit値（上位/下位）を論理右シフトした結果の上位32bitを得る。
+@input xh 入力値の上位32bit。
+@input xl 入力値の下位32bit。
+@input n シフトビット数（0..63）。
+@return シフト結果の上位32bit。}*)
+function private_SHA512_shr_hi: dword
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 入力値の上位32bit。}*)
+		xh: dword;
+		(*{doc 入力値の下位32bit。}*)
+		xl: dword;
+		(*{doc シフトビット数（0..63）。}*)
+		n: dint;
+	end
+	{st}
+	if n = 0 then
+		private_SHA512_shr_hi := xh;
+	elsif n < 32 then
+		private_SHA512_shr_hi := shr(xh, n);
+	else
+		private_SHA512_shr_hi := dword#16#00000000;
+	end_if;
+	{end}
+end
+
+(*{doc 64bit値（上位/下位）を論理右シフトした結果の下位32bitを得る。
+@input xh 入力値の上位32bit。
+@input xl 入力値の下位32bit。
+@input n シフトビット数（0..63）。
+@return シフト結果の下位32bit。}*)
+function private_SHA512_shr_lo: dword
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 入力値の上位32bit。}*)
+		xh: dword;
+		(*{doc 入力値の下位32bit。}*)
+		xl: dword;
+		(*{doc シフトビット数（0..63）。}*)
+		n: dint;
+	end
+	var_temp
+		m: dint;
+	end
+	{st}
+	if n = 0 then
+		private_SHA512_shr_lo := xl;
+	elsif n < 32 then
+		private_SHA512_shr_lo := shr(xl, n) or shl(xh, 32 - n);
+	elsif n = 32 then
+		private_SHA512_shr_lo := xh;
+	else
+		m := n - 32;
+		private_SHA512_shr_lo := shr(xh, m);
+	end_if;
+	{end}
+end
+
+(*{doc 文字列のSHA-512ダイジェスト（128文字16進小文字）を得る。
+@input txt 入力文字列（ASCII想定）。
+@in_out work 入力文字列を展開する作業用バイト配列。
+	必要要素数はlen(txt) + 144以上。
+@return SHA-512ハッシュ文字列。
+@error ASCIIコード取得に失敗した場合、またはwork容量不足の場合。}*)
+function SHA512_string: string[128 + 1]
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 入力文字列（ASCII想定）。}*)
+		txt: STRING;
+	end
+	var_in_out
+		(*{doc 作業用バイト配列。必要要素数はlen(txt) + 144以上。}*)
+		work: array[*] of byte;
+	end
+	var_temp
+		w0, w1: dint;
+		input_len: dint;
+		i: dint;
+		code: dint;
+	end
+	{st}
+	w0 := lower_bound(work, 1);
+	w1 := upper_bound(work, 1);
+	input_len := uint_to_dint(len(txt));
+	if (input_len + 144) > (w1 - w0 + 1) then
+		eno := false;
+		return;
+	end_if;
+
+	for i := 0 to input_len - 1 by 1 do
+		code := String_asciiCharCodeAt(txt, i);
+		if (code < 0) or (code > 127) then
+			eno := false;
+			return;
+		end_if;
+		work[w0 + i] := dint_to_byte(code);
+	end_for;
+
+	SHA512_string := SHA512_bytes(dat:=work, offset:=0, length:=input_len, work:=work, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+	{end}
+end
+
+(*{doc バイト配列のSHA-512ダイジェスト（128文字16進小文字）を得る。
+@in_out dat 入力バイト配列。
+@input offset datの開始オフセット。
+	デフォルト値: 0
+@input length ハッシュ対象の要素数。
+	-1を指定するとき、offsetから末尾までを対象とする。
+	デフォルト値: -1
+@in_out work SHA-512計算に使用する作業用バイト配列。
+	必要要素数は実入力長 + 144以上。
+@return SHA-512ハッシュ文字列。
+@error offset/lengthが配列範囲外を指す場合、またはwork容量不足の場合。}*)
+function SHA512_bytes: string[128 + 1]
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 入力バイト配列。}*)
+		dat: array[*] of byte;
+	end
+	var_input
+		(*{doc datの開始オフセット。}*)
+		offset: dint := 0;
+		(*{doc ハッシュ対象の要素数。-1で末尾まで。}*)
+		length: dint := -1;
+	end
+	var_in_out
+		(*{doc 作業用バイト配列。必要要素数は実入力長 + 144以上。}*)
+		work: array[*] of byte;
+	end
+	var_temp
+		K_hi: array[0..79] of dword constant := [
+			dword#16#428A2F98,dword#16#71374491,dword#16#B5C0FBCF,dword#16#E9B5DBA5,dword#16#3956C25B,dword#16#59F111F1,dword#16#923F82A4,dword#16#AB1C5ED5,
+			dword#16#D807AA98,dword#16#12835B01,dword#16#243185BE,dword#16#550C7DC3,dword#16#72BE5D74,dword#16#80DEB1FE,dword#16#9BDC06A7,dword#16#C19BF174,
+			dword#16#E49B69C1,dword#16#EFBE4786,dword#16#0FC19DC6,dword#16#240CA1CC,dword#16#2DE92C6F,dword#16#4A7484AA,dword#16#5CB0A9DC,dword#16#76F988DA,
+			dword#16#983E5152,dword#16#A831C66D,dword#16#B00327C8,dword#16#BF597FC7,dword#16#C6E00BF3,dword#16#D5A79147,dword#16#06CA6351,dword#16#14292967,
+			dword#16#27B70A85,dword#16#2E1B2138,dword#16#4D2C6DFC,dword#16#53380D13,dword#16#650A7354,dword#16#766A0ABB,dword#16#81C2C92E,dword#16#92722C85,
+			dword#16#A2BFE8A1,dword#16#A81A664B,dword#16#C24B8B70,dword#16#C76C51A3,dword#16#D192E819,dword#16#D6990624,dword#16#F40E3585,dword#16#106AA070,
+			dword#16#19A4C116,dword#16#1E376C08,dword#16#2748774C,dword#16#34B0BCB5,dword#16#391C0CB3,dword#16#4ED8AA4A,dword#16#5B9CCA4F,dword#16#682E6FF3,
+			dword#16#748F82EE,dword#16#78A5636F,dword#16#84C87814,dword#16#8CC70208,dword#16#90BEFFFA,dword#16#A4506CEB,dword#16#BEF9A3F7,dword#16#C67178F2,
+			dword#16#CA273ECE,dword#16#D186B8C7,dword#16#EADA7DD6,dword#16#F57D4F7F,dword#16#06F067AA,dword#16#0A637DC5,dword#16#113F9804,dword#16#1B710B35,
+			dword#16#28DB77F5,dword#16#32CAAB7B,dword#16#3C9EBE0A,dword#16#431D67C4,dword#16#4CC5D4BE,dword#16#597F299C,dword#16#5FCB6FAB,dword#16#6C44198C
+		];
+		K_lo: array[0..79] of dword constant := [
+			dword#16#D728AE22,dword#16#23EF65CD,dword#16#EC4D3B2F,dword#16#8189DBBC,dword#16#F348B538,dword#16#B605D019,dword#16#AF194F9B,dword#16#DA6D8118,
+			dword#16#A3030242,dword#16#45706FBE,dword#16#4EE4B28C,dword#16#D5FFB4E2,dword#16#F27B896F,dword#16#3B1696B1,dword#16#25C71235,dword#16#CF692694,
+			dword#16#9EF14AD2,dword#16#384F25E3,dword#16#8B8CD5B5,dword#16#77AC9C65,dword#16#592B0275,dword#16#6EA6E483,dword#16#BD41FBD4,dword#16#831153B5,
+			dword#16#EE66DFAB,dword#16#2DB43210,dword#16#98FB213F,dword#16#BEEF0EE4,dword#16#3DA88FC2,dword#16#930AA725,dword#16#E003826F,dword#16#0A0E6E70,
+			dword#16#46D22FFC,dword#16#5C26C926,dword#16#5AC42AED,dword#16#9D95B3DF,dword#16#8BAF63DE,dword#16#3C77B2A8,dword#16#47EDAEE6,dword#16#1482353B,
+			dword#16#4CF10364,dword#16#BC423001,dword#16#D0F89791,dword#16#0654BE30,dword#16#D6EF5218,dword#16#5565A910,dword#16#5771202A,dword#16#32BBD1B8,
+			dword#16#B8D2D0C8,dword#16#5141AB53,dword#16#DF8EEB99,dword#16#E19B48A8,dword#16#C5C95A63,dword#16#E3418ACB,dword#16#7763E373,dword#16#D6B2B8A3,
+			dword#16#5DEFB2FC,dword#16#43172F60,dword#16#A1F0AB72,dword#16#1A6439EC,dword#16#23631E28,dword#16#DE82BDE9,dword#16#B2C67915,dword#16#E372532B,
+			dword#16#EA26619C,dword#16#21C0C207,dword#16#CDE0EB1E,dword#16#EE6ED178,dword#16#72176FBA,dword#16#A2C898A6,dword#16#BEF90DAE,dword#16#131C471B,
+			dword#16#23047D84,dword#16#40C72493,dword#16#15C9BEBC,dword#16#9C100D4C,dword#16#CB3E42B6,dword#16#FC657E2A,dword#16#3AD6FAEC,dword#16#4A475817
+		];
+		W_hi: array[0..79] of dword;
+		W_lo: array[0..79] of dword;
+		i0, i1: dint;
+		w0, w1: dint;
+		startindex, endindex: dint;
+		input_len, total_len, num_blocks: dint;
+		pad_zero_count: dint;
+		i, t, blk, j: dint;
+		bit_len_lo: ulint;
+		tmp_bit_len: ulint;
+		h0h,h0l,h1h,h1l,h2h,h2l,h3h,h3l,h4h,h4l,h5h,h5l,h6h,h6l,h7h,h7l: dword;
+		ah,al,bh,bl,ch,cl,dh,dl,eh,el,fh,fl,gh,gl,hh,hl: dword;
+		r1h,r1l,r2h,r2l,r3h,r3l: dword;
+		s0h,s0l,s1h,s1l: dword;
+		t1h,t1l,t2h,t2l: dword;
+		tmph,tmpl: dword;
+		chh,chl,majh,majl: dword;
+	end
+	{st}
+	i0 := lower_bound(dat, 1);
+	i1 := upper_bound(dat, 1);
+	w0 := lower_bound(work, 1);
+	w1 := upper_bound(work, 1);
+
+	if length < -1 then
+		eno := false;
+		return;
+	end_if;
+
+	if length = 0 then
+		if (offset < 0) or (offset > (i1 - i0 + 1)) then
+			eno := false;
+			return;
+		end_if;
+		input_len := 0;
+	else
+		startindex := i0 + offset;
+		if length = -1 then
+			endindex := i1;
+		else
+			endindex := startindex + length - 1;
+		end_if;
+		if (startindex < i0) or (endindex < startindex) or (endindex > i1) then
+			eno := false;
+			return;
+		end_if;
+		input_len := endindex - startindex + 1;
+	end_if;
+
+	if (input_len + 144) > (w1 - w0 + 1) then
+		eno := false;
+		return;
+	end_if;
+
+	for i := 0 to input_len - 1 by 1 do
+		work[w0 + i] := dat[startindex + i];
+	end_for;
+
+	work[w0 + input_len] := byte#16#80;
+	pad_zero_count := (112 - ((input_len + 1) mod 128) + 128) mod 128;
+	for i := 1 to pad_zero_count by 1 do
+		work[w0 + input_len + i] := byte#16#00;
+	end_for;
+
+	total_len := input_len + 1 + pad_zero_count + 16;
+	bit_len_lo := dint_to_ulint(input_len) * ulint#8;
+	for i := 0 to 7 by 1 do
+		work[w0 + total_len - 16 + i] := byte#16#00;
+	end_for;
+	tmp_bit_len := bit_len_lo;
+	for i := 0 to 7 by 1 do
+		work[w0 + total_len - 1 - i] := ulint_to_byte(tmp_bit_len);
+		tmp_bit_len := tmp_bit_len / ulint#256;
+	end_for;
+
+	num_blocks := total_len / 128;
+
+	h0h := dword#16#6A09E667; h0l := dword#16#F3BCC908;
+	h1h := dword#16#BB67AE85; h1l := dword#16#84CAA73B;
+	h2h := dword#16#3C6EF372; h2l := dword#16#FE94F82B;
+	h3h := dword#16#A54FF53A; h3l := dword#16#5F1D36F1;
+	h4h := dword#16#510E527F; h4l := dword#16#ADE682D1;
+	h5h := dword#16#9B05688C; h5l := dword#16#2B3E6C1F;
+	h6h := dword#16#1F83D9AB; h6l := dword#16#FB41BD6B;
+	h7h := dword#16#5BE0CD19; h7l := dword#16#137E2179;
+
+	for blk := 0 to num_blocks - 1 by 1 do
+		for t := 0 to 15 by 1 do
+			j := w0 + blk * 128 + t * 8;
+			W_hi[t] :=
+				shl(udint_to_dword(byte_to_udint(work[j])), 24) or
+				shl(udint_to_dword(byte_to_udint(work[j + 1])), 16) or
+				shl(udint_to_dword(byte_to_udint(work[j + 2])), 8) or
+				udint_to_dword(byte_to_udint(work[j + 3]));
+			W_lo[t] :=
+				shl(udint_to_dword(byte_to_udint(work[j + 4])), 24) or
+				shl(udint_to_dword(byte_to_udint(work[j + 5])), 16) or
+				shl(udint_to_dword(byte_to_udint(work[j + 6])), 8) or
+				udint_to_dword(byte_to_udint(work[j + 7]));
+		end_for;
+
+		for t := 16 to 79 by 1 do
+			r1h := private_SHA512_rotr_hi(W_hi[t - 15], W_lo[t - 15], 1);
+			r1l := private_SHA512_rotr_lo(W_hi[t - 15], W_lo[t - 15], 1);
+			r2h := private_SHA512_rotr_hi(W_hi[t - 15], W_lo[t - 15], 8);
+			r2l := private_SHA512_rotr_lo(W_hi[t - 15], W_lo[t - 15], 8);
+			r3h := private_SHA512_shr_hi(W_hi[t - 15], W_lo[t - 15], 7);
+			r3l := private_SHA512_shr_lo(W_hi[t - 15], W_lo[t - 15], 7);
+			s0h := r1h xor r2h xor r3h;
+			s0l := r1l xor r2l xor r3l;
+
+			r1h := private_SHA512_rotr_hi(W_hi[t - 2], W_lo[t - 2], 19);
+			r1l := private_SHA512_rotr_lo(W_hi[t - 2], W_lo[t - 2], 19);
+			r2h := private_SHA512_rotr_hi(W_hi[t - 2], W_lo[t - 2], 61);
+			r2l := private_SHA512_rotr_lo(W_hi[t - 2], W_lo[t - 2], 61);
+			r3h := private_SHA512_shr_hi(W_hi[t - 2], W_lo[t - 2], 6);
+			r3l := private_SHA512_shr_lo(W_hi[t - 2], W_lo[t - 2], 6);
+			s1h := r1h xor r2h xor r3h;
+			s1l := r1l xor r2l xor r3l;
+
+			tmpl := private_SHA512_add2_lo(W_lo[t - 16], s0l);
+			tmph := private_SHA512_add2_hi(W_hi[t - 16], W_lo[t - 16], s0h, s0l);
+			t1l := private_SHA512_add2_lo(tmpl, W_lo[t - 7]);
+			t1h := private_SHA512_add2_hi(tmph, tmpl, W_hi[t - 7], W_lo[t - 7]);
+			W_lo[t] := private_SHA512_add2_lo(t1l, s1l);
+			W_hi[t] := private_SHA512_add2_hi(t1h, t1l, s1h, s1l);
+		end_for;
+
+		ah := h0h; al := h0l;
+		bh := h1h; bl := h1l;
+		ch := h2h; cl := h2l;
+		dh := h3h; dl := h3l;
+		eh := h4h; el := h4l;
+		fh := h5h; fl := h5l;
+		gh := h6h; gl := h6l;
+		hh := h7h; hl := h7l;
+
+		for t := 0 to 79 by 1 do
+			r1h := private_SHA512_rotr_hi(eh, el, 14);
+			r1l := private_SHA512_rotr_lo(eh, el, 14);
+			r2h := private_SHA512_rotr_hi(eh, el, 18);
+			r2l := private_SHA512_rotr_lo(eh, el, 18);
+			r3h := private_SHA512_rotr_hi(eh, el, 41);
+			r3l := private_SHA512_rotr_lo(eh, el, 41);
+			s1h := r1h xor r2h xor r3h;
+			s1l := r1l xor r2l xor r3l;
+
+			chh := (eh and fh) xor ((not eh) and gh);
+			chl := (el and fl) xor ((not el) and gl);
+
+			tmpl := private_SHA512_add2_lo(hl, s1l);
+			tmph := private_SHA512_add2_hi(hh, hl, s1h, s1l);
+			t1l := private_SHA512_add2_lo(tmpl, chl);
+			t1h := private_SHA512_add2_hi(tmph, tmpl, chh, chl);
+			tmpl := private_SHA512_add2_lo(t1l, K_lo[t]);
+			tmph := private_SHA512_add2_hi(t1h, t1l, K_hi[t], K_lo[t]);
+			t1l := private_SHA512_add2_lo(tmpl, W_lo[t]);
+			t1h := private_SHA512_add2_hi(tmph, tmpl, W_hi[t], W_lo[t]);
+
+			r1h := private_SHA512_rotr_hi(ah, al, 28);
+			r1l := private_SHA512_rotr_lo(ah, al, 28);
+			r2h := private_SHA512_rotr_hi(ah, al, 34);
+			r2l := private_SHA512_rotr_lo(ah, al, 34);
+			r3h := private_SHA512_rotr_hi(ah, al, 39);
+			r3l := private_SHA512_rotr_lo(ah, al, 39);
+			s0h := r1h xor r2h xor r3h;
+			s0l := r1l xor r2l xor r3l;
+
+			majh := (ah and bh) xor (ah and ch) xor (bh and ch);
+			majl := (al and bl) xor (al and cl) xor (bl and cl);
+			t2l := private_SHA512_add2_lo(s0l, majl);
+			t2h := private_SHA512_add2_hi(s0h, s0l, majh, majl);
+
+			hh := gh; hl := gl;
+			gh := fh; gl := fl;
+			fh := eh; fl := el;
+			el := private_SHA512_add2_lo(dl, t1l);
+			eh := private_SHA512_add2_hi(dh, dl, t1h, t1l);
+			dh := ch; dl := cl;
+			ch := bh; cl := bl;
+			bh := ah; bl := al;
+			al := private_SHA512_add2_lo(t1l, t2l);
+			ah := private_SHA512_add2_hi(t1h, t1l, t2h, t2l);
+		end_for;
+
+		tmph := h0h; tmpl := h0l; h0l := private_SHA512_add2_lo(tmpl, al); h0h := private_SHA512_add2_hi(tmph, tmpl, ah, al);
+		tmph := h1h; tmpl := h1l; h1l := private_SHA512_add2_lo(tmpl, bl); h1h := private_SHA512_add2_hi(tmph, tmpl, bh, bl);
+		tmph := h2h; tmpl := h2l; h2l := private_SHA512_add2_lo(tmpl, cl); h2h := private_SHA512_add2_hi(tmph, tmpl, ch, cl);
+		tmph := h3h; tmpl := h3l; h3l := private_SHA512_add2_lo(tmpl, dl); h3h := private_SHA512_add2_hi(tmph, tmpl, dh, dl);
+		tmph := h4h; tmpl := h4l; h4l := private_SHA512_add2_lo(tmpl, el); h4h := private_SHA512_add2_hi(tmph, tmpl, eh, el);
+		tmph := h5h; tmpl := h5l; h5l := private_SHA512_add2_lo(tmpl, fl); h5h := private_SHA512_add2_hi(tmph, tmpl, fh, fl);
+		tmph := h6h; tmpl := h6l; h6l := private_SHA512_add2_lo(tmpl, gl); h6h := private_SHA512_add2_hi(tmph, tmpl, gh, gl);
+		tmph := h7h; tmpl := h7l; h7l := private_SHA512_add2_lo(tmpl, hl); h7h := private_SHA512_add2_hi(tmph, tmpl, hh, hl);
+	end_for;
+
+	SHA512_bytes := jiec_concat(
+		private_SHA512_hexword_be(h0h), private_SHA512_hexword_be(h0l),
+		private_SHA512_hexword_be(h1h), private_SHA512_hexword_be(h1l),
+		private_SHA512_hexword_be(h2h), private_SHA512_hexword_be(h2l),
+		private_SHA512_hexword_be(h3h), private_SHA512_hexword_be(h3l),
+		private_SHA512_hexword_be(h4h), private_SHA512_hexword_be(h4l),
+		private_SHA512_hexword_be(h5h), private_SHA512_hexword_be(h5l),
+		private_SHA512_hexword_be(h6h), private_SHA512_hexword_be(h6l),
+		private_SHA512_hexword_be(h7h), private_SHA512_hexword_be(h7l)
+	);
+	{end}
+end
+
+{#endif}
