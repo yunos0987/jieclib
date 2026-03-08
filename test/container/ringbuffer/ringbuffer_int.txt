@@ -1,0 +1,14 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/container/ringbuffer/ringbuffer_int.txt -I./src -I./vendor/jiecunit -o ./test/container/ringbuffer/ringbuffer_int.xml -t omron
+ * or
+ * $ jiecc ./test/container/ringbuffer/ringbuffer_int.txt -I./src -I./vendor/jiecunit -o ./test/container/ringbuffer/ringbuffer_int.xml -t keyence
+ *)
+{#ifndef __TEST_CONTAINER_RINGBUFFER_INT_TXT__}
+{#define __TEST_CONTAINER_RINGBUFFER_INT_TXT__}
+
+{#define RingBufferItemType int}
+{#include <container/ringbuffer/ringbuffer_template.txt>}
+{#undef RingBufferItemType}
+
+{#endif}

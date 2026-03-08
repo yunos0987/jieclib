@@ -1,0 +1,44 @@
+{#ifndef __TEST_CONTAINER_HASHMAP_DINT_COLLISION_TXT__}
+{#define __TEST_CONTAINER_HASHMAP_DINT_COLLISION_TXT__}
+
+{#include <string_lib/equivalence.txt>}
+
+function Collision_hash_for_hashmap_test: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: string[16 + 1];
+	end
+	{st}
+	Collision_hash_for_hashmap_test := udint#1;
+	{end}
+end
+
+function Dint_hash_for_collision_hashmap_test: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: dint;
+	end
+	{st}
+	Dint_hash_for_collision_hashmap_test := dword_to_udint(dint_to_dword(self));
+	{end}
+end
+
+{#define HashMapName dint_collision}
+{#define HashMapCapacity 8}
+{#define HashMapKeyMaxLength 16}
+{#define HashMapKeyEqualsFunction String_equals}
+{#define HashMapKeyHashFunction Collision_hash_for_hashmap_test}
+{#define HashMapKeyType string[HashMapKeyMaxLength + 1]}
+{#define HashMapValueType dint}
+{#define HashMapValueHashFunction Dint_hash_for_collision_hashmap_test}
+{#include <container/hashmap/hashmap_template.txt>}
+{#undef HashMapName}
+{#undef HashMapCapacity}
+{#undef HashMapKeyMaxLength}
+{#undef HashMapKeyEqualsFunction}
+{#undef HashMapKeyHashFunction}
+{#undef HashMapKeyType}
+{#undef HashMapValueType}
+{#undef HashMapValueHashFunction}
+
+{#endif}
