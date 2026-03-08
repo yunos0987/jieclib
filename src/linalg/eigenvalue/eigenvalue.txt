@@ -1,6 +1,6 @@
 (*
  * Eigenvalue Computation
- * $ jiecc ./src/linalg/eigenvalue/eigenvalue.txt -I./src -I./vendor/jiecunit/sys -o ./src/linalg/eigenvalue/eigenvalue.xml -t omron
+ * $ jiecc ./src/linalg/eigenvalue/eigenvalue.txt -I./src -o ./src/linalg/eigenvalue/eigenvalue.xml -t omron
  *)
 {#ifndef __LINALG_EIGENVALUE_EIGENVALUE_TXT__}
 {#define __LINALG_EIGENVALUE_EIGENVALUE_TXT__}

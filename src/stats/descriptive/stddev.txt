@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/stats/descriptive/stddev.txt -I./src -I./vendor/jiecunit/sys -o ./src/stats/descriptive/stddev.xml -t omron
+ * $ jiecc ./src/stats/descriptive/stddev.txt -I./src -o ./src/stats/descriptive/stddev.xml -t omron
  *)
 {#ifndef __STATS_STDDEV_TXT__}
 {#define __STATS_STDDEV_TXT__}

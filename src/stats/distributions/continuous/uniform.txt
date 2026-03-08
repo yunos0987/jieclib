@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/stats/distributions/continuous/uniform.txt -I./src -I./vendor/jiecunit/sys -o ./src/stats/distributions/continuous/uniform.xml -t omron
+ * $ jiecc ./src/stats/distributions/continuous/uniform.txt -I./src -o ./src/stats/distributions/continuous/uniform.xml -t omron
  *)
 {#ifndef __STATS_DISTRIBUTIONS_CONTINUOUS_UNIFORM_TXT__}
 {#define __STATS_DISTRIBUTIONS_CONTINUOUS_UNIFORM_TXT__}

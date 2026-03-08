@@ -1,6 +1,6 @@
 (*
  * Vector Basic Operations
- * $ jiecc ./src/vector/arithmetic.txt -I./src -I./vendor/jiecunit/sys -o ./src/vector/arithmetic.xml -t omron
+ * $ jiecc ./src/vector/arithmetic.txt -I./src -o ./src/vector/arithmetic.xml -t omron
  *)
 {#ifndef __LINALG_VECTOR_BASIC_OPS_TXT__}
 {#define __LINALG_VECTOR_BASIC_OPS_TXT__}

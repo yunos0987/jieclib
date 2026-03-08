@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/stats/descriptive/correlation.txt -I./src -I./vendor/jiecunit/sys -o ./src/stats/descriptive/correlation.xml -t omron
+ * $ jiecc ./src/stats/descriptive/correlation.txt -I./src -o ./src/stats/descriptive/correlation.xml -t omron
  *)
 {#ifndef __STATS_DESCRIPTIVE_CORRELATION_TXT__}
 {#define __STATS_DESCRIPTIVE_CORRELATION_TXT__}

@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/linalg/linalg.txt -I./src -I./vendor/jiecunit/sys -o ./src/linalg/linalg.xml -t omron
+ * $ jiecc ./src/linalg/linalg.txt -I./src -o ./src/linalg/linalg.xml -t omron
  *)
 {#ifndef __LINALG_LINALG_TXT__}
 {#define __LINALG_LINALG_TXT__}

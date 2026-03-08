@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/stats/sequences/sort_select.txt -I./src -I./vendor/jiecunit/sys -o ./src/stats/sequences/sort_select.xml -t omron
+ * $ jiecc ./src/stats/sequences/sort_select.txt -I./src -o ./src/stats/sequences/sort_select.xml -t omron
  *)
 {#ifndef __STATS_SEQUENCES_SORT_SELECT_TXT__}
 {#define __STATS_SEQUENCES_SORT_SELECT_TXT__}

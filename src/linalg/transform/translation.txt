@@ -1,6 +1,6 @@
 (*
  * Translation Transformation Matrices
- * $ jiecc ./src/linalg/transform/translation.txt -I./src -I./vendor/jiecunit/sys -o ./src/linalg/transform/translation.xml -t omron
+ * $ jiecc ./src/linalg/transform/translation.txt -I./src -o ./src/linalg/transform/translation.xml -t omron
  *)
 {#ifndef __LINALG_TRANSFORM_TRANSLATION_TXT__}
 {#define __LINALG_TRANSFORM_TRANSLATION_TXT__}

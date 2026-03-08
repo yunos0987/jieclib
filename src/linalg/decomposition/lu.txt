@@ -1,6 +1,6 @@
 (*
  * LU Decomposition
- * $ jiecc ./src/linalg/decomposition/lu.txt -I./src -I./vendor/jiecunit/sys -o ./src/linalg/decomposition/lu.xml -t omron
+ * $ jiecc ./src/linalg/decomposition/lu.txt -I./src -o ./src/linalg/decomposition/lu.xml -t omron
  *)
 {#ifndef __LINALG_DECOMPOSITION_LU_TXT__}
 {#define __LINALG_DECOMPOSITION_LU_TXT__}

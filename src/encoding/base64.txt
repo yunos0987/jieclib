@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/encoding/base64.txt -I./src -I./vendor/jiecunit/sys -o ./src/encoding/base64.xml -t omron
+ * $ jiecc ./src/encoding/base64.txt -I./src -o ./src/encoding/base64.xml -t omron
  *)
 {#ifndef __ENCODING_BASE64_TXT__}
 {#define __ENCODING_BASE64_TXT__}

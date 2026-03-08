@@ -1,6 +1,6 @@
 (*
  * SVD Decomposition
- * $ jiecc ./src/linalg/decomposition/svd.txt -I./src -I./vendor/jiecunit/sys -o ./src/linalg/decomposition/svd.xml -t omron
+ * $ jiecc ./src/linalg/decomposition/svd.txt -I./src -o ./src/linalg/decomposition/svd.xml -t omron
  *)
 {#ifndef __LINALG_DECOMPOSITION_SVD_TXT__}
 {#define __LINALG_DECOMPOSITION_SVD_TXT__}

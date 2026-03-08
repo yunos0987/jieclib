@@ -47,7 +47,7 @@ $ git submodule update --init --recursive
 2. 次のコマンドを実行します。事前に[jiecc.exe](https://www.graviness.com/iec_61131-3/jiecc.html#Header.Jiecc%E3%81%AE%E3%83%80%E3%82%A6%E3%83%B3%E3%83%AD%E3%83%BC%E3%83%89%E3%81%A8%E5%AE%9F%E8%A1%8C%E6%96%B9%E6%B3%95)をjieclibディレクトリ直下におくか、jieccがあるディレクトリへパスを通しておいてください。
 
 ```
-$ jiecc ./src/string_lib/string_lib.txt -I. -I./src -o ./src/string_lib/string_lib.xml -t omron
+$ jiecc ./src/string_lib/string_lib.txt -I./src -o ./src/string_lib/string_lib.xml -t omron
 ```
 
 `./src/string_lib/string_lib.xml`が出力されます。
@@ -68,7 +68,7 @@ JiecLibに含まれるライブラリと、IEC 61131-10 XMLを生成するため
 
 基本的な配列操作ライブラリです。
 
-IEC 61131-10 XML生成コマンド: `jiecc ./src/array/array.txt -I. -I./src -I./vendor/jiecunit/sys -o ./src/array/array.xml -t omron`
+IEC 61131-10 XML生成コマンド: `jiecc ./src/array/array.txt -I./src -o ./src/array/array.xml -t omron`
 
 * **配列判定（正規配列）**
   * [Array_isRegular_lreal](./src/array/array.txt) / [Array_isRegular_dint](./src/array/array.txt): 1次元配列の正規性判定
@@ -88,13 +88,13 @@ IEC 61131-10 XML生成コマンド: `jiecc ./src/array/array.txt -I. -I./src -I.
 
 * **Base64**
   * [base64encode](./src/encoding/base64.txt) / [base64decode](./src/encoding/base64.txt)
-  * IEC 61131-10 XML生成コマンド: `jiecc ./src/encoding/base64.txt -I. -I./vendor/jiecunit/sys -o ./src/encoding/base64.xml -t omron`
+  * IEC 61131-10 XML生成コマンド: `jiecc ./src/encoding/base64.txt -I./src -o ./src/encoding/base64.xml -t omron`
 * **Percent（URLエンコード）**
   * [percentencode](./src/encoding/percent.txt) / [percentdecode](./src/encoding/percent.txt)
-  * IEC 61131-10 XML生成コマンド: `jiecc ./src/encoding/percent.txt -I. -I./vendor/jiecunit/sys -o ./src/encoding/percent.xml -t omron`
+  * IEC 61131-10 XML生成コマンド: `jiecc ./src/encoding/percent.txt -I./src -o ./src/encoding/percent.xml -t omron`
 * **Hex**
   * [hexencode](./src/encoding/hex.txt) / [hexdecode](./src/encoding/hex.txt)
-  * IEC 61131-10 XML生成コマンド: `jiecc ./src/encoding/hex.txt -I. -I./vendor/jiecunit/sys -o ./src/encoding/hex.xml -t omron`
+  * IEC 61131-10 XML生成コマンド: `jiecc ./src/encoding/hex.txt -I./src -o ./src/encoding/hex.xml -t omron`
 
 ### [hash](./src/hash)
 
@@ -103,23 +103,23 @@ IEC 61131-10 XML生成コマンド: `jiecc ./src/array/array.txt -I. -I./src -I.
 * **CRC32**
   * [CRC32_string](./src/hash/crc32.txt): 文字列入力のCRC32
   * [CRC32_bytes](./src/hash/crc32.txt): バイト配列入力のCRC32（`offset`/`length`を指定）
-  * IEC 61131-10 XML生成コマンド: `jiecc ./src/hash/crc32.txt -I. -I./src -I./vendor/jiecunit/sys -o ./src/hash/crc32.xml -t omron`
+  * IEC 61131-10 XML生成コマンド: `jiecc ./src/hash/crc32.txt -I./src -o ./src/hash/crc32.xml -t omron`
 * **MD5**
   * [MD5_string](./src/hash/md5.txt): 文字列入力のMD5
   * [MD5_bytes](./src/hash/md5.txt): バイト配列入力のMD5（`offset`/`length`/を指定）
-  * IEC 61131-10 XML生成コマンド: `jiecc ./src/hash/md5.txt -I. -I./src -I./vendor/jiecunit/sys -o ./src/hash/md5.xml -t omron`
+  * IEC 61131-10 XML生成コマンド: `jiecc ./src/hash/md5.txt -I./src -o ./src/hash/md5.xml -t omron`
 * **SHA-1**
   * [SHA1_string](./src/hash/sha1.txt): 文字列入力のSHA-1
   * [SHA1_bytes](./src/hash/sha1.txt): バイト配列入力のSHA-1（`offset`/`length`を指定）
-  * IEC 61131-10 XML生成コマンド: `jiecc ./src/hash/sha1.txt -I. -I./src -I./vendor/jiecunit/sys -o ./src/hash/sha1.xml -t omron`
+  * IEC 61131-10 XML生成コマンド: `jiecc ./src/hash/sha1.txt -I./src -o ./src/hash/sha1.xml -t omron`
 * **SHA-256**
   * [SHA256_string](./src/hash/sha256.txt): 文字列入力のSHA-256
   * [SHA256_bytes](./src/hash/sha256.txt): バイト配列入力のSHA-256（`offset`/`length`を指定）
-  * IEC 61131-10 XML生成コマンド: `jiecc ./src/hash/sha256.txt -I. -I./src -I./vendor/jiecunit/sys -o ./src/hash/sha256.xml -t omron`
+  * IEC 61131-10 XML生成コマンド: `jiecc ./src/hash/sha256.txt -I./src -o ./src/hash/sha256.xml -t omron`
 * **SHA-512**
   * [SHA512_string](./src/hash/sha512.txt): 文字列入力のSHA-512
   * [SHA512_bytes](./src/hash/sha512.txt): バイト配列入力のSHA-512（`offset`/`length`を指定）
-  * IEC 61131-10 XML生成コマンド: `jiecc ./src/hash/sha512.txt -I. -I./src -I./vendor/jiecunit/sys -o ./src/hash/sha512.xml -t omron`
+  * IEC 61131-10 XML生成コマンド: `jiecc ./src/hash/sha512.txt -I./src -o ./src/hash/sha512.xml -t omron`
 
 ### [hashmap](./src/hashmap)
 
@@ -154,8 +154,8 @@ Robin Hood hashing ベースの連想配列（HashMap）テンプレートです
 * [Math_atan2](./src/math/atan2.txt): 2引数アークタンジェント
 
 IEC 61131-10 XML生成コマンド:
-* `jiecc ./src/math/floor.txt -I. -I./src -I./vendor/jiecunit/sys -o ./src/math/floor.xml -t omron`
-* `jiecc ./src/math/atan2.txt -I. -I./src -I./vendor/jiecunit/sys -o ./src/math/atan2.xml -t omron`
+* `jiecc ./src/math/floor.txt -I./src -o ./src/math/floor.xml -t omron`
+* `jiecc ./src/math/atan2.txt -I./src -o ./src/math/atan2.xml -t omron`
 
 ### [vector](./src/vector)
 
@@ -179,7 +179,7 @@ IEC 61131-10 XML生成コマンド:
 * **ユーティリティ**
   * [Vector_utils_is_regular](./src/vector/utils.txt) / [Vector_utils_is_zero](./src/vector/utils.txt) / [Vector_utils_normalize](./src/vector/utils.txt): 補助関数
 
-IEC 61131-10 XML生成コマンド: `jiecc ./src/vector/vector.txt -I. -I./src -I./vendor/jiecunit/sys -o ./src/vector/vector.xml -t omron`
+IEC 61131-10 XML生成コマンド: `jiecc ./src/vector/vector.txt -I./src -o ./src/vector/vector.xml -t omron`
 
 ### [linalg](./src/linalg)
 
@@ -212,7 +212,7 @@ IEC 61131-10 XML生成コマンド: `jiecc ./src/vector/vector.txt -I. -I./src -
   * [Matrix_scaling_2d](./src/linalg/transform/scaling.txt) / [Matrix_scaling_3d](./src/linalg/transform/scaling.txt): 拡大縮小
   * [Matrix_translation_2d](./src/linalg/transform/translation.txt) / [Matrix_translation_3d](./src/linalg/transform/translation.txt): 並進
 
-IEC 61131-10 XML生成コマンド: `jiecc ./src/linalg/linalg.txt -I. -I./src -I./vendor/jiecunit/sys -o ./src/linalg/linalg.xml -t omron`
+IEC 61131-10 XML生成コマンド: `jiecc ./src/linalg/linalg.txt -I./src -o ./src/linalg/linalg.xml -t omron`
 
 ### [random](./src/random)
 
@@ -221,10 +221,10 @@ IEC 61131-10 XML生成コマンド: `jiecc ./src/linalg/linalg.txt -I. -I./src -
 * **Mersenne Twister**
   * [mersenne_twister](./src/random/mersenne_twister.txt): 高速かつ超長周期の疑似乱数生成アルゴリズム
   * [Python言語のrandomモジュール](https://docs.python.org/ja/3.12/library/random.html)でも採用されています。
-  * IEC 61131-10 XML生成コマンド: `jiecc ./src/random/mersenne_twister.txt -I. -I./src -I./vendor/jiecunit/sys -o ./src/random/mersenne_twister.xml -t omron`
+  * IEC 61131-10 XML生成コマンド: `jiecc ./src/random/mersenne_twister.txt -I./src -o ./src/random/mersenne_twister.xml -t omron`
 * **Xorshift32**
   * [xorshift32](./src/random/xorshift32.txt): 軽量で高速な疑似乱数生成アルゴリズム
-  * IEC 61131-10 XML生成コマンド: `jiecc ./src/random/xorshift32.txt -I. -I./src -I./vendor/jiecunit/sys -o ./src/random/xorshift32.xml -t omron`
+  * IEC 61131-10 XML生成コマンド: `jiecc ./src/random/xorshift32.txt -I./src -o ./src/random/xorshift32.xml -t omron`
 
 ### [ringbuffer](./src/ringbuffer)
 
@@ -291,7 +291,7 @@ IEC 61131-10 XML生成コマンド: `jiecc ./src/ringbuffer/ringbuffer.txt -I. -
   * [quantile](./src/stats/sequences/quantile.txt): 分位点算出
   * [accumulate](./src/stats/sequences/accumulate.txt): 累積計算
 
-IEC 61131-10 XML生成コマンド: `jiecc ./src/stats/stats.txt -I. -I./src -I./vendor/jiecunit/sys -o ./src/stats/stats.xml -t omron`
+IEC 61131-10 XML生成コマンド: `jiecc ./src/stats/stats.txt -I./src -o ./src/stats/stats.xml -t omron`
 
 ### [string_lib](./src/string_lib)
 
@@ -327,7 +327,7 @@ IEC 61131-10 XML生成コマンド: `jiecc ./src/stats/stats.txt -I. -I./src -I.
   * [String_join](./src/string_lib/string_lib.txt): 文字列配列を結合
   * [String_substitute](./src/string_lib/string_lib.txt): 文字列置換
 
-IEC 61131-10 XML生成コマンド: `jiecc ./src/string_lib/string_lib.txt -I. -I./src -I./vendor/jiecunit/sys -o ./src/string_lib/string_lib.xml -t omron`
+IEC 61131-10 XML生成コマンド: `jiecc ./src/string_lib/string_lib.txt -I./src -o ./src/string_lib/string_lib.xml -t omron`
 ## JiecLib開発者向け
 
 JiecLibプロジェクトの一部のライブラリは、外部の[JiecUnit](https://github.com/yunos0987/jiecunit)に依存しています。JiecLibプロジェクトは、外部依存のライブラリ管理のため、Git submodule を使用します。
@@ -357,7 +357,7 @@ JiecLibの単体テストに[JiecUnit](https://github.com/yunos0987/jiecunit)を
 
 ```
 $ cd jieclib
-$ jiecc ./test/string_lib/test_string_lib.txt -I./src -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/string_lib/test_string_lib.xml -t omron
+$ jiecc ./test/string_lib/test_string_lib.txt -I./src -I./vendor/jiecunit -o ./test/string_lib/test_string_lib.xml -t omron
 ```
 
 `./test/string_lib/test_string_lib.xml`が生成されます。

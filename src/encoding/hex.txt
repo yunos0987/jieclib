@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/encoding/hex.txt -I./src -I./vendor/jiecunit/sys -o ./src/encoding/hex.xml -t omron
+ * $ jiecc ./src/encoding/hex.txt -I./src -o ./src/encoding/hex.xml -t omron
  *)
 {#ifndef __ENCODING_HEX_TXT__}
 {#define __ENCODING_HEX_TXT__}

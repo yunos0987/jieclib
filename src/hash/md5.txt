@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/hash/md5.txt -I./src -I./vendor/jiecunit/sys -o ./src/hash/md5.xml -t omron
+ * $ jiecc ./src/hash/md5.txt -I./src -o ./src/hash/md5.xml -t omron
  *)
 {#ifndef __HASH_MD5_TXT__}
 {#define __HASH_MD5_TXT__}

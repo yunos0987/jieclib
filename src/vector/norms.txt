@@ -1,7 +1,7 @@
 (*
  * Vector Norms
  * Contains L1, L2, Lp norms and norm-related functions
- * $ jiecc ./src/vector/norms.txt -I./src -I./vendor/jiecunit/sys -o ./src/vector/norms.xml -t omron
+ * $ jiecc ./src/vector/norms.txt -I./src -o ./src/vector/norms.xml -t omron
  *)
 {#ifndef __LINALG_VECTOR_NORMS_TXT__}
 {#define __LINALG_VECTOR_NORMS_TXT__}

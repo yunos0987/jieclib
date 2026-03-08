@@ -1,6 +1,6 @@
 (*
  * Least Squares Solver
- * $ jiecc ./src/linalg/solve/least_squares.txt -I./src -I./vendor/jiecunit/sys -o ./src/linalg/solve/least_squares.xml -t omron
+ * $ jiecc ./src/linalg/solve/least_squares.txt -I./src -o ./src/linalg/solve/least_squares.xml -t omron
  *)
 {#ifndef __LINALG_SOLVE_LEAST_SQUARES_TXT__}
 {#define __LINALG_SOLVE_LEAST_SQUARES_TXT__}

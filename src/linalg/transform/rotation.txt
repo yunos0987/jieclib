@@ -1,6 +1,6 @@
 (*
  * Rotation Transformation Matrices
- * $ jiecc ./src/linalg/transform/rotation.txt -I./src -I./vendor/jiecunit/sys -o ./src/linalg/transform/rotation.xml -t omron
+ * $ jiecc ./src/linalg/transform/rotation.txt -I./src -o ./src/linalg/transform/rotation.xml -t omron
  *)
 {#ifndef __LINALG_TRANSFORM_ROTATION_TXT__}
 {#define __LINALG_TRANSFORM_ROTATION_TXT__}

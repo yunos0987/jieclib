@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/hash/crc32.txt -I./src -I./vendor/jiecunit/sys -o ./src/hash/crc32.xml -t omron
+ * $ jiecc ./src/hash/crc32.txt -I./src -o ./src/hash/crc32.xml -t omron
  *)
 {#ifndef __HASH_CRC32_TXT__}
 {#define __HASH_CRC32_TXT__}

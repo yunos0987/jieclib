@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/stats/sequences/rank.txt -I./src -I./vendor/jiecunit/sys -o ./src/stats/sequences/rank.xml -t omron
+ * $ jiecc ./src/stats/sequences/rank.txt -I./src -o ./src/stats/sequences/rank.xml -t omron
  *)
 {#ifndef __STATS_SEQUENCES_RANK_TXT__}
 {#define __STATS_SEQUENCES_RANK_TXT__}

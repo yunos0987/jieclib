@@ -1,6 +1,6 @@
 (*
  * QR Decomposition
- * $ jiecc ./src/linalg/decomposition/qr.txt -I./src -I./vendor/jiecunit/sys -o ./src/linalg/decomposition/qr.xml -t omron
+ * $ jiecc ./src/linalg/decomposition/qr.txt -I./src -o ./src/linalg/decomposition/qr.xml -t omron
  *)
 {#ifndef __LINALG_DECOMPOSITION_QR_TXT__}
 {#define __LINALG_DECOMPOSITION_QR_TXT__}

@@ -1,6 +1,6 @@
 (*
  * Scaling Transformation Matrices
- * $ jiecc ./src/linalg/transform/scaling.txt -I./src -I./vendor/jiecunit/sys -o ./src/linalg/transform/scaling.xml -t omron
+ * $ jiecc ./src/linalg/transform/scaling.txt -I./src -o ./src/linalg/transform/scaling.xml -t omron
  *)
 {#ifndef __LINALG_TRANSFORM_SCALING_TXT__}
 {#define __LINALG_TRANSFORM_SCALING_TXT__}

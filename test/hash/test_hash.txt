@@ -1,8 +1,14 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/hash/test_hash.txt -I. -I./src -I./vendor/jiecunit -I./vendor/jiecunit/sys -D_TEST_ -o ./test/hash/test_hash.xml -t omron
+ * $ jiecc ./test/hash/test_hash.txt -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/hash/test_hash.xml -t omron
  *)
+{#if _JIECC and (_JIECC_VER < 514)}
+	{#error This test requires Jiecc 5.14 or later.}
+{#endif}
 {#include <jiecunit.txt>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 210)}
+	{#error This test requires JiecUnit 2.10 or later.}
+{#endif}
 
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
@@ -22,8 +28,8 @@ DEFINE_CONFIGURATION(
 {#undef _TEST_}
 {#endif}
 
-{#include <test/hash/test_crc32.txt>}
-{#include <test/hash/test_md5.txt>}
-{#include <test/hash/test_sha1.txt>}
-{#include <test/hash/test_sha256.txt>}
-{#include <test/hash/test_sha512.txt>}
+{#include "test_crc32.txt"}
+{#include "test_md5.txt"}
+{#include "test_sha1.txt"}
+{#include "test_sha256.txt"}
+{#include "test_sha512.txt"}

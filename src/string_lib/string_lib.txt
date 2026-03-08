@@ -1,8 +1,8 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/string_lib/string_lib.txt -I./src -I./vendor/jiecunit/sys -o ./src/string_lib/string_lib.xml -t omron
+ * $ jiecc ./src/string_lib/string_lib.txt -I./src -o ./src/string_lib/string_lib.xml -t omron
  * or
- * $ jiecc ./src/string_lib/string_lib.txt -I./src -I./vendor/jiecunit/sys -o ./src/string_lib/string_lib.xml -t keyence
+ * $ jiecc ./src/string_lib/string_lib.txt -I./src -o ./src/string_lib/string_lib.xml -t keyence
  *)
 {#ifndef __STRING_LIB_TXT__}
 {#define __STRING_LIB_TXT__}
