@@ -121,30 +121,225 @@ IEC 61131-10 XML生成コマンド: `jiecc ./src/array/array.txt -I./src -o ./sr
   * [SHA512_bytes](./src/hash/sha512.txt): バイト配列入力のSHA-512（`offset`/`length`を指定）
   * IEC 61131-10 XML生成コマンド: `jiecc ./src/hash/sha512.txt -I./src -o ./src/hash/sha512.xml -t omron`
 
-### [hashmap](./src/hashmap)
+### [container](./src/container)
+
+コンテナ系ライブラリ（`arraylist` / `linkedlist` / `dequeue` / `hashmap` / `orderedmap` / `linkedhashmap` / `hashset` / `ringbuffer`）です。
+
+#### arraylist（[arraylist_template](./src/container/arraylist/arraylist_template.txt)）
+
+固定長配列ベースの可変長リスト（ArrayList）テンプレートです。
+
+`#include` 時に要素型・最大容量・等価判定関数（任意）・ハッシュ関数（任意）を指定してインスタンス生成します。
+
+| 関数 | 説明 |
+|------|------|
+| `init` | 初期化 |
+| `len` | 要素数取得 |
+| `empty` | 空判定 |
+| `clear` | 全要素削除 |
+| `append` | 末尾追加 |
+| `insert` | 指定位置挿入 |
+| `set` | 指定位置更新 |
+| `remove` | 指定位置削除 |
+| `get` | 指定位置取得 |
+| `contains` | 要素存在判定 |
+| `index` | 要素位置検索 |
+| `values` | 全要素取得 |
+| `copy` | コピー |
+| `equals` | 等価判定 |
+| `hash` | ハッシュ値計算（`ArrayListElementHashFunction` 指定時） |
+
+テスト用XML生成コマンド: `jiecc ./test/container/arraylist/test_arraylist.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/container/arraylist/test_arraylist.xml -t omron`
+
+#### linkedlist（[linkedlist_template](./src/container/linkedlist/linkedlist_template.txt)）
+
+doubly linked list ベースの可変長リスト（LinkedList）テンプレートです。
+
+`#include` 時に要素型・最大容量・等価判定関数（任意）・ハッシュ関数（任意）を指定してインスタンス生成します。
+
+| 関数 | 説明 |
+|------|------|
+| `init` | 初期化 |
+| `len` | 要素数取得 |
+| `empty` | 空判定 |
+| `clear` | 全要素削除 |
+| `append` | 末尾追加 |
+| `appendleft` | 先頭追加 |
+| `insert` | 指定位置挿入 |
+| `pop` | 末尾削除・取得 |
+| `popleft` | 先頭削除・取得 |
+| `remove` | 指定位置削除 |
+| `get` | 指定位置取得 |
+| `set` | 指定位置更新 |
+| `contains` | 要素存在判定 |
+| `index` | 要素位置検索 |
+| `values` | 全要素取得 |
+| `copy` | コピー |
+| `equals` | 等価判定 |
+| `hash` | ハッシュ値計算（`LinkedListElementHashFunction` 指定時） |
+
+テスト用XML生成コマンド: `jiecc ./test/container/linkedlist/test_linkedlist.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/container/linkedlist/test_linkedlist.xml -t omron`
+
+#### dequeue（[dequeue_template](./src/container/dequeue/dequeue_template.txt)）
+
+固定長リングバッファベースの両端キュー（Dequeue）テンプレートです。
+
+`#include` 時に要素型・容量マクロ（`DequeueCapacity`、任意）・等価判定関数（任意）・ハッシュ関数（任意）を指定してインスタンス生成します。
+
+| 関数 | 説明 |
+|------|------|
+| `init` | 初期化（容量は`DequeueCapacity`使用） |
+| `copy` | コピー |
+| `append` | 末尾追加 |
+| `appendleft` | 先頭追加 |
+| `pop` | 末尾削除・取得 |
+| `popleft` | 先頭削除・取得 |
+| `first` | 先頭要素参照 |
+| `last` | 末尾要素参照 |
+| `contains` | 要素存在判定 |
+| `elements` | 全要素取得 |
+| `len` | 要素数取得 |
+| `clear` | 全要素削除 |
+| `empty` | 空判定 |
+| `equals` | 等価判定 |
+| `hash` | ハッシュ値計算（`DequeueItemHashFunction` 指定時） |
+
+テスト用XML生成コマンド: `jiecc ./test/container/dequeue/test_dequeue.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/container/dequeue/test_dequeue.xml -t omron`
+
+#### hashmap（[hashmap_template](./src/container/hashmap/hashmap_template.txt)）
 
 Robin Hood hashing ベースの連想配列（HashMap）テンプレートです。
 
-単一の固定型ライブラリではなく、`src/hashmap/hashmap_gen.txt` を `#include` する際にマクロで型・容量・比較関数・ハッシュ関数を指定してインスタンス生成します。
+`#include` 時にマクロで型・容量・比較関数・ハッシュ関数を指定してインスタンス生成します。
 
-* 主な生成関数:
-  * `HashMap_<name>_init`
-  * `HashMap_<name>_upsert`
-  * `HashMap_<name>_try_get`
-  * `HashMap_<name>_remove`
-  * `HashMap_<name>_contains`
-  * `HashMap_<name>_count`
-  * `HashMap_<name>_clear`
-* 生成例（stringキー / dint値）:
-  * `{#define HashMapName mymap}`
-  * `{#define HashMapCapacity 256}`
-  * `{#define HashMapKeyType string[128]}`
-  * `{#define HashMapKeyEqualsFunction String_equals}`
-  * `{#define HashMapKeyHashFunction String_hash}`
-  * `{#define HashMapValueType dint}`
-  * `{#include <src/hashmap/hashmap_gen.txt>}`
+| 関数 | 説明 |
+|------|------|
+| `init` | 初期化 |
+| `copy` | コピー |
+| `upsert` | 挿入または更新 |
+| `lookup` | キー検索・値取得 |
+| `delete` | キー削除 |
+| `contains` | キー存在判定 |
+| `len` | 要素数取得 |
+| `keys` | 全キー取得 |
+| `values` | 全値取得 |
+| `items` | 全キー・値ペア取得 |
+| `equals` | 等価判定 |
+| `hash` | ハッシュ値計算（`HashMapValueHashFunction` 指定時） |
+| `empty` | 空判定 |
+| `clear` | 全要素削除 |
 
-テスト用XML生成コマンド: `jiecc ./test/hashmap/test_hashmap.txt -I. -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/hashmap/test_hashmap.xml -t omron`
+生成例（stringキー / dint値）:
+```
+{#define HashMapName mymap}
+{#define HashMapCapacity 256}
+{#define HashMapKeyType string[128]}
+{#define HashMapKeyEqualsFunction String_equals}
+{#define HashMapKeyHashFunction String_hash}
+{#define HashMapValueType dint}
+{#include <container/hashmap/hashmap_template.txt>}
+```
+
+テスト用XML生成コマンド: `jiecc ./test/container/hashmap/test_hashmap.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/container/hashmap/test_hashmap.xml -t omron`
+
+#### orderedmap（[orderedmap_template](./src/container/orderedmap/orderedmap_template.txt)）
+
+Robin Hood HashMap + 挿入順配列で順序維持する連想配列（OrderedMap）テンプレートです。
+
+`#include` 時にキー/値型・キー比較関数・キーハッシュ関数・容量（任意）を指定してインスタンス生成します。
+
+| 関数 | 説明 |
+|------|------|
+| `init` | 初期化 |
+| `copy` | コピー |
+| `upsert` | 挿入または更新 |
+| `lookup` | キー検索・値取得 |
+| `delete` | キー削除 |
+| `contains` | キー存在判定 |
+| `len` | 要素数取得 |
+| `keys` | 全キー取得（挿入順） |
+| `values` | 全値取得（挿入順） |
+| `items` | 全キー・値ペア取得（挿入順） |
+| `equals` | 等価判定 |
+| `hash` | ハッシュ値計算（`OrderedMapValueHashFunction` 指定時） |
+| `empty` | 空判定 |
+| `clear` | 全要素削除 |
+
+テスト用XML生成コマンド: `jiecc ./test/container/orderedmap/test_orderedmap.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/container/orderedmap/test_orderedmap.xml -t omron`
+
+#### linkedhashmap（[linkedhashmap_template](./src/container/linkedhashmap/linkedhashmap_template.txt)）
+
+Robin Hood HashMap + 双方向リンクで順序管理する連想配列（LinkedHashMap）テンプレートです。
+
+`#include` 時にキー/値型・キー比較関数・キーハッシュ関数・容量（任意）・アクセス順モード（任意）を指定してインスタンス生成します。
+
+| 関数 | 説明 |
+|------|------|
+| `init` | 初期化 |
+| `copy` | コピー |
+| `upsert` | 挿入または更新 |
+| `lookup` | キー検索・値取得（アクセス順モード時は順序更新） |
+| `delete` | キー削除 |
+| `contains` | キー存在判定 |
+| `len` | 要素数取得 |
+| `keys` | 全キー取得（挿入順/アクセス順） |
+| `values` | 全値取得（挿入順/アクセス順） |
+| `items` | 全キー・値ペア取得（挿入順/アクセス順） |
+| `equals` | 等価判定 |
+| `hash` | ハッシュ値計算（`LinkedHashMapValueHashFunction` 指定時） |
+| `empty` | 空判定 |
+| `clear` | 全要素削除 |
+
+テスト用XML生成コマンド: `jiecc ./test/container/linkedhashmap/test_linkedhashmap.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/container/linkedhashmap/test_linkedhashmap.xml -t omron`
+
+#### hashset（[hashset_template](./src/container/hashset/hashset_template.txt)）
+
+HashMapベースの集合（HashSet）テンプレートです。
+
+`#include` 時に要素型・等価判定関数・ハッシュ関数・容量を指定してインスタンス生成します。
+
+| 関数 | 説明 |
+|------|------|
+| `init` | 初期化 |
+| `copy` | コピー |
+| `add` | 要素追加 |
+| `add_all` | 複数要素追加 |
+| `remove` | 要素削除 |
+| `remove_all` | 複数要素削除 |
+| `contains` | 要素存在判定 |
+| `len` | 要素数取得 |
+| `elements` | 全要素取得 |
+| `equals` | 等価判定 |
+| `hash` | ハッシュ値計算 |
+| `empty` | 空判定 |
+| `clear` | 全要素削除 |
+
+生成例（dint要素）:
+```
+{#define HashSetName myset}
+{#define HashSetElementType dint}
+{#define HashSetElementEqualsFunction Dint_equals}
+{#define HashSetElementHashFunction Dint_hash}
+{#include <container/hashset/hashset_template.txt>}
+```
+
+テスト用XML生成コマンド: `jiecc ./test/container/hashset/test_hashset.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/container/hashset/test_hashset.xml -t omron`
+
+#### ringbuffer（[ringbuffer_template](./src/container/ringbuffer/ringbuffer_template.txt)）
+
+FIFO形式のリングバッファテンプレートです。
+
+`#include` 時に要素型・バッファ名を指定してインスタンス生成します。
+
+| 関数 | 説明 |
+|------|------|
+| `init` | 初期化（容量と上書きモード指定） |
+| `enqueue` | 要素追加 |
+| `dequeue` | 要素取り出し |
+
+`overwrite=true`で初期化すると、バッファが満杯の場合に最も古いデータを上書きします。最新のログを記録する用途に適しています。
+
+テスト用XML生成コマンド: `jiecc ./test/container/ringbuffer/test_ringbuffer.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/container/ringbuffer/test_ringbuffer.xml -t omron`
 
 ### [math](./src/math)
 
@@ -225,15 +420,6 @@ IEC 61131-10 XML生成コマンド: `jiecc ./src/linalg/linalg.txt -I./src -o ./
 * **Xorshift32**
   * [xorshift32](./src/random/xorshift32.txt): 軽量で高速な疑似乱数生成アルゴリズム
   * IEC 61131-10 XML生成コマンド: `jiecc ./src/random/xorshift32.txt -I./src -o ./src/random/xorshift32.xml -t omron`
-
-### [ringbuffer](./src/ringbuffer)
-
-FIFO形式のリングバッファです。
-
-* バッファのデータ型を簡単に拡張できます。
-* バッファがいっぱいの状態でさらに追加しようとするときの振る舞いを指定できます。上書き（`overwrite=true`）を指定する場合、最も過去に加えたデータを上書きします。`overwrite=true`で初期化すると、最新のログを記録する目的で使用できます。
-
-IEC 61131-10 XML生成コマンド: `jiecc ./src/ringbuffer/ringbuffer.txt -I. -I./src -I./vendor/jiecunit/sys -o ./src/ringbuffer/ringbuffer.xml -t omron`
 
 ### [stats](./src/stats)
 
