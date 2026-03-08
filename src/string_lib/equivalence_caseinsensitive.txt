@@ -1,0 +1,116 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/string_lib/equivalence_caseinsensitive.txt -I./src -o ./src/string_lib/equivalence_caseinsensitive.xml -t omron
+ * or
+ * $ jiecc ./src/string_lib/equivalence_caseinsensitive.txt -I./src -o ./src/string_lib/equivalence_caseinsensitive.xml -t keyence
+ *)
+{#ifndef __STRING_LIB_EQUIVALENCE_CASEINSENSITIVE_TXT__}
+{#define __STRING_LIB_EQUIVALENCE_CASEINSENSITIVE_TXT__}
+
+{#include <sys.txt>}
+
+{#define CHAR_MAX_BYTE 4}
+{#define STRING string[STRING_MAX_SIZE]}
+
+(*{doc 2つのASCII文字列が同一かどうかを大文字小文字を無視して判定する。
+英字'A'..'Z'を小文字化して比較し、それ以外のASCII文字はそのまま比較する。
+@input self 比較元の文字列。
+@input other 比較対象の文字列。
+@return 2つの文字列が同一ならtrue、異なるならfalse。
+@error 文字列中にASCII範囲外の文字が含まれる場合はenoをfalseにして終了する。}*)
+function String_equalsAsciiIgnoreCase: bool
+	{#define CHARCODE_A 16#41}
+	{#define CHARCODE_Z 16#5a}
+	{#define DIFF_CHARCODE_U2L 16#20}
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: STRING;
+	end
+	var_input
+		other: STRING;
+	end
+	var_temp
+		index, l: dint;
+		self_code, other_code: dint;
+	end
+	{st}
+	l := len(self);
+	if l <> len(other) then
+		String_equalsAsciiIgnoreCase := false;
+		return;
+	end_if;
+
+	for index := 0 to l - 1 by 1 do
+		self_code := String_asciiCharCodeAt(self, index);
+		other_code := String_asciiCharCodeAt(other, index);
+
+		if (self_code < 0) or (other_code < 0) then
+			eno := false;
+			return;
+		end_if;
+
+		if (CHARCODE_A <= self_code) and (self_code <= CHARCODE_Z) then
+			self_code := self_code + DIFF_CHARCODE_U2L;
+		end_if;
+		if (CHARCODE_A <= other_code) and (other_code <= CHARCODE_Z) then
+			other_code := other_code + DIFF_CHARCODE_U2L;
+		end_if;
+
+		if self_code <> other_code then
+			String_equalsAsciiIgnoreCase := false;
+			return;
+		end_if;
+	end_for;
+
+	String_equalsAsciiIgnoreCase := true;
+	{end}
+	{#undef CHARCODE_A}
+	{#undef CHARCODE_Z}
+	{#undef DIFF_CHARCODE_U2L}
+end
+
+(*{doc ASCII文字列に対して大文字小文字を無視したFNV-1a(32bit, udint)ハッシュ値を取得する。
+英字'A'..'Z'を小文字化してから文字コードを順にFNV-1aへ入力する。
+@input self ハッシュ化対象の文字列。
+@return FNV-1a(32bit)のハッシュ値。
+@error 文字列中にASCII範囲外の文字が含まれる場合はenoをfalseにして終了する。}*)
+function String_hashAsciiIgnoreCase: udint
+	{#define FNV_OFFSET_BASIS udint#2166136261}
+	{#define FNV_PRIME udint#16777619}
+	{#define CHARCODE_A 16#41}
+	{#define CHARCODE_Z 16#5a}
+	{#define DIFF_CHARCODE_U2L 16#20}
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: STRING;
+	end
+	var_temp
+		fnv_hash: udint;
+		index, l: dint;
+		code: dint;
+	end
+	{st}
+	fnv_hash := FNV_OFFSET_BASIS;
+	l := len(self);
+	for index := 0 to l - 1 by 1 do
+		code := String_asciiCharCodeAt(self, index);
+		if code < 0 then
+			eno := false;
+			return;
+		end_if;
+		if (CHARCODE_A <= code) and (code <= CHARCODE_Z) then
+			code := code + DIFF_CHARCODE_U2L;
+		end_if;
+		fnv_hash := dword_to_udint(udint_to_dword(fnv_hash) xor udint_to_dword(dint_to_udint(code)));
+		fnv_hash := fnv_hash * FNV_PRIME;
+	end_for;
+	String_hashAsciiIgnoreCase := fnv_hash;
+	{end}
+	{#undef FNV_OFFSET_BASIS}
+	{#undef FNV_PRIME}
+	{#undef CHARCODE_A}
+	{#undef CHARCODE_Z}
+	{#undef DIFF_CHARCODE_U2L}
+end
+
+{#endif}

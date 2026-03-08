@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/stats/moments/standardized_moments.txt -I./src -I./vendor/jiecunit/sys -o ./src/stats/moments/standardized_moments.xml -t omron
+ * $ jiecc ./src/stats/moments/standardized_moments.txt -I./src -o ./src/stats/moments/standardized_moments.xml -t omron
  *)
 {#ifndef __STATS_MOMENTS_STANDARDIZED_MOMENTS_TXT__}
 {#define __STATS_MOMENTS_STANDARDIZED_MOMENTS_TXT__}

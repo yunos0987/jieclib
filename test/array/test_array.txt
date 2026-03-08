@@ -1,10 +1,11 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/array/test_array.txt -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -o ./test/array/test_array.xml -t omron
+ * $ jiecc ./test/array/test_array.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/array/test_array.xml -t omron
  *)
 {#include <jiecunit.txt>}
 {#include <array/array.txt>}
 
+{#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
 		'test_array_size',
@@ -13,6 +14,8 @@ DEFINE_CONFIGURATION(
 		'test_array_isRegular2d_x'
 	)
 )
+
+{#endif}
 
 TEST_S(test_array_size)
 	var

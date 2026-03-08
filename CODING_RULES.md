@@ -24,7 +24,11 @@
 
 ## コーディングスタイル
 
+- 文字コードは、UTF-8 BOMなし、改行コードをLFとする。
+- コメントやdocプラグマ内では、英語を使用すること。
 - continue構文を使用しないこと。
+	- オムロン環境が未サポートのため。
+- 直接派生型（エイリアス型; `type <var>alias_name</var>: <var>name</var>; end`）を使用しないこと。
 	- オムロン環境が未サポートのため。
 - 多次元配列の初期値は、1次元フラットで要素数だけ合わせて記述します。
 ```
@@ -48,15 +52,27 @@ if ＜異常＞ then
 end_if;
 ```
 - and, or, xor演算子は、整数型の要素には使用できません。
+- POU呼び出しにおいて、仮引数有りと仮引数無しの引数が混在してはいけない。
 - 統計ライブラリ（/statsディレクトリ以下）において、内部で可変のwork領域が必要であれば、var_in_outで呼び出し元で用意する。このとき、当該引数変数名の接尾に_workを付加する。ただし、既にworkであれば付加しなくて良い。
 - 統計ライブラリ（/statsディレクトリ以下）において、`Array_isRegular`でない配列を異常として扱う。
 - 線形代数ライブラリ（/linalgディレクトリ以下）において、ベクトルや行列の基底の型は、lreal型とする。
 
 ## 命名規則
 
-- `p\_`, `P\_`で始まる名前で定義することを禁止する。
-	- オムロン環境が禁止しているため。
-- IEC 61131-3は、ASCIIの大文字・小文字を区別しません。
+- 以下の名前で定義することを禁止する。
+  - left, right
+    - IEC 61131-3 の定義と重複するため。
+  - `h`, `H`で始まり、`_`を含まない変数名
+    - キーエンス環境の制約
+  - ^\[rRtTcC\]\\d+$ にマッチする変数名
+    - キーエンス環境の制約
+  - `p\_`, `P\_`で始まる要素名
+	- オムロン環境の制約。
+　- アルファベット1文字の要素名。
+    - キーエンス環境や三菱環境の制約。
+- POU名は、64バイト以内とすること。
+  - キーエンス環境の制約。
+- IEC 61131-3は、ASCIIの大文字・小文字を区別しないことに注意すること。
 	- 例えば、行列を意味する変数Aと、ベクトルを意味する変数aを同一のものとして解釈します。
 
 ## フォーマット
@@ -74,45 +90,96 @@ end_if;
 
 ## テスト
 
+次の例のように記述すること。要点については後述する。
+
+```
+TEST_S(test_mean)
+	var
+		x_regular: array[0..3] of lreal;
+		x_zeros: array[0..2] of lreal;
+		x_negative: array[0..2] of lreal;
+		mean_val: lreal;
+	end
+	{st}
+	// Fact: The mean of a sequence of values equals their arithmetic average.
+		// Arrange
+	x_regular[0] := 6.0;
+	x_regular[1] := 3.0;
+	x_regular[2] := 5.0;
+	x_regular[3] := 2.0;
+		// Act
+	mean_val := mean(x_regular);
+		// Assert
+	EXPECT_NEAR(4.0, mean_val, 1.0e-6);
+
+	// Fact: The mean of all-zero values is 0.
+		// Arrange
+	x_zeros[0] := 0.0;
+	x_zeros[1] := 0.0;
+	x_zeros[2] := 0.0;
+		// Act/Assert
+	EXPECT_NEAR(0.0, mean(x_zeros), 1.0e-6);
+
+	// Fact: The mean is correctly computed even when values include negatives.
+		// Arrange
+	x_negative[0] := -7.0;
+	x_negative[1] := -1.0;
+	x_negative[2] := 2.0;
+		// Act
+	mean_val := mean(x_negative);
+		// Assert
+	EXPECT_NEAR(-2.0, mean_val, 1.0e-6);
+	{end}
+END_TEST_S
+```
+
+- 1事実を1インスタンスでテストコードを記述する。
+- 1関数のn事実を一つのTEST_S内に記述する。
+  - オムロン環境にて、タスクの数が増えると登録に時間が掛かるため。
+- 事実を1行のコメントで記述する。
+- AAA形式で、Arrange節, Act節, Assert節を明示する。
+
+以下は個別。
+
 - 統計ライブラリ（/test/statsディレクトリ以下）におけるp値の検証は、EXPECT_NEARを使用することを基本とし、abs_errorを1.0e-4以下とする。
 
 ## ドキュメント
 
-- （生成AI）POUの先頭にdocプラグマを記述すること。
-- まず一行で示し、改行して詳細を記述すること。
+- POU、POUの引数、および型の先頭にdocプラグマを記述すること。
+- docプラグマ内では、まず一行で示し、改行して詳細を記述すること。
 ```
-(*{doc 主要な統計量を得る。
-平均、分散、歪度、尖度を得る。
-@inout data サンプルデータを含む配列。
-	正規配列（次元の始点が0で要素数1以上）でなければいけない。
-@input n dataの先頭n個を使用する。
-	-1を指定するとき、dataの全要素を使用する。
-	デフォルト値: -1
-@output mean 平均（算術平均）。
-@output variance 分散。
-@output skewness 歪度。
-@output kurtosis 尖度。
-@return 実際に計算に使用した配列の要素数。
-@error dataが正規配列でない場合。}*)
+(*{doc Obtain basic statistical measures.
+Compute the mean, variance, skewness, and kurtosis.
+@inout data Array containing the sample data.
+	It must be a regular array (the lower bound is 0 and the number of elements is at least 1).
+@input n Use the first n elements of data.
+	If -1 is specified, all elements of data are used.
+	Default value: -1
+@output mean Mean (arithmetic mean).
+@output variance Variance.
+@output skewness Skewness.
+@output kurtosis Kurtosis.
+@return Number of array elements actually used in the computation.
+@error If data is not a regular array. }*)
 function Stats_statistics_value: dint
 	_PROLOGUE_OF_FUNCTION_()
 	var_in_out
-		(*{doc サンプルデータを含む配列。}*)
+		(*{doc Array containing the sample data.}*)
 		data: array[*] of lreal;
 	end
 	var_input
-		(*{doc dataの先頭n個を使用する。}*)
+		(*{doc Use the first n elements of data.}*)
 		n: dint := -1;
 	end
 	var_output
-	(*{doc 平均（算術平均）。}*)
-	mean: lreal;
-	(*{doc 分散。}*)
-	variance: lreal;
-	(*{doc 歪度。}*)
-	skewness: lreal;
-	(*{doc 尖度。}*)
-	kurtosis: lreal;
+		(*{doc Mean (arithmetic mean).}*)
+		mean: lreal;
+		(*{doc Variance.}*)
+		variance: lreal;
+		(*{doc Skewness.}*)
+		skewness: lreal;
+		(*{doc Kurtosis.}*)
+		kurtosis: lreal;
 	end
 	:
 end

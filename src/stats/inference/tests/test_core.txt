@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/stats/inference/tests/test_core.txt -I./src -I./vendor/jiecunit/sys -o ./src/stats/inference/tests/test_core.xml -t omron
+ * $ jiecc ./src/stats/inference/tests/test_core.txt -I./src -o ./src/stats/inference/tests/test_core.xml -t omron
  *)
 {#ifndef __STATS_INFERENCE_TESTS_TEST_CORE_TXT__}
 {#define __STATS_INFERENCE_TESTS_TEST_CORE_TXT__}

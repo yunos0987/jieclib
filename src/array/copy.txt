@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/array/copy.txt -I./src -I./vendor/jiecunit/sys -o ./src/array/copy.xml -t omron
+ * $ jiecc ./src/array/copy.txt -I./src -o ./src/array/copy.xml -t omron
  *)
 {#ifndef __ARRAY_COPY_TXT__}
 {#define __ARRAY_COPY_TXT__}

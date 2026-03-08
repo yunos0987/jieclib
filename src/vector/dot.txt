@@ -1,7 +1,7 @@
 (*
  * Vector Cross Product
  * Contains 3D vector cross product implementation
- * $ jiecc ./src/vector/dot.txt -I./src -I./vendor/jiecunit/sys -o ./src/vector/dot.xml -t omron
+ * $ jiecc ./src/vector/dot.txt -I./src -o ./src/vector/dot.xml -t omron
  *)
 {#ifndef __LINALG_VECTOR_CROSS_PRODUCT_TXT__}
 {#define __LINALG_VECTOR_CROSS_PRODUCT_TXT__}

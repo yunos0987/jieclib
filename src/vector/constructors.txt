@@ -1,5 +1,5 @@
 (*
- * $ jiecc ./src/vector/constructors.txt -I./src -I./vendor/jiecunit/sys -o ./src/vector/constructors.xml -t omron
+ * $ jiecc ./src/vector/constructors.txt -I./src -o ./src/vector/constructors.xml -t omron
  *)
 {#ifndef __VECTOR_CONSTRUCTORS_TXT__}
 {#define __VECTOR_CONSTRUCTORS_TXT__}

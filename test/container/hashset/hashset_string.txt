@@ -1,0 +1,18 @@
+{#ifndef __TEST_CONTAINER_HASHSET_STRING_TXT__}
+{#define __TEST_CONTAINER_HASHSET_STRING_TXT__}
+
+{#include <string_lib/equivalence.txt>}
+
+{#define HashSetName string16}
+{#define HashSetCapacity 8}
+{#define HashSetElementType string[16 + 1]}
+{#define HashSetElementEqualsFunction String_equals}
+{#define HashSetElementHashFunction String_hash}
+{#include <container/hashset/hashset_template.txt>}
+{#undef HashSetName}
+{#undef HashSetCapacity}
+{#undef HashSetElementType}
+{#undef HashSetElementEqualsFunction}
+{#undef HashSetElementHashFunction}
+
+{#endif}

@@ -1,0 +1,25 @@
+{#ifndef __SYS_CONFIG_TXT__}
+{#define __SYS_CONFIG_TXT__}
+
+{#if _OMRON}
+    {#define STRING_MAX_SIZE 1986}
+{#elif _KEYENCE}
+    {#define STRING_MAX_SIZE 255}
+{#elif _MITSUBISHI}
+    {#define STRING_MAX_SIZE 1024} // note: tentative value.
+{#elif _CODESYS}
+    {#define STRING_MAX_SIZE 255} // note: safety value in CODESYS.
+{#else}
+    {#define STRING_MAX_SIZE 1024} // note: tentative value.
+{#endif}
+
+// num of lines
+{#define CONSOLE_MAX_ROWS 1024}
+// num of char for a line.
+{#if _OMRON}
+    {#define CONSOLE_MAX_COLS 512}
+{#else}
+    {#define CONSOLE_MAX_COLS STRING_MAX_SIZE}
+{#endif}
+
+{#endif}

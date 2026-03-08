@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/math/atan2.txt -I./src -I./vendor/jiecunit/sys -o ./src/math/atan2.xml -t omron
+ * $ jiecc ./src/math/atan2.txt -I./src -o ./src/math/atan2.xml -t omron
  *)
 {#ifndef __MATH_ATAN2_TXT__}
 {#define __MATH_ATAN2_TXT__}

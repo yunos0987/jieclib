@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/stats/inference/tests/normality_tests.txt -I./src -I./vendor/jiecunit/sys -o ./src/stats/inference/tests/normality_tests.xml -t omron
+ * $ jiecc ./src/stats/inference/tests/normality_tests.txt -I./src -o ./src/stats/inference/tests/normality_tests.xml -t omron
  *)
 {#ifndef __STATS_INFERENCE_TESTS_NORMALITY_TESTS_TXT__}
 {#define __STATS_INFERENCE_TESTS_NORMALITY_TESTS_TXT__}

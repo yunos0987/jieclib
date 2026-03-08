@@ -1,7 +1,7 @@
 (*
  * Matrix Properties
  * Contains determinant, trace, rank, norm computation
- * $ jiecc ./src/linalg/matrix/properties.txt -I./src -I./vendor/jiecunit/sys -o ./src/linalg/matrix/properties.xml -t omron
+ * $ jiecc ./src/linalg/matrix/properties.txt -I./src -o ./src/linalg/matrix/properties.xml -t omron
  *)
 {#ifndef __LINALG_MATRIX_PROPERTIES_TXT__}
 {#define __LINALG_MATRIX_PROPERTIES_TXT__}

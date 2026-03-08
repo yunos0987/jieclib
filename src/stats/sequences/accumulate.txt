@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/stats/sequences/accumulate.txt -I./src -I./vendor/jiecunit/sys -o ./src/stats/sequences/accumulate.xml -t omron
+ * $ jiecc ./src/stats/sequences/accumulate.txt -I./src -o ./src/stats/sequences/accumulate.xml -t omron
  *)
 {#ifndef __STATS_ACCUMULATE_TXT__}
 {#define __STATS_ACCUMULATE_TXT__}

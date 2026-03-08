@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/stats/inference/effect_size/effect_size.txt -I./src -I./vendor/jiecunit/sys -o ./src/stats/inference/effect_size/effect_size.xml -t omron
+ * $ jiecc ./src/stats/inference/effect_size/effect_size.txt -I./src -o ./src/stats/inference/effect_size/effect_size.xml -t omron
  *)
 {#ifndef __STATS_INFERENCE_EFFECT_SIZE_EFFECT_SIZE_TXT__}
 {#define __STATS_INFERENCE_EFFECT_SIZE_EFFECT_SIZE_TXT__}

@@ -1,6 +1,6 @@
 (*
  * Gaussian Elimination Solver
- * $ jiecc ./src/linalg/solve/gaussian.txt -I./src -I./vendor/jiecunit/sys -o ./src/linalg/solve/gaussian.xml -t omron
+ * $ jiecc ./src/linalg/solve/gaussian.txt -I./src -o ./src/linalg/solve/gaussian.xml -t omron
  *)
 {#ifndef __LINALG_SOLVE_GAUSSIAN_TXT__}
 {#define __LINALG_SOLVE_GAUSSIAN_TXT__}

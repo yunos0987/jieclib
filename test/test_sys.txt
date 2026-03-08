@@ -1,0 +1,50 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/test_sys.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/test_sys.xml -t omron
+ * or
+ * $ jiecc ./test/test_sys.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/test_sys.xml -t keyence
+ *)
+{#include <jiecunit.txt>}
+
+{#include <sys.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_udint_to_string',
+		'test_dint_to_string',
+		'test_lreal_to_string',
+		'test_bool_to_string',
+		'test_time_to_string_sec',
+		'test_jiec_concat'
+	)
+)
+{#undef _TEST_}
+{#endif}
+
+{#include "test_sys_conv.txt"}
+
+TEST_S(test_jiec_concat)
+	{st}
+	// 0~16
+	EXPECT_EQ_STRING('', jiec_concat());
+	EXPECT_EQ_STRING('ab', jiec_concat('ab'));
+	EXPECT_EQ_STRING('abcd', jiec_concat('ab', 'cd'));
+	EXPECT_EQ_STRING('abcdef', jiec_concat('ab', 'cd', 'ef'));
+	EXPECT_EQ_STRING('abcdefgh', jiec_concat('ab', 'cd', 'ef', 'gh'));
+	EXPECT_EQ_STRING('abcdefghij', jiec_concat('ab', 'cd', 'ef', 'gh', 'ij'));
+	EXPECT_EQ_STRING('abcdefghijkl', jiec_concat('ab', 'cd', 'ef', 'gh', 'ij', 'kl'));
+	EXPECT_EQ_STRING('abcdefghijklmn', jiec_concat('ab', 'cd', 'ef', 'gh', 'ij', 'kl', 'mn'));
+	EXPECT_EQ_STRING('abcdefghijklmnop', jiec_concat('ab', 'cd', 'ef', 'gh', 'ij', 'kl', 'mn', 'op'));
+	EXPECT_EQ_STRING('abcdefghijklmnopqr', jiec_concat('ab', 'cd', 'ef', 'gh', 'ij', 'kl', 'mn', 'op', 'qr'));
+	EXPECT_EQ_STRING('abcdefghijklmnopqrst', jiec_concat('ab', 'cd', 'ef', 'gh', 'ij', 'kl', 'mn', 'op', 'qr', 'st'));
+	EXPECT_EQ_STRING('abcdefghijklmnopqrstuv', jiec_concat('ab', 'cd', 'ef', 'gh', 'ij', 'kl', 'mn', 'op', 'qr', 'st', 'uv'));
+	EXPECT_EQ_STRING('abcdefghijklmnopqrstuvwx', jiec_concat('ab', 'cd', 'ef', 'gh', 'ij', 'kl', 'mn', 'op', 'qr', 'st', 'uv', 'wx'));
+	EXPECT_EQ_STRING('abcdefghijklmnopqrstuvwxyz', jiec_concat('ab', 'cd', 'ef', 'gh', 'ij', 'kl', 'mn', 'op', 'qr', 'st', 'uv', 'wx', 'yz'));
+	EXPECT_EQ_STRING('abcdefghijklmnopqrstuvwxyzAB', jiec_concat('ab', 'cd', 'ef', 'gh', 'ij', 'kl', 'mn', 'op', 'qr', 'st', 'uv', 'wx', 'yz', 'AB'));
+	EXPECT_EQ_STRING('abcdefghijklmnopqrstuvwxyzABCD', jiec_concat('ab', 'cd', 'ef', 'gh', 'ij', 'kl', 'mn', 'op', 'qr', 'st', 'uv', 'wx', 'yz', 'AB', 'CD'));
+	EXPECT_EQ_STRING('abcdefghijklmnopqrstuvwxyzABCDEF', jiec_concat('ab', 'cd', 'ef', 'gh', 'ij', 'kl', 'mn', 'op', 'qr', 'st', 'uv', 'wx', 'yz', 'AB', 'CD', 'EF'));
+	//
+	EXPECT_EQ_STRING('', jiec_concat(''));
+	{end}
+END_TEST_S

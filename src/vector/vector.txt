@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/vector/vector.txt -I./src -I./vendor/jiecunit/sys -o ./src/vector/vector.xml -t omron
+ * $ jiecc ./src/vector/vector.txt -I./src -o ./src/vector/vector.xml -t omron
  *)
 {#ifndef __VECTOR_VECTOR_TXT__}
 {#define __VECTOR_VECTOR_TXT__}

@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/stats/regression/linear_regression.txt -I./src -I./vendor/jiecunit/sys -o ./src/stats/regression/linear_regression.xml -t omron
+ * $ jiecc ./src/stats/regression/linear_regression.txt -I./src -o ./src/stats/regression/linear_regression.xml -t omron
  *)
 {#ifndef __STATS_REGRESSION_LINEAR_REGRESSION_TXT__}
 {#define __STATS_REGRESSION_LINEAR_REGRESSION_TXT__}

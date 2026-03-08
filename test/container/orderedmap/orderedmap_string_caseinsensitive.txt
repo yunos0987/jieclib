@@ -1,0 +1,22 @@
+{#ifndef __TEST_CONTAINER_ORDEREDMAP_STRING_CASEINSENSITIVE_TXT__}
+{#define __TEST_CONTAINER_ORDEREDMAP_STRING_CASEINSENSITIVE_TXT__}
+
+{#include <string_lib/equivalence_caseinsensitive.txt>}
+
+{#define OrderedMapName string_ci}
+{#define OrderedMapCapacity 8}
+{#define OrderedMapMaxLoadPermille 800}
+{#define OrderedMapKeyType string[16 + 1]}
+{#define OrderedMapValueType dint}
+{#define OrderedMapKeyEqualsFunction String_equalsAsciiIgnoreCase} (* Case-insensitive key comparison *)
+{#define OrderedMapKeyHashFunction String_hashAsciiIgnoreCase} (* Case-insensitive key hashing *)
+{#include <container/orderedmap/orderedmap_template.txt>}
+{#undef OrderedMapName}
+{#undef OrderedMapCapacity}
+{#undef OrderedMapMaxLoadPermille}
+{#undef OrderedMapKeyType}
+{#undef OrderedMapValueType}
+{#undef OrderedMapKeyEqualsFunction}
+{#undef OrderedMapKeyHashFunction}
+
+{#endif}

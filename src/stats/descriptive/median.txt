@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/stats/descriptive/median.txt -I./src -I./vendor/jiecunit/sys -o ./src/stats/descriptive/median.xml -t omron
+ * $ jiecc ./src/stats/descriptive/median.txt -I./src -o ./src/stats/descriptive/median.xml -t omron
  *)
 {#ifndef __STATS_DESCRIPTIVE_MEDIAN_TXT__}
 {#define __STATS_DESCRIPTIVE_MEDIAN_TXT__}

@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/stats/descriptive/mad.txt -I./src -I./vendor/jiecunit/sys -o ./src/stats/descriptive/mad.xml -t omron
+ * $ jiecc ./src/stats/descriptive/mad.txt -I./src -o ./src/stats/descriptive/mad.xml -t omron
  *)
 {#ifndef __STATS_DESCRIPTIVE_MAD_TXT__}
 {#define __STATS_DESCRIPTIVE_MAD_TXT__}

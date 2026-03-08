@@ -1,8 +1,14 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/random/test_random.txt -I. -I./src -I./vendor/jiecunit -I./vendor/jiecunit/sys -D_TEST_ -o ./test/random/test_random.xml -t omron
+ * $ jiecc ./test/random/test_random.txt -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/random/test_random.xml -t omron
  *)
+{#if _JIECC and (_JIECC_VER < 514)}
+	{#error This test requires Jiecc 5.14 or later.}
+{#endif}
 {#include <jiecunit.txt>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 210)}
+	{#error This test requires JiecUnit 2.10 or later.}
+{#endif}
 
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
@@ -15,5 +21,5 @@ DEFINE_CONFIGURATION(
 {#undef _TEST_}
 {#endif}
 
-{#include <test/random/test_mersenne_twister.txt>}
-{#include <test/random/test_xorshift32.txt>}
+{#include "test_mersenne_twister.txt"}
+{#include "test_xorshift32.txt"}

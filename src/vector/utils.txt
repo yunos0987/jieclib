@@ -1,5 +1,5 @@
 (*
- * $ jiecc ./src/vector/utils.txt -I./src -I./vendor/jiecunit/sys -o ./src/vector/utils.xml -t omron
+ * $ jiecc ./src/vector/utils.txt -I./src -o ./src/vector/utils.xml -t omron
  *)
 {#ifndef __VECTOR_UTILS_TXT__}
 {#define __VECTOR_UTILS_TXT__}

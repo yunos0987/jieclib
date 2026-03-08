@@ -1,0 +1,723 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/container/linkedhashmap/test_linkedhashmap.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/container/linkedhashmap/test_linkedhashmap.xml -t omron
+ * or
+ * $ jiecc ./test/container/linkedhashmap/test_linkedhashmap.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/container/linkedhashmap/test_linkedhashmap.xml -t keyence
+ *)
+{#include <jiecunit.txt>}
+{#if _JIECUNIT_VER < 302}
+	{#error "JiecUnit version 3.2 or higher is required to compile this test."}
+{#endif}
+
+{#include "linkedhashmap_dint.txt"}
+{#include "linkedhashmap_string_caseinsensitive.txt"}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_linkedhashmap_dint_init',
+		'test_linkedhashmap_dint_upsert',
+		'test_linkedhashmap_dint_lookup',
+		'test_linkedhashmap_dint_contains',
+		'test_linkedhashmap_dint_len',
+		'test_linkedhashmap_dint_keys',
+		'test_linkedhashmap_dint_values',
+		'test_linkedhashmap_dint_items',
+		'test_linkedhashmap_dint_delete',
+		'test_linkedhashmap_dint_copy',
+		'test_linkedhashmap_dint_equals',
+		'test_linkedhashmap_dint_hash',
+		'test_linkedhashmap_dint_empty',
+		'test_linkedhashmap_dint_clear',
+		'test_linkedhashmap_string_caseinsensitive_usecase'
+	)
+)
+
+{#endif}
+
+TEST_S(test_linkedhashmap_dint_init)
+	var
+		result_eno: bool;
+		map_count: LinkedHashMap_dint_t;
+		map_links: LinkedHashMap_dint_t;
+		map_empty: LinkedHashMap_dint_t;
+	end
+	{st}
+
+	// Fact: init sets count to 0.
+		// Arrange
+	LinkedHashMap_dint_init(map_count);
+		// Act / Assert
+	EXPECT_EQ_INT32(0, map_count.count);
+
+	// Fact: init sets head_idx and tail_idx to -1.
+		// Arrange
+	LinkedHashMap_dint_init(map_links);
+		// Act / Assert
+	EXPECT_EQ_INT32(-1, map_links.head_idx);
+	EXPECT_EQ_INT32(-1, map_links.tail_idx);
+
+	// Fact: init results in empty=true.
+		// Arrange
+	LinkedHashMap_dint_init(map_empty);
+		// Act / Assert
+	EXPECT_TRUE(LinkedHashMap_dint_empty(map_empty));
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashmap_dint_upsert)
+	var
+		result_eno: bool;
+		map_insert_update: LinkedHashMap_dint_t;
+		map_capacity: LinkedHashMap_dint_t;
+		map_nohash_insert: LinkedHashMap_dint_nohash_t;
+		map_nohash_update: LinkedHashMap_dint_nohash_t;
+		map_nohash_capacity: LinkedHashMap_dint_nohash_t;
+		replaced: bool;
+	end
+	{st}
+
+	// Fact: upsert handles insert, update, and capacity edge cases.
+		// Arrange
+	LinkedHashMap_dint_init(map_insert_update);
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_insert_update, key:='a', value:=10, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(result_eno);
+		// Act / Assert
+	EXPECT_FALSE(replaced);
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_insert_update, key:='a', value:=20, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(result_eno);
+	EXPECT_TRUE(replaced);
+	EXPECT_EQ_INT32(1, map_insert_update.count);
+	EXPECT_TRUE(String_equals(map_insert_update.nodes[map_insert_update.head_idx].key, 'a'));
+	EXPECT_EQ_INT32(20, map_insert_update.nodes[map_insert_update.head_idx].value);
+	LinkedHashMap_dint_init(map_capacity);
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_capacity, key:='k0', value:=0, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_capacity, key:='k1', value:=1, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_capacity, key:='k2', value:=2, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_capacity, key:='k3', value:=3, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_capacity, key:='k4', value:=4, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_capacity, key:='k5', value:=5, replaced=>replaced, eno=>result_eno));
+	EXPECT_FALSE(LinkedHashMap_dint_upsert(self:=map_capacity, key:='k6', value:=6, replaced=>replaced, eno=>result_eno));
+	EXPECT_EQ_INT32(6, map_capacity.count);
+
+	// Fact: nohash upsert inserts new key.
+		// Arrange
+	LinkedHashMap_dint_nohash_init(map_nohash_insert);
+	ASSERT_TRUE(LinkedHashMap_dint_nohash_upsert(self:=map_nohash_insert, key:='z', value:=9, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(result_eno);
+		// Act / Assert
+	EXPECT_FALSE(replaced);
+	EXPECT_EQ_INT32(1, map_nohash_insert.count);
+
+	// Fact: nohash upsert updates existing key with replaced=true.
+		// Arrange
+	LinkedHashMap_dint_nohash_init(map_nohash_update);
+	ASSERT_TRUE(LinkedHashMap_dint_nohash_upsert(self:=map_nohash_update, key:='u', value:=1, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_nohash_upsert(self:=map_nohash_update, key:='u', value:=2, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(result_eno);
+		// Act / Assert
+	EXPECT_TRUE(replaced);
+	EXPECT_EQ_INT32(1, map_nohash_update.count);
+
+	// Fact: nohash upsert fails at capacity limit.
+		// Arrange
+	LinkedHashMap_dint_nohash_init(map_nohash_capacity);
+	ASSERT_TRUE(LinkedHashMap_dint_nohash_upsert(self:=map_nohash_capacity, key:='k0', value:=0, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_nohash_upsert(self:=map_nohash_capacity, key:='k1', value:=1, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_nohash_upsert(self:=map_nohash_capacity, key:='k2', value:=2, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_nohash_upsert(self:=map_nohash_capacity, key:='k3', value:=3, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_nohash_upsert(self:=map_nohash_capacity, key:='k4', value:=4, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_nohash_upsert(self:=map_nohash_capacity, key:='k5', value:=5, replaced=>replaced, eno=>result_eno));
+		// Act / Assert
+	EXPECT_FALSE(LinkedHashMap_dint_nohash_upsert(self:=map_nohash_capacity, key:='k6', value:=6, replaced=>replaced, eno=>result_eno));
+	EXPECT_EQ_INT32(6, map_nohash_capacity.count);
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashmap_dint_lookup)
+	var
+		result_eno: bool;
+		map_found: LinkedHashMap_dint_t;
+		map_missing: LinkedHashMap_dint_t;
+		map_updated: LinkedHashMap_dint_t;
+		map_access_move: LinkedHashMap_dint_access_t;
+		map_access_miss: LinkedHashMap_dint_access_t;
+		map_access_single: LinkedHashMap_dint_access_t;
+		replaced: bool;
+		value: dint;
+		keys: array[8] of string[16 + 1];
+		written: dint;
+	end
+	{st}
+
+	// Fact: lookup returns value for registered key.
+		// Arrange
+	LinkedHashMap_dint_init(map_found);
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_found, key:='a', value:=20, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(result_eno);
+	LinkedHashMap_dint_lookup(self:=map_found, key:='a', value:=value, eno=>result_eno);
+	ASSERT_TRUE(result_eno);
+		// Act / Assert
+	EXPECT_EQ_INT32(20, value);
+
+	// Fact: lookup returns eno=false for unregistered key.
+		// Arrange
+	LinkedHashMap_dint_init(map_missing);
+	LinkedHashMap_dint_lookup(self:=map_missing, key:='missing', value:=value, eno=>result_eno);
+		// Act / Assert
+	EXPECT_FALSE(result_eno);
+
+	// Fact: lookup returns updated value after upsert.
+		// Arrange
+	LinkedHashMap_dint_init(map_updated);
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_updated, key:='u', value:=1, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_updated, key:='u', value:=9, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(replaced);
+	LinkedHashMap_dint_lookup(self:=map_updated, key:='u', value:=value, eno=>result_eno);
+	ASSERT_TRUE(result_eno);
+		// Act / Assert
+	EXPECT_EQ_INT32(9, value);
+
+	// Fact: access-order lookup moves accessed key to tail.
+		// Arrange
+	LinkedHashMap_dint_access_init(map_access_move);
+	ASSERT_TRUE(LinkedHashMap_dint_access_upsert(self:=map_access_move, key:='a', value:=1, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_access_upsert(self:=map_access_move, key:='b', value:=2, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_access_upsert(self:=map_access_move, key:='c', value:=3, replaced=>replaced, eno=>result_eno));
+	LinkedHashMap_dint_access_lookup(self:=map_access_move, key:='a', value:=value, eno=>result_eno);
+	ASSERT_TRUE(result_eno);
+	ASSERT_TRUE(LinkedHashMap_dint_access_keys(self:=map_access_move, keys:=keys, written=>written, eno=>result_eno));
+		// Act / Assert
+	EXPECT_EQ_INT32(3, written);
+	EXPECT_TRUE(String_equals(keys[0], 'b'));
+	EXPECT_TRUE(String_equals(keys[1], 'c'));
+	EXPECT_TRUE(String_equals(keys[2], 'a'));
+
+	// Fact: access-order lookup returns eno=false for unregistered key.
+		// Arrange
+	LinkedHashMap_dint_access_init(map_access_miss);
+	ASSERT_TRUE(LinkedHashMap_dint_access_upsert(self:=map_access_miss, key:='a', value:=1, replaced=>replaced, eno=>result_eno));
+	LinkedHashMap_dint_access_lookup(self:=map_access_miss, key:='missing', value:=value, eno=>result_eno);
+		// Act / Assert
+	EXPECT_FALSE(result_eno);
+
+	// Fact: access-order lookup on single-element map keeps order.
+		// Arrange
+	LinkedHashMap_dint_access_init(map_access_single);
+	ASSERT_TRUE(LinkedHashMap_dint_access_upsert(self:=map_access_single, key:='only', value:=7, replaced=>replaced, eno=>result_eno));
+	LinkedHashMap_dint_access_lookup(self:=map_access_single, key:='only', value:=value, eno=>result_eno);
+	ASSERT_TRUE(result_eno);
+	ASSERT_TRUE(LinkedHashMap_dint_access_keys(self:=map_access_single, keys:=keys, written=>written, eno=>result_eno));
+		// Act / Assert
+	EXPECT_EQ_INT32(1, written);
+	EXPECT_TRUE(String_equals(keys[0], 'only'));
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashmap_dint_contains)
+	var
+		result_eno: bool;
+		map_empty: LinkedHashMap_dint_t;
+		map_contains_true: LinkedHashMap_dint_t;
+		map_contains_false: LinkedHashMap_dint_t;
+		replaced: bool;
+	end
+	{st}
+
+	// Fact: contains returns correct result for empty, hit, and miss cases.
+		// Arrange
+	LinkedHashMap_dint_init(map_empty);
+		// Act / Assert
+	EXPECT_FALSE(LinkedHashMap_dint_contains(self:=map_empty, key:='x', eno=>result_eno));
+	ASSERT_TRUE(result_eno);
+	LinkedHashMap_dint_init(map_contains_true);
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_contains_true, key:='x', value:=1, replaced=>replaced, eno=>result_eno));
+	EXPECT_TRUE(LinkedHashMap_dint_contains(self:=map_contains_true, key:='x', eno=>result_eno));
+	ASSERT_TRUE(result_eno);
+	LinkedHashMap_dint_init(map_contains_false);
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_contains_false, key:='x', value:=1, replaced=>replaced, eno=>result_eno));
+	EXPECT_FALSE(LinkedHashMap_dint_contains(self:=map_contains_false, key:='X', eno=>result_eno));
+	ASSERT_TRUE(result_eno);
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashmap_dint_len)
+	var
+		result_eno: bool;
+		map_init_count: LinkedHashMap_dint_t;
+		map_add_count: LinkedHashMap_dint_t;
+		map_update_remove_count: LinkedHashMap_dint_t;
+		replaced: bool;
+	end
+	{st}
+
+	// Fact: len is 0 after init.
+		// Arrange
+	LinkedHashMap_dint_init(map_init_count);
+		// Act / Assert
+	EXPECT_EQ_INT32(0, LinkedHashMap_dint_len(map_init_count));
+
+	// Fact: len increments after upsert.
+		// Arrange
+	LinkedHashMap_dint_init(map_add_count);
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_add_count, key:='a', value:=1, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_add_count, key:='b', value:=3, replaced=>replaced, eno=>result_eno));
+		// Act / Assert
+	EXPECT_EQ_INT32(2, LinkedHashMap_dint_len(map_add_count));
+
+	// Fact: len stays unchanged on update and decrements on delete.
+		// Arrange
+	LinkedHashMap_dint_init(map_update_remove_count);
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_update_remove_count, key:='a', value:=1, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_update_remove_count, key:='a', value:=2, replaced=>replaced, eno=>result_eno));
+		// Act / Assert
+	EXPECT_EQ_INT32(1, LinkedHashMap_dint_len(map_update_remove_count));
+	ASSERT_TRUE(LinkedHashMap_dint_delete(self:=map_update_remove_count, key:='a', eno=>result_eno));
+	EXPECT_EQ_INT32(0, LinkedHashMap_dint_len(map_update_remove_count));
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashmap_dint_keys)
+	var
+		result_eno: bool;
+		map_insert_order: LinkedHashMap_dint_t;
+		map_update_stable_order: LinkedHashMap_dint_t;
+		replaced: bool;
+		keys: array[8] of string[16 + 1];
+		written: dint;
+	end
+	{st}
+
+	// Fact: keys iteration preserves insertion order after updates.
+		// Arrange
+	LinkedHashMap_dint_init(map_insert_order);
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_insert_order, key:='k1', value:=1, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_insert_order, key:='k2', value:=2, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_insert_order, key:='k3', value:=3, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_keys(self:=map_insert_order, keys:=keys, written=>written, eno=>result_eno));
+	ASSERT_TRUE(result_eno);
+		// Act / Assert
+	EXPECT_EQ_INT32(3, written);
+	EXPECT_TRUE(String_equals(keys[0], 'k1'));
+	EXPECT_TRUE(String_equals(keys[1], 'k2'));
+	EXPECT_TRUE(String_equals(keys[2], 'k3'));
+	LinkedHashMap_dint_init(map_update_stable_order);
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_update_stable_order, key:='k1', value:=1, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_update_stable_order, key:='k2', value:=2, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_update_stable_order, key:='k3', value:=3, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_update_stable_order, key:='k2', value:=22, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(replaced);
+	ASSERT_TRUE(LinkedHashMap_dint_keys(self:=map_update_stable_order, keys:=keys, written=>written, eno=>result_eno));
+	EXPECT_TRUE(String_equals(keys[0], 'k1'));
+	EXPECT_TRUE(String_equals(keys[1], 'k2'));
+	EXPECT_TRUE(String_equals(keys[2], 'k3'));
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashmap_dint_values)
+	var
+		result_eno: bool;
+		map_order: LinkedHashMap_dint_t;
+		map_updated: LinkedHashMap_dint_t;
+		map_empty: LinkedHashMap_dint_t;
+		replaced: bool;
+		values: array[8] of dint;
+		written: dint;
+	end
+	{st}
+
+	// Fact: values preserves insertion order.
+		// Arrange
+	LinkedHashMap_dint_init(map_order);
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_order, key:='a', value:=10, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_order, key:='b', value:=20, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_order, key:='c', value:=30, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_values(self:=map_order, values:=values, written=>written, eno=>result_eno));
+		// Act / Assert
+	EXPECT_EQ_INT32(3, written);
+	EXPECT_EQ_INT32(10, values[0]);
+	EXPECT_EQ_INT32(20, values[1]);
+	EXPECT_EQ_INT32(30, values[2]);
+
+	// Fact: values reflects updated value while preserving order.
+		// Arrange
+	LinkedHashMap_dint_init(map_updated);
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_updated, key:='a', value:=10, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_updated, key:='b', value:=20, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_updated, key:='a', value:=99, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(replaced);
+	ASSERT_TRUE(LinkedHashMap_dint_values(self:=map_updated, values:=values, written=>written, eno=>result_eno));
+		// Act / Assert
+	EXPECT_EQ_INT32(2, written);
+	EXPECT_EQ_INT32(99, values[0]);
+	EXPECT_EQ_INT32(20, values[1]);
+
+	// Fact: values returns written=0 for empty map.
+		// Arrange
+	LinkedHashMap_dint_init(map_empty);
+	ASSERT_TRUE(LinkedHashMap_dint_values(self:=map_empty, values:=values, written=>written, eno=>result_eno));
+		// Act / Assert
+	EXPECT_EQ_INT32(0, written);
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashmap_dint_items)
+	var
+		result_eno: bool;
+		map_order: LinkedHashMap_dint_t;
+		map_updated: LinkedHashMap_dint_t;
+		map_empty: LinkedHashMap_dint_t;
+		replaced: bool;
+		items: array[8] of LinkedHashMap_dint_Item_t;
+		written: dint;
+	end
+	{st}
+
+	// Fact: items preserves insertion order with key-value pairs.
+		// Arrange
+	LinkedHashMap_dint_init(map_order);
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_order, key:='a', value:=10, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_order, key:='b', value:=20, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_order, key:='c', value:=30, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_items(self:=map_order, items:=items, written=>written, eno=>result_eno));
+		// Act / Assert
+	EXPECT_EQ_INT32(3, written);
+	EXPECT_TRUE(String_equals(items[0].key, 'a'));
+	EXPECT_EQ_INT32(10, items[0].value);
+	EXPECT_TRUE(String_equals(items[1].key, 'b'));
+	EXPECT_EQ_INT32(20, items[1].value);
+	EXPECT_TRUE(String_equals(items[2].key, 'c'));
+	EXPECT_EQ_INT32(30, items[2].value);
+
+	// Fact: items reflects updated value while preserving order.
+		// Arrange
+	LinkedHashMap_dint_init(map_updated);
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_updated, key:='a', value:=10, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_updated, key:='b', value:=20, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_updated, key:='a', value:=99, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(replaced);
+	ASSERT_TRUE(LinkedHashMap_dint_items(self:=map_updated, items:=items, written=>written, eno=>result_eno));
+		// Act / Assert
+	EXPECT_EQ_INT32(2, written);
+	EXPECT_TRUE(String_equals(items[0].key, 'a'));
+	EXPECT_EQ_INT32(99, items[0].value);
+	EXPECT_TRUE(String_equals(items[1].key, 'b'));
+	EXPECT_EQ_INT32(20, items[1].value);
+
+	// Fact: items returns written=0 for empty map.
+		// Arrange
+	LinkedHashMap_dint_init(map_empty);
+	ASSERT_TRUE(LinkedHashMap_dint_items(self:=map_empty, items:=items, written=>written, eno=>result_eno));
+		// Act / Assert
+	EXPECT_EQ_INT32(0, written);
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashmap_dint_delete)
+	var
+		result_eno: bool;
+		map_remove_hit: LinkedHashMap_dint_t;
+		map_remove_miss: LinkedHashMap_dint_t;
+		map_remove_head: LinkedHashMap_dint_t;
+		replaced: bool;
+		keys: array[8] of string[16 + 1];
+		written: dint;
+		removed: bool;
+	end
+	{st}
+
+	// Fact: delete removes existing key and preserves order.
+		// Arrange
+	LinkedHashMap_dint_init(map_remove_hit);
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_remove_hit, key:='k1', value:=1, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_remove_hit, key:='k2', value:=2, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_remove_hit, key:='k3', value:=3, replaced=>replaced, eno=>result_eno));
+	removed := LinkedHashMap_dint_delete(self:=map_remove_hit, key:='k2', eno=>result_eno);
+	ASSERT_TRUE(result_eno);
+		// Act / Assert
+	EXPECT_TRUE(removed);
+	EXPECT_EQ_INT32(2, map_remove_hit.count);
+	ASSERT_TRUE(LinkedHashMap_dint_keys(self:=map_remove_hit, keys:=keys, written=>written, eno=>result_eno));
+	EXPECT_EQ_INT32(2, written);
+	EXPECT_TRUE(String_equals(keys[0], 'k1'));
+	EXPECT_TRUE(String_equals(keys[1], 'k3'));
+
+	// Fact: delete returns false for unregistered key.
+		// Arrange
+	LinkedHashMap_dint_init(map_remove_miss);
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_remove_miss, key:='k1', value:=1, replaced=>replaced, eno=>result_eno));
+	removed := LinkedHashMap_dint_delete(self:=map_remove_miss, key:='missing', eno=>result_eno);
+	ASSERT_TRUE(result_eno);
+		// Act / Assert
+	EXPECT_FALSE(removed);
+	EXPECT_EQ_INT32(1, map_remove_miss.count);
+
+	// Fact: delete updates head correctly when head is removed.
+		// Arrange
+	LinkedHashMap_dint_init(map_remove_head);
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_remove_head, key:='h1', value:=1, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_remove_head, key:='h2', value:=2, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_delete(self:=map_remove_head, key:='h1', eno=>result_eno));
+	ASSERT_TRUE(result_eno);
+		// Act / Assert
+	EXPECT_TRUE(String_equals(map_remove_head.nodes[map_remove_head.head_idx].key, 'h2'));
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashmap_dint_copy)
+	var
+		result_eno: bool;
+		map_src_equal: LinkedHashMap_dint_t;
+		map_dst_equal: LinkedHashMap_dint_t;
+		map_src_indep: LinkedHashMap_dint_t;
+		map_dst_indep: LinkedHashMap_dint_t;
+		map_src_empty: LinkedHashMap_dint_t;
+		map_dst_empty: LinkedHashMap_dint_t;
+		replaced: bool;
+		value: dint;
+	end
+	{st}
+
+	// Fact: copy duplicates all key-value pairs.
+		// Arrange
+	LinkedHashMap_dint_init(map_src_equal);
+	LinkedHashMap_dint_init(map_dst_equal);
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_src_equal, key:='x', value:=1, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_src_equal, key:='y', value:=2, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_copy(self:=map_src_equal, dest:=map_dst_equal, eno=>result_eno));
+	ASSERT_TRUE(result_eno);
+	LinkedHashMap_dint_lookup(self:=map_dst_equal, key:='x', value:=value, eno=>result_eno);
+	ASSERT_TRUE(result_eno);
+		// Act / Assert
+	EXPECT_EQ_INT32(1, value);
+	LinkedHashMap_dint_lookup(self:=map_dst_equal, key:='y', value:=value, eno=>result_eno);
+	ASSERT_TRUE(result_eno);
+	EXPECT_EQ_INT32(2, value);
+
+	// Fact: copy creates independent instance.
+		// Arrange
+	LinkedHashMap_dint_init(map_src_indep);
+	LinkedHashMap_dint_init(map_dst_indep);
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_src_indep, key:='x', value:=1, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_copy(self:=map_src_indep, dest:=map_dst_indep, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_src_indep, key:='x', value:=11, replaced=>replaced, eno=>result_eno));
+	LinkedHashMap_dint_lookup(self:=map_dst_indep, key:='x', value:=value, eno=>result_eno);
+	ASSERT_TRUE(result_eno);
+		// Act / Assert
+	EXPECT_EQ_INT32(1, value);
+
+	// Fact: copy from empty map clears destination.
+		// Arrange
+	LinkedHashMap_dint_init(map_src_empty);
+	LinkedHashMap_dint_init(map_dst_empty);
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_dst_empty, key:='z', value:=9, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_copy(self:=map_src_empty, dest:=map_dst_empty, eno=>result_eno));
+	ASSERT_TRUE(result_eno);
+		// Act / Assert
+	EXPECT_TRUE(LinkedHashMap_dint_empty(map_dst_empty));
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashmap_dint_equals)
+	var
+		result_eno: bool;
+		map_a: LinkedHashMap_dint_t;
+		map_b: LinkedHashMap_dint_t;
+		map_c: LinkedHashMap_dint_t;
+		map_d: LinkedHashMap_dint_t;
+		replaced: bool;
+	end
+	{st}
+
+	// Fact: equals returns true for same key-value pairs in same order.
+		// Arrange
+	LinkedHashMap_dint_init(map_a);
+	LinkedHashMap_dint_init(map_b);
+	LinkedHashMap_dint_init(map_c);
+	LinkedHashMap_dint_init(map_d);
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_a, key:='k1', value:=1, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_a, key:='k2', value:=2, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_b, key:='k1', value:=1, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_b, key:='k2', value:=2, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_c, key:='k2', value:=2, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_c, key:='k1', value:=1, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_d, key:='k1', value:=1, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_d, key:='k2', value:=3, replaced=>replaced, eno=>result_eno));
+		// Act / Assert
+	EXPECT_TRUE(LinkedHashMap_dint_equals(map_a, map_b));
+
+	// Fact: equals returns false for different insertion order.
+		// Act / Assert
+	EXPECT_FALSE(LinkedHashMap_dint_equals(map_a, map_c));
+
+	// Fact: equals returns false for different values.
+		// Act / Assert
+	EXPECT_FALSE(LinkedHashMap_dint_equals(map_a, map_d));
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashmap_dint_hash)
+	var
+		result_eno: bool;
+		map_a: LinkedHashMap_dint_t;
+		map_b: LinkedHashMap_dint_t;
+		map_c: LinkedHashMap_dint_t;
+		map_d: LinkedHashMap_dint_t;
+		replaced: bool;
+		digest_a: udint;
+		digest_b: udint;
+		digest_c: udint;
+		digest_d: udint;
+	end
+	{st}
+
+	// Fact: hash values match for equivalent maps.
+		// Arrange
+	LinkedHashMap_dint_init(map_a);
+	LinkedHashMap_dint_init(map_b);
+	LinkedHashMap_dint_init(map_c);
+	LinkedHashMap_dint_init(map_d);
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_a, key:='k1', value:=1, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_a, key:='k2', value:=2, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_b, key:='k1', value:=1, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_b, key:='k2', value:=2, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_c, key:='k2', value:=2, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_c, key:='k1', value:=1, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_d, key:='k1', value:=1, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_d, key:='k2', value:=3, replaced=>replaced, eno=>result_eno));
+	digest_a := LinkedHashMap_dint_hash(map_a);
+	digest_b := LinkedHashMap_dint_hash(map_b);
+	digest_c := LinkedHashMap_dint_hash(map_c);
+	digest_d := LinkedHashMap_dint_hash(map_d);
+		// Act / Assert
+	EXPECT_EQ_UDINT(digest_a, digest_b);
+
+	// Fact: hash differs for maps with different insertion order.
+		// Act / Assert
+	EXPECT_NE_UDINT(digest_a, digest_c);
+
+	// Fact: hash differs for maps with different values.
+		// Act / Assert
+	EXPECT_NE_UDINT(digest_a, digest_d);
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashmap_dint_empty)
+	var
+		result_eno: bool;
+		map_instance: LinkedHashMap_dint_t;
+		replaced: bool;
+	end
+	{st}
+
+	// Fact: empty reflects insert/delete lifecycle correctly.
+		// Arrange
+	LinkedHashMap_dint_init(map_instance);
+		// Act / Assert
+	EXPECT_TRUE(LinkedHashMap_dint_empty(map_instance));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_instance, key:='e', value:=1, replaced=>replaced, eno=>result_eno));
+	EXPECT_TRUE(result_eno);
+	EXPECT_FALSE(replaced);
+	EXPECT_FALSE(LinkedHashMap_dint_empty(map_instance));
+	ASSERT_TRUE(LinkedHashMap_dint_delete(self:=map_instance, key:='e', eno=>result_eno));
+	EXPECT_TRUE(result_eno);
+	EXPECT_TRUE(LinkedHashMap_dint_empty(map_instance));
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashmap_dint_clear)
+	var
+		result_eno: bool;
+		map_clear_basic: LinkedHashMap_dint_t;
+		map_clear_idempotent: LinkedHashMap_dint_t;
+		map_clear_reuse: LinkedHashMap_dint_t;
+		replaced: bool;
+	end
+	{st}
+
+	// Fact: clear removes all entries and resets links.
+		// Arrange
+	LinkedHashMap_dint_init(map_clear_basic);
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_clear_basic, key:='c1', value:=1, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_clear_basic, key:='c2', value:=2, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_clear(self:=map_clear_basic, eno=>result_eno));
+	ASSERT_TRUE(result_eno);
+		// Act / Assert
+	EXPECT_EQ_INT32(0, map_clear_basic.count);
+	EXPECT_EQ_INT32(-1, map_clear_basic.head_idx);
+	EXPECT_EQ_INT32(-1, map_clear_basic.tail_idx);
+	EXPECT_TRUE(LinkedHashMap_dint_empty(map_clear_basic));
+
+	// Fact: clear is idempotent.
+		// Arrange
+	LinkedHashMap_dint_init(map_clear_idempotent);
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_clear_idempotent, key:='i1', value:=1, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_clear(self:=map_clear_idempotent, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_clear(self:=map_clear_idempotent, eno=>result_eno));
+	ASSERT_TRUE(result_eno);
+		// Act / Assert
+	EXPECT_TRUE(LinkedHashMap_dint_empty(map_clear_idempotent));
+
+	// Fact: map is reusable after clear.
+		// Arrange
+	LinkedHashMap_dint_init(map_clear_reuse);
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_clear_reuse, key:='r1', value:=1, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_clear(self:=map_clear_reuse, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_dint_upsert(self:=map_clear_reuse, key:='r2', value:=2, replaced=>replaced, eno=>result_eno));
+		// Act / Assert
+	EXPECT_EQ_INT32(1, map_clear_reuse.count);
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashmap_string_caseinsensitive_usecase)
+	var
+		result_eno: bool;
+		sessions: LinkedHashMap_string_ci_t;
+		replaced: bool;
+		value: dint;
+		keys: array[8] of string[16 + 1];
+		written: dint;
+		removed: bool;
+	end
+	{st}
+
+	// Fact: case-insensitive upsert treats different cases as same key.
+		// Arrange
+	LinkedHashMap_string_ci_init(sessions);
+	ASSERT_TRUE(LinkedHashMap_string_ci_upsert(self:=sessions, key:='Alice', value:=1, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(result_eno);
+		// Act / Assert
+	EXPECT_FALSE(replaced);
+	ASSERT_TRUE(LinkedHashMap_string_ci_upsert(self:=sessions, key:='aLiCe', value:=2, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(result_eno);
+	EXPECT_TRUE(replaced);
+	EXPECT_EQ_INT32(1, LinkedHashMap_string_ci_len(sessions));
+	LinkedHashMap_string_ci_lookup(self:=sessions, key:='ALICE', value:=value, eno=>result_eno);
+	ASSERT_TRUE(result_eno);
+	EXPECT_EQ_INT32(2, value);
+
+	// Fact: contains/delete work case-insensitively.
+		// Act / Assert
+	EXPECT_TRUE(LinkedHashMap_string_ci_contains(self:=sessions, key:='alice', eno=>result_eno));
+	ASSERT_TRUE(result_eno);
+	removed := LinkedHashMap_string_ci_delete(self:=sessions, key:='AlIcE', eno=>result_eno);
+	ASSERT_TRUE(result_eno);
+	EXPECT_TRUE(removed);
+	EXPECT_FALSE(LinkedHashMap_string_ci_contains(self:=sessions, key:='ALICE', eno=>result_eno));
+	ASSERT_TRUE(result_eno);
+	EXPECT_EQ_INT32(0, LinkedHashMap_string_ci_len(sessions));
+
+	// Fact: keys preserve original case and insertion order.
+		// Arrange
+	ASSERT_TRUE(LinkedHashMap_string_ci_upsert(self:=sessions, key:='Bob', value:=10, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_string_ci_upsert(self:=sessions, key:='Carol', value:=20, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_string_ci_upsert(self:=sessions, key:='dave', value:=30, replaced=>replaced, eno=>result_eno));
+	ASSERT_TRUE(LinkedHashMap_string_ci_keys(self:=sessions, keys:=keys, written=>written, eno=>result_eno));
+	ASSERT_TRUE(result_eno);
+		// Act / Assert
+	EXPECT_EQ_INT32(3, written);
+	EXPECT_TRUE(String_equals(keys[0], 'Bob'));
+	EXPECT_TRUE(String_equals(keys[1], 'Carol'));
+	EXPECT_TRUE(String_equals(keys[2], 'dave'));
+	{end}
+END_TEST_S

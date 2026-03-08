@@ -1,0 +1,180 @@
+{#ifndef __SYS_CONV_TXT__}
+{#define __SYS_CONV_TXT__}
+
+{#include "sys.txt"}
+
+{#if _KEYENCE}
+	{#define word uint}
+	{#define int_to_word(...) int_to_uint(__VA_ARGS__)}
+	{#define uint_to_word(...) uint_to_uint(__VA_ARGS__)}
+	{#define word_to_int(...) uint_to_int(__VA_ARGS__)}
+	{#define word_to_uint(...) uint_to_uint(__VA_ARGS__)}
+
+	{#define dword udint}
+	{#define dint_to_dword(...) dint_to_udint(__VA_ARGS__)}
+	{#define udint_to_dword(...) udint_to_udint(__VA_ARGS__)}
+	{#define dword_to_dint(...) udint_to_dint(__VA_ARGS__)}
+	{#define dword_to_udint(...) udint_to_udint(__VA_ARGS__)}
+
+	(*{doc Convert a 32-bit signed integer to a decimal string representation.
+	@input in The 32-bit signed integer to convert.
+	@return The string representation of the input value.}*)
+	function dint_to_string: string[16]
+		_PROLOGUE_OF_FUNCTION_FOR_SYS_();
+		var_input
+			(*{doc The 32-bit signed integer to convert.}*)
+			in: dint;
+		end
+		{st}
+		dint_to_string := NumToDecString(in:=in, zerosuppress:=true, plussignomission:=true);
+		{end}
+	end
+
+	(*{doc Convert a 32-bit unsigned integer to a decimal string representation.
+	@input in The 32-bit unsigned integer to convert.
+	@return The string representation of the input value.}*)
+	function udint_to_string: string[16]
+		_PROLOGUE_OF_FUNCTION_FOR_SYS_();
+		var_input
+			(*{doc The 32-bit unsigned integer to convert.}*)
+			in: udint;
+		end
+		{st}
+		udint_to_string := NumToDecString(in:=in, zerosuppress:=true, plussignomission:=true);
+		{end}
+	end
+
+	(*{doc Convert a 64-bit floating-point value to a string representation.
+	@input in The 64-bit floating-point value to convert.
+	@return The string representation of the input value.}*)
+	function lreal_to_string: string[32]
+		_PROLOGUE_OF_FUNCTION_FOR_SYS_();
+		var_input
+			(*{doc The 64-bit floating-point value to convert.}*)
+			in: lreal;
+		end
+		{st}
+		lreal_to_string := LrealToString(in:=in, format:=1, fullcount:=24, subdeccount:=14);
+		{end}
+	end
+
+	{#define dword_to_string(...) udint_to_string(__VA_ARGS__)}
+{#endif}
+
+{#if not (_CODESYS)}
+(*{doc Convert a boolean value to a string representation.
+@input in The boolean value to convert.
+@return 'true' if the input is true, 'false' otherwise.}*)
+function bool_to_string: string[8]
+	_PROLOGUE_OF_FUNCTION_FOR_SYS_();
+	var_input
+		(*{doc The boolean value to convert.}*)
+		in: bool;
+	end
+	{st}
+	if in then
+		bool_to_string := 'true';
+	else
+		bool_to_string := 'false';
+	end_if;
+	{end}
+end
+{#endif}
+
+{#if _OMRON}
+	{#define time_to_usec_dint(...) lint_to_dint(TimeToNanoSec(__VA_ARGS__) / lint#1000)}
+{#elif _KEYENCE}
+	{#define time_to_usec_dint(...) TimeToMicroSec(__VA_ARGS__)}
+{#elif _CODESYS}
+	{#define time ltime}
+	{#define TIME ltime}
+	{#define time_to_usec_dint(...) lint_to_dint(ltime_to_lint(__VA_ARGS__) / lint#1000)}
+{#endif}
+
+{#if not (_MITSUBISHI)}
+// note: int64 based
+(*{doc Convert a time value to a string representation in seconds.
+The output format is "<sign><seconds>.<microseconds>s" or "<sign><seconds>s" if there are no fractional seconds.
+@input in The time value to convert.
+@return The string representation of the time value in seconds.}*)
+function time_to_string_sec: string[64]
+	_PROLOGUE_OF_FUNCTION_FOR_SYS_();
+	var_input
+		(*{doc The time value to convert.}*)
+		in: time;
+	end
+	var_temp
+		usec_raw: dint;
+		sec_rem_raw: dint;
+		sec_int_raw: dint;
+		sec_rem_str: string[16];
+		sign: string[2] := '';
+	end
+	{st}
+	usec_raw := time_to_usec_dint(in);
+
+	sec_rem_raw := usec_raw mod dint#1_000_000;
+	sec_int_raw := (usec_raw - sec_rem_raw) / dint#1_000_000;
+
+	if usec_raw < 0 then
+		sign := '-';
+		sec_rem_raw := -sec_rem_raw;
+		sec_int_raw := -sec_int_raw;
+	end_if;
+
+	sec_rem_str := dint_to_string(sec_rem_raw);
+	while len(sec_rem_str) <> 6 do
+		sec_rem_str := jiec_concat('0', sec_rem_str);
+	end_while;
+	while len(sec_rem_str) > 0 do
+		if right(sec_rem_str, 1) <> '0' then
+			exit;
+		end_if;
+		sec_rem_str := delete(sec_rem_str, 1, len(sec_rem_str));
+	end_while;
+
+	if sec_rem_str <> '' then
+		time_to_string_sec := jiec_concat(sign, dint_to_string(sec_int_raw), '.', sec_rem_str, 's');
+	else
+		time_to_string_sec := jiec_concat(sign, dint_to_string(sec_int_raw), 's');
+	end_if;
+	{end}
+end
+{#elif _MITSUBISHI}
+	// TODO:
+{#endif}
+
+{#if _OMRON}
+	{#define date_to_string(...) DateToString(__VA_ARGS__)}
+	{#define tod_to_string(...) TodToString(__VA_ARGS__)}
+	{#define dt_to_string(...) DtToString(__VA_ARGS__)}
+{#elif _KEYENCE}
+	{#define date_to_string(...) 'Unsupported'}
+	{#define tod_to_string(...) 'Unsupported'}
+	{#define dt_to_string(...) 'Unsupported'}
+{#elif _MITSUBISHI}
+	{#define date_to_string(...) 'Unsupported'}
+	{#define tod_to_string(...) 'Unsupported'}
+	{#define dt_to_string(...) 'Unsupported'}
+{#endif}
+
+{#define IDENTITY_TYPECONV_FUNCTION(dtype, dtype_option)
+	(*${doc Identity type conversion function that returns the input value unchanged.$n
+	@input in The input value.$n
+	@return The same value as the input.$}*)
+	function dtype@@_to_@@dtype: dtype dtype_option
+		_PROLOGUE_OF_FUNCTION_FOR_SYS_();
+		var_input
+			(*${doc The input value.$}*)
+			in: dtype dtype_option;
+		end
+		${st$}
+		dtype@@_to_@@dtype := in;
+		${end$}
+	end
+}
+IDENTITY_TYPECONV_FUNCTION(string, [STRING_MAX_SIZE])
+IDENTITY_TYPECONV_FUNCTION(uint, )
+IDENTITY_TYPECONV_FUNCTION(udint, )
+
+{#endif}

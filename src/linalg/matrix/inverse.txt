@@ -1,6 +1,6 @@
 (*
  * Matrix Inverse
- * $ jiecc ./src/linalg/matrix/inverse.txt -I./src -I./vendor/jiecunit/sys -o ./src/linalg/matrix/inverse.xml -t omron
+ * $ jiecc ./src/linalg/matrix/inverse.txt -I./src -o ./src/linalg/matrix/inverse.xml -t omron
  *)
 {#ifndef __LINALG_MATRIX_INVERSE_TXT__}
 {#define __LINALG_MATRIX_INVERSE_TXT__}

@@ -1,0 +1,155 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/container/test_container.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/container/test_container.xml -t omron
+ * or
+ * $ jiecc ./test/container/test_container.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/container/test_container.xml -t keyence
+ *)
+{#if _JIECC and (_JIECC_VER < 514)}
+	{#error This test requires Jiecc 5.14 or later.}
+{#endif}
+
+{#include <jiecunit.txt>}
+{#if _JIECUNIT_VER < 302}
+	{#error "JiecUnit version 3.2 or higher is required to compile this test."}
+{#endif}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_arraylist_dint_init',
+		'test_arraylist_dint_append',
+		'test_arraylist_dint_insert',
+		'test_arraylist_dint_get',
+		'test_arraylist_dint_set',
+		'test_arraylist_dint_remove',
+		'test_arraylist_dint_contains',
+		'test_arraylist_dint_len',
+		'test_arraylist_dint_empty',
+		'test_arraylist_dint_clear',
+		'test_arraylist_dint_copy',
+		'test_arraylist_dint_equals',
+		'test_arraylist_string_caseinsensitive_usecase',
+		'test_arraylist_dint_index',
+		'test_arraylist_dint_values',
+		'test_arraylist_dint_hash',
+		'test_dequeue_init',
+		'test_dequeue_copy',
+		'test_dequeue_empty',
+		'test_dequeue_len',
+		'test_dequeue_clear',
+		'test_dequeue_append',
+		'test_dequeue_appendleft',
+		'test_dequeue_pop',
+		'test_dequeue_popleft',
+		'test_dequeue_first',
+		'test_dequeue_last',
+		'test_dequeue_contains',
+		'test_dequeue_elements',
+		'test_dequeue_equals',
+		'test_dequeue_hash',
+		'test_dequeue_string_caseinsensitive_usecase',
+		'test_hashmap_dint_init',
+		'test_hashmap_dint_upsert',
+		'test_hashmap_dint_copy',
+		'test_hashmap_dint_contains',
+		'test_hashmap_dint_delete',
+		'test_hashmap_dint_len',
+		'test_hashmap_dint_equals',
+		'test_hashmap_dint_keys',
+		'test_hashmap_dint_values',
+		'test_hashmap_dint_items',
+		'test_hashmap_dint_hash',
+		'test_hashmap_dint_empty',
+		'test_hashmap_dint_clear',
+		'test_hashmap_dint_collision_upsert',
+		'test_hashmap_dint_collision_lookup',
+		'test_hashmap_dint_collision_delete',
+		'test_hashmap_dint_collision_contains',
+		'test_hashmap_dint_collision_len',
+		'test_hashmap_dint_usecase',
+		'test_hashmap_record_usecase',
+		'test_hashmap_case_insensitive',
+		'test_hashmap_case_insensitive_copy',
+		'test_hashmap_case_insensitive_equals',
+		'test_hashmap_case_insensitive_hash',
+		'test_hashset_dint_init',
+		'test_hashset_dint_copy',
+		'test_hashset_dint_add',
+		'test_hashset_dint_add_all',
+		'test_hashset_dint_remove_all',
+		'test_hashset_dint_contains',
+		'test_hashset_dint_remove',
+		'test_hashset_dint_len',
+		'test_hashset_dint_equals',
+		'test_hashset_dint_elements',
+		'test_hashset_dint_hash',
+		'test_hashset_dint_empty',
+		'test_hashset_dint_clear',
+		'test_hashset_dint_collision_usecase',
+		'test_hashset_string_usecase',
+		'test_hashset_record_usecase',
+		'test_linkedhashmap_dint_init',
+		'test_linkedhashmap_dint_upsert',
+		'test_linkedhashmap_dint_lookup',
+		'test_linkedhashmap_dint_contains',
+		'test_linkedhashmap_dint_len',
+		'test_linkedhashmap_dint_keys',
+		'test_linkedhashmap_dint_values',
+		'test_linkedhashmap_dint_items',
+		'test_linkedhashmap_dint_delete',
+		'test_linkedhashmap_dint_copy',
+		'test_linkedhashmap_dint_equals',
+		'test_linkedhashmap_dint_hash',
+		'test_linkedhashmap_dint_empty',
+		'test_linkedhashmap_dint_clear',
+		'test_linkedhashmap_string_caseinsensitive_usecase',
+		'test_linkedlist_dint_init',
+		'test_linkedlist_dint_append',
+		'test_linkedlist_dint_appendleft',
+		'test_linkedlist_dint_insert',
+		'test_linkedlist_dint_pop',
+		'test_linkedlist_dint_popleft',
+		'test_linkedlist_dint_get',
+		'test_linkedlist_dint_set',
+		'test_linkedlist_dint_remove',
+		'test_linkedlist_dint_contains',
+		'test_linkedlist_dint_index',
+		'test_linkedlist_dint_values',
+		'test_linkedlist_dint_len',
+		'test_linkedlist_dint_empty',
+		'test_linkedlist_dint_clear',
+		'test_linkedlist_dint_copy',
+		'test_linkedlist_dint_equals',
+		'test_linkedlist_string_caseinsensitive_usecase',
+		'test_linkedlist_dint_hash',
+		'test_orderedmap_dint_init',
+		'test_orderedmap_dint_upsert',
+		'test_orderedmap_dint_lookup',
+		'test_orderedmap_dint_delete',
+		'test_orderedmap_dint_contains',
+		'test_orderedmap_dint_len',
+		'test_orderedmap_dint_keys',
+		'test_orderedmap_dint_values',
+		'test_orderedmap_dint_items',
+		'test_orderedmap_dint_copy',
+		'test_orderedmap_dint_equals',
+		'test_orderedmap_dint_hash',
+		'test_orderedmap_dint_empty',
+		'test_orderedmap_dint_clear',
+		'test_orderedmap_string_caseinsensitive_usecase',
+		'test_ringbuffer_init',
+		'test_ringbuffer_enqueue',
+		'test_ringbuffer_dequeue'
+	)
+)
+{#undef _TEST_}
+{#endif}
+
+{#include "arraylist/test_arraylist.txt"}
+{#include "dequeue/test_dequeue.txt"}
+{#include "hashmap/test_hashmap.txt"}
+{#include "hashset/test_hashset.txt"}
+{#include "linkedhashmap/test_linkedhashmap.txt"}
+{#include "linkedlist/test_linkedlist.txt"}
+{#include "orderedmap/test_orderedmap.txt"}
+{#include "ringbuffer/test_ringbuffer.txt"}

@@ -1,12 +1,13 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/string_lib/test_string_lib.txt -I./src -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/string_lib/test_string_lib.xml -t omron
+ * $ jiecc ./test/string_lib/test_string_lib.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/string_lib/test_string_lib.xml -t omron
  * or
- * $ jiecc ./test/string_lib/test_string_lib.txt -I./src -I./vendor/jiecunit -I./vendor/jiecunit/sys -o ./test/string_lib/test_string_lib.xml -t keyence
+ * $ jiecc ./test/string_lib/test_string_lib.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/string_lib/test_string_lib.xml -t keyence
  *)
 {#include <jiecunit.txt>}
 {#include <string_lib/string_lib.txt>}
 
+{#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
 		'test_String_length',
@@ -38,6 +39,8 @@ DEFINE_CONFIGURATION(
 		'test_String_lastIndexOf'
 	)
 )
+
+{#endif}
 
 TEST_S(test_String_length)
 	{st}

@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/stats/descriptive/mode.txt -I./src -I./vendor/jiecunit/sys -o ./src/stats/descriptive/mode.xml -t omron
+ * $ jiecc ./src/stats/descriptive/mode.txt -I./src -o ./src/stats/descriptive/mode.xml -t omron
  *)
 {#ifndef __STATS_DESCRIPTIVE_MODE_TXT__}
 {#define __STATS_DESCRIPTIVE_MODE_TXT__}

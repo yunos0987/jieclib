@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/encoding/test_hex.txt -I. -I./src -I./vendor/jiecunit -I./vendor/jiecunit/sys -D_TEST_ -o ./test/encoding/test_hex.xml -t omron
+ * $ jiecc ./test/encoding/test_hex.txt -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/encoding/test_hex.xml -t omron
  *)
 {#include <jiecunit.txt>}
 

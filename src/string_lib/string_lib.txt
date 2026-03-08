@@ -1,13 +1,16 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/string_lib/string_lib.txt -I./src -I./vendor/jiecunit/sys -o ./src/string_lib/string_lib.xml -t omron
+ * $ jiecc ./src/string_lib/string_lib.txt -I./src -o ./src/string_lib/string_lib.xml -t omron
  * or
- * $ jiecc ./src/string_lib/string_lib.txt -I./src -I./vendor/jiecunit/sys -o ./src/string_lib/string_lib.xml -t keyence
+ * $ jiecc ./src/string_lib/string_lib.txt -I./src -o ./src/string_lib/string_lib.xml -t keyence
  *)
 {#ifndef __STRING_LIB_TXT__}
 {#define __STRING_LIB_TXT__}
 
 {#include <sys.txt>}
+
+{#include "equivalence.txt"}
+{#include "equivalence_caseinsensitive.txt"}
 
 {#define CHAR_MAX_BYTE 4}
 {#define STRING string[STRING_MAX_SIZE]}
@@ -97,40 +100,6 @@ end
 	{#define String_concat_16(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16) concat(String_concat_15(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15), s16)}
 	{#define _String_concat_n(n, ...) String_concat_@@n(__VA_ARGS__)}
 
-{doc 指定位置のASCII文字コードを取得する}
-function String_asciiCharCodeAt: dint
-	_PROLOGUE_OF_FUNCTION_()
-	var_input
-		self: STRING;
-		{doc: 0 origin.}
-		p: dint := 0;
-	end
-	var_temp
-		c_x: string[CHAR_MAX_BYTE + 1];
-		asciicode: dint;
-		ASCIIs: string[16#7f + 1] := (*'$00'*)
-			'$01$02$03$04$05$06$07$08$09'
-			'$0A$0B$0C$0D$0E$0F$10$11$12$13'
-			'$14$15$16$17$18$19$1A$1B$1C$1D'
-			'$1E$1F !"#$$%&$'()*+,-./0123456789:;<=>?'
-			'@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_'
-			'`abcdefghijklmnopqrstuvwxyz{|}~$7F' constant;
-	end
-	{st}
-	c_x := String_charAt(self, p);
-	if c_x <> '' then
-		// note: Poor performance. Should be optimize.
-		for asciicode := 1 to 127 by 1 do
-			if c_x = String_charAt(ASCIIs, asciicode - 1) then
-				String_asciiCharCodeAt := asciicode;
-				return;
-			end_if;
-		end_for;
-	end_if;
-	String_asciiCharCodeAt := -1;
-	{end}
-end
-
 {#define String_fromAsciiCharCode(...) _String_fromAsciiCharCode_n(__VA_ARGC__, __VA_ARGS__)}
 	{#define String_fromAsciiCharCode_1(c1) String_fromAsciiCharCode1(c1)}
 	{#define String_fromAsciiCharCode_2(c1, c2) String_concat(String_fromAsciiCharCode_1(c1), String_fromAsciiCharCode1(c2))}
@@ -149,12 +118,17 @@ end
 	{#define String_fromAsciiCharCode_15(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15) String_concat(String_fromAsciiCharCode_14(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14), String_fromAsciiCharCode1(c15))}
 	{#define String_fromAsciiCharCode_16(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16) String_concat(String_fromAsciiCharCode_15(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15), String_fromAsciiCharCode1(c16))}
 	{#define _String_fromAsciiCharCode_n(n, ...) String_fromAsciiCharCode_@@n(__VA_ARGS__)}
-{doc 指定するASCII文字コードの文字を取得する}
+(*{doc 指定したASCII文字コードに対応する1文字の文字列を取得する。
+入力値は内部で128(0..127)の範囲に正規化して参照します。
+@input charcode 変換元のASCII文字コード。
+@return 対応する1文字の文字列。
+@error 変換元のASCII文字コードが範囲外の場合。}*)
 function String_fromAsciiCharCode1: string[CHAR_MAX_BYTE + 1]
 	{#define CODE0 16#00}
 	{#define CODE1 16#7f}
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
+		{doc: 変換元のASCII文字コード。}
 		charcode: dint;
 	end
 	var_temp
@@ -169,7 +143,11 @@ function String_fromAsciiCharCode1: string[CHAR_MAX_BYTE + 1]
 			'$70', '$71', '$72', '$73', '$74', '$75', '$76', '$77', '$78', '$79', '$7A', '$7B', '$7C', '$7D', '$7E', '$7F',];
 	end
 	{st}
-	String_fromAsciiCharCode1 := CODE2CHAR[charcode mod (CODE1 + 1)];
+	if (CODE0 <= charcode) and (charcode <= CODE1) then
+		String_fromAsciiCharCode1 := CODE2CHAR[charcode];
+	else
+		eno := false;
+	end_if;
 	{end}
 	{#undef CODE0}
 	{#undef CODE1}
@@ -242,143 +220,6 @@ function String_upper: STRING
 	{#undef DIFF_CHARCODE_U2L}
 end
 {#define String_toUpperCase String_upper}
-
-{doc 文字列同士を比較する}
-function String_equals: bool
-	_PROLOGUE_OF_FUNCTION_()
-	var_input
-		self: STRING;
-	end
-	var_input
-		other: STRING;
-	end
-	{st}
-	String_equals := self = other;
-	{end}
-end
-
-{doc ASCII文字列同士を大文字小文字を無視して比較する}
-function String_equalsAsciiIgnoreCase: bool
-	{#define CHARCODE_A 16#41}
-	{#define CHARCODE_Z 16#5a}
-	{#define DIFF_CHARCODE_U2L 16#20}
-	_PROLOGUE_OF_FUNCTION_()
-	var_input
-		self: STRING;
-	end
-	var_input
-		other: STRING;
-	end
-	var_temp
-		index, l: dint;
-		self_code, other_code: dint;
-	end
-	{st}
-	l := len(self);
-	if l <> len(other) then
-		String_equalsAsciiIgnoreCase := false;
-		return;
-	end_if;
-
-	for index := 0 to l - 1 by 1 do
-		self_code := String_asciiCharCodeAt(self, index);
-		other_code := String_asciiCharCodeAt(other, index);
-
-		if (self_code < 0) or (other_code < 0) then
-			eno := false;
-			return;
-		end_if;
-
-		if (CHARCODE_A <= self_code) and (self_code <= CHARCODE_Z) then
-			self_code := self_code + DIFF_CHARCODE_U2L;
-		end_if;
-		if (CHARCODE_A <= other_code) and (other_code <= CHARCODE_Z) then
-			other_code := other_code + DIFF_CHARCODE_U2L;
-		end_if;
-
-		if self_code <> other_code then
-			String_equalsAsciiIgnoreCase := false;
-			return;
-		end_if;
-	end_for;
-
-	String_equalsAsciiIgnoreCase := true;
-	{end}
-	{#undef CHARCODE_A}
-	{#undef CHARCODE_Z}
-	{#undef DIFF_CHARCODE_U2L}
-end
-
-{doc 文字列のFNV-1a(32bit, udint)ハッシュ値を取得する}
-function String_hash: udint
-	{#define FNV_OFFSET_BASIS udint#2166136261}
-	{#define FNV_PRIME udint#16777619}
-	_PROLOGUE_OF_FUNCTION_()
-	var_input
-		self: STRING;
-	end
-	var_temp
-		h: udint;
-		index, l: dint;
-		code: dint;
-	end
-	{st}
-	h := FNV_OFFSET_BASIS;
-	l := len(self);
-	for index := 0 to l - 1 by 1 do
-		code := String_asciiCharCodeAt(self, index);
-		if code < 0 then
-			eno := false;
-			return;
-		end_if;
-		h := dword_to_udint(udint_to_dword(h) xor udint_to_dword(dint_to_udint(code)));
-		h := h * FNV_PRIME;
-	end_for;
-	String_hash := h;
-	{end}
-	{#undef FNV_OFFSET_BASIS}
-	{#undef FNV_PRIME}
-end
-
-{doc 文字列のFNV-1a(32bit, udint)ハッシュ値をASCII大文字小文字無視で取得する}
-function String_hashAsciiIgnoreCase: udint
-	{#define FNV_OFFSET_BASIS udint#2166136261}
-	{#define FNV_PRIME udint#16777619}
-	{#define CHARCODE_A 16#41}
-	{#define CHARCODE_Z 16#5a}
-	{#define DIFF_CHARCODE_U2L 16#20}
-	_PROLOGUE_OF_FUNCTION_()
-	var_input
-		self: STRING;
-	end
-	var_temp
-		h: udint;
-		index, l: dint;
-		code: dint;
-	end
-	{st}
-	h := FNV_OFFSET_BASIS;
-	l := len(self);
-	for index := 0 to l - 1 by 1 do
-		code := String_asciiCharCodeAt(self, index);
-		if code < 0 then
-			eno := false;
-			return;
-		end_if;
-		if (CHARCODE_A <= code) and (code <= CHARCODE_Z) then
-			code := code + DIFF_CHARCODE_U2L;
-		end_if;
-		h := dword_to_udint(udint_to_dword(h) xor udint_to_dword(dint_to_udint(code)));
-		h := h * FNV_PRIME;
-	end_for;
-	String_hashAsciiIgnoreCase := h;
-	{end}
-	{#undef FNV_OFFSET_BASIS}
-	{#undef FNV_PRIME}
-	{#undef CHARCODE_A}
-	{#undef CHARCODE_Z}
-	{#undef DIFF_CHARCODE_U2L}
-end
 
 {doc 指定の文字列を削除する}
 function String_remove: STRING

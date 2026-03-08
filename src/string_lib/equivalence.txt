@@ -1,0 +1,112 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/string_lib/equivalence.txt -I./src -o ./src/string_lib/equivalence.xml -t omron
+ * or
+ * $ jiecc ./src/string_lib/equivalence.txt -I./src -o ./src/string_lib/equivalence.xml -t keyence
+ *)
+{#ifndef __STRING_LIB_EQUIVALENCE_TXT__}
+{#define __STRING_LIB_EQUIVALENCE_TXT__}
+
+{#include <sys.txt>}
+
+{#define CHAR_MAX_BYTE 4}
+{#define STRING string[STRING_MAX_SIZE]}
+
+(*{doc 指定位置のASCII文字コードを取得する。
+0-originの位置を指定し、対応するASCIIコード(1..127)を返します。
+@input self 対象の文字列。
+@input p 0-originの文字位置。
+@return 対応するASCIIコード。
+	指定位置が範囲外、またはASCII範囲外の文字の場合、-1を返す。
+@error なし。}*)
+function String_asciiCharCodeAt: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: STRING;
+		{doc: 0-originの文字位置。}
+		p: dint := 0;
+	end
+	var_temp
+		l: dint;
+		c_x: string[CHAR_MAX_BYTE + 1];
+		asciicode: uint;
+		ASCIIs: string[16#7f + 1] := (*'$00'*)
+			'$01$02$03$04$05$06$07$08$09'
+			'$0A$0B$0C$0D$0E$0F$10$11$12$13'
+			'$14$15$16$17$18$19$1A$1B$1C$1D'
+			'$1E$1F !"#$$%&$'()*+,-./0123456789:;<=>?'
+			'@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_'
+			'`abcdefghijklmnopqrstuvwxyz{|}~$7F' constant;
+	end
+	{st}
+	l := len(self);
+	if (0 <= p) and (p < l) then
+		c_x := mid(self, 1, dint_to_uint(p + 1));
+		// note: Poor performance. Should be optimize.
+		for asciicode := 1 to 127 by 1 do
+			if c_x = mid(ASCIIs, 1, asciicode) then
+				String_asciiCharCodeAt := asciicode;
+				return;
+			end_if;
+		end_for;
+	end_if;
+	String_asciiCharCodeAt := -1;
+	{end}
+end
+
+(*{doc 2つの文字列が同一かどうかを判定する。
+大文字・小文字を区別して完全一致比較を行います。
+@input self 比較元の文字列。
+@input other 比較対象の文字列。
+@return 2つの文字列が同一ならtrue、異なるならfalse。}*)
+function String_equals: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: STRING;
+	end
+	var_input
+		{doc: 比較対象の文字列。}
+		other: STRING;
+	end
+	{st}
+	String_equals := self = other;
+	{end}
+end
+
+(*{doc 文字列のFNV-1a(32bit, udint)ハッシュ値を取得する。
+文字列中の各文字をASCIIコードとして順に処理し、FNV-1aで集約します。
+@input self ハッシュ化対象の文字列。
+@return FNV-1a(32bit)のハッシュ値。
+@error ASCII範囲外の文字が含まれる場合はenoをfalseにし、0を返す。}*)
+function String_hash: udint
+	{#define FNV_OFFSET_BASIS udint#2166136261}
+	{#define FNV_PRIME udint#16777619}
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: STRING;
+	end
+	var_temp
+		fnv_hash: udint;
+		index, l: dint;
+		code: dint;
+	end
+	{st}
+	fnv_hash := FNV_OFFSET_BASIS;
+	l := len(self);
+	for index := 0 to l - 1 by 1 do
+		code := String_asciiCharCodeAt(self, index);
+		if code < 0 then
+			String_hash := 0;
+			eno := false;
+			return;
+		end_if;
+		fnv_hash := dword_to_udint(udint_to_dword(fnv_hash) xor udint_to_dword(dint_to_udint(code)));
+		fnv_hash := fnv_hash * FNV_PRIME;
+	end_for;
+	String_hash := fnv_hash;
+	{end}
+	{#undef FNV_OFFSET_BASIS}
+	{#undef FNV_PRIME}
+end
+
+{#endif}

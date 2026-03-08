@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/stats/distributions/core/special_functions.txt -I./src -I./vendor/jiecunit/sys -o ./src/stats/distributions/core/special_functions.xml -t omron
+ * $ jiecc ./src/stats/distributions/core/special_functions.txt -I./src -o ./src/stats/distributions/core/special_functions.xml -t omron
  *)
 {#ifndef __STATS_DISTRIBUTIONS_CORE_SPECIAL_FUNCTIONS_TXT__}
 {#define __STATS_DISTRIBUTIONS_CORE_SPECIAL_FUNCTIONS_TXT__}

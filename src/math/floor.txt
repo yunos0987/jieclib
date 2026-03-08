@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/math/floor.txt -I./src -I./vendor/jiecunit/sys -o ./src/math/floor.xml -t omron
+ * $ jiecc ./src/math/floor.txt -I./src -o ./src/math/floor.xml -t omron
  *)
 {#ifndef __MATH_FLOOR_TXT__}
 {#define __MATH_FLOOR_TXT__}

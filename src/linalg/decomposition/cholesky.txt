@@ -1,6 +1,6 @@
 (*
  * Cholesky Decomposition
- * $ jiecc ./src/linalg/decomposition/cholesky.txt -I./src -I./vendor/jiecunit/sys -o ./src/linalg/decomposition/cholesky.xml -t omron
+ * $ jiecc ./src/linalg/decomposition/cholesky.txt -I./src -o ./src/linalg/decomposition/cholesky.xml -t omron
  *)
 {#ifndef __LINALG_DECOMPOSITION_CHOLESKY_TXT__}
 {#define __LINALG_DECOMPOSITION_CHOLESKY_TXT__}

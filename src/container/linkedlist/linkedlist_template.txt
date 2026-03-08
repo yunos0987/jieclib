@@ -1,0 +1,920 @@
+(*
+	================================================================================
+	LinkedList Template Generator - Macro-based Generic Doubly Linked List
+	================================================================================
+
+	This template generates a typed LinkedList from preprocessor macros.
+
+	Usage:
+	1. Define required macros.
+	2. Optionally define behavior macros.
+	3. Include this template once per generated type.
+
+	Required macros:
+	  - LinkedListName
+	    Suffix used for generated types and functions.
+	  - LinkedListItemType
+	    Element type stored in the list.
+	  - LinkedListCapacity
+	    Maximum number of elements.
+
+	Optional macros:
+	  - LinkedListElementEqualsFunction
+	    Equality function for contains/index/equals.
+	    Default: direct value comparison.
+	  - LinkedListElementHashFunction
+	    Hash function for hash API generation.
+
+	Generated APIs:
+	  - init, len, empty, clear
+	  - append, appendleft, insert, pop, popleft, remove
+	  - get, set, contains, index, values
+	  - copy, equals
+	  - hash (when LinkedListElementHashFunction is defined)
+
+	Example (dint):
+	  {#define LinkedListName dint}
+	  {#define LinkedListItemType dint}
+	  {#define LinkedListCapacity 128}
+	  {#include <container/linkedlist/linkedlist_template.txt>}
+
+	Example (string):
+	  {#define LinkedListName str}
+	  {#define LinkedListItemType string[128]}
+	  {#define LinkedListCapacity 64}
+	  {#define LinkedListElementEqualsFunction String_equals}
+	  {#include <container/linkedlist/linkedlist_template.txt>}
+
+	Algorithm:
+	  Doubly linked list with a free-node pool.
+	================================================================================
+*)
+{#include <sys.txt>}
+{#include <sys_conv.txt>}
+
+{#ifndef LinkedListName}
+	{#error require LinkedListName macro.}
+{#endif}
+
+{#ifndef LinkedListItemType}
+	{#error require LinkedListItemType macro.}
+{#endif}
+
+{#ifndef LinkedListCapacity}
+	{#error require LinkedListCapacity macro.}
+{#endif}
+
+{#define _LINKEDLIST_NODE_TYPE_(T) LinkedList_@@T@@_Node_t}
+{#define _LINKEDLIST_CORE_TYPE_(T) LinkedList_@@T@@_t}
+{#define _LINKEDLIST_INIT_(T) LinkedList_@@T@@_init}
+{#define _LINKEDLIST_LEN_(T) LinkedList_@@T@@_len}
+{#define _LINKEDLIST_EMPTY_(T) LinkedList_@@T@@_empty}
+{#define _LINKEDLIST_CLEAR_(T) LinkedList_@@T@@_clear}
+{#define _LINKEDLIST_APPEND_(T) LinkedList_@@T@@_append}
+{#define _LINKEDLIST_APPENDLEFT_(T) LinkedList_@@T@@_appendleft}
+{#define _LINKEDLIST_INSERT_(T) LinkedList_@@T@@_insert}
+{#define _LINKEDLIST_POP_(T) LinkedList_@@T@@_pop}
+{#define _LINKEDLIST_POPLEFT_(T) LinkedList_@@T@@_popleft}
+{#define _LINKEDLIST_REMOVE_(T) LinkedList_@@T@@_remove}
+{#define _LINKEDLIST_GET_(T) LinkedList_@@T@@_get}
+{#define _LINKEDLIST_CONTAINS_(T) LinkedList_@@T@@_contains}
+{#define _LINKEDLIST_INDEX_(T) LinkedList_@@T@@_index}
+{#define _LINKEDLIST_VALUES_(T) LinkedList_@@T@@_values}
+{#define _LINKEDLIST_SET_(T) LinkedList_@@T@@_set}
+{#define _LINKEDLIST_COPY_(T) LinkedList_@@T@@_copy}
+{#define _LINKEDLIST_EQUALS_(T) LinkedList_@@T@@_equals}
+{#define _LINKEDLIST_HASH_(T) LinkedList_@@T@@_hash}
+
+{#define LINKEDLIST_NODE_TYPE(T) _LINKEDLIST_NODE_TYPE_(T)}
+{#define LINKEDLIST_CORE_TYPE(T) _LINKEDLIST_CORE_TYPE_(T)}
+{#define LINKEDLIST_INIT(T) _LINKEDLIST_INIT_(T)}
+{#define LINKEDLIST_LEN(T) _LINKEDLIST_LEN_(T)}
+{#define LINKEDLIST_EMPTY(T) _LINKEDLIST_EMPTY_(T)}
+{#define LINKEDLIST_CLEAR(T) _LINKEDLIST_CLEAR_(T)}
+{#define LINKEDLIST_APPEND(T) _LINKEDLIST_APPEND_(T)}
+{#define LINKEDLIST_APPENDLEFT(T) _LINKEDLIST_APPENDLEFT_(T)}
+{#define LINKEDLIST_INSERT(T) _LINKEDLIST_INSERT_(T)}
+{#define LINKEDLIST_POP(T) _LINKEDLIST_POP_(T)}
+{#define LINKEDLIST_POPLEFT(T) _LINKEDLIST_POPLEFT_(T)}
+{#define LINKEDLIST_REMOVE(T) _LINKEDLIST_REMOVE_(T)}
+{#define LINKEDLIST_GET(T) _LINKEDLIST_GET_(T)}
+{#define LINKEDLIST_CONTAINS(T) _LINKEDLIST_CONTAINS_(T)}
+{#define LINKEDLIST_INDEX(T) _LINKEDLIST_INDEX_(T)}
+{#define LINKEDLIST_VALUES(T) _LINKEDLIST_VALUES_(T)}
+{#define LINKEDLIST_SET(T) _LINKEDLIST_SET_(T)}
+{#define LINKEDLIST_COPY(T) _LINKEDLIST_COPY_(T)}
+{#define LINKEDLIST_EQUALS(T) _LINKEDLIST_EQUALS_(T)}
+{#define LINKEDLIST_HASH(T) _LINKEDLIST_HASH_(T)}
+
+{#define LinkedListNodeType LINKEDLIST_NODE_TYPE(LinkedListName)}
+{#define LinkedListCoreType LINKEDLIST_CORE_TYPE(LinkedListName)}
+{#define LinkedList_init LINKEDLIST_INIT(LinkedListName)}
+{#define LinkedList_len LINKEDLIST_LEN(LinkedListName)}
+{#define LinkedList_empty LINKEDLIST_EMPTY(LinkedListName)}
+{#define LinkedList_clear LINKEDLIST_CLEAR(LinkedListName)}
+{#define LinkedList_append LINKEDLIST_APPEND(LinkedListName)}
+{#define LinkedList_appendleft LINKEDLIST_APPENDLEFT(LinkedListName)}
+{#define LinkedList_insert LINKEDLIST_INSERT(LinkedListName)}
+{#define LinkedList_pop LINKEDLIST_POP(LinkedListName)}
+{#define LinkedList_popleft LINKEDLIST_POPLEFT(LinkedListName)}
+{#define LinkedList_remove LINKEDLIST_REMOVE(LinkedListName)}
+{#define LinkedList_get LINKEDLIST_GET(LinkedListName)}
+{#define LinkedList_contains LINKEDLIST_CONTAINS(LinkedListName)}
+{#define LinkedList_index LINKEDLIST_INDEX(LinkedListName)}
+{#define LinkedList_values LINKEDLIST_VALUES(LinkedListName)}
+{#define LinkedList_set LINKEDLIST_SET(LinkedListName)}
+{#define LinkedList_copy LINKEDLIST_COPY(LinkedListName)}
+{#define LinkedList_equals LINKEDLIST_EQUALS(LinkedListName)}
+{#define LinkedList_hash LINKEDLIST_HASH(LinkedListName)}
+
+{#ifdef LinkedListElementEqualsFunction}
+	{#define _LINKEDLIST_ELEM_EQUALS_(A, B) LinkedListElementEqualsFunction((A), (B))}
+{#else}
+	{#define _LINKEDLIST_ELEM_EQUALS_(A, B) ((A) = (B))}
+{#endif}
+
+type
+	LinkedListNodeType: struct
+		value: LinkedListItemType;
+		prev_idx: dint;
+		next_idx: dint;
+		used: bool;
+	end
+end
+
+type
+	LinkedListCoreType: struct
+		nodes: array[LinkedListCapacity] of LinkedListNodeType;
+		head_idx: dint;
+		tail_idx: dint;
+		free_head_idx: dint;
+		count: dint;
+		capacity: dint;
+	end
+end
+
+(*{doc Initialize the container.
+Reset list links and free-node chain.
+@inout self Target LinkedList. }*)
+function LinkedList_init
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedListCoreType;
+	end
+	var_temp
+		idx_loop: dint;
+	end
+	{st}
+	self.head_idx := -1;
+	self.tail_idx := -1;
+	self.free_head_idx := 0;
+	self.count := 0;
+	self.capacity := LinkedListCapacity;
+
+	for idx_loop := 0 to LinkedListCapacity - 1 by 1 do
+		self.nodes[idx_loop].used := false;
+		self.nodes[idx_loop].prev_idx := -1;
+		if idx_loop = LinkedListCapacity - 1 then
+			self.nodes[idx_loop].next_idx := -1;
+		else
+			self.nodes[idx_loop].next_idx := idx_loop + 1;
+		end_if;
+	end_for;
+	{end}
+end
+
+(*{doc Return the number of stored elements.
+Expose current logical size.
+@inout self Target LinkedList.
+@return Element count. }*)
+function LinkedList_len: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedListCoreType;
+	end
+	{st}
+	LinkedList_len := self.count;
+	{end}
+end
+
+(*{doc Return true when the container is empty.
+Check whether count is zero.
+@inout self Target LinkedList.
+@return true if count is 0, otherwise false. }*)
+function LinkedList_empty: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedListCoreType;
+	end
+	{st}
+	LinkedList_empty := self.count = 0;
+	{end}
+end
+
+(*{doc Clear all elements.
+Reinitialize state to empty.
+@inout self Target LinkedList.
+@return true on success. }*)
+function LinkedList_clear: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedListCoreType;
+	end
+	{st}
+	LinkedList_init(self);
+	LinkedList_clear := true;
+	{end}
+end
+
+(*{doc Append one element at the tail.
+Allocate one node from free list and link to tail.
+@inout self Target LinkedList.
+@input item Element to append.
+@return true on success, false when full. }*)
+function LinkedList_append: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedListCoreType;
+	end
+	var_input
+		item: LinkedListItemType;
+	end
+	var_temp
+		idx: dint;
+		old_tail: dint;
+	end
+	{st}
+	if self.free_head_idx < 0 then
+		LinkedList_append := false;
+		return;
+	end_if;
+
+	idx := self.free_head_idx;
+	self.free_head_idx := self.nodes[idx].next_idx;
+
+	self.nodes[idx].used := true;
+	self.nodes[idx].value := item;
+	self.nodes[idx].prev_idx := self.tail_idx;
+	self.nodes[idx].next_idx := -1;
+
+	old_tail := self.tail_idx;
+	if old_tail >= 0 then
+		self.nodes[old_tail].next_idx := idx;
+	else
+		self.head_idx := idx;
+	end_if;
+	self.tail_idx := idx;
+	self.count := self.count + 1;
+
+	LinkedList_append := true;
+	{end}
+end
+
+(*{doc Insert one element at the head.
+Allocate one node from free list and link to head.
+@inout self Target LinkedList.
+@input item Element to insert.
+@return true on success, false when full. }*)
+function LinkedList_appendleft: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedListCoreType;
+	end
+	var_input
+		item: LinkedListItemType;
+	end
+	var_temp
+		idx: dint;
+		old_head: dint;
+	end
+	{st}
+	if self.free_head_idx < 0 then
+		LinkedList_appendleft := false;
+		return;
+	end_if;
+
+	idx := self.free_head_idx;
+	self.free_head_idx := self.nodes[idx].next_idx;
+
+	self.nodes[idx].used := true;
+	self.nodes[idx].value := item;
+	self.nodes[idx].prev_idx := -1;
+	self.nodes[idx].next_idx := self.head_idx;
+
+	old_head := self.head_idx;
+	if old_head >= 0 then
+		self.nodes[old_head].prev_idx := idx;
+	else
+		self.tail_idx := idx;
+	end_if;
+	self.head_idx := idx;
+	self.count := self.count + 1;
+
+	LinkedList_appendleft := true;
+	{end}
+end
+
+(*{doc Insert one element at an index.
+Link a new node before the logical position.
+@inout self Target LinkedList.
+@input index Target index (0..count).
+@input item Element to insert.
+@return true on success, false on invalid index or full capacity. }*)
+function LinkedList_insert: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedListCoreType;
+	end
+	var_input
+		index: dint;
+		item: LinkedListItemType;
+	end
+	var_temp
+		idx: dint;
+		step_idx: dint;
+		next_idx: dint;
+		prev_idx: dint;
+	end
+	{st}
+	if (index < 0) or (index > self.count) then
+		LinkedList_insert := false;
+		return;
+	end_if;
+
+	if self.free_head_idx < 0 then
+		LinkedList_insert := false;
+		return;
+	end_if;
+
+	idx := self.free_head_idx;
+	self.free_head_idx := self.nodes[idx].next_idx;
+	self.nodes[idx].used := true;
+	self.nodes[idx].value := item;
+
+	if self.count = 0 then
+		self.nodes[idx].prev_idx := -1;
+		self.nodes[idx].next_idx := -1;
+		self.head_idx := idx;
+		self.tail_idx := idx;
+		self.count := 1;
+		LinkedList_insert := true;
+		return;
+	end_if;
+
+	if index = 0 then
+		self.nodes[idx].prev_idx := -1;
+		self.nodes[idx].next_idx := self.head_idx;
+		self.nodes[self.head_idx].prev_idx := idx;
+		self.head_idx := idx;
+		self.count := self.count + 1;
+		LinkedList_insert := true;
+		return;
+	end_if;
+
+	if index = self.count then
+		self.nodes[idx].prev_idx := self.tail_idx;
+		self.nodes[idx].next_idx := -1;
+		self.nodes[self.tail_idx].next_idx := idx;
+		self.tail_idx := idx;
+		self.count := self.count + 1;
+		LinkedList_insert := true;
+		return;
+	end_if;
+
+	if (index * 2) < self.count then
+		next_idx := self.head_idx;
+		for step_idx := 0 to index - 1 by 1 do
+			next_idx := self.nodes[next_idx].next_idx;
+		end_for;
+	else
+		next_idx := self.tail_idx;
+		for step_idx := self.count - 1 to index + 1 by -1 do
+			next_idx := self.nodes[next_idx].prev_idx;
+		end_for;
+	end_if;
+
+	prev_idx := self.nodes[next_idx].prev_idx;
+	self.nodes[idx].prev_idx := prev_idx;
+	self.nodes[idx].next_idx := next_idx;
+	self.nodes[prev_idx].next_idx := idx;
+	self.nodes[next_idx].prev_idx := idx;
+
+	self.count := self.count + 1;
+	LinkedList_insert := true;
+	{end}
+end
+
+(*{doc Remove and return the last element.
+Unlink tail node and recycle it into free list.
+@inout self Target LinkedList.
+@output item Removed value.
+@return true on success, false when empty. }*)
+function LinkedList_pop: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedListCoreType;
+	end
+	var_output
+		item: LinkedListItemType;
+	end
+	var_temp
+		idx: dint;
+		prev_idx: dint;
+	end
+	{st}
+	idx := self.tail_idx;
+	if idx < 0 then
+		LinkedList_pop := false;
+		return;
+	end_if;
+
+	item := self.nodes[idx].value;
+	prev_idx := self.nodes[idx].prev_idx;
+	if prev_idx >= 0 then
+		self.nodes[prev_idx].next_idx := -1;
+	else
+		self.head_idx := -1;
+	end_if;
+	self.tail_idx := prev_idx;
+
+	self.nodes[idx].used := false;
+	self.nodes[idx].prev_idx := -1;
+	self.nodes[idx].next_idx := self.free_head_idx;
+	self.free_head_idx := idx;
+	self.count := self.count - 1;
+
+	LinkedList_pop := true;
+	{end}
+end
+
+(*{doc Remove and return the first element.
+Unlink head node and recycle it into free list.
+@inout self Target LinkedList.
+@output item Removed value.
+@return true on success, false when empty. }*)
+function LinkedList_popleft: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedListCoreType;
+	end
+	var_output
+		item: LinkedListItemType;
+	end
+	var_temp
+		idx: dint;
+		next_idx: dint;
+	end
+	{st}
+	idx := self.head_idx;
+	if idx < 0 then
+		LinkedList_popleft := false;
+		return;
+	end_if;
+
+	item := self.nodes[idx].value;
+	next_idx := self.nodes[idx].next_idx;
+	if next_idx >= 0 then
+		self.nodes[next_idx].prev_idx := -1;
+	else
+		self.tail_idx := -1;
+	end_if;
+	self.head_idx := next_idx;
+
+	self.nodes[idx].used := false;
+	self.nodes[idx].prev_idx := -1;
+	self.nodes[idx].next_idx := self.free_head_idx;
+	self.free_head_idx := idx;
+	self.count := self.count - 1;
+
+	LinkedList_popleft := true;
+	{end}
+end
+
+(*{doc Remove one element by index.
+Locate logical position, unlink node, and recycle it.
+@inout self Target LinkedList.
+@input index Target index.
+@output item Removed value.
+@return true on success, false on invalid index. }*)
+function LinkedList_remove: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedListCoreType;
+	end
+	var_input
+		index: dint;
+	end
+	var_output
+		item: LinkedListItemType;
+	end
+	var_temp
+		idx: dint;
+		step_idx: dint;
+		prev_idx: dint;
+		next_idx: dint;
+	end
+	{st}
+	if (index < 0) or (index >= self.count) then
+		LinkedList_remove := false;
+		return;
+	end_if;
+
+	if (index * 2) < self.count then
+		idx := self.head_idx;
+		for step_idx := 0 to index - 1 by 1 do
+			idx := self.nodes[idx].next_idx;
+		end_for;
+	else
+		idx := self.tail_idx;
+		for step_idx := self.count - 1 to index + 1 by -1 do
+			idx := self.nodes[idx].prev_idx;
+		end_for;
+	end_if;
+
+	item := self.nodes[idx].value;
+	prev_idx := self.nodes[idx].prev_idx;
+	next_idx := self.nodes[idx].next_idx;
+
+	if prev_idx >= 0 then
+		self.nodes[prev_idx].next_idx := next_idx;
+	else
+		self.head_idx := next_idx;
+	end_if;
+	if next_idx >= 0 then
+		self.nodes[next_idx].prev_idx := prev_idx;
+	else
+		self.tail_idx := prev_idx;
+	end_if;
+
+	self.nodes[idx].used := false;
+	self.nodes[idx].prev_idx := -1;
+	self.nodes[idx].next_idx := self.free_head_idx;
+	self.free_head_idx := idx;
+	self.count := self.count - 1;
+
+	LinkedList_remove := true;
+	{end}
+end
+
+(*{doc Get one element by index.
+Read value at logical position without mutation.
+@inout self Target LinkedList.
+@input index Target index.
+@inout item Output value.
+@error ENO is set to false when index is out of range. }*)
+function LinkedList_get
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedListCoreType;
+	end
+	var_input
+		index: dint;
+	end
+	var_in_out
+		item: LinkedListItemType;
+	end
+	var_temp
+		idx: dint;
+		step_idx: dint;
+	end
+	{st}
+	if (index < 0) or (index >= self.count) then
+		eno := false;
+		return;
+	end_if;
+
+	if (index * 2) < self.count then
+		idx := self.head_idx;
+		for step_idx := 0 to index - 1 by 1 do
+			idx := self.nodes[idx].next_idx;
+		end_for;
+	else
+		idx := self.tail_idx;
+		for step_idx := self.count - 1 to index + 1 by -1 do
+			idx := self.nodes[idx].prev_idx;
+		end_for;
+	end_if;
+
+	item := self.nodes[idx].value;
+	{end}
+end
+
+(*{doc Return true if the target element exists.
+Scan nodes from head to tail with configured equality.
+@inout self Target LinkedList.
+@input item Target element.
+@return true when found, otherwise false. }*)
+function LinkedList_contains: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedListCoreType;
+	end
+	var_input
+		item: LinkedListItemType;
+	end
+	var_temp
+		idx: dint;
+	end
+	{st}
+	idx := self.head_idx;
+	while idx >= 0 do
+		if _LINKEDLIST_ELEM_EQUALS_(self.nodes[idx].value, item) then
+			LinkedList_contains := true;
+			return;
+		end_if;
+		idx := self.nodes[idx].next_idx;
+	end_while;
+
+	LinkedList_contains := false;
+	{end}
+end
+
+(*{doc Return the index of the first matching element.
+Scan from head and return first logical index.
+@inout self Target LinkedList.
+@input item Target element.
+@return Matched index, or -1 when not found. }*)
+function LinkedList_index: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedListCoreType;
+	end
+	var_input
+		item: LinkedListItemType;
+	end
+	var_temp
+		idx: dint;
+		logical_index: dint;
+	end
+	{st}
+	idx := self.head_idx;
+	logical_index := 0;
+	while idx >= 0 do
+		if _LINKEDLIST_ELEM_EQUALS_(self.nodes[idx].value, item) then
+			LinkedList_index := logical_index;
+			return;
+		end_if;
+		idx := self.nodes[idx].next_idx;
+		logical_index := logical_index + 1;
+	end_while;
+
+	LinkedList_index := -1;
+	{end}
+end
+
+(*{doc Copy elements into an output array.
+Export from head to tail in logical order.
+@inout self Target LinkedList.
+@inout values Output array.
+@output written Number of copied elements.
+@return true on success.
+@error ENO is set to false when output capacity is insufficient or list state is invalid. }*)
+function LinkedList_values: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedListCoreType;
+	end
+	var_in_out
+		values: array[*] of LinkedListItemType;
+	end
+	var_output
+		written: dint;
+	end
+	var_temp
+		out_idx: dint;
+		out_hi: dint;
+		cur: dint;
+	end
+	{st}
+	out_idx := lower_bound(values, 1);
+	out_hi := upper_bound(values, 1);
+	written := 0;
+	cur := self.head_idx;
+
+	while cur >= 0 do
+		if (cur >= LinkedListCapacity) or (not self.nodes[cur].used) then
+			eno := false;
+			return;
+		end_if;
+		if out_idx > out_hi then
+			eno := false;
+			return;
+		end_if;
+		values[out_idx] := self.nodes[cur].value;
+		out_idx := out_idx + 1;
+		written := written + 1;
+		cur := self.nodes[cur].next_idx;
+	end_while;
+
+	LinkedList_values := true;
+	{end}
+end
+
+(*{doc Update one element at an index.
+Locate node and overwrite stored value.
+@inout self Target LinkedList.
+@input index Target index.
+@input item New value.
+@return true on success, false on invalid index. }*)
+function LinkedList_set: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedListCoreType;
+	end
+	var_input
+		index: dint;
+		item: LinkedListItemType;
+	end
+	var_temp
+		idx: dint;
+		step_idx: dint;
+	end
+	{st}
+	if (index < 0) or (index >= self.count) then
+		LinkedList_set := false;
+		return;
+	end_if;
+
+	if (index * 2) < self.count then
+		idx := self.head_idx;
+		for step_idx := 0 to index - 1 by 1 do
+			idx := self.nodes[idx].next_idx;
+		end_for;
+	else
+		idx := self.tail_idx;
+		for step_idx := self.count - 1 to index + 1 by -1 do
+			idx := self.nodes[idx].prev_idx;
+		end_for;
+	end_if;
+
+	self.nodes[idx].value := item;
+	LinkedList_set := true;
+	{end}
+end
+
+(*{doc Copy container state.
+Rebuild destination by ordered append.
+@inout self Source LinkedList.
+@inout dest Destination LinkedList.
+@return true on success, false on failure. }*)
+function LinkedList_copy: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedListCoreType;
+		dest: LinkedListCoreType;
+	end
+	var_temp
+		idx: dint;
+		succeeded: bool;
+	end
+	{st}
+	LinkedList_init(dest);
+	if dest.capacity < self.count then
+		LinkedList_copy := false;
+		return;
+	end_if;
+
+	idx := self.head_idx;
+	while idx >= 0 do
+		succeeded := LinkedList_append(dest, self.nodes[idx].value);
+		if not succeeded then
+			LinkedList_copy := false;
+			return;
+		end_if;
+		idx := self.nodes[idx].next_idx;
+	end_while;
+
+	LinkedList_copy := true;
+	{end}
+end
+
+(*{doc Compare two LinkedLists for equality.
+Require same length and same sequence of elements.
+@inout self First LinkedList.
+@inout other Second LinkedList.
+@return true when lengths and element order match. }*)
+function LinkedList_equals: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedListCoreType;
+		other: LinkedListCoreType;
+	end
+	var_temp
+		idx1: dint;
+		idx2: dint;
+	end
+	{st}
+	if self.count <> other.count then
+		LinkedList_equals := false;
+		return;
+	end_if;
+
+	idx1 := self.head_idx;
+	idx2 := other.head_idx;
+	while (idx1 >= 0) and (idx2 >= 0) do
+		if not _LINKEDLIST_ELEM_EQUALS_(self.nodes[idx1].value, other.nodes[idx2].value) then
+			LinkedList_equals := false;
+			return;
+		end_if;
+		idx1 := self.nodes[idx1].next_idx;
+		idx2 := other.nodes[idx2].next_idx;
+	end_while;
+
+	LinkedList_equals := (idx1 < 0) and (idx2 < 0);
+	{end}
+end
+
+{#ifdef LinkedListElementHashFunction}
+(*{doc Compute a hash value from all elements in list order.
+Accumulate element hashes with sequence sensitivity.
+@inout self Target LinkedList.
+@return Hash value. }*)
+function LinkedList_hash: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedListCoreType;
+	end
+	var_temp
+		idx: dint;
+		acc: udint;
+		sequence_idx: dint;
+	end
+	{st}
+	acc := udint#2166136261;
+	sequence_idx := 0;
+	idx := self.head_idx;
+	while idx >= 0 do
+		acc := acc * udint#16777619 + LinkedListElementHashFunction(self.nodes[idx].value) + dint_to_udint(sequence_idx + 1);
+		idx := self.nodes[idx].next_idx;
+		sequence_idx := sequence_idx + 1;
+	end_while;
+
+	LinkedList_hash := acc + dint_to_udint(self.count);
+	{end}
+end
+{#endif}
+
+{#undef LinkedListNodeType}
+{#undef LinkedListCoreType}
+{#undef LinkedList_init}
+{#undef LinkedList_len}
+{#undef LinkedList_empty}
+{#undef LinkedList_clear}
+{#undef LinkedList_append}
+{#undef LinkedList_appendleft}
+{#undef LinkedList_insert}
+{#undef LinkedList_pop}
+{#undef LinkedList_popleft}
+{#undef LinkedList_remove}
+{#undef LinkedList_get}
+{#undef LinkedList_contains}
+{#undef LinkedList_index}
+{#undef LinkedList_values}
+{#undef LinkedList_set}
+{#undef LinkedList_copy}
+{#undef LinkedList_equals}
+{#undef LinkedList_hash}
+
+{#undef LINKEDLIST_NODE_TYPE}
+{#undef LINKEDLIST_CORE_TYPE}
+{#undef LINKEDLIST_INIT}
+{#undef LINKEDLIST_LEN}
+{#undef LINKEDLIST_EMPTY}
+{#undef LINKEDLIST_CLEAR}
+{#undef LINKEDLIST_APPEND}
+{#undef LINKEDLIST_APPENDLEFT}
+{#undef LINKEDLIST_INSERT}
+{#undef LINKEDLIST_POP}
+{#undef LINKEDLIST_POPLEFT}
+{#undef LINKEDLIST_REMOVE}
+{#undef LINKEDLIST_GET}
+{#undef LINKEDLIST_CONTAINS}
+{#undef LINKEDLIST_INDEX}
+{#undef LINKEDLIST_VALUES}
+{#undef LINKEDLIST_SET}
+{#undef LINKEDLIST_COPY}
+{#undef LINKEDLIST_EQUALS}
+{#undef LINKEDLIST_HASH}
+
+{#undef _LINKEDLIST_NODE_TYPE_}
+{#undef _LINKEDLIST_CORE_TYPE_}
+{#undef _LINKEDLIST_INIT_}
+{#undef _LINKEDLIST_LEN_}
+{#undef _LINKEDLIST_EMPTY_}
+{#undef _LINKEDLIST_CLEAR_}
+{#undef _LINKEDLIST_APPEND_}
+{#undef _LINKEDLIST_APPENDLEFT_}
+{#undef _LINKEDLIST_INSERT_}
+{#undef _LINKEDLIST_POP_}
+{#undef _LINKEDLIST_POPLEFT_}
+{#undef _LINKEDLIST_REMOVE_}
+{#undef _LINKEDLIST_GET_}
+{#undef _LINKEDLIST_CONTAINS_}
+{#undef _LINKEDLIST_INDEX_}
+{#undef _LINKEDLIST_VALUES_}
+{#undef _LINKEDLIST_SET_}
+{#undef _LINKEDLIST_COPY_}
+{#undef _LINKEDLIST_EQUALS_}
+{#undef _LINKEDLIST_HASH_}
+
+{#undef _LINKEDLIST_ELEM_EQUALS_}

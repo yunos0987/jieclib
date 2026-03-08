@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/stats/distributions/continuous/normal.txt -I./src -I./vendor/jiecunit/sys -o ./src/stats/distributions/continuous/normal.xml -t omron
+ * $ jiecc ./src/stats/distributions/continuous/normal.txt -I./src -o ./src/stats/distributions/continuous/normal.xml -t omron
  *)
 {#ifndef __STATS_DISTRIBUTIONS_CONTINUOUS_NORMAL_TXT__}
 {#define __STATS_DISTRIBUTIONS_CONTINUOUS_NORMAL_TXT__}

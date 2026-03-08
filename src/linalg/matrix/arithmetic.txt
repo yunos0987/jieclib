@@ -1,6 +1,6 @@
 (*
  * Matrix Arithmetic Operations
- * $ jiecc ./src/linalg/matrix/arithmetic.txt -I./src -I./vendor/jiecunit/sys -o ./src/linalg/matrix/arithmetic.xml -t omron
+ * $ jiecc ./src/linalg/matrix/arithmetic.txt -I./src -o ./src/linalg/matrix/arithmetic.xml -t omron
  *)
 {#ifndef __LINALG_MATRIX_ARITHMETIC_TXT__}
 {#define __LINALG_MATRIX_ARITHMETIC_TXT__}

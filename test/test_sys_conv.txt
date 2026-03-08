@@ -1,0 +1,114 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/test_sys_conv.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/test_sys_conv.xml -t omron
+ * or
+ * $ jiecc ./test/test_sys_conv.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/test_sys_conv.xml -t keyence
+ *)
+{#include <jiecunit.txt>}
+
+{#include <sys_conv.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_udint_to_string',
+		'test_dint_to_string',
+		'test_lreal_to_string',
+		'test_bool_to_string',
+		'test_time_to_string_sec'
+	)
+)
+{#endif}
+
+TEST_S(test_udint_to_string)
+	{st}
+	EXPECT_EQ_STRING('0', udint_to_string(0));
+	EXPECT_EQ_STRING('1', udint_to_string(1));
+	EXPECT_EQ_STRING('2147483647', udint_to_string(2147483647));
+	EXPECT_EQ_STRING('2147483648', udint_to_string(2147483648));
+	EXPECT_EQ_STRING('4294967295', udint_to_string(4294967295));
+	{end}
+END_TEST_S
+
+TEST_S(test_dint_to_string)
+	{st}
+	EXPECT_EQ_STRING('-2147483648', dint_to_string(-2147483648));
+	EXPECT_EQ_STRING('-1', dint_to_string(-1));
+	EXPECT_EQ_STRING('0', dint_to_string(0));
+	EXPECT_EQ_STRING('1', dint_to_string(1));
+	EXPECT_EQ_STRING('2147483647', dint_to_string(2147483647));
+	{end}
+END_TEST_S
+
+TEST_S(test_lreal_to_string)
+	{st}
+	//ke: -2.14748364900000E+009
+	//om: -2.14748364900000e+09
+	//EXPECT_EQ_STRING('', lreal_to_string(-2147483649.0));
+	//EXPECT_EQ_STRING('', lreal_to_string(-2147483648.0));
+	//EXPECT_EQ_STRING('', lreal_to_string(-1.0));
+	//EXPECT_EQ_STRING('', lreal_to_string(0.0));
+	//EXPECT_EQ_STRING('', lreal_to_string(1.0));
+	//EXPECT_EQ_STRING('', lreal_to_string(2147483647.0));
+	//EXPECT_EQ_STRING('', lreal_to_string(2147483648.0));
+	//EXPECT_EQ_STRING('', lreal_to_string(4294967295.0));
+	//EXPECT_EQ_STRING('', lreal_to_string(4294967296.0));
+	// om
+	//EXPECT_EQ_STRING('1.00000000000000e+101', lreal_to_string(1.0e+101));
+	//EXPECT_EQ_STRING('1.00000000000000e-101', lreal_to_string(1.0e-101));
+	//EXPECT_EQ_STRING('1.00000000000000e+100', lreal_to_string(0.1e+101));
+	//EXPECT_EQ_STRING('1.00000000000000e-102', lreal_to_string(0.1e-101));
+	{end}
+END_TEST_S
+
+TEST_S(test_bool_to_string)
+	{st}
+{#if not (_CODESYS)}
+	EXPECT_EQ_STRING('true', bool_to_string(true));
+	EXPECT_EQ_STRING('false', bool_to_string(false));
+{#else}
+	EXPECT_EQ_STRING('TRUE', bool_to_string(true));
+	EXPECT_EQ_STRING('FALSE', bool_to_string(false));
+{#endif}
+	EXPECT_EQ_BOOL(1=2, 3=4);
+	{end}
+END_TEST_S
+
+// note: Microsecond precision per Keyence specifications.; see TimeToMicroSec function.
+// note: CODESYS does not support negative time values.
+TEST_S(test_time_to_string_sec)
+	{st}
+	//EXPECT_EQ_STRING('-1s', time_to_string_sec(time#-1.000000s));
+	EXPECT_EQ_STRING('1s', time_to_string_sec(time#1.000000s));
+	//EXPECT_EQ_STRING('-3s', time_to_string_sec(time#-3s));
+	EXPECT_EQ_STRING('3s', time_to_string_sec(time#3s));
+	EXPECT_EQ_STRING('0s', time_to_string_sec(time#0s));
+
+	//EXPECT_EQ_STRING('-0.123456s', time_to_string_sec(time#-0.123456s));
+	EXPECT_EQ_STRING('0.123456s', time_to_string_sec(time#0.123456s));
+
+	//EXPECT_EQ_STRING('-1.234567s', time_to_string_sec(time#-1.234567s));
+	EXPECT_EQ_STRING('1.234567s', time_to_string_sec(time#1.234567s));
+
+	//EXPECT_EQ_STRING('-1.2s', time_to_string_sec(time#-1.2s));
+	EXPECT_EQ_STRING('1.2s', time_to_string_sec(time#1.2s));
+
+	//EXPECT_EQ_STRING('-1.02s', time_to_string_sec(time#-1.02s));
+	EXPECT_EQ_STRING('1.02s', time_to_string_sec(time#1.02s));
+
+	//EXPECT_EQ_STRING('-1.0203s', time_to_string_sec(time#-1.0203s));
+	EXPECT_EQ_STRING('1.0203s', time_to_string_sec(time#1.0203s));
+
+	//EXPECT_EQ_STRING('-0.999999s', time_to_string_sec(time#-0.999999s));
+	EXPECT_EQ_STRING('0.999999s', time_to_string_sec(time#0.999999s));
+
+	//EXPECT_EQ_STRING('-1.000001s', time_to_string_sec(time#-1.000001s));
+	EXPECT_EQ_STRING('1.000001s', time_to_string_sec(time#1.000001s));
+
+	//EXPECT_EQ_STRING('-2147.483648s', time_to_string_sec(time#-2147483.648ms));
+	EXPECT_EQ_STRING('2147.483647s', time_to_string_sec(time#2147483.647ms));
+	// note: int64 based
+	//EXPECT_EQ_STRING('-9223372036.854775808s', time_to_string_sec(time#-9223372036854.775808ms));
+	//EXPECT_EQ_STRING('9223372036.854775807s', time_to_string_sec(time#9223372036854.775807ms));
+	{end}
+END_TEST_S

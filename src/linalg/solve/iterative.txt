@@ -1,6 +1,6 @@
 (*
  * Iterative Solver
- * $ jiecc ./src/linalg/solve/iterative.txt -I./src -I./vendor/jiecunit/sys -o ./src/linalg/solve/iterative.xml -t omron
+ * $ jiecc ./src/linalg/solve/iterative.txt -I./src -o ./src/linalg/solve/iterative.xml -t omron
  *)
 {#ifndef __LINALG_SOLVE_ITERATIVE_TXT__}
 {#define __LINALG_SOLVE_ITERATIVE_TXT__}

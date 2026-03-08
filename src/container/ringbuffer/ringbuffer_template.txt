@@ -1,0 +1,151 @@
+(*
+	================================================================================
+	RingBuffer Template Generator - Macro-based Generic RingBuffer
+	================================================================================
+
+	This template generates a typed RingBuffer from preprocessor macros.
+
+	Usage:
+	1. Define required macros.
+	2. Include this template once per generated element type.
+
+	Required macros:
+	  - RingBufferItemType
+	    Element type stored in the ring buffer.
+
+	Runtime behavior:
+	  - Capacity is provided at runtime via RingBuffer_init.
+	  - Overwrite mode controls enqueue behavior when full.
+
+	Generated APIs:
+	  - init, enqueue, dequeue
+
+	Example (dint):
+	  {#define RingBufferItemType dint}
+	  {#include <container/ringbuffer/ringbuffer_template.txt>}
+
+	Example (bool):
+	  {#define RingBufferItemType bool}
+	  {#include <container/ringbuffer/ringbuffer_template.txt>}
+
+	Algorithm:
+	  Monotonic write/read indices with optional overwrite on full buffer.
+	================================================================================
+*)
+{#include <sys.txt>}
+{#include <sys_conv.txt>}
+
+{#ifndef RingBufferItemType}
+	{#error require RingBufferItemType macro.}
+{#endif}
+
+{#ifndef __RINGBUFFER_T_DEFINED__}
+{#define __RINGBUFFER_T_DEFINED__}
+type
+	(*{doc Ring buffer runtime state.}*)
+	RingBuffer_t: struct
+		(*{doc Absolute write index.}*)
+		w_idx: dint;
+		(*{doc Absolute read index.}*)
+		r_idx: dint;
+		(*{doc Active buffer capacity.}*)
+		buf_size: dint;
+		(*{doc Overwrite mode flag when buffer is full.}*)
+		overwrite: bool;
+	end
+end
+{#endif} // __RINGBUFFER_T_DEFINED__
+
+{#define _RINGBUFFER_INIT_(T) RingBuffer_@@T@@_init}
+{#define _RINGBUFFER_ENQUEUE_(T) RingBuffer_@@T@@_enqueue}
+{#define _RINGBUFFER_DEQUEUE_(T) RingBuffer_@@T@@_dequeue}
+
+{#define RINGBUFFER_INIT(T) _RINGBUFFER_INIT_(T)}
+{#define RINGBUFFER_ENQUEUE(T) _RINGBUFFER_ENQUEUE_(T)}
+{#define RINGBUFFER_DEQUEUE(T) _RINGBUFFER_DEQUEUE_(T)}
+
+{#define RingBuffer_init RINGBUFFER_INIT(RingBufferItemType)}
+{#define RingBuffer_enqueue RINGBUFFER_ENQUEUE(RingBufferItemType)}
+{#define RingBuffer_dequeue RINGBUFFER_DEQUEUE(RingBufferItemType)}
+
+(*{doc Initialize ring Target RingBuffer.
+Reset read/write indices and runtime configuration.
+@inout self Target RingBuffer.
+@input buf_size Runtime capacity.
+@input overwrite Full-buffer overwrite mode. }*)
+function RingBuffer_init
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out self: RingBuffer_t; end
+	var_input
+		buf_size: dint;
+		overwrite: bool;
+	end
+	{st}
+	self.w_idx := 0;
+	self.r_idx := 0;
+	self.buf_size := buf_size;
+	self.overwrite := overwrite;
+	{end}
+end
+
+(*{doc Enqueue one element.
+Write at current tail position and advance write index.
+@inout self Target RingBuffer.
+@inout buf Storage array.
+@input item Element to enqueue.
+@return true on success; false when full and overwrite is disabled.
+@error ENO is set to false on error. }*)
+function RingBuffer_enqueue: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out self: RingBuffer_t; end
+	var_in_out
+		buf: array[*] of RingBufferItemType;
+	end
+	var_input
+		item: RingBufferItemType;
+	end
+	{st}
+	if self.w_idx - self.r_idx = self.buf_size then
+		if self.overwrite then
+			self.r_idx := self.r_idx + 1; // dequeue -> enqueue
+		else
+			RingBuffer_enqueue := false;
+			return;
+		end_if;
+	end_if;
+
+	buf[self.w_idx mod self.buf_size] := item;
+	self.w_idx := self.w_idx + 1;
+
+	RingBuffer_enqueue := true;
+	{end}
+end
+
+(*{doc Dequeue one element.
+Read at current head position and advance read index.
+@inout self Target RingBuffer.
+@inout buf Storage array.
+@output item Dequeued element.
+@return true on success; false when empty.
+@error ENO is set to false on error. }*)
+function RingBuffer_dequeue: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out self: RingBuffer_t; end
+	var_in_out
+		buf: array[*] of RingBufferItemType;
+	end
+	var_output
+		item: RingBufferItemType;
+	end
+	{st}
+	if self.w_idx = self.r_idx then
+		RingBuffer_dequeue := false;
+		return;
+	end_if;
+
+	item := buf[self.r_idx mod self.buf_size];
+	self.r_idx := self.r_idx + 1;
+
+	RingBuffer_dequeue := true;
+	{end}
+end

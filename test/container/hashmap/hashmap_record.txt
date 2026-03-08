@@ -1,0 +1,61 @@
+{#ifndef __TEST_CONTAINER_HASHMAP_RECORD_TXT__}
+{#define __TEST_CONTAINER_HASHMAP_RECORD_TXT__}
+
+type
+	Record_for_hashmap_test_t: struct
+		id: dint;
+		level: dint;
+		active: bool;
+	end
+end
+
+function Record_equals_for_hashmap_test: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self, other: Record_for_hashmap_test_t;
+	end
+	{st}
+	Record_equals_for_hashmap_test := (self.id = other.id) and (self.level = other.level) and (self.active = other.active);
+	{end}
+end
+
+function Record_hash_for_hashmap_test: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: Record_for_hashmap_test_t;
+	end
+	var_temp
+		hash_value: udint;
+	end
+	{st}
+	hash_value := dint_to_udint(self.id) * udint#16777619;
+	hash_value := dword_to_udint(udint_to_dword(hash_value) xor udint_to_dword(dint_to_udint(self.level) + udint#31));
+	if self.active then
+		hash_value := dword_to_udint(udint_to_dword(hash_value) xor dword#1);
+	else
+		hash_value := dword_to_udint(udint_to_dword(hash_value) xor dword#0);
+	end_if;
+	Record_hash_for_hashmap_test := hash_value + udint#2166136261;
+	{end}
+end
+
+{#define HashMapName record}
+{#define HashMapCapacity 8}
+{#define HashMapKeyMaxLength 16}
+{#define HashMapKeyEqualsFunction String_equals}
+{#define HashMapKeyHashFunction String_hash}
+{#define HashMapKeyType string[HashMapKeyMaxLength + 1]}
+{#define HashMapValueType Record_for_hashmap_test_t}
+{#define HashMapValueEqualsFunction Record_equals_for_hashmap_test}
+{#define HashMapValueHashFunction Record_hash_for_hashmap_test}
+{#include <container/hashmap/hashmap_template.txt>}
+{#undef HashMapName}
+{#undef HashMapCapacity}
+{#undef HashMapKeyMaxLength}
+{#undef HashMapKeyEqualsFunction}
+{#undef HashMapKeyHashFunction}
+{#undef HashMapKeyType}
+{#undef HashMapValueType}
+{#undef HashMapValueEqualsFunction}
+{#undef HashMapValueHashFunction}
+{#endif}

@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/stats/inference/tests/chi_square_tests.txt -I./src -I./vendor/jiecunit/sys -o ./src/stats/inference/tests/chi_square_tests.xml -t omron
+ * $ jiecc ./src/stats/inference/tests/chi_square_tests.txt -I./src -o ./src/stats/inference/tests/chi_square_tests.xml -t omron
  *)
 {#ifndef __STATS_INFERENCE_TESTS_CHI_SQUARE_TESTS_TXT__}
 {#define __STATS_INFERENCE_TESTS_CHI_SQUARE_TESTS_TXT__}

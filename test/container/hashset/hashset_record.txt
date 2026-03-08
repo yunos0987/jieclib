@@ -1,0 +1,59 @@
+{#ifndef __TEST_CONTAINER_HASHSET_RECORD_TXT__}
+{#define __TEST_CONTAINER_HASHSET_RECORD_TXT__}
+
+{#include <sys.txt>}
+{#include <sys_conv.txt>}
+
+type
+	Record_for_hashset_test_t: struct
+		id: dint;
+		level: dint;
+		active: bool;
+	end
+end
+
+function Record_equals_for_hashset_test: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		lhs, rhs: Record_for_hashset_test_t;
+	end
+	{st}
+	Record_equals_for_hashset_test := (lhs.id = rhs.id) and (lhs.level = rhs.level) and (lhs.active = rhs.active);
+	{end}
+end
+
+function Record_hash_for_hashset_test: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: Record_for_hashset_test_t;
+	end
+	var_temp
+		hash_value: udint;
+		active_u: udint;
+	end
+	{st}
+	hash_value := dword_to_udint(dint_to_dword(self.id));
+	hash_value := hash_value * udint#16777619 + dword_to_udint(dint_to_dword(self.level));
+	if self.active then
+		active_u := udint#1;
+	else
+		active_u := udint#0;
+	end_if;
+	hash_value := hash_value * udint#16777619 + active_u;
+	Record_hash_for_hashset_test := hash_value;
+	{end}
+end
+
+{#define HashSetName record}
+{#define HashSetCapacity 8}
+{#define HashSetElementType Record_for_hashset_test_t}
+{#define HashSetElementEqualsFunction Record_equals_for_hashset_test}
+{#define HashSetElementHashFunction Record_hash_for_hashset_test}
+{#include <container/hashset/hashset_template.txt>}
+{#undef HashSetName}
+{#undef HashSetCapacity}
+{#undef HashSetElementType}
+{#undef HashSetElementEqualsFunction}
+{#undef HashSetElementHashFunction}
+
+{#endif}

@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/stats/descriptive/sums.txt -I./src -I./vendor/jiecunit/sys -o ./src/stats/descriptive/sums.xml -t omron
+ * $ jiecc ./src/stats/descriptive/sums.txt -I./src -o ./src/stats/descriptive/sums.xml -t omron
  *)
 {#ifndef __STATS_DESCRIPTIVE_SUMS_TXT__}
 {#define __STATS_DESCRIPTIVE_SUMS_TXT__}

@@ -1,8 +1,8 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/array/sort.txt -I./src -I./vendor/jiecunit/sys -o ./src/array/sort.xml -t omron
+ * $ jiecc ./src/array/sort.txt -I./src -o ./src/array/sort.xml -t omron
  * or
- * $ jiecc ./src/array/sort.txt -I./src -I./vendor/jiecunit/sys -o ./src/array/sort.xml -t keyence
+ * $ jiecc ./src/array/sort.txt -I./src -o ./src/array/sort.xml -t keyence
  *)
 {#ifndef __ARRAY_SORT_TXT__}
 {#define __ARRAY_SORT_TXT__}

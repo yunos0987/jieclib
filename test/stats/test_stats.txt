@@ -1,10 +1,11 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/stats/test_stats.txt -I. -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -D_TEST_ -o ./test/stats/test_stats.xml -t omron
+ * $ jiecc ./test/stats/test_stats.txt -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/stats/test_stats.xml -t omron
  *)
 {#if _JIECC and (_JIECC_VER < 514)}
 	{#error This test requires Jiecc 5.14 or later.}
 {#endif}
+
 {#include <jiecunit.txt>}
 {#if _JIECUNIT and (_JIECUNIT_VER < 210)}
 	{#error This test requires JiecUnit 2.10 or later.}
@@ -186,5 +187,3 @@ DEFINE_CONFIGURATION(
 {#include "sequences/test_quantile.txt"}
 {#include "sequences/test_rank.txt"}
 {#include "sequences/test_sort_select.txt"}
-
-{#undef _TEST_}

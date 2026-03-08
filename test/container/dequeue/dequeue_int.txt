@@ -1,0 +1,30 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/container/dequeue/dequeue_int.txt -I./src -I./vendor/jiecunit -o ./test/container/dequeue/dequeue_int.xml -t omron
+ * or
+ * $ jiecc ./test/container/dequeue/dequeue_int.txt -I./src -I./vendor/jiecunit -o ./test/container/dequeue/dequeue_int.xml -t keyence
+ *)
+{#ifndef __TEST_CONTAINER_DEQUEUE_INT_TXT__}
+{#define __TEST_CONTAINER_DEQUEUE_INT_TXT__}
+
+function Int_hash_for_dequeue_test: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: int;
+	end
+	{st}
+	Int_hash_for_dequeue_test := int_to_udint(self) * udint#16777619 + udint#2166136261;
+	{end}
+end
+
+{#define DequeueName int}
+{#define DequeueItemType int}
+{#define DequeueCapacity 4}
+{#define DequeueItemHashFunction Int_hash_for_dequeue_test}
+{#include <container/dequeue/dequeue_template.txt>}
+{#undef DequeueName}
+{#undef DequeueItemType}
+{#undef DequeueCapacity}
+{#undef DequeueItemHashFunction}
+
+{#endif}

@@ -1,8 +1,8 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/array/array.txt -I./src -I./vendor/jiecunit/sys -o ./src/array/array.xml -t omron
+ * $ jiecc ./src/array/array.txt -I./src -o ./src/array/array.xml -t omron
  * or
- * $ jiecc ./src/array/array.txt -I./src -I./vendor/jiecunit/sys -o ./src/array/array.xml -t keyence
+ * $ jiecc ./src/array/array.txt -I./src -o ./src/array/array.xml -t keyence
  *)
 {#ifndef __ARRAY_TXT__}
 {#define __ARRAY_TXT__}

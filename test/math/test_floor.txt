@@ -1,18 +1,21 @@
 (*
  * Test for Math_floor function
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/math/test_floor.txt -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -o ./test/math/test_floor.xml -t omron
+ * $ jiecc ./test/math/test_floor.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/math/test_floor.xml -t omron
  * or
- * $ jiecc ./test/math/test_floor.txt -I./src -I./vendor/jiecunit/sys -I./vendor/jiecunit -o ./test/math/test_floor.xml -t keyence
+ * $ jiecc ./test/math/test_floor.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/math/test_floor.xml -t keyence
  *)
 {#include <jiecunit.txt>}
 {#include <math/floor.txt>}
 
+{#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
 		'test_floor'
 	)
 )
+
+{#endif}
 
 TEST_S(test_floor)
 	{st}

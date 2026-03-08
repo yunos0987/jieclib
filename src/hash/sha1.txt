@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./src/hash/sha1.txt -I./src -I./vendor/jiecunit/sys -o ./src/hash/sha1.xml -t omron
+ * $ jiecc ./src/hash/sha1.txt -I./src -o ./src/hash/sha1.xml -t omron
  *)
 {#ifndef __HASH_SHA1_TXT__}
 {#define __HASH_SHA1_TXT__}

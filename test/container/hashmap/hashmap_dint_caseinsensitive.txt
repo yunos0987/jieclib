@@ -1,0 +1,34 @@
+{#ifndef __TEST_CONTAINER_HASHMAP_DINT_CI_TXT__}
+{#define __TEST_CONTAINER_HASHMAP_DINT_CI_TXT__}
+
+{#include <string_lib/equivalence_caseinsensitive.txt>}
+
+function Dint_hash_for_hashmap_ci_test: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: dint;
+	end
+	{st}
+	Dint_hash_for_hashmap_ci_test := dword_to_udint(dint_to_dword(self));
+	{end}
+end
+
+{#define HashMapName dint_ci}
+{#define HashMapCapacity 8}
+{#define HashMapKeyMaxLength 16}
+{#define HashMapKeyEqualsFunction String_equalsAsciiIgnoreCase} (* Case-insensitive key comparison *)
+{#define HashMapKeyHashFunction String_hashAsciiIgnoreCase} (* Case-insensitive key hashing *)
+{#define HashMapKeyType string[HashMapKeyMaxLength + 1]}
+{#define HashMapValueType dint}
+{#define HashMapValueHashFunction Dint_hash_for_hashmap_ci_test}
+{#include <container/hashmap/hashmap_template.txt>}
+{#undef HashMapName}
+{#undef HashMapCapacity}
+{#undef HashMapKeyMaxLength}
+{#undef HashMapKeyEqualsFunction}
+{#undef HashMapKeyHashFunction}
+{#undef HashMapKeyType}
+{#undef HashMapValueType}
+{#undef HashMapValueHashFunction}
+
+{#endif}
