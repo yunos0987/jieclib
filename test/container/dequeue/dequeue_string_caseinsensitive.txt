@@ -1,0 +1,18 @@
+{#ifndef __TEST_CONTAINER_DEQUEUE_STRING_CASEINSENSITIVE_TXT__}
+{#define __TEST_CONTAINER_DEQUEUE_STRING_CASEINSENSITIVE_TXT__}
+
+{#include <string_lib/equivalence_caseinsensitive.txt>}
+
+{#define DequeueName string_ci}
+{#define DequeueItemType string[16 + 1]}
+{#define DequeueCapacity 4}
+{#define DequeueElementEqualsFunction String_equalsAsciiIgnoreCase} (* Case-insensitive element comparison *)
+{#define DequeueItemHashFunction String_hashAsciiIgnoreCase} (* Case-insensitive element hashing *)
+{#include <container/dequeue/dequeue_template.txt>}
+{#undef DequeueName}
+{#undef DequeueItemType}
+{#undef DequeueCapacity}
+{#undef DequeueElementEqualsFunction}
+{#undef DequeueItemHashFunction}
+
+{#endif}

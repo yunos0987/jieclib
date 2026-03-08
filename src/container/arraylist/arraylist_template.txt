@@ -1,0 +1,576 @@
+(*
+	================================================================================
+	ArrayList Template Generator - Macro-based Generic ArrayList
+	================================================================================
+
+	This template generates a typed ArrayList from preprocessor macros.
+
+	Usage:
+	1. Define required macros.
+	2. Optionally define behavior macros.
+	3. Include this template once per generated type.
+
+	Required macros:
+	  - ArrayListName
+	    Suffix used for generated types and functions.
+	  - ArrayListItemType
+	    Element type stored in the list.
+	  - ArrayListCapacity
+	    Maximum number of elements.
+
+	Optional macros:
+	  - ArrayListElementEqualsFunction
+	    Equality function for contains/index/equals.
+	    Default: direct value comparison.
+	  - ArrayListElementHashFunction
+	    Hash function for hash API generation.
+
+	Generated APIs:
+	  - init, len, empty, clear
+	  - append, insert, set, remove, get
+	  - contains, index, values, copy, equals
+	  - hash (when ArrayListElementHashFunction is defined)
+
+	Example (dint):
+	  {#define ArrayListName dint}
+	  {#define ArrayListItemType dint}
+	  {#define ArrayListCapacity 128}
+	  {#include <container/arraylist/arraylist_template.txt>}
+
+	Example (string):
+	  {#define ArrayListName str}
+	  {#define ArrayListItemType string[128]}
+	  {#define ArrayListCapacity 64}
+	  {#define ArrayListElementEqualsFunction String_equals}
+	  {#include <container/arraylist/arraylist_template.txt>}
+
+	Algorithm:
+	  Contiguous array storage with element shifting on insert/remove.
+	================================================================================
+*)
+{#include <sys.txt>}
+{#include <sys_conv.txt>}
+
+{#ifndef ArrayListName}
+	{#error require ArrayListName macro.}
+{#endif}
+
+{#ifndef ArrayListItemType}
+	{#error require ArrayListItemType macro.}
+{#endif}
+
+{#ifndef ArrayListCapacity}
+	{#error require ArrayListCapacity macro.}
+{#endif}
+
+{#define _ARRAYLIST_CORE_TYPE_(T) ArrayList_@@T@@_t}
+{#define _ARRAYLIST_INIT_(T) ArrayList_@@T@@_init}
+{#define _ARRAYLIST_LEN_(T) ArrayList_@@T@@_len}
+{#define _ARRAYLIST_EMPTY_(T) ArrayList_@@T@@_empty}
+{#define _ARRAYLIST_CLEAR_(T) ArrayList_@@T@@_clear}
+{#define _ARRAYLIST_APPEND_(T) ArrayList_@@T@@_append}
+{#define _ARRAYLIST_INSERT_(T) ArrayList_@@T@@_insert}
+{#define _ARRAYLIST_SET_(T) ArrayList_@@T@@_set}
+{#define _ARRAYLIST_REMOVE_(T) ArrayList_@@T@@_remove}
+{#define _ARRAYLIST_GET_(T) ArrayList_@@T@@_get}
+{#define _ARRAYLIST_CONTAINS_(T) ArrayList_@@T@@_contains}
+{#define _ARRAYLIST_INDEX_(T) ArrayList_@@T@@_index}
+{#define _ARRAYLIST_VALUES_(T) ArrayList_@@T@@_values}
+{#define _ARRAYLIST_COPY_(T) ArrayList_@@T@@_copy}
+{#define _ARRAYLIST_EQUALS_(T) ArrayList_@@T@@_equals}
+{#define _ARRAYLIST_HASH_(T) ArrayList_@@T@@_hash}
+
+{#define ARRAYLIST_CORE_TYPE(T) _ARRAYLIST_CORE_TYPE_(T)}
+{#define ARRAYLIST_INIT(T) _ARRAYLIST_INIT_(T)}
+{#define ARRAYLIST_LEN(T) _ARRAYLIST_LEN_(T)}
+{#define ARRAYLIST_EMPTY(T) _ARRAYLIST_EMPTY_(T)}
+{#define ARRAYLIST_CLEAR(T) _ARRAYLIST_CLEAR_(T)}
+{#define ARRAYLIST_APPEND(T) _ARRAYLIST_APPEND_(T)}
+{#define ARRAYLIST_INSERT(T) _ARRAYLIST_INSERT_(T)}
+{#define ARRAYLIST_SET(T) _ARRAYLIST_SET_(T)}
+{#define ARRAYLIST_REMOVE(T) _ARRAYLIST_REMOVE_(T)}
+{#define ARRAYLIST_GET(T) _ARRAYLIST_GET_(T)}
+{#define ARRAYLIST_CONTAINS(T) _ARRAYLIST_CONTAINS_(T)}
+{#define ARRAYLIST_INDEX(T) _ARRAYLIST_INDEX_(T)}
+{#define ARRAYLIST_VALUES(T) _ARRAYLIST_VALUES_(T)}
+{#define ARRAYLIST_COPY(T) _ARRAYLIST_COPY_(T)}
+{#define ARRAYLIST_EQUALS(T) _ARRAYLIST_EQUALS_(T)}
+{#define ARRAYLIST_HASH(T) _ARRAYLIST_HASH_(T)}
+
+{#define ArrayListCoreType ARRAYLIST_CORE_TYPE(ArrayListName)}
+{#define ArrayList_init ARRAYLIST_INIT(ArrayListName)}
+{#define ArrayList_len ARRAYLIST_LEN(ArrayListName)}
+{#define ArrayList_empty ARRAYLIST_EMPTY(ArrayListName)}
+{#define ArrayList_clear ARRAYLIST_CLEAR(ArrayListName)}
+{#define ArrayList_append ARRAYLIST_APPEND(ArrayListName)}
+{#define ArrayList_insert ARRAYLIST_INSERT(ArrayListName)}
+{#define ArrayList_set ARRAYLIST_SET(ArrayListName)}
+{#define ArrayList_remove ARRAYLIST_REMOVE(ArrayListName)}
+{#define ArrayList_get ARRAYLIST_GET(ArrayListName)}
+{#define ArrayList_contains ARRAYLIST_CONTAINS(ArrayListName)}
+{#define ArrayList_index ARRAYLIST_INDEX(ArrayListName)}
+{#define ArrayList_values ARRAYLIST_VALUES(ArrayListName)}
+{#define ArrayList_copy ARRAYLIST_COPY(ArrayListName)}
+{#define ArrayList_equals ARRAYLIST_EQUALS(ArrayListName)}
+{#define ArrayList_hash ARRAYLIST_HASH(ArrayListName)}
+
+{#ifdef ArrayListElementEqualsFunction}
+	{#define _ARRAYLIST_ELEM_EQUALS_(A, B) ArrayListElementEqualsFunction((A), (B))}
+{#else}
+	{#define _ARRAYLIST_ELEM_EQUALS_(A, B) ((A) = (B))}
+{#endif}
+
+type
+	ArrayListCoreType: struct
+		data: array[ArrayListCapacity] of ArrayListItemType;
+		count: dint;
+		capacity: dint;
+	end
+end
+
+(*{doc Initialize ArrayList state.
+Set count to zero and set configured capacity.
+@inout self Target ArrayList.
+@post count is set to 0 and capacity is set to ArrayListCapacity. }*)
+function ArrayList_init
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: ArrayListCoreType;
+	end
+	{st}
+	self.count := 0;
+	self.capacity := ArrayListCapacity;
+	{end}
+end
+
+(*{doc Return the number of stored elements.
+Expose current logical size.
+@inout self Target ArrayList.
+@return Current element count. }*)
+function ArrayList_len: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: ArrayListCoreType;
+	end
+	{st}
+	ArrayList_len := self.count;
+	{end}
+end
+
+(*{doc Return whether the ArrayList is empty.
+Evaluate the current count value.
+@inout self Target ArrayList.
+@return true if count is 0, otherwise false. }*)
+function ArrayList_empty: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: ArrayListCoreType;
+	end
+	{st}
+	ArrayList_empty := self.count = 0;
+	{end}
+end
+
+(*{doc Clear all elements.
+Reset size only and keep allocated storage.
+@inout self Target ArrayList.
+@return true. }*)
+function ArrayList_clear: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: ArrayListCoreType;
+	end
+	{st}
+	self.count := 0;
+	ArrayList_clear := true;
+	{end}
+end
+
+(*{doc Append one element at the end.
+Write at index count and increment size.
+@inout self Target ArrayList.
+@input item Element to append.
+@return true on success, false when capacity is full. }*)
+function ArrayList_append: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: ArrayListCoreType;
+	end
+	var_input
+		item: ArrayListItemType;
+	end
+	{st}
+	if self.count >= self.capacity then
+		ArrayList_append := false;
+		return;
+	end_if;
+
+	self.data[self.count] := item;
+	self.count := self.count + 1;
+	ArrayList_append := true;
+	{end}
+end
+
+(*{doc Insert one element at the specified index.
+Shift tail elements right and place the new value.
+@inout self Target ArrayList.
+@input index Target index in range [0, count].
+@input item Element to insert.
+@return true on success, false when index is invalid or capacity is full. }*)
+function ArrayList_insert: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: ArrayListCoreType;
+	end
+	var_input
+		index: dint;
+		item: ArrayListItemType;
+	end
+	var_temp
+		idx: dint;
+	end
+	{st}
+	if (index < 0) or (index > self.count) then
+		ArrayList_insert := false;
+		return;
+	end_if;
+	if self.count >= self.capacity then
+		ArrayList_insert := false;
+		return;
+	end_if;
+
+	for idx := self.count - 1 to index by -1 do
+		self.data[idx + 1] := self.data[idx];
+	end_for;
+	self.data[index] := item;
+	self.count := self.count + 1;
+	ArrayList_insert := true;
+	{end}
+end
+
+(*{doc Update one element at the specified index.
+Replace the value without changing size.
+@inout self Target ArrayList.
+@input index Target index.
+@input item New element value.
+@return true on success, false when index is invalid. }*)
+function ArrayList_set: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: ArrayListCoreType;
+	end
+	var_input
+		index: dint;
+		item: ArrayListItemType;
+	end
+	{st}
+	if (index < 0) or (index >= self.count) then
+		ArrayList_set := false;
+		return;
+	end_if;
+
+	self.data[index] := item;
+	ArrayList_set := true;
+	{end}
+end
+
+(*{doc Remove one element by index.
+Store removed value and shift tail elements left.
+@inout self Target ArrayList.
+@input index Target index.
+@output removed Removed element value.
+@return true on success, false when index is invalid. }*)
+function ArrayList_remove: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: ArrayListCoreType;
+	end
+	var_input
+		index: dint;
+	end
+	var_output
+		removed: ArrayListItemType;
+	end
+	var_temp
+		idx: dint;
+	end
+	{st}
+	if (index < 0) or (index >= self.count) then
+		ArrayList_remove := false;
+		return;
+	end_if;
+
+	removed := self.data[index];
+	for idx := index to self.count - 2 by 1 do
+		self.data[idx] := self.data[idx + 1];
+	end_for;
+	self.count := self.count - 1;
+	ArrayList_remove := true;
+	{end}
+end
+
+(*{doc Get one element by index.
+Read the value without modifying list state.
+@inout self Target ArrayList.
+@input index Target index.
+@inout item Output element value.
+@error ENO is set to false when index is out of range. }*)
+function ArrayList_get
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: ArrayListCoreType;
+	end
+	var_input
+		index: dint;
+	end
+	var_in_out
+		item: ArrayListItemType;
+	end
+	{st}
+	if (index < 0) or (index >= self.count) then
+		eno := false;
+		return;
+	end_if;
+
+	item := self.data[index];
+	{end}
+end
+
+(*{doc Check whether a target element exists.
+Scan in forward order using configured equality.
+@inout self Target ArrayList.
+@input item Target element.
+@return true when found, otherwise false. }*)
+function ArrayList_contains: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: ArrayListCoreType;
+	end
+	var_input
+		item: ArrayListItemType;
+	end
+	var_temp
+		idx: dint;
+	end
+	{st}
+	for idx := 0 to self.count - 1 by 1 do
+		if _ARRAYLIST_ELEM_EQUALS_(self.data[idx], item) then
+			ArrayList_contains := true;
+			return;
+		end_if;
+	end_for;
+
+	ArrayList_contains := false;
+	{end}
+end
+
+(*{doc Return the index of the first matching element.
+Search in forward order from index zero.
+@inout self Target ArrayList.
+@input item Target element.
+@return Matched index, or -1 when not found. }*)
+function ArrayList_index: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: ArrayListCoreType;
+	end
+	var_input
+		item: ArrayListItemType;
+	end
+	var_temp
+		idx: dint;
+	end
+	{st}
+	for idx := 0 to self.count - 1 by 1 do
+		if _ARRAYLIST_ELEM_EQUALS_(self.data[idx], item) then
+			ArrayList_index := idx;
+			return;
+		end_if;
+	end_for;
+
+	ArrayList_index := -1;
+	{end}
+end
+
+(*{doc Copy elements to an output array in list order.
+Export from index zero to count-1.
+@inout self Target ArrayList.
+@inout values Output array.
+@output written Number of copied elements.
+@return true on success.
+@error ENO is set to false when output capacity is insufficient. }*)
+function ArrayList_values: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: ArrayListCoreType;
+	end
+	var_in_out
+		values: array[*] of ArrayListItemType;
+	end
+	var_output
+		written: dint;
+	end
+	var_temp
+		src_idx: dint;
+		out_idx: dint;
+		out_hi: dint;
+	end
+	{st}
+	out_idx := lower_bound(values, 1);
+	out_hi := upper_bound(values, 1);
+	written := 0;
+
+	for src_idx := 0 to self.count - 1 by 1 do
+		if out_idx > out_hi then
+			eno := false;
+			return;
+		end_if;
+		values[out_idx] := self.data[src_idx];
+		out_idx := out_idx + 1;
+		written := written + 1;
+	end_for;
+
+	ArrayList_values := true;
+	{end}
+end
+
+(*{doc Copy ArrayList state.
+Copy count, capacity, and used elements.
+@inout self Source ArrayList.
+@inout dest Destination ArrayList.
+@return true on success, false when destination capacity is insufficient. }*)
+function ArrayList_copy: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: ArrayListCoreType;
+		dest: ArrayListCoreType;
+	end
+	var_temp
+		idx: dint;
+	end
+	{st}
+	if dest.capacity < self.count then
+		ArrayList_copy := false;
+		return;
+	end_if;
+
+	dest.count := self.count;
+	dest.capacity := self.capacity;
+	for idx := 0 to self.count - 1 by 1 do
+		dest.data[idx] := self.data[idx];
+	end_for;
+
+	ArrayList_copy := true;
+	{end}
+end
+
+(*{doc Compare two ArrayLists for equality.
+Require equal size and equal elements in the same order.
+@inout self First ArrayList.
+@inout other Second ArrayList.
+@return true when lengths and all elements match in order. }*)
+function ArrayList_equals: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: ArrayListCoreType;
+		other: ArrayListCoreType;
+	end
+	var_temp
+		idx: dint;
+	end
+	{st}
+	if self.count <> other.count then
+		ArrayList_equals := false;
+		return;
+	end_if;
+
+	for idx := 0 to self.count - 1 by 1 do
+		if not _ARRAYLIST_ELEM_EQUALS_(self.data[idx], other.data[idx]) then
+			ArrayList_equals := false;
+			return;
+		end_if;
+	end_for;
+
+	ArrayList_equals := true;
+	{end}
+end
+
+{#ifdef ArrayListElementHashFunction}
+(*{doc Compute a hash value from all elements in order.
+Use order-sensitive accumulation across stored values.
+@inout self Target ArrayList.
+@return Hash value. }*)
+function ArrayList_hash: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: ArrayListCoreType;
+	end
+	var_temp
+		idx: dint;
+		item_hash: udint;
+		acc: udint;
+	end
+	{st}
+	acc := udint#2166136261;
+	for idx := 0 to self.count - 1 by 1 do
+		item_hash := ArrayListElementHashFunction(self.data[idx]);
+		acc := acc * udint#16777619 + item_hash + dint_to_udint(idx + 1);
+	end_for;
+
+	ArrayList_hash := acc + dint_to_udint(self.count);
+	{end}
+end
+{#endif}
+
+{#undef ArrayListCoreType}
+{#undef ArrayList_init}
+{#undef ArrayList_len}
+{#undef ArrayList_empty}
+{#undef ArrayList_clear}
+{#undef ArrayList_append}
+{#undef ArrayList_insert}
+{#undef ArrayList_set}
+{#undef ArrayList_remove}
+{#undef ArrayList_get}
+{#undef ArrayList_contains}
+{#undef ArrayList_index}
+{#undef ArrayList_values}
+{#undef ArrayList_copy}
+{#undef ArrayList_equals}
+{#undef ArrayList_hash}
+
+{#undef ARRAYLIST_CORE_TYPE}
+{#undef ARRAYLIST_INIT}
+{#undef ARRAYLIST_LEN}
+{#undef ARRAYLIST_EMPTY}
+{#undef ARRAYLIST_CLEAR}
+{#undef ARRAYLIST_APPEND}
+{#undef ARRAYLIST_INSERT}
+{#undef ARRAYLIST_SET}
+{#undef ARRAYLIST_REMOVE}
+{#undef ARRAYLIST_GET}
+{#undef ARRAYLIST_CONTAINS}
+{#undef ARRAYLIST_INDEX}
+{#undef ARRAYLIST_VALUES}
+{#undef ARRAYLIST_COPY}
+{#undef ARRAYLIST_EQUALS}
+{#undef ARRAYLIST_HASH}
+
+{#undef _ARRAYLIST_CORE_TYPE_}
+{#undef _ARRAYLIST_INIT_}
+{#undef _ARRAYLIST_LEN_}
+{#undef _ARRAYLIST_EMPTY_}
+{#undef _ARRAYLIST_CLEAR_}
+{#undef _ARRAYLIST_APPEND_}
+{#undef _ARRAYLIST_INSERT_}
+{#undef _ARRAYLIST_SET_}
+{#undef _ARRAYLIST_REMOVE_}
+{#undef _ARRAYLIST_GET_}
+{#undef _ARRAYLIST_CONTAINS_}
+{#undef _ARRAYLIST_INDEX_}
+{#undef _ARRAYLIST_VALUES_}
+{#undef _ARRAYLIST_COPY_}
+{#undef _ARRAYLIST_EQUALS_}
+{#undef _ARRAYLIST_HASH_}
+
+{#undef _ARRAYLIST_ELEM_EQUALS_}

@@ -1,0 +1,18 @@
+{#ifndef __TEST_CONTAINER_ARRAYLIST_STRING_CASEINSENSITIVE_TXT__}
+{#define __TEST_CONTAINER_ARRAYLIST_STRING_CASEINSENSITIVE_TXT__}
+
+{#include <string_lib/equivalence_caseinsensitive.txt>}
+
+{#define ArrayListName string_ci}
+{#define ArrayListItemType string[16 + 1]}
+{#define ArrayListCapacity 8}
+{#define ArrayListElementEqualsFunction String_equalsAsciiIgnoreCase} (* Case-insensitive element comparison *)
+{#define ArrayListElementHashFunction String_hashAsciiIgnoreCase} (* Case-insensitive element hashing *)
+{#include <container/arraylist/arraylist_template.txt>}
+{#undef ArrayListName}
+{#undef ArrayListItemType}
+{#undef ArrayListCapacity}
+{#undef ArrayListElementEqualsFunction}
+{#undef ArrayListElementHashFunction}
+
+{#endif}

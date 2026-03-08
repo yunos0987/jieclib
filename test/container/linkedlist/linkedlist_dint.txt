@@ -1,0 +1,24 @@
+{#ifndef __TEST_CONTAINER_LINKEDLIST_DINT_TXT__}
+{#define __TEST_CONTAINER_LINKEDLIST_DINT_TXT__}
+
+function Dint_hash_for_linkedlist_test: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: dint;
+	end
+	{st}
+	Dint_hash_for_linkedlist_test := dword_to_udint(dint_to_dword(self));
+	{end}
+end
+
+{#define LinkedListName dint}
+{#define LinkedListItemType dint}
+{#define LinkedListCapacity 8}
+{#define LinkedListElementHashFunction Dint_hash_for_linkedlist_test}
+{#include <container/linkedlist/linkedlist_template.txt>}
+{#undef LinkedListName}
+{#undef LinkedListItemType}
+{#undef LinkedListCapacity}
+{#undef LinkedListElementHashFunction}
+
+{#endif}

@@ -1,0 +1,607 @@
+(*
+	================================================================================
+	HashSet Template Generator - Macro-based Generic HashSet
+	================================================================================
+
+	This template generates a typed HashSet from preprocessor macros.
+	The internal implementation is based on HashMap.
+
+	Usage:
+	1. Define required macros.
+	2. Optionally define behavior macros.
+	3. Include this template once per generated type.
+
+	Required macros:
+	  - HashSetName
+	    Suffix used for generated types and functions.
+	  - HashSetElementType
+	    Element type stored in the set.
+	  - HashSetElementHashFunction
+	    Element hash function.
+	  - HashSetCapacity
+	    Number of table slots.
+
+	Optional macros:
+	  - HashSetMaxLoadPermille
+	    Maximum load factor in permille.
+	    Default: 800 (80%).
+	  - HashSetElementEqualsFunction
+	    Element equality function.
+	    Default: direct value comparison.
+
+	Generated APIs:
+	  - init, copy, add, add_all
+	  - remove, remove_all, contains, len
+	  - elements, equals, hash, empty, clear
+
+	Example (string):
+	  {#define HashSetName str}
+	  {#define HashSetCapacity 256}
+	  {#define HashSetElementType string[128]}
+	  {#define HashSetElementHashFunction String_hash}
+	  {#include <container/hashset/hashset_template.txt>}
+
+	Example (dint):
+	  {#define HashSetName dint}
+	  {#define HashSetCapacity 256}
+	  {#define HashSetElementType dint}
+	  {#define HashSetElementHashFunction Dint_hash}
+	  {#include <container/hashset/hashset_template.txt>}
+
+	Algorithm:
+	  HashMap-backed set with Robin Hood hashing.
+	================================================================================
+*)
+{#include <sys.txt>}
+{#include <sys_conv.txt>}
+
+{#ifndef HashSetName}
+	{#error require HashSetName macro.}
+{#endif}
+
+{#ifndef HashSetElementType}
+	{#error require HashSetElementType macro.}
+{#endif}
+
+{#ifndef HashSetElementHashFunction}
+	{#error require HashSetElementHashFunction macro.}
+{#endif}
+
+{#ifdef HashSetElementEqualsFunction}
+	{#define _HASHSET_ELEM_EQUALS_(A, B) HashSetElementEqualsFunction((A), (B))}
+{#else}
+	{#define _HASHSET_ELEM_EQUALS_(A, B) ((A) = (B))}
+{#endif}
+
+{#ifndef HashSetCapacity}
+	{#error require HashSetCapacity macro.}
+{#endif}
+
+{#ifndef HashSetMaxLoadPermille}
+	{#define HashSetMaxLoadPermille 800}
+	{#define _HASHSET_DEFAULT_MAX_LOAD_PERMILLE_DEFINED__}
+{#endif}
+
+{#define _HASHSET_CORE_TYPE_(T) HashSet_@@T@@_t}
+{#define _HASHSET_INIT_(T) HashSet_@@T@@_init}
+{#define _HASHSET_COPY_(T) HashSet_@@T@@_copy}
+{#define _HASHSET_ADD_(T) HashSet_@@T@@_add}
+{#define _HASHSET_ADD_ALL_(T) HashSet_@@T@@_add_all}
+{#define _HASHSET_REMOVE_(T) HashSet_@@T@@_remove}
+{#define _HASHSET_REMOVE_ALL_(T) HashSet_@@T@@_remove_all}
+{#define _HASHSET_EQUALS_(T) HashSet_@@T@@_equals}
+{#define _HASHSET_CONTAINS_(T) HashSet_@@T@@_contains}
+{#define _HASHSET_LEN_(T) HashSet_@@T@@_len}
+{#define _HASHSET_ELEMENTS_(T) HashSet_@@T@@_elements}
+{#define _HASHSET_HASH_(T) HashSet_@@T@@_hash}
+{#define _HASHSET_EMPTY_(T) HashSet_@@T@@_empty}
+{#define _HASHSET_CLEAR_(T) HashSet_@@T@@_clear}
+	// HSIT: HashSet Inner Type (HashMap_HSIT@@T@@_t) HashSet
+{#define _HASHSET_BACKING_CORE_TYPE_(T) HashMap_HSIT@@T@@_t}
+{#define _HASHSET_BACKING_INIT_(T) HashMap_HSIT@@T@@_init}
+{#define _HASHSET_BACKING_COPY_(T) HashMap_HSIT@@T@@_copy}
+{#define _HASHSET_BACKING_UPSERT_(T) HashMap_HSIT@@T@@_upsert}
+{#define _HASHSET_BACKING_DELETE_(T) HashMap_HSIT@@T@@_delete}
+{#define _HASHSET_BACKING_CONTAINS_(T) HashMap_HSIT@@T@@_contains}
+{#define _HASHSET_BACKING_LEN_(T) HashMap_HSIT@@T@@_len}
+{#define _HASHSET_BACKING_ELEMENTS_(T) HashMap_HSIT@@T@@_keys}
+{#define _HASHSET_BACKING_EMPTY_(T) HashMap_HSIT@@T@@_empty}
+{#define _HASHSET_BACKING_CLEAR_(T) HashMap_HSIT@@T@@_clear}
+
+{#define HASHSET_CORE_TYPE(T) _HASHSET_CORE_TYPE_(T)}
+{#define HASHSET_INIT(T) _HASHSET_INIT_(T)}
+{#define HASHSET_COPY(T) _HASHSET_COPY_(T)}
+{#define HASHSET_ADD(T) _HASHSET_ADD_(T)}
+{#define HASHSET_ADD_ALL(T) _HASHSET_ADD_ALL_(T)}
+{#define HASHSET_REMOVE(T) _HASHSET_REMOVE_(T)}
+{#define HASHSET_REMOVE_ALL(T) _HASHSET_REMOVE_ALL_(T)}
+{#define HASHSET_EQUALS(T) _HASHSET_EQUALS_(T)}
+{#define HASHSET_CONTAINS(T) _HASHSET_CONTAINS_(T)}
+{#define HASHSET_LEN(T) _HASHSET_LEN_(T)}
+{#define HASHSET_ELEMENTS(T) _HASHSET_ELEMENTS_(T)}
+{#define HASHSET_HASH(T) _HASHSET_HASH_(T)}
+{#define HASHSET_EMPTY(T) _HASHSET_EMPTY_(T)}
+{#define HASHSET_CLEAR(T) _HASHSET_CLEAR_(T)}
+
+{#define HASHSET_BACKING_CORE_TYPE(T) _HASHSET_BACKING_CORE_TYPE_(T)}
+{#define HASHSET_BACKING_INIT(T) _HASHSET_BACKING_INIT_(T)}
+{#define HASHSET_BACKING_COPY(T) _HASHSET_BACKING_COPY_(T)}
+{#define HASHSET_BACKING_UPSERT(T) _HASHSET_BACKING_UPSERT_(T)}
+{#define HASHSET_BACKING_DELETE(T) _HASHSET_BACKING_DELETE_(T)}
+{#define HASHSET_BACKING_CONTAINS(T) _HASHSET_BACKING_CONTAINS_(T)}
+{#define HASHSET_BACKING_LEN(T) _HASHSET_BACKING_LEN_(T)}
+{#define HASHSET_BACKING_ELEMENTS(T) _HASHSET_BACKING_ELEMENTS_(T)}
+{#define HASHSET_BACKING_EMPTY(T) _HASHSET_BACKING_EMPTY_(T)}
+{#define HASHSET_BACKING_CLEAR(T) _HASHSET_BACKING_CLEAR_(T)}
+
+{#define HashSetCoreType HASHSET_CORE_TYPE(HashSetName)}
+{#define HashSetBackingCoreType HASHSET_BACKING_CORE_TYPE(HashSetName)}
+{#define HashSet_init HASHSET_INIT(HashSetName)}
+{#define HashSet_copy HASHSET_COPY(HashSetName)}
+{#define HashSet_add HASHSET_ADD(HashSetName)}
+{#define HashSet_add_all HASHSET_ADD_ALL(HashSetName)}
+{#define HashSet_remove HASHSET_REMOVE(HashSetName)}
+{#define HashSet_remove_all HASHSET_REMOVE_ALL(HashSetName)}
+{#define HashSet_equals HASHSET_EQUALS(HashSetName)}
+{#define HashSet_contains HASHSET_CONTAINS(HashSetName)}
+{#define HashSet_len HASHSET_LEN(HashSetName)}
+{#define HashSet_elements HASHSET_ELEMENTS(HashSetName)}
+{#define HashSet_hash HASHSET_HASH(HashSetName)}
+{#define HashSet_empty HASHSET_EMPTY(HashSetName)}
+{#define HashSet_clear HASHSET_CLEAR(HashSetName)}
+
+{#define HashSet_backing_init HASHSET_BACKING_INIT(HashSetName)}
+{#define HashSet_backing_copy HASHSET_BACKING_COPY(HashSetName)}
+{#define HashSet_backing_upsert HASHSET_BACKING_UPSERT(HashSetName)}
+{#define HashSet_backing_remove HASHSET_BACKING_DELETE(HashSetName)}
+{#define HashSet_backing_contains HASHSET_BACKING_CONTAINS(HashSetName)}
+{#define HashSet_backing_len HASHSET_BACKING_LEN(HashSetName)}
+{#define HashSet_backing_elements HASHSET_BACKING_ELEMENTS(HashSetName)}
+{#define HashSet_backing_empty HASHSET_BACKING_EMPTY(HashSetName)}
+{#define HashSet_backing_clear HASHSET_BACKING_CLEAR(HashSetName)}
+
+// HashMap HashSet
+{#define _HASHSET_INNER_HASHMAP_NAME_(T) HSIT@@T}
+{#define HASHSET_INNER_HASHMAP_NAME(T) _HASHSET_INNER_HASHMAP_NAME_(T)}
+{#define HashMapName HASHSET_INNER_HASHMAP_NAME(HashSetName)}
+{#define HashMapKeyType HashSetElementType}
+{#define HashMapValueType bool}
+{#define HashMapKeyEqualsFunction _HASHSET_ELEM_EQUALS_}
+{#define HashMapKeyHashFunction HashSetElementHashFunction}
+{#define HashMapCapacity HashSetCapacity}
+{#define HashMapMaxLoadPermille HashSetMaxLoadPermille}
+{#include <container/hashmap/hashmap_template.txt>}
+{#undef _HASHSET_INNER_HASHMAP_NAME_}
+{#undef HASHSET_INNER_HASHMAP_NAME}
+{#undef HashMapName}
+{#undef HashMapKeyType}
+{#undef HashMapValueType}
+{#undef HashMapKeyEqualsFunction}
+{#undef HashMapKeyHashFunction}
+{#undef HashMapCapacity}
+{#undef HashMapMaxLoadPermille}
+
+type
+	HashSetCoreType: struct
+		backing: HashSetBackingCoreType;
+	end
+end
+
+(*{doc Initialize the container.
+Initialize the backing HashMap.
+@inout self Target HashSet. }*)
+function HashSet_init
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: HashSetCoreType;
+	end
+	{st}
+	HashSet_backing_init(self:=self.backing);
+	{end}
+end
+
+(*{doc Copy container state.
+Copy all backing storage state.
+@inout self Source HashSet.
+@inout dest Destination HashSet.
+@return true on success. }*)
+function HashSet_copy: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: HashSetCoreType;
+		dest: HashSetCoreType;
+	end
+	{st}
+	HashSet_copy := HashSet_backing_copy(self:=self.backing, dest:=dest.backing, eno=>eno);
+	{end}
+end
+
+(*{doc Add one element.
+Insert the element if it is not already present.
+@inout self Target HashSet.
+@input element Element to add.
+@output added true when newly added, false when already present.
+@return true on success.
+@error Propagates ENO from backing HashMap operations. }*)
+function HashSet_add: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: HashSetCoreType;
+	end
+	var_input
+		element: HashSetElementType;
+	end
+	var_output
+		added: bool;
+	end
+	var_temp
+		replaced: bool;
+	end
+	{st}
+	HashSet_add := HashSet_backing_upsert(self:=self.backing, key:=element, value:=true, replaced=>replaced, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+	added := not replaced;
+	{end}
+end
+
+(*{doc Add all elements from an input array.
+Process input array in index order and count new insertions.
+@inout self Target HashSet.
+@inout elements Input elements.
+@output added_count Number of newly added elements.
+@return true on success, false if an insert fails.
+@error ENO is propagated from backing HashMap. }*)
+function HashSet_add_all: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: HashSetCoreType;
+	end
+	var_in_out
+		elements: array[*] of HashSetElementType;
+	end
+	var_output
+		added_count: dint;
+	end
+	var_temp
+		idx: dint;
+		idx_begin, idx_end: dint;
+		replaced: bool;
+		succeeded: bool;
+	end
+	{st}
+	idx_begin := lower_bound(elements, 1);
+	idx_end := upper_bound(elements, 1);
+	added_count := 0;
+
+	for idx := idx_begin to idx_end by 1 do
+		succeeded := HashSet_backing_upsert(self:=self.backing, key:=elements[idx], value:=true, replaced=>replaced, eno=>eno);
+		if not eno then
+			return;
+		end_if;
+		if not succeeded then
+			HashSet_add_all := false;
+			return;
+		end_if;
+		if not replaced then
+			added_count := added_count + 1;
+		end_if;
+	end_for;
+
+	HashSet_add_all := true;
+	{end}
+end
+
+(*{doc Remove one element.
+Delete the element if present.
+@inout self Target HashSet.
+@input element Element to remove.
+@return true when removed, otherwise false. }*)
+function HashSet_remove: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: HashSetCoreType;
+	end
+	var_input
+		element: HashSetElementType;
+	end
+	{st}
+	HashSet_remove := HashSet_backing_remove(self:=self.backing, key:=element, eno=>eno);
+	{end}
+end
+
+(*{doc Remove all matching elements from an input array.
+Process input array in index order and count successful deletions.
+@inout self Target HashSet.
+@inout elements Input elements.
+@output removed_count Number of removed elements.
+@return true on success.
+@error Propagates ENO from backing HashMap operations. }*)
+function HashSet_remove_all: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: HashSetCoreType;
+	end
+	var_in_out
+		elements: array[*] of HashSetElementType;
+	end
+	var_output
+		removed_count: dint;
+	end
+	var_temp
+		idx: dint;
+		idx_begin, idx_end: dint;
+		removed: bool;
+	end
+	{st}
+	idx_begin := lower_bound(elements, 1);
+	idx_end := upper_bound(elements, 1);
+	removed_count := 0;
+
+	for idx := idx_begin to idx_end by 1 do
+		removed := HashSet_backing_remove(self:=self.backing, key:=elements[idx], eno=>eno);
+		if not eno then
+			return;
+		end_if;
+		if removed then
+			removed_count := removed_count + 1;
+		end_if;
+	end_for;
+
+	HashSet_remove_all := true;
+	{end}
+end
+
+(*{doc Compare two HashSets for equality.
+Require equal counts and mutual element containment.
+@inout self First HashSet.
+@inout other Second HashSet.
+@return true when both contain the same elements. }*)
+function HashSet_equals: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: HashSetCoreType;
+		other: HashSetCoreType;
+	end
+	var_temp
+		elements: array[HashSetCapacity] of HashSetElementType;
+		written: dint;
+		count_self: dint;
+		count_other: dint;
+		idx: dint;
+		contained: bool;
+	end
+	{st}
+	count_self := HashSet_backing_len(self:=self.backing, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+	count_other := HashSet_backing_len(self:=other.backing, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+
+	if count_self <> count_other then
+		HashSet_equals := false;
+		return;
+	end_if;
+
+	HashSet_backing_elements(self:=self.backing, keys:=elements, written=>written, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+
+	for idx := 0 to written - 1 by 1 do
+		contained := HashSet_backing_contains(self:=other.backing, key:=elements[idx], eno=>eno);
+		if not eno then
+			return;
+		end_if;
+		if not contained then
+			HashSet_equals := false;
+			return;
+		end_if;
+	end_for;
+
+	HashSet_equals := true;
+	{end}
+end
+
+(*{doc Return true if the target element exists.
+Check membership using backing lookup.
+@inout self Target HashSet.
+@input element Target element.
+@return true when found, otherwise false. }*)
+function HashSet_contains: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: HashSetCoreType;
+	end
+	var_input
+		element: HashSetElementType;
+	end
+	{st}
+	HashSet_contains := HashSet_backing_contains(self:=self.backing, key:=element, eno=>eno);
+	{end}
+end
+
+(*{doc Return the number of elements.
+Expose current set size.
+@inout self Target HashSet.
+@return Element count. }*)
+function HashSet_len: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: HashSetCoreType;
+	end
+	{st}
+	HashSet_len := HashSet_backing_len(self:=self.backing, eno=>eno);
+	{end}
+end
+
+(*{doc Copy all elements into an output array.
+Export elements from backing table order.
+@inout self Target HashSet.
+@inout elements Output array.
+@output written Number of copied elements.
+@return true on success.
+@error ENO is set to false when output capacity is insufficient. }*)
+function HashSet_elements: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: HashSetCoreType;
+	end
+	var_in_out
+		elements: array[*] of HashSetElementType;
+	end
+	var_output
+		written: dint;
+	end
+	{st}
+	HashSet_elements := HashSet_backing_elements(self:=self.backing, keys:=elements, written=>written, eno=>eno);
+	{end}
+end
+
+{#ifdef HashSetElementHashFunction}
+(*{doc Compute a hash value from all elements.
+Accumulate element hashes in order-insensitive style.
+@inout self Target HashSet.
+@return Hash value. }*)
+function HashSet_hash: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: HashSetCoreType;
+	end
+	var_temp
+		elements: array[HashSetCapacity] of HashSetElementType;
+		written: dint;
+		idx: dint;
+		elem_hash: udint;
+		acc1: udint;
+		acc2: udint;
+	end
+	{st}
+	acc1 := udint#2166136261;
+	acc2 := udint#0;
+
+	HashSet_backing_elements(self:=self.backing, keys:=elements, written=>written, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+
+	for idx := 0 to written - 1 by 1 do
+		elem_hash := HashSetElementHashFunction(elements[idx]);
+		acc1 := acc1 + elem_hash * udint#16777619 + udint#31;
+		acc2 := acc2 + (elem_hash + udint#7) * (elem_hash + udint#13);
+	end_for;
+
+	HashSet_hash := acc1 * udint#2246822519 + acc2;
+	{end}
+end
+{#endif}
+
+(*{doc Return true when the container is empty.
+Check whether current length is zero.
+@inout self Target HashSet.
+@return true if length is 0, otherwise false. }*)
+function HashSet_empty: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: HashSetCoreType;
+	end
+	{st}
+	HashSet_empty := HashSet_backing_empty(self:=self.backing, eno=>eno);
+	{end}
+end
+
+(*{doc Clear all elements.
+Reset backing structure to empty state.
+@inout self Target HashSet.
+@return true on success. }*)
+function HashSet_clear: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: HashSetCoreType;
+	end
+	{st}
+	HashSet_clear := HashSet_backing_clear(self:=self.backing, eno=>eno);
+	{end}
+end
+
+{#ifdef _HASHSET_DEFAULT_MAX_LOAD_PERMILLE_DEFINED__}
+	{#undef HashSetMaxLoadPermille}
+	{#undef _HASHSET_DEFAULT_MAX_LOAD_PERMILLE_DEFINED__}
+{#endif}
+
+{#undef HashSetCoreType}
+{#undef HashSetBackingCoreType}
+{#undef HashSet_init}
+{#undef HashSet_copy}
+{#undef HashSet_add}
+{#undef HashSet_add_all}
+{#undef HashSet_remove}
+{#undef HashSet_remove_all}
+{#undef HashSet_equals}
+{#undef HashSet_contains}
+{#undef HashSet_len}
+{#undef HashSet_elements}
+{#undef HashSet_hash}
+{#undef HashSet_empty}
+{#undef HashSet_clear}
+{#undef HashSet_backing_init}
+{#undef HashSet_backing_copy}
+{#undef HashSet_backing_upsert}
+{#undef HashSet_backing_remove}
+{#undef HashSet_backing_contains}
+{#undef HashSet_backing_len}
+{#undef HashSet_backing_elements}
+{#undef HashSet_backing_empty}
+{#undef HashSet_backing_clear}
+{#undef _HASHSET_CORE_TYPE_}
+{#undef _HASHSET_INIT_}
+{#undef _HASHSET_COPY_}
+{#undef _HASHSET_ADD_}
+{#undef _HASHSET_ADD_ALL_}
+{#undef _HASHSET_REMOVE_}
+{#undef _HASHSET_REMOVE_ALL_}
+{#undef _HASHSET_EQUALS_}
+{#undef _HASHSET_CONTAINS_}
+{#undef _HASHSET_LEN_}
+{#undef _HASHSET_ELEMENTS_}
+{#undef _HASHSET_HASH_}
+{#undef _HASHSET_EMPTY_}
+{#undef _HASHSET_CLEAR_}
+{#undef _HASHSET_BACKING_CORE_TYPE_}
+{#undef _HASHSET_BACKING_INIT_}
+{#undef _HASHSET_BACKING_UPSERT_}
+{#undef _HASHSET_BACKING_DELETE_}
+{#undef _HASHSET_BACKING_CONTAINS_}
+{#undef _HASHSET_BACKING_LEN_}
+{#undef _HASHSET_BACKING_ELEMENTS_}
+{#undef _HASHSET_BACKING_EMPTY_}
+{#undef _HASHSET_BACKING_CLEAR_}
+{#undef HASHSET_CORE_TYPE}
+{#undef HASHSET_INIT}
+{#undef HASHSET_COPY}
+{#undef HASHSET_ADD}
+{#undef HASHSET_ADD_ALL}
+{#undef HASHSET_REMOVE}
+{#undef HASHSET_REMOVE_ALL}
+{#undef HASHSET_EQUALS}
+{#undef HASHSET_CONTAINS}
+{#undef HASHSET_LEN}
+{#undef HASHSET_ELEMENTS}
+{#undef HASHSET_HASH}
+{#undef HASHSET_EMPTY}
+{#undef HASHSET_CLEAR}
+{#undef HASHSET_BACKING_CORE_TYPE}
+{#undef HASHSET_BACKING_INIT}
+{#undef HASHSET_BACKING_COPY}
+{#undef HASHSET_BACKING_UPSERT}
+{#undef HASHSET_BACKING_DELETE}
+{#undef HASHSET_BACKING_CONTAINS}
+{#undef HASHSET_BACKING_LEN}
+{#undef HASHSET_BACKING_ELEMENTS}
+{#undef HASHSET_BACKING_EMPTY}
+{#undef HASHSET_BACKING_CLEAR}
+{#undef _HASHSET_ELEM_EQUALS_}

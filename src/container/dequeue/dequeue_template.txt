@@ -1,0 +1,652 @@
+(*
+	================================================================================
+	Dequeue Template Generator - Macro-based Generic Dequeue
+	================================================================================
+
+	This template generates a typed dequeue from preprocessor macros.
+
+	Usage:
+	1. Define required macros.
+	2. Optionally define behavior macros.
+	3. Include this template once per generated type.
+
+	Required macros:
+	  - DequeueName
+	    Suffix used for generated types and functions.
+	  - DequeueItemType
+	    Element type stored in the dequeue.
+	  - DequeueCapacity
+	    Maximum number of elements.
+
+	Optional macros:
+	  - DequeueElementEqualsFunction
+	    Equality function for contains/equals.
+	    Default: direct value comparison.
+	  - DequeueItemHashFunction
+	    Hash function for hash API generation.
+
+	Generated APIs:
+	  - init, copy, append, appendleft, pop, popleft
+	  - first, last, contains, elements, len, clear, empty, equals
+	  - hash (when DequeueItemHashFunction is defined)
+
+	Example (dint):
+	  {#define DequeueName dint}
+	  {#define DequeueItemType dint}
+	  {#define DequeueCapacity 256}
+	  {#include <container/dequeue/dequeue_template.txt>}
+
+	Example (string):
+	  {#define DequeueName string_ci}
+	  {#define DequeueItemType string[128]}
+	  {#define DequeueCapacity 64}
+	  {#define DequeueElementEqualsFunction String_equals}
+	  {#include <container/dequeue/dequeue_template.txt>}
+
+	Algorithm:
+	  Ring buffer with O(1) amortized push/pop on both ends.
+	================================================================================
+*)
+{#include <sys.txt>}
+{#include <sys_conv.txt>}
+
+{#ifndef DequeueName}
+	{#error require DequeueName macro.}
+{#endif}
+
+{#ifndef DequeueItemType}
+	{#error require DequeueItemType macro.}
+{#endif}
+
+{#ifndef DequeueCapacity}
+	{#error require DequeueCapacity macro.}
+{#endif}
+
+{#define _DEQUEUE_CORE_TYPE_(T) Dequeue_@@T@@_t}
+{#define _DEQUEUE_INIT_(T) Dequeue_@@T@@_init}
+{#define _DEQUEUE_COPY_(T) Dequeue_@@T@@_copy}
+{#define _DEQUEUE_APPEND_(T) Dequeue_@@T@@_append}
+{#define _DEQUEUE_APPENDLEFT_(T) Dequeue_@@T@@_appendleft}
+{#define _DEQUEUE_POP_(T) Dequeue_@@T@@_pop}
+{#define _DEQUEUE_POPLEFT_(T) Dequeue_@@T@@_popleft}
+{#define _DEQUEUE_FIRST_(T) Dequeue_@@T@@_first}
+{#define _DEQUEUE_LAST_(T) Dequeue_@@T@@_last}
+{#define _DEQUEUE_CONTAINS_(T) Dequeue_@@T@@_contains}
+{#define _DEQUEUE_ELEMENTS_(T) Dequeue_@@T@@_elements}
+{#define _DEQUEUE_LEN_(T) Dequeue_@@T@@_len}
+{#define _DEQUEUE_CLEAR_(T) Dequeue_@@T@@_clear}
+{#define _DEQUEUE_EMPTY_(T) Dequeue_@@T@@_empty}
+{#define _DEQUEUE_EQUALS_(T) Dequeue_@@T@@_equals}
+{#define _DEQUEUE_HASH_(T) Dequeue_@@T@@_hash}
+
+{#define DEQUEUE_CORE_TYPE(T) _DEQUEUE_CORE_TYPE_(T)}
+{#define DEQUEUE_INIT(T) _DEQUEUE_INIT_(T)}
+{#define DEQUEUE_COPY(T) _DEQUEUE_COPY_(T)}
+{#define DEQUEUE_APPEND(T) _DEQUEUE_APPEND_(T)}
+{#define DEQUEUE_APPENDLEFT(T) _DEQUEUE_APPENDLEFT_(T)}
+{#define DEQUEUE_POP(T) _DEQUEUE_POP_(T)}
+{#define DEQUEUE_POPLEFT(T) _DEQUEUE_POPLEFT_(T)}
+{#define DEQUEUE_FIRST(T) _DEQUEUE_FIRST_(T)}
+{#define DEQUEUE_LAST(T) _DEQUEUE_LAST_(T)}
+{#define DEQUEUE_CONTAINS(T) _DEQUEUE_CONTAINS_(T)}
+{#define DEQUEUE_ELEMENTS(T) _DEQUEUE_ELEMENTS_(T)}
+{#define DEQUEUE_LEN(T) _DEQUEUE_LEN_(T)}
+{#define DEQUEUE_CLEAR(T) _DEQUEUE_CLEAR_(T)}
+{#define DEQUEUE_EMPTY(T) _DEQUEUE_EMPTY_(T)}
+{#define DEQUEUE_EQUALS(T) _DEQUEUE_EQUALS_(T)}
+{#define DEQUEUE_HASH(T) _DEQUEUE_HASH_(T)}
+
+{#define DequeueCoreType DEQUEUE_CORE_TYPE(DequeueName)}
+{#define Dequeue_init DEQUEUE_INIT(DequeueName)}
+{#define Dequeue_copy DEQUEUE_COPY(DequeueName)}
+{#define Dequeue_append DEQUEUE_APPEND(DequeueName)}
+{#define Dequeue_appendleft DEQUEUE_APPENDLEFT(DequeueName)}
+{#define Dequeue_pop DEQUEUE_POP(DequeueName)}
+{#define Dequeue_popleft DEQUEUE_POPLEFT(DequeueName)}
+{#define Dequeue_first DEQUEUE_FIRST(DequeueName)}
+{#define Dequeue_last DEQUEUE_LAST(DequeueName)}
+{#define Dequeue_contains DEQUEUE_CONTAINS(DequeueName)}
+{#define Dequeue_elements DEQUEUE_ELEMENTS(DequeueName)}
+{#define Dequeue_len DEQUEUE_LEN(DequeueName)}
+{#define Dequeue_clear DEQUEUE_CLEAR(DequeueName)}
+{#define Dequeue_empty DEQUEUE_EMPTY(DequeueName)}
+{#define Dequeue_equals DEQUEUE_EQUALS(DequeueName)}
+{#define Dequeue_hash DEQUEUE_HASH(DequeueName)}
+
+{#ifdef DequeueElementEqualsFunction}
+	{#define _DEQUEUE_ELEM_EQUALS_(A, B) DequeueElementEqualsFunction((A), (B))}
+{#else}
+	{#define _DEQUEUE_ELEM_EQUALS_(A, B) ((A) = (B))}
+{#endif}
+
+type
+	(*{doc Core state for a typed dequeue instance.}*)
+	DequeueCoreType: struct
+		(*{doc Backing storage.}*)
+		items: array[DequeueCapacity] of DequeueItemType;
+		(*{doc Logical index of the first element.}*)
+		begin_idx: dint;
+		(*{doc Logical index one past the last element.}*)
+		end_idx: dint;
+		(*{doc Current number of elements.}*)
+		count: dint;
+		(*{doc Maximum number of elements.}*)
+		capacity: dint;
+	end
+end
+
+(*{doc Initialize dequeue state.
+Set indices and counters to the empty state.
+@inout self Target Dequeue. }*)
+function Dequeue_init
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: DequeueCoreType;
+	end
+	{st}
+	self.begin_idx := 0;
+	self.end_idx := 0;
+	self.count := 0;
+	self.capacity := DequeueCapacity;
+	{end}
+end
+
+(*{doc Copy dequeue state.
+Copy all fields and backing storage.
+@inout self Source dequeue.
+@inout dest Destination dequeue.
+@return true on success. }*)
+function Dequeue_copy: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: DequeueCoreType;
+		dest: DequeueCoreType;
+	end
+	var_temp
+		idx: dint;
+	end
+	{st}
+	dest.begin_idx := self.begin_idx;
+	dest.end_idx := self.end_idx;
+	dest.count := self.count;
+	dest.capacity := self.capacity;
+
+	for idx := 0 to DequeueCapacity - 1 by 1 do
+		dest.items[idx] := self.items[idx];
+	end_for;
+
+	Dequeue_copy := true;
+	{end}
+end
+
+(*{doc Append one element at the back.
+Insert one element at the logical tail position.
+@inout self Target Dequeue.
+@input item Element to append.
+@return true on success, false when full or invalid capacity.
+@error ENO is set to false on error. }*)
+function Dequeue_append: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: DequeueCoreType;
+	end
+	var_input
+		item: DequeueItemType;
+	end
+	var_temp
+		slot: dint;
+	end
+	{st}
+	if (self.capacity <= 0) or (self.count = self.capacity) then
+		Dequeue_append := false;
+		return;
+	end_if;
+
+	slot := self.end_idx mod self.capacity;
+	if slot < 0 then
+		slot := slot + self.capacity;
+	end_if;
+	self.items[slot] := item;
+	self.end_idx := (slot + 1) mod self.capacity;
+	self.count := self.count + 1;
+
+	Dequeue_append := true;
+	{end}
+end
+
+(*{doc Append one element at the front.
+Insert one element before the current front position.
+@inout self Target Dequeue.
+@input item Element to append.
+@return true on success, false when full or invalid capacity.
+@error ENO is set to false on error. }*)
+function Dequeue_appendleft: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: DequeueCoreType;
+	end
+	var_input
+		item: DequeueItemType;
+	end
+	var_temp
+		slot: dint;
+	end
+	{st}
+	if (self.capacity <= 0) or (self.count = self.capacity) then
+		Dequeue_appendleft := false;
+		return;
+	end_if;
+
+	slot := (self.begin_idx - 1) mod self.capacity;
+	if slot < 0 then
+		slot := slot + self.capacity;
+	end_if;
+
+	self.items[slot] := item;
+	self.begin_idx := slot;
+	self.count := self.count + 1;
+
+	Dequeue_appendleft := true;
+	{end}
+end
+
+(*{doc Remove one element from the back.
+Return the logical tail element and shrink size by one.
+@inout self Target Dequeue.
+@output item Removed element.
+@return true on success, false when empty or invalid capacity.
+@error ENO is set to false on error. }*)
+function Dequeue_pop: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: DequeueCoreType;
+	end
+	var_output
+		item: DequeueItemType;
+	end
+	var_temp
+		slot: dint;
+	end
+	{st}
+	if (self.capacity <= 0) or (self.count = 0) then
+		Dequeue_pop := false;
+		return;
+	end_if;
+
+	slot := (self.end_idx - 1) mod self.capacity;
+	if slot < 0 then
+		slot := slot + self.capacity;
+	end_if;
+
+	item := self.items[slot];
+	self.end_idx := slot;
+	self.count := self.count - 1;
+
+	Dequeue_pop := true;
+	{end}
+end
+
+(*{doc Remove one element from the front.
+Return the logical front element and advance begin index.
+@inout self Target Dequeue.
+@output item Removed element.
+@return true on success, false when empty or invalid capacity.
+@error ENO is set to false on error. }*)
+function Dequeue_popleft: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: DequeueCoreType;
+	end
+	var_output
+		item: DequeueItemType;
+	end
+	var_temp
+		slot: dint;
+	end
+	{st}
+	if (self.capacity <= 0) or (self.count = 0) then
+		Dequeue_popleft := false;
+		return;
+	end_if;
+
+	slot := self.begin_idx mod self.capacity;
+	if slot < 0 then
+		slot := slot + self.capacity;
+	end_if;
+
+	item := self.items[slot];
+	self.begin_idx := (slot + 1) mod self.capacity;
+	self.count := self.count - 1;
+
+	Dequeue_popleft := true;
+	{end}
+end
+
+(*{doc Read the front element without removal.
+Keep dequeue state unchanged.
+@inout self Target Dequeue.
+@output item Front element.
+@return true on success, false when empty or invalid capacity.
+@error ENO is set to false on error. }*)
+function Dequeue_first: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: DequeueCoreType;
+	end
+	var_output
+		item: DequeueItemType;
+	end
+	var_temp
+		slot: dint;
+	end
+	{st}
+	if (self.capacity <= 0) or (self.count = 0) then
+		Dequeue_first := false;
+		return;
+	end_if;
+
+	slot := self.begin_idx mod self.capacity;
+	if slot < 0 then
+		slot := slot + self.capacity;
+	end_if;
+
+	item := self.items[slot];
+	Dequeue_first := true;
+	{end}
+end
+
+(*{doc Read the back element without removal.
+Keep dequeue state unchanged.
+@inout self Target Dequeue.
+@output item Back element.
+@return true on success, false when empty or invalid capacity.
+@error ENO is set to false on error. }*)
+function Dequeue_last: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: DequeueCoreType;
+	end
+	var_output
+		item: DequeueItemType;
+	end
+	var_temp
+		slot: dint;
+	end
+	{st}
+	if (self.capacity <= 0) or (self.count = 0) then
+		Dequeue_last := false;
+		return;
+	end_if;
+
+	slot := (self.end_idx - 1) mod self.capacity;
+	if slot < 0 then
+		slot := slot + self.capacity;
+	end_if;
+
+	item := self.items[slot];
+	Dequeue_last := true;
+	{end}
+end
+
+(*{doc Check whether an element exists.
+Scan elements in dequeue order and compare by configured equality.
+@inout self Target Dequeue.
+@input item Element to search.
+@return true when found, otherwise false.
+@error ENO is set to false on error. }*)
+function Dequeue_contains: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: DequeueCoreType;
+	end
+	var_input
+		item: DequeueItemType;
+	end
+	var_temp
+		idx: dint;
+		slot: dint;
+	end
+	{st}
+	if (self.capacity <= 0) or (self.count = 0) then
+		Dequeue_contains := false;
+		return;
+	end_if;
+
+	for idx := 0 to self.count - 1 by 1 do
+		slot := (self.begin_idx + idx) mod self.capacity;
+		if slot < 0 then
+			slot := slot + self.capacity;
+		end_if;
+		if _DEQUEUE_ELEM_EQUALS_(self.items[slot], item) then
+			Dequeue_contains := true;
+			return;
+		end_if;
+	end_for;
+
+	Dequeue_contains := false;
+	{end}
+end
+
+(*{doc Export elements in dequeue order.
+Write elements from front to back into the destination array.
+@inout self Source dequeue.
+@inout elements Destination array.
+@output written Number of exported elements.
+@return true on success.
+@error ENO is set to false when destination capacity is insufficient. }*)
+function Dequeue_elements: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: DequeueCoreType;
+	end
+	var_in_out
+		elements: array[*] of DequeueItemType;
+	end
+	var_output
+		written: dint;
+	end
+	var_temp
+		idx: dint;
+		slot: dint;
+		out_idx: dint;
+		out_hi: dint;
+	end
+	{st}
+	out_idx := lower_bound(elements, 1);
+	out_hi := upper_bound(elements, 1);
+	written := 0;
+
+	for idx := 0 to self.count - 1 by 1 do
+		if out_idx > out_hi then
+			eno := false;
+			return;
+		end_if;
+
+		slot := (self.begin_idx + idx) mod self.capacity;
+		if slot < 0 then
+			slot := slot + self.capacity;
+		end_if;
+
+		elements[out_idx] := self.items[slot];
+		out_idx := out_idx + 1;
+		written := written + 1;
+	end_for;
+
+	Dequeue_elements := true;
+	{end}
+end
+
+(*{doc Get current element count.
+Return the current logical size.
+@inout self Target Dequeue.
+@return Number of stored elements. }*)
+function Dequeue_len: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: DequeueCoreType;
+	end
+	{st}
+	Dequeue_len := self.count;
+	{end}
+end
+
+(*{doc Remove all elements.
+Reset indices and size to the empty state.
+@inout self Target Dequeue. }*)
+function Dequeue_clear
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: DequeueCoreType;
+	end
+	{st}
+	self.begin_idx := 0;
+	self.end_idx := 0;
+	self.count := 0;
+	{end}
+end
+
+(*{doc Check whether the dequeue is empty.
+Evaluate current size.
+@inout self Target Dequeue.
+@return true if empty, otherwise false. }*)
+function Dequeue_empty: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: DequeueCoreType;
+	end
+	{st}
+	Dequeue_empty := self.count = 0;
+	{end}
+end
+
+(*{doc Compare two dequeues.
+Compare size and each element in dequeue order.
+@inout self Left dequeue.
+@inout other Right dequeue.
+@return true when length and order are equal. }*)
+function Dequeue_equals: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: DequeueCoreType;
+		other: DequeueCoreType;
+	end
+	var_temp
+		idx: dint;
+		self_slot: dint;
+		other_slot: dint;
+		v_self: DequeueItemType;
+		v_other: DequeueItemType;
+	end
+	{st}
+	if self.count <> other.count then
+		Dequeue_equals := false;
+		return;
+	end_if;
+
+	for idx := 0 to self.count - 1 by 1 do
+		self_slot := (self.begin_idx + idx) mod self.capacity;
+		if self_slot < 0 then
+			self_slot := self_slot + self.capacity;
+		end_if;
+
+		other_slot := (other.begin_idx + idx) mod other.capacity;
+		if other_slot < 0 then
+			other_slot := other_slot + other.capacity;
+		end_if;
+
+		v_self := self.items[self_slot];
+		v_other := other.items[other_slot];
+		if not _DEQUEUE_ELEM_EQUALS_(v_self, v_other) then
+			Dequeue_equals := false;
+			return;
+		end_if;
+	end_for;
+
+	Dequeue_equals := true;
+	{end}
+end
+
+{#ifdef DequeueItemHashFunction}
+(*{doc Compute a hash in dequeue order.
+Combine item hashes with order-sensitive accumulation.
+@inout self Target Dequeue.
+@return Hash value. }*)
+function Dequeue_hash: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: DequeueCoreType;
+	end
+	var_temp
+		idx: dint;
+		slot: dint;
+		item_hash: udint;
+		acc: udint;
+	end
+	{st}
+	acc := udint#2166136261;
+	for idx := 0 to self.count - 1 by 1 do
+		slot := (self.begin_idx + idx) mod self.capacity;
+		if slot < 0 then
+			slot := slot + self.capacity;
+		end_if;
+		item_hash := DequeueItemHashFunction(self.items[slot]);
+		acc := dword_to_udint(udint_to_dword(acc) xor udint_to_dword(item_hash)) * udint#16777619 + dint_to_udint(idx + 1);
+	end_for;
+
+	Dequeue_hash := acc + dint_to_udint(self.count);
+	{end}
+end
+{#endif}
+
+{#undef DequeueCoreType}
+{#undef Dequeue_init}
+{#undef Dequeue_copy}
+{#undef Dequeue_append}
+{#undef Dequeue_appendleft}
+{#undef Dequeue_pop}
+{#undef Dequeue_popleft}
+{#undef Dequeue_first}
+{#undef Dequeue_last}
+{#undef Dequeue_contains}
+{#undef Dequeue_elements}
+{#undef Dequeue_len}
+{#undef Dequeue_clear}
+{#undef Dequeue_empty}
+{#undef Dequeue_equals}
+{#undef Dequeue_hash}
+
+{#undef DEQUEUE_CORE_TYPE}
+{#undef DEQUEUE_INIT}
+{#undef DEQUEUE_COPY}
+{#undef DEQUEUE_APPEND}
+{#undef DEQUEUE_APPENDLEFT}
+{#undef DEQUEUE_POP}
+{#undef DEQUEUE_POPLEFT}
+{#undef DEQUEUE_FIRST}
+{#undef DEQUEUE_LAST}
+{#undef DEQUEUE_CONTAINS}
+{#undef DEQUEUE_ELEMENTS}
+{#undef DEQUEUE_LEN}
+{#undef DEQUEUE_CLEAR}
+{#undef DEQUEUE_EMPTY}
+{#undef DEQUEUE_EQUALS}
+{#undef DEQUEUE_HASH}
+
+{#undef _DEQUEUE_CORE_TYPE_}
+{#undef _DEQUEUE_INIT_}
+{#undef _DEQUEUE_COPY_}
+{#undef _DEQUEUE_APPEND_}
+{#undef _DEQUEUE_APPENDLEFT_}
+{#undef _DEQUEUE_POP_}
+{#undef _DEQUEUE_POPLEFT_}
+{#undef _DEQUEUE_FIRST_}
+{#undef _DEQUEUE_LAST_}
+{#undef _DEQUEUE_CONTAINS_}
+{#undef _DEQUEUE_ELEMENTS_}
+{#undef _DEQUEUE_LEN_}
+{#undef _DEQUEUE_CLEAR_}
+{#undef _DEQUEUE_EMPTY_}
+{#undef _DEQUEUE_EQUALS_}
+{#undef _DEQUEUE_HASH_}
+
+{#undef _DEQUEUE_ELEM_EQUALS_}

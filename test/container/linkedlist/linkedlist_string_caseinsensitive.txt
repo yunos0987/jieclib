@@ -1,0 +1,18 @@
+{#ifndef __TEST_CONTAINER_LINKEDLIST_STRING_CASEINSENSITIVE_TXT__}
+{#define __TEST_CONTAINER_LINKEDLIST_STRING_CASEINSENSITIVE_TXT__}
+
+{#include <string_lib/equivalence_caseinsensitive.txt>}
+
+{#define LinkedListName string_ci}
+{#define LinkedListItemType string[16 + 1]}
+{#define LinkedListCapacity 8}
+{#define LinkedListElementEqualsFunction String_equalsAsciiIgnoreCase} (* Case-insensitive element comparison *)
+{#define LinkedListElementHashFunction String_hashAsciiIgnoreCase} (* Case-insensitive element hashing *)
+{#include <container/linkedlist/linkedlist_template.txt>}
+{#undef LinkedListName}
+{#undef LinkedListItemType}
+{#undef LinkedListCapacity}
+{#undef LinkedListElementEqualsFunction}
+{#undef LinkedListElementHashFunction}
+
+{#endif}

@@ -1,0 +1,34 @@
+{#ifndef __TEST_CONTAINER_ORDEREDMAP_DINT_TXT__}
+{#define __TEST_CONTAINER_ORDEREDMAP_DINT_TXT__}
+
+{#include <string_lib/equivalence.txt>}
+
+function Dint_hash_for_orderedmap_test: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: dint;
+	end
+	{st}
+	Dint_hash_for_orderedmap_test := dword_to_udint(dint_to_dword(self));
+	{end}
+end
+
+{#define OrderedMapName dint}
+{#define OrderedMapCapacity 8}
+{#define OrderedMapMaxLoadPermille 800}
+{#define OrderedMapKeyType string[16 + 1]}
+{#define OrderedMapValueType dint}
+{#define OrderedMapKeyEqualsFunction String_equals}
+{#define OrderedMapKeyHashFunction String_hash}
+{#define OrderedMapValueHashFunction Dint_hash_for_orderedmap_test}
+{#include <container/orderedmap/orderedmap_template.txt>}
+{#undef OrderedMapName}
+{#undef OrderedMapCapacity}
+{#undef OrderedMapMaxLoadPermille}
+{#undef OrderedMapKeyType}
+{#undef OrderedMapValueType}
+{#undef OrderedMapKeyEqualsFunction}
+{#undef OrderedMapKeyHashFunction}
+{#undef OrderedMapValueHashFunction}
+
+{#endif}

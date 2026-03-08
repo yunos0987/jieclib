@@ -1,0 +1,26 @@
+{#ifndef __TEST_CONTAINER_ARRAYLIST_DINT_TXT__}
+{#define __TEST_CONTAINER_ARRAYLIST_DINT_TXT__}
+
+{#include <sys_conv.txt>}
+
+function Dint_hash_for_arraylist_test: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: dint;
+	end
+	{st}
+	Dint_hash_for_arraylist_test := dword_to_udint(dint_to_dword(self));
+	{end}
+end
+
+{#define ArrayListName dint}
+{#define ArrayListItemType dint}
+{#define ArrayListCapacity 8}
+{#define ArrayListElementHashFunction Dint_hash_for_arraylist_test}
+{#include <container/arraylist/arraylist_template.txt>}
+{#undef ArrayListName}
+{#undef ArrayListItemType}
+{#undef ArrayListCapacity}
+{#undef ArrayListElementHashFunction}
+
+{#endif}

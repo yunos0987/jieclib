@@ -1,0 +1,751 @@
+(*
+	================================================================================
+	OrderedMap Template Generator - HashMap + Insertion Order
+	================================================================================
+
+	This template generates a typed OrderedMap from preprocessor macros.
+	The internal implementation is based on HashMap plus insertion-order keys.
+
+	Usage:
+	1. Define required macros.
+	2. Optionally define behavior macros.
+	3. Include this template once per generated type.
+
+	Required macros:
+	  - OrderedMapName
+	    Suffix used for generated types and functions.
+	  - OrderedMapKeyType
+	    Key type.
+	  - OrderedMapValueType
+	    Value type.
+	  - OrderedMapKeyEqualsFunction
+	    Key equality function.
+	  - OrderedMapKeyHashFunction
+	    Key hash function.
+	  - OrderedMapCapacity
+	    Number of table slots.
+
+	Optional macros:
+	  - OrderedMapMaxLoadPermille
+	    Maximum load factor in permille.
+	    Default: 800 (80%).
+	  - OrderedMapValueEqualsFunction
+	    Value equality function for equals.
+	    Default: direct value comparison.
+
+	Generated APIs:
+	  - init, copy, upsert, lookup, delete
+	  - contains, len, keys, values, items
+	  - equals, hash, empty, clear
+
+	Example (string):
+	  {#define OrderedMapName str}
+	  {#define OrderedMapCapacity 256}
+	  {#define OrderedMapKeyType string[128]}
+	  {#define OrderedMapValueType dint}
+	  {#define OrderedMapKeyEqualsFunction String_equals}
+	  {#define OrderedMapKeyHashFunction String_hash}
+	  {#include <container/orderedmap/orderedmap_template.txt>}
+
+	Example (dint):
+	  {#define OrderedMapName dint}
+	  {#define OrderedMapCapacity 256}
+	  {#define OrderedMapKeyType dint}
+	  {#define OrderedMapValueType dint}
+	  {#define OrderedMapKeyEqualsFunction Dint_equals}
+	  {#define OrderedMapKeyHashFunction Dint_hash}
+	  {#include <container/orderedmap/orderedmap_template.txt>}
+
+	Algorithm:
+	  HashMap-backed ordered key list preserving insertion order.
+	================================================================================
+*)
+{#include <sys.txt>}
+{#include <sys_conv.txt>}
+
+{#ifndef OrderedMapName}
+	{#error require OrderedMapName macro.}
+{#endif}
+
+{#ifndef OrderedMapKeyType}
+	{#error require OrderedMapKeyType macro.}
+{#endif}
+
+{#ifndef OrderedMapValueType}
+	{#error require OrderedMapValueType macro.}
+{#endif}
+
+{#ifndef OrderedMapKeyEqualsFunction}
+	{#error require OrderedMapKeyEqualsFunction macro.}
+{#endif}
+
+{#ifndef OrderedMapKeyHashFunction}
+	{#error require OrderedMapKeyHashFunction macro.}
+{#endif}
+
+{#ifndef OrderedMapCapacity}
+	{#error require OrderedMapCapacity macro.}
+{#endif}
+
+{#ifndef OrderedMapMaxLoadPermille}
+	{#define OrderedMapMaxLoadPermille 800}
+	{#define _ORDEREDMAP_DEFAULT_MAX_LOAD_PERMILLE_DEFINED__}
+{#endif}
+
+{#ifdef OrderedMapValueEqualsFunction}
+	{#define _ORDEREDMAP_VALUE_EQUALS_(A, B) OrderedMapValueEqualsFunction((A), (B))}
+{#else}
+	{#define _ORDEREDMAP_VALUE_EQUALS_(A, B) ((A) = (B))}
+{#endif}
+
+{#define _ORDEREDMAP_INNER_HASHMAP_NAME_(T) OMIT@@T}
+{#define ORDEREDMAP_INNER_HASHMAP_NAME(T) _ORDEREDMAP_INNER_HASHMAP_NAME_(T)}
+{#define HashMapName ORDEREDMAP_INNER_HASHMAP_NAME(OrderedMapName)}
+{#define HashMapKeyType OrderedMapKeyType}
+{#define HashMapValueType OrderedMapValueType}
+{#define HashMapKeyEqualsFunction OrderedMapKeyEqualsFunction}
+{#define HashMapKeyHashFunction OrderedMapKeyHashFunction}
+{#define HashMapCapacity OrderedMapCapacity}
+{#define HashMapMaxLoadPermille OrderedMapMaxLoadPermille}
+{#ifdef OrderedMapValueEqualsFunction}
+	{#define HashMapValueEqualsFunction OrderedMapValueEqualsFunction}
+{#endif}
+{#include <container/hashmap/hashmap_template.txt>}
+{#undef _ORDEREDMAP_INNER_HASHMAP_NAME_}
+{#undef ORDEREDMAP_INNER_HASHMAP_NAME}
+{#undef HashMapName}
+{#undef HashMapKeyType}
+{#undef HashMapValueType}
+{#undef HashMapKeyEqualsFunction}
+{#undef HashMapKeyHashFunction}
+{#undef HashMapCapacity}
+{#undef HashMapMaxLoadPermille}
+{#ifdef OrderedMapValueEqualsFunction}
+	{#undef HashMapValueEqualsFunction}
+{#endif}
+
+{#define _ORDEREDMAP_CORE_TYPE_(T) OrderedMap_@@T@@_t}
+{#define _ORDEREDMAP_ITEM_TYPE_(T) OrderedMap_@@T@@_Item_t}
+{#define _ORDEREDMAP_INIT_(T) OrderedMap_@@T@@_init}
+{#define _ORDEREDMAP_COPY_(T) OrderedMap_@@T@@_copy}
+{#define _ORDEREDMAP_UPSERT_(T) OrderedMap_@@T@@_upsert}
+{#define _ORDEREDMAP_LOOKUP_(T) OrderedMap_@@T@@_lookup}
+{#define _ORDEREDMAP_DELETE_(T) OrderedMap_@@T@@_delete}
+{#define _ORDEREDMAP_CONTAINS_(T) OrderedMap_@@T@@_contains}
+{#define _ORDEREDMAP_LEN_(T) OrderedMap_@@T@@_len}
+{#define _ORDEREDMAP_KEYS_(T) OrderedMap_@@T@@_keys}
+{#define _ORDEREDMAP_VALUES_(T) OrderedMap_@@T@@_values}
+{#define _ORDEREDMAP_ITEMS_(T) OrderedMap_@@T@@_items}
+{#define _ORDEREDMAP_EQUALS_(T) OrderedMap_@@T@@_equals}
+{#define _ORDEREDMAP_HASH_(T) OrderedMap_@@T@@_hash}
+{#define _ORDEREDMAP_EMPTY_(T) OrderedMap_@@T@@_empty}
+{#define _ORDEREDMAP_CLEAR_(T) OrderedMap_@@T@@_clear}
+	// OMIT: OrderedMap Inner Type (HashMap_OMIT@@T@@_t) OrderedMap
+{#define _ORDEREDMAP_BACKING_TYPE_(T) HashMap_OMIT@@T@@_t}
+{#define _ORDEREDMAP_BACKING_INIT_(T) HashMap_OMIT@@T@@_init}
+{#define _ORDEREDMAP_BACKING_COPY_(T) HashMap_OMIT@@T@@_copy}
+{#define _ORDEREDMAP_BACKING_UPSERT_(T) HashMap_OMIT@@T@@_upsert}
+{#define _ORDEREDMAP_BACKING_LOOKUP_(T) HashMap_OMIT@@T@@_lookup}
+{#define _ORDEREDMAP_BACKING_DELETE_(T) HashMap_OMIT@@T@@_delete}
+{#define _ORDEREDMAP_BACKING_CONTAINS_(T) HashMap_OMIT@@T@@_contains}
+{#define _ORDEREDMAP_BACKING_CLEAR_(T) HashMap_OMIT@@T@@_clear}
+
+{#define ORDEREDMAP_CORE_TYPE(T) _ORDEREDMAP_CORE_TYPE_(T)}
+{#define ORDEREDMAP_ITEM_TYPE(T) _ORDEREDMAP_ITEM_TYPE_(T)}
+{#define ORDEREDMAP_INIT(T) _ORDEREDMAP_INIT_(T)}
+{#define ORDEREDMAP_COPY(T) _ORDEREDMAP_COPY_(T)}
+{#define ORDEREDMAP_UPSERT(T) _ORDEREDMAP_UPSERT_(T)}
+{#define ORDEREDMAP_LOOKUP(T) _ORDEREDMAP_LOOKUP_(T)}
+{#define ORDEREDMAP_DELETE(T) _ORDEREDMAP_DELETE_(T)}
+{#define ORDEREDMAP_CONTAINS(T) _ORDEREDMAP_CONTAINS_(T)}
+{#define ORDEREDMAP_LEN(T) _ORDEREDMAP_LEN_(T)}
+{#define ORDEREDMAP_KEYS(T) _ORDEREDMAP_KEYS_(T)}
+{#define ORDEREDMAP_VALUES(T) _ORDEREDMAP_VALUES_(T)}
+{#define ORDEREDMAP_ITEMS(T) _ORDEREDMAP_ITEMS_(T)}
+{#define ORDEREDMAP_EQUALS(T) _ORDEREDMAP_EQUALS_(T)}
+{#define ORDEREDMAP_HASH(T) _ORDEREDMAP_HASH_(T)}
+{#define ORDEREDMAP_EMPTY(T) _ORDEREDMAP_EMPTY_(T)}
+{#define ORDEREDMAP_CLEAR(T) _ORDEREDMAP_CLEAR_(T)}
+
+{#define ORDEREDMAP_BACKING_TYPE(T) _ORDEREDMAP_BACKING_TYPE_(T)}
+{#define ORDEREDMAP_BACKING_INIT(T) _ORDEREDMAP_BACKING_INIT_(T)}
+{#define ORDEREDMAP_BACKING_COPY(T) _ORDEREDMAP_BACKING_COPY_(T)}
+{#define ORDEREDMAP_BACKING_UPSERT(T) _ORDEREDMAP_BACKING_UPSERT_(T)}
+{#define ORDEREDMAP_BACKING_LOOKUP(T) _ORDEREDMAP_BACKING_LOOKUP_(T)}
+{#define ORDEREDMAP_BACKING_DELETE(T) _ORDEREDMAP_BACKING_DELETE_(T)}
+{#define ORDEREDMAP_BACKING_CONTAINS(T) _ORDEREDMAP_BACKING_CONTAINS_(T)}
+{#define ORDEREDMAP_BACKING_CLEAR(T) _ORDEREDMAP_BACKING_CLEAR_(T)}
+
+{#define OrderedMapCoreType ORDEREDMAP_CORE_TYPE(OrderedMapName)}
+{#define OrderedMapItemType ORDEREDMAP_ITEM_TYPE(OrderedMapName)}
+{#define OrderedMap_init ORDEREDMAP_INIT(OrderedMapName)}
+{#define OrderedMap_copy ORDEREDMAP_COPY(OrderedMapName)}
+{#define OrderedMap_upsert ORDEREDMAP_UPSERT(OrderedMapName)}
+{#define OrderedMap_lookup ORDEREDMAP_LOOKUP(OrderedMapName)}
+{#define OrderedMap_delete ORDEREDMAP_DELETE(OrderedMapName)}
+{#define OrderedMap_contains ORDEREDMAP_CONTAINS(OrderedMapName)}
+{#define OrderedMap_len ORDEREDMAP_LEN(OrderedMapName)}
+{#define OrderedMap_keys ORDEREDMAP_KEYS(OrderedMapName)}
+{#define OrderedMap_values ORDEREDMAP_VALUES(OrderedMapName)}
+{#define OrderedMap_items ORDEREDMAP_ITEMS(OrderedMapName)}
+{#define OrderedMap_equals ORDEREDMAP_EQUALS(OrderedMapName)}
+{#define OrderedMap_hash ORDEREDMAP_HASH(OrderedMapName)}
+{#define OrderedMap_empty ORDEREDMAP_EMPTY(OrderedMapName)}
+{#define OrderedMap_clear ORDEREDMAP_CLEAR(OrderedMapName)}
+
+{#define OrderedMap_backing_type ORDEREDMAP_BACKING_TYPE(OrderedMapName)}
+{#define OrderedMap_backing_init ORDEREDMAP_BACKING_INIT(OrderedMapName)}
+{#define OrderedMap_backing_copy ORDEREDMAP_BACKING_COPY(OrderedMapName)}
+{#define OrderedMap_backing_upsert ORDEREDMAP_BACKING_UPSERT(OrderedMapName)}
+{#define OrderedMap_backing_lookup ORDEREDMAP_BACKING_LOOKUP(OrderedMapName)}
+{#define OrderedMap_backing_delete ORDEREDMAP_BACKING_DELETE(OrderedMapName)}
+{#define OrderedMap_backing_contains ORDEREDMAP_BACKING_CONTAINS(OrderedMapName)}
+{#define OrderedMap_backing_clear ORDEREDMAP_BACKING_CLEAR(OrderedMapName)}
+
+type
+	(* OrderedMap key/value item type. *)
+	OrderedMapItemType: struct
+		(* Item key. *)
+		key: OrderedMapKeyType;
+		(* Item value. *)
+		value: OrderedMapValueType;
+	end
+end
+
+type
+	(* OrderedMap runtime state. *)
+	OrderedMapCoreType: struct
+		(* Backing HashMap for key/value storage. *)
+		map: OrderedMap_backing_type;
+		(* Keys in insertion order. *)
+		order_keys: array[OrderedMapCapacity] of OrderedMapKeyType;
+		(* Number of keys in insertion order list. *)
+		order_count: dint;
+	end
+end
+
+(*{doc Initialize the container.
+Reset insertion order state and backing map.
+@inout self Target OrderedMap. }*)
+function OrderedMap_init
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedMapCoreType;
+	end
+	{st}
+	OrderedMap_backing_init(self:=self.map);
+
+	self.order_count := 0;
+	{end}
+end
+
+(*{doc Copy container state.
+Copy backing map and insertion order list.
+@inout self Source OrderedMap.
+@inout dest Destination OrderedMap.
+@return true on success.
+@error Propagates ENO from backing HashMap operations. }*)
+function OrderedMap_copy: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedMapCoreType;
+		dest: OrderedMapCoreType;
+	end
+	var_temp
+		idx: dint;
+	end
+	{st}
+	if not OrderedMap_backing_copy(self:=self.map, dest:=dest.map) then
+		OrderedMap_copy := false;
+		return;
+	end_if;
+
+	dest.order_count := self.order_count;
+	for idx := 0 to OrderedMapCapacity - 1 by 1 do
+		dest.order_keys[idx] := self.order_keys[idx];
+	end_for;
+
+	OrderedMap_copy := true;
+	{end}
+end
+
+(*{doc Insert or update a key/value pair.
+Append key to order list only on first insertion.
+@inout self Target OrderedMap.
+@input key Key.
+@input value Value.
+@output replaced true when updated, false when inserted.
+@return true on success, false on insert failure.
+@error ENO is set to false on internal error. }*)
+function OrderedMap_upsert: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedMapCoreType;
+	end
+	var_input
+		key: OrderedMapKeyType;
+		value: OrderedMapValueType;
+	end
+	var_output
+		replaced: bool;
+	end
+	{st}
+	if not OrderedMap_backing_upsert(self:=self.map, key:=key, value:=value, replaced=>replaced, eno=>eno) then
+		if not eno then
+			return;
+		end_if;
+		OrderedMap_upsert := false;
+		return;
+	end_if;
+
+	if not replaced then
+		if self.order_count >= OrderedMapCapacity then
+			eno := false;
+			return;
+		end_if;
+		self.order_keys[self.order_count] := key;
+		self.order_count := self.order_count + 1;
+	end_if;
+
+	OrderedMap_upsert := true;
+	{end}
+end
+
+(*{doc Lookup a value by key.
+Read value from backing map without changing insertion order.
+@inout self Target OrderedMap.
+@input key Target key.
+@inout value Output value.
+@error ENO is set to false when key is not found or on internal error. }*)
+function OrderedMap_lookup
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedMapCoreType;
+	end
+	var_input
+		key: OrderedMapKeyType;
+	end
+	var_in_out
+		value: OrderedMapValueType;
+	end
+	{st}
+	OrderedMap_backing_lookup(self:=self.map, key:=key, value:=value, eno=>eno);
+	{end}
+end
+
+(*{doc Delete a key/value pair.
+Remove key from both backing map and insertion-order list.
+@inout self Target OrderedMap.
+@input key Target key to delete.
+@return true when deleted, false when key is not found.
+@error ENO is set to false on internal error. }*)
+function OrderedMap_delete: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedMapCoreType;
+	end
+	var_input
+		key: OrderedMapKeyType;
+	end
+	var_temp
+		found_idx: dint;
+		idx: dint;
+	end
+	{st}
+	if not OrderedMap_backing_delete(self:=self.map, key:=key, eno=>eno) then
+		if not eno then
+			return;
+		end_if;
+		OrderedMap_delete := false;
+		return;
+	end_if;
+
+	found_idx := -1;
+	for idx := 0 to self.order_count - 1 by 1 do
+		if OrderedMapKeyEqualsFunction(self.order_keys[idx], key) then
+			found_idx := idx;
+			exit;
+		end_if;
+	end_for;
+	if found_idx < 0 then
+		eno := false;
+		return;
+	end_if;
+
+	for idx := found_idx to self.order_count - 2 by 1 do
+		self.order_keys[idx] := self.order_keys[idx + 1];
+	end_for;
+	self.order_count := self.order_count - 1;
+
+	OrderedMap_delete := true;
+	{end}
+end
+
+(*{doc Return true if the target key exists.
+Check key membership using backing map.
+@inout self Target OrderedMap.
+@input key Target key.
+@return true when found, otherwise false.
+@error ENO is set to false on internal error. }*)
+function OrderedMap_contains: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedMapCoreType;
+	end
+	var_input
+		key: OrderedMapKeyType;
+	end
+	{st}
+	OrderedMap_contains := OrderedMap_backing_contains(self:=self.map, key:=key, eno=>eno);
+	{end}
+end
+
+(*{doc Return the number of stored entries.
+Expose current insertion-order list length.
+@inout self Target OrderedMap.
+@return Entry count. }*)
+function OrderedMap_len: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedMapCoreType;
+	end
+	{st}
+	OrderedMap_len := self.order_count;
+	{end}
+end
+
+(*{doc Copy keys into an output array in insertion order.
+Export keys from oldest to newest insertion.
+@inout self Target OrderedMap.
+@inout keys Output array.
+@output written Number of copied keys.
+@return true on success.
+@error ENO is set to false when output capacity is insufficient. }*)
+function OrderedMap_keys: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedMapCoreType;
+	end
+	var_in_out
+		keys: array[*] of OrderedMapKeyType;
+	end
+	var_output
+		written: dint;
+	end
+	var_temp
+		out_idx: dint;
+		out_hi: dint;
+		idx: dint;
+	end
+	{st}
+	out_idx := lower_bound(keys, 1);
+	out_hi := upper_bound(keys, 1);
+	written := 0;
+
+	for idx := 0 to self.order_count - 1 by 1 do
+		if out_idx > out_hi then
+			eno := false;
+			return;
+		end_if;
+		keys[out_idx] := self.order_keys[idx];
+		out_idx := out_idx + 1;
+		written := written + 1;
+	end_for;
+
+	OrderedMap_keys := true;
+	{end}
+end
+
+(*{doc Copy values into an output array in insertion order.
+Resolve each value by ordered key traversal.
+@inout self Target OrderedMap.
+@inout values Output array.
+@output written Number of copied values.
+@return true on success.
+@error ENO is set to false on internal error or insufficient output capacity. }*)
+function OrderedMap_values: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedMapCoreType;
+	end
+	var_in_out
+		values: array[*] of OrderedMapValueType;
+	end
+	var_output
+		written: dint;
+	end
+	var_temp
+		out_idx: dint;
+		out_hi: dint;
+		idx: dint;
+		value: OrderedMapValueType;
+	end
+	{st}
+	out_idx := lower_bound(values, 1);
+	out_hi := upper_bound(values, 1);
+	written := 0;
+
+	for idx := 0 to self.order_count - 1 by 1 do
+		if out_idx > out_hi then
+			eno := false;
+			return;
+		end_if;
+		OrderedMap_backing_lookup(self:=self.map, key:=self.order_keys[idx], value:=value, eno=>eno);
+		if not eno then
+			return;
+		end_if;
+		values[out_idx] := value;
+		out_idx := out_idx + 1;
+		written := written + 1;
+	end_for;
+
+	OrderedMap_values := true;
+	{end}
+end
+
+(*{doc Copy key/value items into an output array in insertion order.
+Resolve each item by ordered key traversal.
+@inout self Target OrderedMap.
+@inout items Output array.
+@output written Number of copied items.
+@return true on success.
+@error ENO is set to false on internal error or insufficient capacity. }*)
+function OrderedMap_items: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedMapCoreType;
+	end
+	var_in_out
+		items: array[*] of OrderedMapItemType;
+	end
+	var_output
+		written: dint;
+	end
+	var_temp
+		out_idx: dint;
+		out_hi: dint;
+		idx: dint;
+		value: OrderedMapValueType;
+	end
+	{st}
+	out_idx := lower_bound(items, 1);
+	out_hi := upper_bound(items, 1);
+	written := 0;
+
+	for idx := 0 to self.order_count - 1 by 1 do
+		if out_idx > out_hi then
+			eno := false;
+			return;
+		end_if;
+		OrderedMap_backing_lookup(self:=self.map, key:=self.order_keys[idx], value:=value, eno=>eno);
+		if not eno then
+			return;
+		end_if;
+		items[out_idx].key := self.order_keys[idx];
+		items[out_idx].value := value;
+		out_idx := out_idx + 1;
+		written := written + 1;
+	end_for;
+
+	OrderedMap_items := true;
+	{end}
+end
+
+(*{doc Compare two OrderedMaps for equality.
+Require same insertion order and same values per key.
+@inout self First OrderedMap.
+@inout other Second OrderedMap.
+@return true when insertion order and all key/value pairs match.
+@error ENO is set to false on internal error. }*)
+function OrderedMap_equals: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedMapCoreType;
+		other: OrderedMapCoreType;
+	end
+	var_temp
+		idx: dint;
+		v_self: OrderedMapValueType;
+		v_other: OrderedMapValueType;
+	end
+	{st}
+	if self.order_count <> other.order_count then
+		OrderedMap_equals := false;
+		return;
+	end_if;
+
+	for idx := 0 to self.order_count - 1 by 1 do
+		if not OrderedMapKeyEqualsFunction(self.order_keys[idx], other.order_keys[idx]) then
+			OrderedMap_equals := false;
+			return;
+		end_if;
+
+		OrderedMap_backing_lookup(self:=self.map, key:=self.order_keys[idx], value:=v_self, eno=>eno);
+		if not eno then
+			return;
+		end_if;
+
+		OrderedMap_backing_lookup(self:=other.map, key:=other.order_keys[idx], value:=v_other, eno=>eno);
+		if not eno then
+			return;
+		end_if;
+		if not _ORDEREDMAP_VALUE_EQUALS_(v_self, v_other) then
+			OrderedMap_equals := false;
+			return;
+		end_if;
+	end_for;
+
+	OrderedMap_equals := true;
+	{end}
+end
+
+{#ifdef OrderedMapValueHashFunction}
+(*{doc Compute a hash value from all key/value pairs in insertion order.
+Accumulate key/value hashes with sequence sensitivity.
+@inout self Target OrderedMap.
+@return Hash value. }*)
+function OrderedMap_hash: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedMapCoreType;
+	end
+	var_temp
+		acc: udint;
+		idx: dint;
+		key_hash, value_hash: udint;
+		value: OrderedMapValueType;
+	end
+	{st}
+	acc := udint#2166136261;
+	for idx := 0 to self.order_count - 1 by 1 do
+		key_hash := OrderedMapKeyHashFunction(self.order_keys[idx]);
+		OrderedMap_backing_lookup(self:=self.map, key:=self.order_keys[idx], value:=value, eno=>eno);
+		if not eno then
+			return;
+		end_if;
+		value_hash := OrderedMapValueHashFunction(value);
+		acc := dword_to_udint(udint_to_dword(acc) xor udint_to_dword(key_hash + value_hash * udint#16777619)) * udint#16777619 + dint_to_udint(idx + 1);
+	end_for;
+	OrderedMap_hash := acc + dint_to_udint(self.order_count);
+	{end}
+end
+{#endif}
+
+(*{doc Return true when the container is empty.
+Check whether insertion-order list length is zero.
+@inout self Target OrderedMap.
+@return true if length is 0, otherwise false. }*)
+function OrderedMap_empty: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedMapCoreType;
+	end
+	{st}
+	OrderedMap_empty := self.order_count = 0;
+	{end}
+end
+
+(*{doc Clear all entries.
+Clear backing map and reset insertion-order list.
+@inout self Target OrderedMap.
+@return true on success.
+@error Propagates ENO from backing HashMap operations. }*)
+function OrderedMap_clear: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedMapCoreType;
+	end
+	{st}
+	if not OrderedMap_backing_clear(self:=self.map, eno=>eno) then
+		if not eno then
+			return;
+		end_if;
+		OrderedMap_clear := false;
+		return;
+	end_if;
+	self.order_count := 0;
+	OrderedMap_clear := true;
+	{end}
+end
+
+{#undef OrderedMapCoreType}
+{#undef OrderedMapItemType}
+{#undef OrderedMap_init}
+{#undef OrderedMap_copy}
+{#undef OrderedMap_upsert}
+{#undef OrderedMap_lookup}
+{#undef OrderedMap_delete}
+{#undef OrderedMap_contains}
+{#undef OrderedMap_len}
+{#undef OrderedMap_keys}
+{#undef OrderedMap_values}
+{#undef OrderedMap_items}
+{#undef OrderedMap_equals}
+{#undef OrderedMap_hash}
+{#undef OrderedMap_empty}
+{#undef OrderedMap_clear}
+{#undef OrderedMap_backing_type}
+{#undef OrderedMap_backing_init}
+{#undef OrderedMap_backing_copy}
+{#undef OrderedMap_backing_upsert}
+{#undef OrderedMap_backing_lookup}
+{#undef OrderedMap_backing_delete}
+{#undef OrderedMap_backing_contains}
+{#undef OrderedMap_backing_clear}
+
+{#undef ORDEREDMAP_CORE_TYPE}
+{#undef ORDEREDMAP_ITEM_TYPE}
+{#undef ORDEREDMAP_INIT}
+{#undef ORDEREDMAP_COPY}
+{#undef ORDEREDMAP_UPSERT}
+{#undef ORDEREDMAP_LOOKUP}
+{#undef ORDEREDMAP_DELETE}
+{#undef ORDEREDMAP_CONTAINS}
+{#undef ORDEREDMAP_LEN}
+{#undef ORDEREDMAP_KEYS}
+{#undef ORDEREDMAP_VALUES}
+{#undef ORDEREDMAP_ITEMS}
+{#undef ORDEREDMAP_EQUALS}
+{#undef ORDEREDMAP_HASH}
+{#undef ORDEREDMAP_EMPTY}
+{#undef ORDEREDMAP_CLEAR}
+{#undef ORDEREDMAP_BACKING_TYPE}
+{#undef ORDEREDMAP_BACKING_INIT}
+{#undef ORDEREDMAP_BACKING_COPY}
+{#undef ORDEREDMAP_BACKING_UPSERT}
+{#undef ORDEREDMAP_BACKING_LOOKUP}
+{#undef ORDEREDMAP_BACKING_DELETE}
+{#undef ORDEREDMAP_BACKING_CONTAINS}
+{#undef ORDEREDMAP_BACKING_CLEAR}
+
+{#undef _ORDEREDMAP_CORE_TYPE_}
+{#undef _ORDEREDMAP_ITEM_TYPE_}
+{#undef _ORDEREDMAP_INIT_}
+{#undef _ORDEREDMAP_COPY_}
+{#undef _ORDEREDMAP_UPSERT_}
+{#undef _ORDEREDMAP_LOOKUP_}
+{#undef _ORDEREDMAP_DELETE_}
+{#undef _ORDEREDMAP_CONTAINS_}
+{#undef _ORDEREDMAP_LEN_}
+{#undef _ORDEREDMAP_KEYS_}
+{#undef _ORDEREDMAP_VALUES_}
+{#undef _ORDEREDMAP_ITEMS_}
+{#undef _ORDEREDMAP_EQUALS_}
+{#undef _ORDEREDMAP_HASH_}
+{#undef _ORDEREDMAP_EMPTY_}
+{#undef _ORDEREDMAP_CLEAR_}
+{#undef _ORDEREDMAP_BACKING_TYPE_}
+{#undef _ORDEREDMAP_BACKING_INIT_}
+{#undef _ORDEREDMAP_BACKING_COPY_}
+{#undef _ORDEREDMAP_BACKING_UPSERT_}
+{#undef _ORDEREDMAP_BACKING_LOOKUP_}
+{#undef _ORDEREDMAP_BACKING_DELETE_}
+{#undef _ORDEREDMAP_BACKING_CONTAINS_}
+{#undef _ORDEREDMAP_BACKING_CLEAR_}
+
+{#ifdef _ORDEREDMAP_DEFAULT_MAX_LOAD_PERMILLE_DEFINED__}
+	{#undef OrderedMapMaxLoadPermille}
+	{#undef _ORDEREDMAP_DEFAULT_MAX_LOAD_PERMILLE_DEFINED__}
+{#endif}
+
+{#undef _ORDEREDMAP_VALUE_EQUALS_}

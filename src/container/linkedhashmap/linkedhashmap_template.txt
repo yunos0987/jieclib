@@ -1,0 +1,976 @@
+(*
+	================================================================================
+	LinkedHashMap Template Generator - HashMap + Doubly Linked Order
+	================================================================================
+
+	This template generates a typed LinkedHashMap from preprocessor macros.
+	The internal implementation is a HashMap-backed doubly linked structure.
+
+	Usage:
+	1. Define required macros.
+	2. Optionally define behavior macros.
+	3. Include this template once per generated type.
+
+	Required macros:
+	  - LinkedHashMapName
+	    Suffix used for generated types and functions.
+	  - LinkedHashMapKeyType
+	    Key type.
+	  - LinkedHashMapValueType
+	    Value type.
+	  - LinkedHashMapKeyEqualsFunction
+	    Key equality function.
+	  - LinkedHashMapKeyHashFunction
+	    Key hash function.
+	  - LinkedHashMapCapacity
+	    Number of table slots.
+
+	Optional macros:
+	  - LinkedHashMapMaxLoadPermille
+	    Maximum load factor in permille.
+	    Default: 800 (80%).
+	  - LinkedHashMapAccessOrder
+	    When true, successful lookup/upsert moves key to tail.
+	    Default: false.
+	  - LinkedHashMapValueEqualsFunction
+	    Value equality function for equals.
+	    Default: direct value comparison.
+
+	Generated APIs:
+	  - init, copy, upsert, lookup, delete
+	  - contains, len, keys, values, items
+	  - equals, hash, empty, clear
+
+	Example (string):
+	  {#define LinkedHashMapName str}
+	  {#define LinkedHashMapCapacity 256}
+	  {#define LinkedHashMapKeyType string[128]}
+	  {#define LinkedHashMapValueType dint}
+	  {#define LinkedHashMapKeyEqualsFunction String_equals}
+	  {#define LinkedHashMapKeyHashFunction String_hash}
+	  {#include <container/linkedhashmap/linkedhashmap_template.txt>}
+
+	Example (dint):
+	  {#define LinkedHashMapName dint}
+	  {#define LinkedHashMapCapacity 256}
+	  {#define LinkedHashMapKeyType dint}
+	  {#define LinkedHashMapValueType dint}
+	  {#define LinkedHashMapKeyEqualsFunction Dint_equals}
+	  {#define LinkedHashMapKeyHashFunction Dint_hash}
+	  {#define LinkedHashMapAccessOrder true}
+	  {#include <container/linkedhashmap/linkedhashmap_template.txt>}
+
+	Algorithm:
+	  HashMap-backed index map plus doubly linked order list.
+	================================================================================
+*)
+{#include <sys.txt>}
+{#include <sys_conv.txt>}
+
+{#ifndef LinkedHashMapName}
+	{#error require LinkedHashMapName macro.}
+{#endif}
+
+{#ifndef LinkedHashMapKeyType}
+	{#error require LinkedHashMapKeyType macro.}
+{#endif}
+
+{#ifndef LinkedHashMapValueType}
+	{#error require LinkedHashMapValueType macro.}
+{#endif}
+
+{#ifndef LinkedHashMapKeyEqualsFunction}
+	{#error require LinkedHashMapKeyEqualsFunction macro.}
+{#endif}
+
+{#ifndef LinkedHashMapKeyHashFunction}
+	{#error require LinkedHashMapKeyHashFunction macro.}
+{#endif}
+
+{#ifndef LinkedHashMapCapacity}
+	{#error require LinkedHashMapCapacity macro.}
+{#endif}
+
+{#ifndef LinkedHashMapMaxLoadPermille}
+	{#define LinkedHashMapMaxLoadPermille 800}
+	{#define _LINKEDHASHMAP_DEFAULT_MAX_LOAD_PERMILLE_DEFINED__}
+{#endif}
+
+{#ifndef LinkedHashMapAccessOrder}
+	{#define LinkedHashMapAccessOrder false}
+	{#define _LINKEDHASHMAP_DEFAULT_ACCESS_ORDER_DEFINED__}
+{#endif}
+
+{#ifdef LinkedHashMapValueEqualsFunction}
+	{#define _LINKEDHASHMAP_VALUE_EQUALS_(A, B) LinkedHashMapValueEqualsFunction((A), (B))}
+{#else}
+	{#define _LINKEDHASHMAP_VALUE_EQUALS_(A, B) ((A) = (B))}
+{#endif}
+
+{#define _LINKEDHASHMAP_CORE_TYPE_(T) LinkedHashMap_@@T@@_t}
+{#define _LINKEDHASHMAP_NODE_TYPE_(T) LinkedHashMap_@@T@@_Node_t}
+{#define _LINKEDHASHMAP_ITEM_TYPE_(T) LinkedHashMap_@@T@@_Item_t}
+{#define _LINKEDHASHMAP_INIT_(T) LinkedHashMap_@@T@@_init}
+{#define _LINKEDHASHMAP_COPY_(T) LinkedHashMap_@@T@@_copy}
+{#define _LINKEDHASHMAP_UPSERT_(T) LinkedHashMap_@@T@@_upsert}
+{#define _LINKEDHASHMAP_LOOKUP_(T) LinkedHashMap_@@T@@_lookup}
+{#define _LINKEDHASHMAP_DELETE_(T) LinkedHashMap_@@T@@_delete}
+{#define _LINKEDHASHMAP_CONTAINS_(T) LinkedHashMap_@@T@@_contains}
+{#define _LINKEDHASHMAP_LEN_(T) LinkedHashMap_@@T@@_len}
+{#define _LINKEDHASHMAP_KEYS_(T) LinkedHashMap_@@T@@_keys}
+{#define _LINKEDHASHMAP_VALUES_(T) LinkedHashMap_@@T@@_values}
+{#define _LINKEDHASHMAP_ITEMS_(T) LinkedHashMap_@@T@@_items}
+{#define _LINKEDHASHMAP_EQUALS_(T) LinkedHashMap_@@T@@_equals}
+{#define _LINKEDHASHMAP_EMPTY_(T) LinkedHashMap_@@T@@_empty}
+{#define _LINKEDHASHMAP_CLEAR_(T) LinkedHashMap_@@T@@_clear}
+{#define _LINKEDHASHMAP_HASH_(T) LinkedHashMap_@@T@@_hash}
+	// LHMIT: LinkedHashMap Inner Type (HashMap_LHMIT@@T@@_t) LinkedHashMap
+{#define _LINKEDHASHMAP_BACKING_TYPE_(T) HashMap_LHMIT@@T@@_t}
+{#define _LINKEDHASHMAP_BACKING_INIT_(T) HashMap_LHMIT@@T@@_init}
+{#define _LINKEDHASHMAP_BACKING_COPY_(T) HashMap_LHMIT@@T@@_copy}
+{#define _LINKEDHASHMAP_BACKING_UPSERT_(T) HashMap_LHMIT@@T@@_upsert}
+{#define _LINKEDHASHMAP_BACKING_LOOKUP_(T) HashMap_LHMIT@@T@@_lookup}
+{#define _LINKEDHASHMAP_BACKING_DELETE_(T) HashMap_LHMIT@@T@@_delete}
+{#define _LINKEDHASHMAP_BACKING_CONTAINS_(T) HashMap_LHMIT@@T@@_contains}
+{#define _LINKEDHASHMAP_BACKING_CLEAR_(T) HashMap_LHMIT@@T@@_clear}
+
+{#define LINKEDHASHMAP_CORE_TYPE(T) _LINKEDHASHMAP_CORE_TYPE_(T)}
+{#define LINKEDHASHMAP_NODE_TYPE(T) _LINKEDHASHMAP_NODE_TYPE_(T)}
+{#define LINKEDHASHMAP_ITEM_TYPE(T) _LINKEDHASHMAP_ITEM_TYPE_(T)}
+{#define LINKEDHASHMAP_INIT(T) _LINKEDHASHMAP_INIT_(T)}
+{#define LINKEDHASHMAP_COPY(T) _LINKEDHASHMAP_COPY_(T)}
+{#define LINKEDHASHMAP_UPSERT(T) _LINKEDHASHMAP_UPSERT_(T)}
+{#define LINKEDHASHMAP_LOOKUP(T) _LINKEDHASHMAP_LOOKUP_(T)}
+{#define LINKEDHASHMAP_DELETE(T) _LINKEDHASHMAP_DELETE_(T)}
+{#define LINKEDHASHMAP_CONTAINS(T) _LINKEDHASHMAP_CONTAINS_(T)}
+{#define LINKEDHASHMAP_LEN(T) _LINKEDHASHMAP_LEN_(T)}
+{#define LINKEDHASHMAP_KEYS(T) _LINKEDHASHMAP_KEYS_(T)}
+{#define LINKEDHASHMAP_VALUES(T) _LINKEDHASHMAP_VALUES_(T)}
+{#define LINKEDHASHMAP_ITEMS(T) _LINKEDHASHMAP_ITEMS_(T)}
+{#define LINKEDHASHMAP_EQUALS(T) _LINKEDHASHMAP_EQUALS_(T)}
+{#define LINKEDHASHMAP_EMPTY(T) _LINKEDHASHMAP_EMPTY_(T)}
+{#define LINKEDHASHMAP_CLEAR(T) _LINKEDHASHMAP_CLEAR_(T)}
+{#define LINKEDHASHMAP_HASH(T) _LINKEDHASHMAP_HASH_(T)}
+
+{#define LINKEDHASHMAP_BACKING_TYPE(T) _LINKEDHASHMAP_BACKING_TYPE_(T)}
+{#define LINKEDHASHMAP_BACKING_INIT(T) _LINKEDHASHMAP_BACKING_INIT_(T)}
+{#define LINKEDHASHMAP_BACKING_COPY(T) _LINKEDHASHMAP_BACKING_COPY_(T)}
+{#define LINKEDHASHMAP_BACKING_UPSERT(T) _LINKEDHASHMAP_BACKING_UPSERT_(T)}
+{#define LINKEDHASHMAP_BACKING_LOOKUP(T) _LINKEDHASHMAP_BACKING_LOOKUP_(T)}
+{#define LINKEDHASHMAP_BACKING_DELETE(T) _LINKEDHASHMAP_BACKING_DELETE_(T)}
+{#define LINKEDHASHMAP_BACKING_CONTAINS(T) _LINKEDHASHMAP_BACKING_CONTAINS_(T)}
+{#define LINKEDHASHMAP_BACKING_CLEAR(T) _LINKEDHASHMAP_BACKING_CLEAR_(T)}
+
+{#define LinkedHashMapCoreType LINKEDHASHMAP_CORE_TYPE(LinkedHashMapName)}
+{#define LinkedHashMapNodeType LINKEDHASHMAP_NODE_TYPE(LinkedHashMapName)}
+{#define LinkedHashMapItemType LINKEDHASHMAP_ITEM_TYPE(LinkedHashMapName)}
+{#define LinkedHashMap_init LINKEDHASHMAP_INIT(LinkedHashMapName)}
+{#define LinkedHashMap_copy LINKEDHASHMAP_COPY(LinkedHashMapName)}
+{#define LinkedHashMap_upsert LINKEDHASHMAP_UPSERT(LinkedHashMapName)}
+{#define LinkedHashMap_lookup LINKEDHASHMAP_LOOKUP(LinkedHashMapName)}
+{#define LinkedHashMap_delete LINKEDHASHMAP_DELETE(LinkedHashMapName)}
+{#define LinkedHashMap_contains LINKEDHASHMAP_CONTAINS(LinkedHashMapName)}
+{#define LinkedHashMap_len LINKEDHASHMAP_LEN(LinkedHashMapName)}
+{#define LinkedHashMap_keys LINKEDHASHMAP_KEYS(LinkedHashMapName)}
+{#define LinkedHashMap_values LINKEDHASHMAP_VALUES(LinkedHashMapName)}
+{#define LinkedHashMap_items LINKEDHASHMAP_ITEMS(LinkedHashMapName)}
+{#define LinkedHashMap_equals LINKEDHASHMAP_EQUALS(LinkedHashMapName)}
+{#define LinkedHashMap_empty LINKEDHASHMAP_EMPTY(LinkedHashMapName)}
+{#define LinkedHashMap_clear LINKEDHASHMAP_CLEAR(LinkedHashMapName)}
+{#define LinkedHashMap_hash LINKEDHASHMAP_HASH(LinkedHashMapName)}
+
+{#define LinkedHashMap_backing_type LINKEDHASHMAP_BACKING_TYPE(LinkedHashMapName)}
+{#define LinkedHashMap_backing_init LINKEDHASHMAP_BACKING_INIT(LinkedHashMapName)}
+{#define LinkedHashMap_backing_copy LINKEDHASHMAP_BACKING_COPY(LinkedHashMapName)}
+{#define LinkedHashMap_backing_upsert LINKEDHASHMAP_BACKING_UPSERT(LinkedHashMapName)}
+{#define LinkedHashMap_backing_lookup LINKEDHASHMAP_BACKING_LOOKUP(LinkedHashMapName)}
+{#define LinkedHashMap_backing_delete LINKEDHASHMAP_BACKING_DELETE(LinkedHashMapName)}
+{#define LinkedHashMap_backing_contains LINKEDHASHMAP_BACKING_CONTAINS(LinkedHashMapName)}
+{#define LinkedHashMap_backing_clear LINKEDHASHMAP_BACKING_CLEAR(LinkedHashMapName)}
+
+{#define _LINKEDHASHMAP_INNER_HASHMAP_NAME_(T) LHMIT@@T}
+{#define LINKEDHASHMAP_INNER_HASHMAP_NAME(T) _LINKEDHASHMAP_INNER_HASHMAP_NAME_(T)}
+{#define HashMapName LINKEDHASHMAP_INNER_HASHMAP_NAME(LinkedHashMapName)}
+{#define HashMapKeyType LinkedHashMapKeyType}
+{#define HashMapValueType dint}
+{#define HashMapKeyEqualsFunction LinkedHashMapKeyEqualsFunction}
+{#define HashMapKeyHashFunction LinkedHashMapKeyHashFunction}
+{#define HashMapCapacity LinkedHashMapCapacity}
+{#define HashMapMaxLoadPermille LinkedHashMapMaxLoadPermille}
+{#include <container/hashmap/hashmap_template.txt>}
+{#undef _LINKEDHASHMAP_INNER_HASHMAP_NAME_}
+{#undef LINKEDHASHMAP_INNER_HASHMAP_NAME}
+{#undef HashMapName}
+{#undef HashMapKeyType}
+{#undef HashMapValueType}
+{#undef HashMapKeyEqualsFunction}
+{#undef HashMapKeyHashFunction}
+{#undef HashMapCapacity}
+{#undef HashMapMaxLoadPermille}
+
+type
+	LinkedHashMapItemType: struct
+		key: LinkedHashMapKeyType;
+		value: LinkedHashMapValueType;
+	end
+end
+
+type
+	LinkedHashMapNodeType: struct
+		used: bool;
+		key: LinkedHashMapKeyType;
+		value: LinkedHashMapValueType;
+		prev: dint;
+		next: dint;
+	end
+end
+
+type
+	LinkedHashMapCoreType: struct
+		index_map: LinkedHashMap_backing_type;
+		nodes: array[LinkedHashMapCapacity] of LinkedHashMapNodeType;
+		free_stack: array[LinkedHashMapCapacity] of dint;
+		free_top: dint;
+		head_idx: dint;
+		tail_idx: dint;
+		count: dint;
+	end
+end
+
+(*{doc Initialize the container.
+Reset linked-order nodes, free stack, and backing map.
+@inout self Target LinkedHashMap. }*)
+function LinkedHashMap_init
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashMapCoreType;
+	end
+	var_temp
+		idx: dint;
+	end
+	{st}
+	LinkedHashMap_backing_init(self:=self.index_map);
+
+	for idx := 0 to LinkedHashMapCapacity - 1 by 1 do
+		self.nodes[idx].used := false;
+		self.nodes[idx].prev := -1;
+		self.nodes[idx].next := -1;
+		self.free_stack[idx] := idx;
+	end_for;
+	self.free_top := LinkedHashMapCapacity;
+	self.head_idx := -1;
+	self.tail_idx := -1;
+	self.count := 0;
+	{end}
+end
+
+(*{doc Copy container state.
+Rebuild destination by ordered upsert from source.
+@inout self Source LinkedHashMap.
+@inout dest Destination LinkedHashMap.
+@return true on success.
+@error ENO is set to false on internal error. }*)
+function LinkedHashMap_copy: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashMapCoreType;
+		dest: LinkedHashMapCoreType;
+	end
+	var_temp
+		cur: dint;
+		replaced: bool;
+	end
+	{st}
+	LinkedHashMap_init(dest);
+
+	cur := self.head_idx;
+	while cur >= 0 do
+		if (cur >= LinkedHashMapCapacity) or (not self.nodes[cur].used) then
+			eno := false;
+			return;
+		end_if;
+		if not LinkedHashMap_upsert(self:=dest, key:=self.nodes[cur].key, value:=self.nodes[cur].value, replaced=>replaced, eno=>eno) then
+			if not eno then
+				return;
+			end_if;
+			LinkedHashMap_copy := false;
+			return;
+		end_if;
+		cur := self.nodes[cur].next;
+	end_while;
+
+	LinkedHashMap_copy := true;
+	{end}
+end
+
+(*{doc Insert or update a key/value pair.
+Insert new node in linked order or update existing node value.
+@inout self Target LinkedHashMap.
+@input key Key.
+@input value Value.
+@output replaced true when updated, false when inserted.
+@return true on success, false on failure.
+@error ENO is set to false on internal error. }*)
+function LinkedHashMap_upsert: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashMapCoreType;
+	end
+	var_input
+		key: LinkedHashMapKeyType;
+		value: LinkedHashMapValueType;
+	end
+	var_output
+		replaced: bool;
+	end
+	var_temp
+		idx: dint;
+		prev_idx: dint;
+		next_idx: dint;
+		replaced_internal: bool;
+		succeeded: bool;
+	end
+	{st}
+	LinkedHashMap_backing_lookup(self:=self.index_map, key:=key, value:=idx, eno=>eno);
+	if eno then
+		if (idx < 0) or (idx >= LinkedHashMapCapacity) or (not self.nodes[idx].used) then
+			eno := false;
+			return;
+		end_if;
+
+		self.nodes[idx].value := value;
+
+		if LinkedHashMapAccessOrder and (idx <> self.tail_idx) then
+			prev_idx := self.nodes[idx].prev;
+			next_idx := self.nodes[idx].next;
+
+			if prev_idx >= 0 then
+				self.nodes[prev_idx].next := next_idx;
+			else
+				self.head_idx := next_idx;
+			end_if;
+			if next_idx >= 0 then
+				self.nodes[next_idx].prev := prev_idx;
+			else
+				self.tail_idx := prev_idx;
+			end_if;
+
+			self.nodes[idx].prev := self.tail_idx;
+			self.nodes[idx].next := -1;
+			if self.tail_idx >= 0 then
+				self.nodes[self.tail_idx].next := idx;
+			else
+				self.head_idx := idx;
+			end_if;
+			self.tail_idx := idx;
+		end_if;
+
+		replaced := true;
+		LinkedHashMap_upsert := true;
+		return;
+	end_if;
+
+	// lookup eno=false ,
+	eno := true;
+
+	if self.free_top <= 0 then
+		replaced := false;
+		LinkedHashMap_upsert := false;
+		return;
+	end_if;
+
+	self.free_top := self.free_top - 1;
+	idx := self.free_stack[self.free_top];
+	if (idx < 0) or (idx >= LinkedHashMapCapacity) then
+		eno := false;
+		return;
+	end_if;
+
+	self.nodes[idx].used := true;
+	self.nodes[idx].key := key;
+	self.nodes[idx].value := value;
+	self.nodes[idx].prev := self.tail_idx;
+	self.nodes[idx].next := -1;
+	if self.tail_idx >= 0 then
+		self.nodes[self.tail_idx].next := idx;
+	else
+		self.head_idx := idx;
+	end_if;
+	self.tail_idx := idx;
+
+	succeeded := LinkedHashMap_backing_upsert(self:=self.index_map, key:=key, value:=idx, replaced=>replaced_internal, eno=>eno);
+	if (not eno) or (not succeeded) or replaced_internal then
+		// rollback
+		prev_idx := self.nodes[idx].prev;
+		if prev_idx >= 0 then
+			self.nodes[prev_idx].next := -1;
+		else
+			self.head_idx := -1;
+		end_if;
+		self.tail_idx := prev_idx;
+		self.nodes[idx].used := false;
+		self.nodes[idx].prev := -1;
+		self.nodes[idx].next := -1;
+		self.free_stack[self.free_top] := idx;
+		self.free_top := self.free_top + 1;
+		if replaced_internal then
+			eno := false;
+		end_if;
+		if not eno then
+			return;
+		end_if;
+		replaced := false;
+		LinkedHashMap_upsert := false;
+		return;
+	end_if;
+
+	self.count := self.count + 1;
+	replaced := false;
+	LinkedHashMap_upsert := true;
+	{end}
+end
+
+(*{doc Lookup a value by key.
+Read value and optionally update access order.
+@inout self Target LinkedHashMap.
+@input key Target key.
+@inout value Output value.
+@error ENO is set to false when key is not found or on internal error. }*)
+function LinkedHashMap_lookup
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashMapCoreType;
+	end
+	var_input
+		key: LinkedHashMapKeyType;
+	end
+	var_in_out
+		value: LinkedHashMapValueType;
+	end
+	var_temp
+		idx: dint;
+		prev_idx: dint;
+		next_idx: dint;
+	end
+	{st}
+	LinkedHashMap_backing_lookup(self:=self.index_map, key:=key, value:=idx, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+	if (idx < 0) or (idx >= LinkedHashMapCapacity) or (not self.nodes[idx].used) then
+		eno := false;
+		return;
+	end_if;
+
+	value := self.nodes[idx].value;
+
+	if LinkedHashMapAccessOrder and (idx <> self.tail_idx) then
+		prev_idx := self.nodes[idx].prev;
+		next_idx := self.nodes[idx].next;
+
+		if prev_idx >= 0 then
+			self.nodes[prev_idx].next := next_idx;
+		else
+			self.head_idx := next_idx;
+		end_if;
+		if next_idx >= 0 then
+			self.nodes[next_idx].prev := prev_idx;
+		else
+			self.tail_idx := prev_idx;
+		end_if;
+
+		self.nodes[idx].prev := self.tail_idx;
+		self.nodes[idx].next := -1;
+		if self.tail_idx >= 0 then
+			self.nodes[self.tail_idx].next := idx;
+		else
+			self.head_idx := idx;
+		end_if;
+		self.tail_idx := idx;
+	end_if;
+	{end}
+end
+
+(*{doc Delete a key/value pair.
+Remove from both backing map and linked-order chain.
+@inout self Target LinkedHashMap.
+@input key Target key to delete.
+@return true when deleted, false when key is not found.
+@error ENO is set to false on internal error. }*)
+function LinkedHashMap_delete: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashMapCoreType;
+	end
+	var_input
+		key: LinkedHashMapKeyType;
+	end
+	var_temp
+		idx: dint;
+		prev_idx: dint;
+		next_idx: dint;
+		removed: bool;
+	end
+	{st}
+	LinkedHashMap_backing_lookup(self:=self.index_map, key:=key, value:=idx, eno=>eno);
+	if not eno then
+		eno := true;
+		LinkedHashMap_delete := false;
+		return;
+	end_if;
+	if (idx < 0) or (idx >= LinkedHashMapCapacity) or (not self.nodes[idx].used) then
+		eno := false;
+		return;
+	end_if;
+
+	removed := LinkedHashMap_backing_delete(self:=self.index_map, key:=key, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+	if not removed then
+		eno := false;
+		return;
+	end_if;
+
+	prev_idx := self.nodes[idx].prev;
+	next_idx := self.nodes[idx].next;
+	if prev_idx >= 0 then
+		self.nodes[prev_idx].next := next_idx;
+	else
+		self.head_idx := next_idx;
+	end_if;
+	if next_idx >= 0 then
+		self.nodes[next_idx].prev := prev_idx;
+	else
+		self.tail_idx := prev_idx;
+	end_if;
+
+	self.nodes[idx].used := false;
+	self.nodes[idx].prev := -1;
+	self.nodes[idx].next := -1;
+	if self.free_top >= LinkedHashMapCapacity then
+		eno := false;
+		return;
+	end_if;
+	self.free_stack[self.free_top] := idx;
+	self.free_top := self.free_top + 1;
+	self.count := self.count - 1;
+
+	LinkedHashMap_delete := true;
+	{end}
+end
+
+(*{doc Return true if the target key exists.
+Check key membership via backing map.
+@inout self Target LinkedHashMap.
+@input key Target key.
+@return true when found, otherwise false.
+@error ENO is set to false on internal error. }*)
+function LinkedHashMap_contains: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashMapCoreType;
+	end
+	var_input
+		key: LinkedHashMapKeyType;
+	end
+	{st}
+	LinkedHashMap_contains := LinkedHashMap_backing_contains(self:=self.index_map, key:=key, eno=>eno);
+	{end}
+end
+
+(*{doc Return the number of stored entries.
+Expose current entry count.
+@inout self Target LinkedHashMap.
+@return Entry count. }*)
+function LinkedHashMap_len: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashMapCoreType;
+	end
+	{st}
+	LinkedHashMap_len := self.count;
+	{end}
+end
+
+(*{doc Copy keys into an output array in linked order.
+Export keys from head to tail.
+@inout self Target LinkedHashMap.
+@inout keys Output array.
+@output written Number of copied keys.
+@return true on success.
+@error ENO is set to false on invalid state or insufficient output capacity. }*)
+function LinkedHashMap_keys: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashMapCoreType;
+	end
+	var_in_out
+		keys: array[*] of LinkedHashMapKeyType;
+	end
+	var_output
+		written: dint;
+	end
+	var_temp
+		out_idx: dint;
+		out_hi: dint;
+		cur: dint;
+	end
+	{st}
+	out_idx := lower_bound(keys, 1);
+	out_hi := upper_bound(keys, 1);
+	written := 0;
+	cur := self.head_idx;
+
+	while cur >= 0 do
+		if (cur >= LinkedHashMapCapacity) or (not self.nodes[cur].used) then
+			eno := false;
+			return;
+		end_if;
+		if out_idx > out_hi then
+			eno := false;
+			return;
+		end_if;
+		keys[out_idx] := self.nodes[cur].key;
+		out_idx := out_idx + 1;
+		written := written + 1;
+		cur := self.nodes[cur].next;
+	end_while;
+
+	LinkedHashMap_keys := true;
+	{end}
+end
+
+(*{doc Copy values into an output array in linked order.
+Export values from head to tail.
+@inout self Target LinkedHashMap.
+@inout values Output array.
+@output written Number of copied values.
+@return true on success.
+@error ENO is set to false on invalid state or insufficient output capacity. }*)
+function LinkedHashMap_values: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashMapCoreType;
+	end
+	var_in_out
+		values: array[*] of LinkedHashMapValueType;
+	end
+	var_output
+		written: dint;
+	end
+	var_temp
+		out_idx: dint;
+		out_hi: dint;
+		cur: dint;
+	end
+	{st}
+	out_idx := lower_bound(values, 1);
+	out_hi := upper_bound(values, 1);
+	written := 0;
+	cur := self.head_idx;
+
+	while cur >= 0 do
+		if (cur >= LinkedHashMapCapacity) or (not self.nodes[cur].used) then
+			eno := false;
+			return;
+		end_if;
+		if out_idx > out_hi then
+			eno := false;
+			return;
+		end_if;
+		values[out_idx] := self.nodes[cur].value;
+		out_idx := out_idx + 1;
+		written := written + 1;
+		cur := self.nodes[cur].next;
+	end_while;
+
+	LinkedHashMap_values := true;
+	{end}
+end
+
+(*{doc Copy key/value items into an output array in linked order.
+Export items from head to tail.
+@inout self Target LinkedHashMap.
+@inout items Output array.
+@output written Number of copied items.
+@return true on success.
+@error ENO is set to false on invalid state or insufficient capacity. }*)
+function LinkedHashMap_items: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashMapCoreType;
+	end
+	var_in_out
+		items: array[*] of LinkedHashMapItemType;
+	end
+	var_output
+		written: dint;
+	end
+	var_temp
+		out_idx: dint;
+		out_hi: dint;
+		cur: dint;
+	end
+	{st}
+	out_idx := lower_bound(items, 1);
+	out_hi := upper_bound(items, 1);
+	written := 0;
+	cur := self.head_idx;
+
+	while cur >= 0 do
+		if (cur >= LinkedHashMapCapacity) or (not self.nodes[cur].used) then
+			eno := false;
+			return;
+		end_if;
+		if out_idx > out_hi then
+			eno := false;
+			return;
+		end_if;
+		items[out_idx].key := self.nodes[cur].key;
+		items[out_idx].value := self.nodes[cur].value;
+		out_idx := out_idx + 1;
+		written := written + 1;
+		cur := self.nodes[cur].next;
+	end_while;
+
+	LinkedHashMap_items := true;
+	{end}
+end
+
+(*{doc Compare two LinkedHashMaps for equality.
+Require same size, key order, and values.
+@inout self First LinkedHashMap.
+@inout other Second LinkedHashMap.
+@return true when order, keys, and values all match.
+@error ENO is set to false on internal error. }*)
+function LinkedHashMap_equals: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashMapCoreType;
+		other: LinkedHashMapCoreType;
+	end
+	var_temp
+		cur_a: dint;
+		cur_b: dint;
+	end
+	{st}
+	if self.count <> other.count then
+		LinkedHashMap_equals := false;
+		return;
+	end_if;
+
+	cur_a := self.head_idx;
+	cur_b := other.head_idx;
+	while (cur_a >= 0) and (cur_b >= 0) do
+		if (cur_a >= LinkedHashMapCapacity) or (not self.nodes[cur_a].used) then
+			eno := false;
+			return;
+		end_if;
+		if (cur_b >= LinkedHashMapCapacity) or (not other.nodes[cur_b].used) then
+			eno := false;
+			return;
+		end_if;
+
+		if not LinkedHashMapKeyEqualsFunction(self.nodes[cur_a].key, other.nodes[cur_b].key) then
+			LinkedHashMap_equals := false;
+			return;
+		end_if;
+		if not _LINKEDHASHMAP_VALUE_EQUALS_(self.nodes[cur_a].value, other.nodes[cur_b].value) then
+			LinkedHashMap_equals := false;
+			return;
+		end_if;
+
+		cur_a := self.nodes[cur_a].next;
+		cur_b := other.nodes[cur_b].next;
+	end_while;
+
+	if (cur_a <> -1) or (cur_b <> -1) then
+		eno := false;
+		return;
+	end_if;
+
+	LinkedHashMap_equals := true;
+	{end}
+end
+
+{#ifdef LinkedHashMapValueHashFunction}
+(*{doc Compute a hash value from all key/value pairs in linked order.
+Accumulate key/value hashes with sequence sensitivity.
+@inout self Target LinkedHashMap.
+@return Hash value. }*)
+function LinkedHashMap_hash: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashMapCoreType;
+	end
+	var_temp
+		acc: udint;
+		key_hash, value_hash: udint;
+		cur: dint;
+		sequence_idx: dint;
+	end
+	{st}
+	acc := udint#2166136261;
+	cur := self.head_idx;
+	sequence_idx := 0;
+
+	while cur >= 0 do
+		if (cur >= LinkedHashMapCapacity) or (not self.nodes[cur].used) then
+			eno := false;
+			return;
+		end_if;
+		key_hash := LinkedHashMapKeyHashFunction(self.nodes[cur].key);
+		value_hash := LinkedHashMapValueHashFunction(self.nodes[cur].value);
+		acc := dword_to_udint(udint_to_dword(acc) xor udint_to_dword(key_hash)) * udint#16777619 + value_hash + dint_to_udint(sequence_idx + 1);
+		cur := self.nodes[cur].next;
+		sequence_idx := sequence_idx + 1;
+	end_while;
+
+	LinkedHashMap_hash := acc + dint_to_udint(self.count);
+	{end}
+end
+{#endif}
+
+(*{doc Return true when the container is empty.
+Check whether count is zero.
+@inout self Target LinkedHashMap.
+@return true if count is 0, otherwise false. }*)
+function LinkedHashMap_empty: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashMapCoreType;
+	end
+	{st}
+	LinkedHashMap_empty := self.count = 0;
+	{end}
+end
+
+(*{doc Clear all entries.
+Reset backing map, linked nodes, and free stack.
+@inout self Target LinkedHashMap.
+@return true on success.
+@error ENO is set to false on internal error. }*)
+function LinkedHashMap_clear: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashMapCoreType;
+	end
+	var_temp
+		idx: dint;
+	end
+	{st}
+	if not LinkedHashMap_backing_clear(self:=self.index_map, eno=>eno) then
+		if not eno then
+			return;
+		end_if;
+		LinkedHashMap_clear := false;
+		return;
+	end_if;
+
+	for idx := 0 to LinkedHashMapCapacity - 1 by 1 do
+		self.nodes[idx].used := false;
+		self.nodes[idx].prev := -1;
+		self.nodes[idx].next := -1;
+		self.free_stack[idx] := idx;
+	end_for;
+	self.free_top := LinkedHashMapCapacity;
+	self.head_idx := -1;
+	self.tail_idx := -1;
+	self.count := 0;
+
+	LinkedHashMap_clear := true;
+	{end}
+end
+
+{#ifdef _LINKEDHASHMAP_DEFAULT_MAX_LOAD_PERMILLE_DEFINED__}
+	{#undef LinkedHashMapMaxLoadPermille}
+	{#undef _LINKEDHASHMAP_DEFAULT_MAX_LOAD_PERMILLE_DEFINED__}
+{#endif}
+{#ifdef _LINKEDHASHMAP_DEFAULT_ACCESS_ORDER_DEFINED__}
+	{#undef LinkedHashMapAccessOrder}
+	{#undef _LINKEDHASHMAP_DEFAULT_ACCESS_ORDER_DEFINED__}
+{#endif}
+
+{#undef LinkedHashMapCoreType}
+{#undef LinkedHashMapNodeType}
+{#undef LinkedHashMapItemType}
+{#undef LinkedHashMap_init}
+{#undef LinkedHashMap_copy}
+{#undef LinkedHashMap_upsert}
+{#undef LinkedHashMap_lookup}
+{#undef LinkedHashMap_delete}
+{#undef LinkedHashMap_contains}
+{#undef LinkedHashMap_len}
+{#undef LinkedHashMap_keys}
+{#undef LinkedHashMap_values}
+{#undef LinkedHashMap_items}
+{#undef LinkedHashMap_equals}
+{#undef LinkedHashMap_hash}
+{#undef LinkedHashMap_empty}
+{#undef LinkedHashMap_clear}
+
+{#undef LinkedHashMap_backing_type}
+{#undef LinkedHashMap_backing_init}
+{#undef LinkedHashMap_backing_copy}
+{#undef LinkedHashMap_backing_upsert}
+{#undef LinkedHashMap_backing_lookup}
+{#undef LinkedHashMap_backing_delete}
+{#undef LinkedHashMap_backing_contains}
+{#undef LinkedHashMap_backing_clear}
+
+{#undef _LINKEDHASHMAP_CORE_TYPE_}
+{#undef _LINKEDHASHMAP_NODE_TYPE_}
+{#undef _LINKEDHASHMAP_ITEM_TYPE_}
+{#undef _LINKEDHASHMAP_INIT_}
+{#undef _LINKEDHASHMAP_COPY_}
+{#undef _LINKEDHASHMAP_UPSERT_}
+{#undef _LINKEDHASHMAP_LOOKUP_}
+{#undef _LINKEDHASHMAP_DELETE_}
+{#undef _LINKEDHASHMAP_CONTAINS_}
+{#undef _LINKEDHASHMAP_LEN_}
+{#undef _LINKEDHASHMAP_KEYS_}
+{#undef _LINKEDHASHMAP_VALUES_}
+{#undef _LINKEDHASHMAP_ITEMS_}
+{#undef _LINKEDHASHMAP_EQUALS_}
+{#undef _LINKEDHASHMAP_HASH_}
+{#undef _LINKEDHASHMAP_EMPTY_}
+{#undef _LINKEDHASHMAP_CLEAR_}
+
+{#undef _LINKEDHASHMAP_BACKING_TYPE_}
+{#undef _LINKEDHASHMAP_BACKING_INIT_}
+{#undef _LINKEDHASHMAP_BACKING_COPY_}
+{#undef _LINKEDHASHMAP_BACKING_UPSERT_}
+{#undef _LINKEDHASHMAP_BACKING_LOOKUP_}
+{#undef _LINKEDHASHMAP_BACKING_DELETE_}
+{#undef _LINKEDHASHMAP_BACKING_CONTAINS_}
+{#undef _LINKEDHASHMAP_BACKING_CLEAR_}
+
+{#undef LINKEDHASHMAP_CORE_TYPE}
+{#undef LINKEDHASHMAP_NODE_TYPE}
+{#undef LINKEDHASHMAP_ITEM_TYPE}
+{#undef LINKEDHASHMAP_INIT}
+{#undef LINKEDHASHMAP_COPY}
+{#undef LINKEDHASHMAP_UPSERT}
+{#undef LINKEDHASHMAP_LOOKUP}
+{#undef LINKEDHASHMAP_DELETE}
+{#undef LINKEDHASHMAP_CONTAINS}
+{#undef LINKEDHASHMAP_LEN}
+{#undef LINKEDHASHMAP_KEYS}
+{#undef LINKEDHASHMAP_VALUES}
+{#undef LINKEDHASHMAP_ITEMS}
+{#undef LINKEDHASHMAP_EQUALS}
+{#undef LINKEDHASHMAP_HASH}
+{#undef LINKEDHASHMAP_EMPTY}
+{#undef LINKEDHASHMAP_CLEAR}
+
+{#undef LINKEDHASHMAP_BACKING_TYPE}
+{#undef LINKEDHASHMAP_BACKING_INIT}
+{#undef LINKEDHASHMAP_BACKING_COPY}
+{#undef LINKEDHASHMAP_BACKING_UPSERT}
+{#undef LINKEDHASHMAP_BACKING_LOOKUP}
+{#undef LINKEDHASHMAP_BACKING_DELETE}
+{#undef LINKEDHASHMAP_BACKING_CONTAINS}
+{#undef LINKEDHASHMAP_BACKING_CLEAR}
+
+{#undef _LINKEDHASHMAP_VALUE_EQUALS_}

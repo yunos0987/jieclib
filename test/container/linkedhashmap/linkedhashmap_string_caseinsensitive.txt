@@ -1,0 +1,20 @@
+{#ifndef __TEST_CONTAINER_LINKEDHASHMAP_STRING_CASEINSENSITIVE_TXT__}
+{#define __TEST_CONTAINER_LINKEDHASHMAP_STRING_CASEINSENSITIVE_TXT__}
+
+{#include <string_lib/equivalence_caseinsensitive.txt>}
+
+{#define LinkedHashMapName string_ci}
+{#define LinkedHashMapCapacity 8}
+{#define LinkedHashMapKeyType string[16 + 1]}
+{#define LinkedHashMapValueType dint}
+{#define LinkedHashMapKeyEqualsFunction String_equalsAsciiIgnoreCase} (* Case-insensitive key comparison *)
+{#define LinkedHashMapKeyHashFunction String_hashAsciiIgnoreCase} (* Case-insensitive key hashing *)
+{#include <container/linkedhashmap/linkedhashmap_template.txt>}
+{#undef LinkedHashMapName}
+{#undef LinkedHashMapCapacity}
+{#undef LinkedHashMapKeyType}
+{#undef LinkedHashMapValueType}
+{#undef LinkedHashMapKeyEqualsFunction}
+{#undef LinkedHashMapKeyHashFunction}
+
+{#endif}

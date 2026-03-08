@@ -1,0 +1,675 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/container/arraylist/test_arraylist.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/container/arraylist/test_arraylist.xml -t omron
+ * or
+ * $ jiecc ./test/container/arraylist/test_arraylist.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/container/arraylist/test_arraylist.xml -t keyence
+ *)
+{#include <jiecunit.txt>}
+{#if _JIECUNIT_VER < 302}
+	{#error "JiecUnit version 3.2 or higher is required to compile this test."}
+{#endif}
+
+{#include "arraylist_dint.txt"}
+{#include "arraylist_string_caseinsensitive.txt"}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_arraylist_dint_init',
+		'test_arraylist_dint_append',
+		'test_arraylist_dint_insert',
+		'test_arraylist_dint_get',
+		'test_arraylist_dint_set',
+		'test_arraylist_dint_remove',
+		'test_arraylist_dint_contains',
+		'test_arraylist_dint_index',
+		'test_arraylist_dint_values',
+		'test_arraylist_dint_len',
+		'test_arraylist_dint_empty',
+		'test_arraylist_dint_clear',
+		'test_arraylist_dint_copy',
+		'test_arraylist_dint_equals',
+		'test_arraylist_dint_hash',
+		'test_arraylist_string_caseinsensitive_usecase'
+	)
+)
+
+{#endif}
+
+TEST_S(test_arraylist_dint_init)
+	var
+		xs_count: ArrayList_dint_t;
+		xs_empty: ArrayList_dint_t;
+		xs_capacity: ArrayList_dint_t;
+	end
+	{st}
+
+	// Fact: init sets length to 0.
+		// Act
+	ArrayList_dint_init(xs_count);
+		// Assert
+	EXPECT_EQ_INT32(0, ArrayList_dint_len(xs_count));
+
+	// Fact: init sets empty to true.
+		// Act
+	ArrayList_dint_init(xs_empty);
+		// Assert
+	EXPECT_TRUE(ArrayList_dint_empty(xs_empty));
+
+	// Fact: init sets capacity to default value.
+		// Act
+	ArrayList_dint_init(xs_capacity);
+		// Assert
+	EXPECT_EQ_INT32(8, xs_capacity.capacity);
+	{end}
+END_TEST_S
+
+TEST_S(test_arraylist_dint_append)
+	var
+		xs_append: ArrayList_dint_t;
+		xs_order: ArrayList_dint_t;
+		xs_capacity: ArrayList_dint_t;
+		idx: dint;
+		value: dint;
+		result_eno: bool;
+	end
+	{st}
+
+	// Fact: append succeeds and increments length up to capacity.
+		// Arrange
+	ArrayList_dint_init(xs_append);
+		// Act
+	for idx := 1 to 8 by 1 do
+		ASSERT_TRUE(ArrayList_dint_append(xs_append, idx));
+	end_for;
+		// Assert
+	EXPECT_EQ_INT32(8, ArrayList_dint_len(xs_append));
+
+	// Fact: append preserves element order.
+		// Arrange
+	ArrayList_dint_init(xs_order);
+		// Act
+	ASSERT_TRUE(ArrayList_dint_append(xs_order, 10));
+	ASSERT_TRUE(ArrayList_dint_append(xs_order, 20));
+		// Assert
+	ArrayList_dint_get(self:=xs_order, index:=0, item:=value, eno=>result_eno);
+	ASSERT_TRUE(result_eno);
+	EXPECT_EQ_INT32(10, value);
+	ArrayList_dint_get(self:=xs_order, index:=1, item:=value, eno=>result_eno);
+	ASSERT_TRUE(result_eno);
+	EXPECT_EQ_INT32(20, value);
+
+	// Fact: append fails when capacity is reached.
+		// Arrange
+	ArrayList_dint_init(xs_capacity);
+	for idx := 1 to 8 by 1 do
+		ASSERT_TRUE(ArrayList_dint_append(xs_capacity, idx));
+	end_for;
+		// Act / Assert
+	EXPECT_FALSE(ArrayList_dint_append(xs_capacity, 9));
+	{end}
+END_TEST_S
+
+TEST_S(test_arraylist_dint_insert)
+	var
+		xs_insert: ArrayList_dint_t;
+		xs_oob: ArrayList_dint_t;
+		xs_capacity: ArrayList_dint_t;
+		value: dint;
+		result_eno: bool;
+		idx: dint;
+	end
+	{st}
+
+	// Fact: insert succeeds at head, middle, and tail positions.
+		// Arrange
+	ArrayList_dint_init(xs_insert);
+	ASSERT_TRUE(ArrayList_dint_append(xs_insert, 10));
+	ASSERT_TRUE(ArrayList_dint_append(xs_insert, 30));
+		// Act
+	ASSERT_TRUE(ArrayList_dint_insert(xs_insert, 1, 20));
+	ASSERT_TRUE(ArrayList_dint_insert(xs_insert, 0, 5));
+	ASSERT_TRUE(ArrayList_dint_insert(xs_insert, ArrayList_dint_len(xs_insert), 40));
+		// Assert
+	ArrayList_dint_get(self:=xs_insert, index:=0, item:=value, eno=>result_eno);
+	ASSERT_TRUE(result_eno);
+	EXPECT_EQ_INT32(5, value);
+	ArrayList_dint_get(self:=xs_insert, index:=2, item:=value, eno=>result_eno);
+	ASSERT_TRUE(result_eno);
+	EXPECT_EQ_INT32(20, value);
+	ArrayList_dint_get(self:=xs_insert, index:=4, item:=value, eno=>result_eno);
+	ASSERT_TRUE(result_eno);
+	EXPECT_EQ_INT32(40, value);
+
+	// Fact: insert fails for out-of-bounds index.
+		// Arrange
+	ArrayList_dint_init(xs_oob);
+	ASSERT_TRUE(ArrayList_dint_append(xs_oob, 10));
+		// Act / Assert
+	EXPECT_FALSE(ArrayList_dint_insert(xs_oob, -1, 99));
+	EXPECT_FALSE(ArrayList_dint_insert(xs_oob, ArrayList_dint_len(xs_oob) + 1, 99));
+
+	// Fact: insert fails when capacity is full.
+		// Arrange
+	ArrayList_dint_init(xs_capacity);
+	for idx := 1 to 8 by 1 do
+		ASSERT_TRUE(ArrayList_dint_append(xs_capacity, idx));
+	end_for;
+		// Act / Assert
+	EXPECT_FALSE(ArrayList_dint_insert(xs_capacity, 0, 99));
+	EXPECT_FALSE(ArrayList_dint_insert(xs_capacity, ArrayList_dint_len(xs_capacity), 99));
+	{end}
+END_TEST_S
+
+TEST_S(test_arraylist_dint_get)
+	var
+		xs_head: ArrayList_dint_t;
+		xs_nonhead: ArrayList_dint_t;
+		xs_ng: ArrayList_dint_t;
+		value: dint;
+		result_eno: bool;
+	end
+	{st}
+
+	// Fact: get returns head element successfully.
+		// Arrange
+	ArrayList_dint_init(xs_head);
+	ASSERT_TRUE(ArrayList_dint_append(xs_head, 11));
+	ASSERT_TRUE(ArrayList_dint_append(xs_head, 22));
+		// Act
+	ArrayList_dint_get(self:=xs_head, index:=0, item:=value, eno=>result_eno);
+	ASSERT_TRUE(result_eno);
+		// Assert
+	EXPECT_EQ_INT32(11, value);
+
+	// Fact: get returns non-head element successfully.
+		// Arrange
+	ArrayList_dint_init(xs_nonhead);
+	ASSERT_TRUE(ArrayList_dint_append(xs_nonhead, 11));
+	ASSERT_TRUE(ArrayList_dint_append(xs_nonhead, 22));
+		// Act
+	ArrayList_dint_get(self:=xs_nonhead, index:=1, item:=value, eno=>result_eno);
+	ASSERT_TRUE(result_eno);
+		// Assert
+	EXPECT_EQ_INT32(22, value);
+
+	// Fact: get returns eno=false on empty list.
+		// Arrange
+	ArrayList_dint_init(xs_ng);
+		// Act
+	ArrayList_dint_get(self:=xs_ng, index:=0, item:=value, eno=>result_eno);
+		// Assert
+	EXPECT_FALSE(result_eno);
+	{end}
+END_TEST_S
+
+TEST_S(test_arraylist_dint_set)
+	var
+		xs_set: ArrayList_dint_t;
+		xs_keep: ArrayList_dint_t;
+		xs_oob: ArrayList_dint_t;
+		value: dint;
+		result_eno: bool;
+	end
+	{st}
+
+	// Fact: set updates element at specified index.
+		// Arrange
+	ArrayList_dint_init(xs_set);
+	ASSERT_TRUE(ArrayList_dint_append(xs_set, 1));
+		// Act
+	ASSERT_TRUE(ArrayList_dint_set(xs_set, 0, 9));
+	ArrayList_dint_get(self:=xs_set, index:=0, item:=value, eno=>result_eno);
+	ASSERT_TRUE(result_eno);
+		// Assert
+	EXPECT_EQ_INT32(9, value);
+
+	// Fact: set does not affect other indices.
+		// Arrange
+	ArrayList_dint_init(xs_keep);
+	ASSERT_TRUE(ArrayList_dint_append(xs_keep, 1));
+	ASSERT_TRUE(ArrayList_dint_append(xs_keep, 2));
+		// Act
+	ASSERT_TRUE(ArrayList_dint_set(xs_keep, 0, 9));
+	ArrayList_dint_get(self:=xs_keep, index:=1, item:=value, eno=>result_eno);
+	ASSERT_TRUE(result_eno);
+		// Assert
+	EXPECT_EQ_INT32(2, value);
+
+	// Fact: set fails for out-of-bounds index.
+		// Arrange
+	ArrayList_dint_init(xs_oob);
+	ASSERT_TRUE(ArrayList_dint_append(xs_oob, 1));
+		// Act / Assert
+	EXPECT_FALSE(ArrayList_dint_set(xs_oob, -1, 7));
+	EXPECT_FALSE(ArrayList_dint_set(xs_oob, 1, 7));
+	{end}
+END_TEST_S
+
+TEST_S(test_arraylist_dint_remove)
+	var
+		xs_remove: ArrayList_dint_t;
+		xs_count: ArrayList_dint_t;
+		xs_oob: ArrayList_dint_t;
+		removed: dint;
+		value: dint;
+		result_eno: bool;
+	end
+	{st}
+
+	// Fact: remove deletes element and shifts remaining elements.
+		// Arrange
+	ArrayList_dint_init(xs_remove);
+	ASSERT_TRUE(ArrayList_dint_append(xs_remove, 10));
+	ASSERT_TRUE(ArrayList_dint_append(xs_remove, 20));
+	ASSERT_TRUE(ArrayList_dint_append(xs_remove, 30));
+	ASSERT_TRUE(ArrayList_dint_append(xs_remove, 40));
+		// Act / Assert
+	ASSERT_TRUE(ArrayList_dint_remove(xs_remove, 1, removed));
+	EXPECT_EQ_INT32(20, removed);
+	ASSERT_TRUE(ArrayList_dint_remove(xs_remove, 0, removed));
+	EXPECT_EQ_INT32(10, removed);
+	ASSERT_TRUE(ArrayList_dint_remove(xs_remove, ArrayList_dint_len(xs_remove) - 1, removed));
+	EXPECT_EQ_INT32(40, removed);
+	ArrayList_dint_get(self:=xs_remove, index:=0, item:=value, eno=>result_eno);
+	ASSERT_TRUE(result_eno);
+	EXPECT_EQ_INT32(30, value);
+
+	// Fact: remove decrements length by 1.
+		// Arrange
+	ArrayList_dint_init(xs_count);
+	ASSERT_TRUE(ArrayList_dint_append(xs_count, 10));
+	ASSERT_TRUE(ArrayList_dint_append(xs_count, 20));
+		// Act
+	ASSERT_TRUE(ArrayList_dint_remove(xs_count, 0, removed));
+		// Assert
+	EXPECT_EQ_INT32(1, ArrayList_dint_len(xs_count));
+
+	// Fact: remove fails for out-of-bounds index.
+		// Arrange
+	ArrayList_dint_init(xs_oob);
+	ASSERT_TRUE(ArrayList_dint_append(xs_oob, 10));
+		// Act / Assert
+	EXPECT_FALSE(ArrayList_dint_remove(xs_oob, 1, removed));
+	{end}
+END_TEST_S
+
+TEST_S(test_arraylist_dint_contains)
+	var
+		xs_empty: ArrayList_dint_t;
+		xs_hit: ArrayList_dint_t;
+		xs_miss: ArrayList_dint_t;
+	end
+	{st}
+
+	// Fact: contains returns false on empty list.
+		// Arrange
+	ArrayList_dint_init(xs_empty);
+		// Act / Assert
+	EXPECT_FALSE(ArrayList_dint_contains(xs_empty, 1));
+
+	// Fact: contains returns true when element exists.
+		// Arrange
+	ArrayList_dint_init(xs_hit);
+	ASSERT_TRUE(ArrayList_dint_append(xs_hit, 1));
+	ASSERT_TRUE(ArrayList_dint_append(xs_hit, 3));
+		// Act / Assert
+	EXPECT_TRUE(ArrayList_dint_contains(xs_hit, 1));
+
+	// Fact: contains returns false when element does not exist.
+		// Arrange
+	ArrayList_dint_init(xs_miss);
+	ASSERT_TRUE(ArrayList_dint_append(xs_miss, 1));
+	ASSERT_TRUE(ArrayList_dint_append(xs_miss, 3));
+		// Act / Assert
+	EXPECT_FALSE(ArrayList_dint_contains(xs_miss, 2));
+	{end}
+END_TEST_S
+
+TEST_S(test_arraylist_dint_index)
+	var
+		xs_hit: ArrayList_dint_t;
+		xs_first_dup: ArrayList_dint_t;
+		xs_miss: ArrayList_dint_t;
+	end
+	{st}
+
+	// Fact: index returns correct position for existing element.
+		// Arrange
+	ArrayList_dint_init(xs_hit);
+	ASSERT_TRUE(ArrayList_dint_append(xs_hit, 10));
+	ASSERT_TRUE(ArrayList_dint_append(xs_hit, 20));
+	ASSERT_TRUE(ArrayList_dint_append(xs_hit, 30));
+		// Act / Assert
+	EXPECT_EQ_INT32(1, ArrayList_dint_index(xs_hit, 20));
+
+	// Fact: index returns first occurrence for duplicates.
+		// Arrange
+	ArrayList_dint_init(xs_first_dup);
+	ASSERT_TRUE(ArrayList_dint_append(xs_first_dup, 7));
+	ASSERT_TRUE(ArrayList_dint_append(xs_first_dup, 8));
+	ASSERT_TRUE(ArrayList_dint_append(xs_first_dup, 7));
+		// Act / Assert
+	EXPECT_EQ_INT32(0, ArrayList_dint_index(xs_first_dup, 7));
+
+	// Fact: index returns -1 when element is not found.
+		// Arrange
+	ArrayList_dint_init(xs_miss);
+	ASSERT_TRUE(ArrayList_dint_append(xs_miss, 1));
+	ASSERT_TRUE(ArrayList_dint_append(xs_miss, 2));
+		// Act / Assert
+	EXPECT_EQ_INT32(-1, ArrayList_dint_index(xs_miss, 99));
+	{end}
+END_TEST_S
+
+TEST_S(test_arraylist_dint_values)
+	var
+		xs_order: ArrayList_dint_t;
+		xs_empty: ArrayList_dint_t;
+		xs_small: ArrayList_dint_t;
+		values: array[0..7] of dint;
+		small_values: array[0..1] of dint;
+		written: dint;
+		result_eno: bool;
+	end
+	{st}
+
+	// Fact: values copies elements in order to output array.
+		// Arrange
+	ArrayList_dint_init(xs_order);
+	ASSERT_TRUE(ArrayList_dint_append(xs_order, 10));
+	ASSERT_TRUE(ArrayList_dint_append(xs_order, 20));
+	ASSERT_TRUE(ArrayList_dint_append(xs_order, 30));
+		// Act
+	ASSERT_TRUE(ArrayList_dint_values(self:=xs_order, values:=values, written=>written, eno=>result_eno));
+	ASSERT_TRUE(result_eno);
+		// Assert
+	EXPECT_EQ_INT32(3, written);
+	EXPECT_EQ_INT32(10, values[0]);
+	EXPECT_EQ_INT32(20, values[1]);
+	EXPECT_EQ_INT32(30, values[2]);
+
+	// Fact: values on empty list writes 0 and succeeds.
+		// Arrange
+	ArrayList_dint_init(xs_empty);
+		// Act
+	ASSERT_TRUE(ArrayList_dint_values(self:=xs_empty, values:=values, written=>written, eno=>result_eno));
+	ASSERT_TRUE(result_eno);
+		// Assert
+	EXPECT_EQ_INT32(0, written);
+
+	// Fact: values fails when output buffer is too small.
+		// Arrange
+	ArrayList_dint_init(xs_small);
+	ASSERT_TRUE(ArrayList_dint_append(xs_small, 1));
+	ASSERT_TRUE(ArrayList_dint_append(xs_small, 2));
+	ASSERT_TRUE(ArrayList_dint_append(xs_small, 3));
+		// Act / Assert
+	EXPECT_FALSE(ArrayList_dint_values(self:=xs_small, values:=small_values, written=>written, eno=>result_eno));
+	EXPECT_FALSE(result_eno);
+	{end}
+END_TEST_S
+
+TEST_S(test_arraylist_dint_len)
+	var
+		xs_init: ArrayList_dint_t;
+		xs_add: ArrayList_dint_t;
+		xs_remove: ArrayList_dint_t;
+		removed: dint;
+	end
+	{st}
+
+	// Fact: len is 0 immediately after init.
+		// Arrange
+	ArrayList_dint_init(xs_init);
+		// Act / Assert
+	EXPECT_EQ_INT32(0, ArrayList_dint_len(xs_init));
+
+	// Fact: len increments after append.
+		// Arrange
+	ArrayList_dint_init(xs_add);
+	ASSERT_TRUE(ArrayList_dint_append(xs_add, 1));
+	ASSERT_TRUE(ArrayList_dint_append(xs_add, 2));
+		// Act / Assert
+	EXPECT_EQ_INT32(2, ArrayList_dint_len(xs_add));
+
+	// Fact: len decrements after remove.
+		// Arrange
+	ArrayList_dint_init(xs_remove);
+	ASSERT_TRUE(ArrayList_dint_append(xs_remove, 1));
+	ASSERT_TRUE(ArrayList_dint_append(xs_remove, 2));
+	ASSERT_TRUE(ArrayList_dint_remove(xs_remove, 0, removed));
+		// Act / Assert
+	EXPECT_EQ_INT32(1, ArrayList_dint_len(xs_remove));
+	{end}
+END_TEST_S
+
+TEST_S(test_arraylist_dint_empty)
+	var
+		xs_init: ArrayList_dint_t;
+		xs_after_append: ArrayList_dint_t;
+		xs_after_clear: ArrayList_dint_t;
+	end
+	{st}
+
+	// Fact: empty is true immediately after init.
+		// Arrange
+	ArrayList_dint_init(xs_init);
+		// Act / Assert
+	EXPECT_TRUE(ArrayList_dint_empty(xs_init));
+
+	// Fact: empty is false after append.
+		// Arrange
+	ArrayList_dint_init(xs_after_append);
+	ASSERT_TRUE(ArrayList_dint_append(xs_after_append, 1));
+		// Act / Assert
+	EXPECT_FALSE(ArrayList_dint_empty(xs_after_append));
+
+	// Fact: empty is true after clear.
+		// Arrange
+	ArrayList_dint_init(xs_after_clear);
+	ASSERT_TRUE(ArrayList_dint_append(xs_after_clear, 1));
+	ASSERT_TRUE(ArrayList_dint_clear(xs_after_clear));
+		// Act / Assert
+	EXPECT_TRUE(ArrayList_dint_empty(xs_after_clear));
+	{end}
+END_TEST_S
+
+TEST_S(test_arraylist_dint_clear)
+	var
+		xs_clear: ArrayList_dint_t;
+		xs_idempotent: ArrayList_dint_t;
+		xs_reuse: ArrayList_dint_t;
+	end
+	{st}
+
+	// Fact: clear resets length to 0.
+		// Arrange
+	ArrayList_dint_init(xs_clear);
+	ASSERT_TRUE(ArrayList_dint_append(xs_clear, 1));
+	ASSERT_TRUE(ArrayList_dint_append(xs_clear, 2));
+		// Act
+	ASSERT_TRUE(ArrayList_dint_clear(xs_clear));
+		// Assert
+	EXPECT_EQ_INT32(0, ArrayList_dint_len(xs_clear));
+
+	// Fact: clear is idempotent.
+		// Arrange
+	ArrayList_dint_init(xs_idempotent);
+	ASSERT_TRUE(ArrayList_dint_append(xs_idempotent, 1));
+		// Act
+	ASSERT_TRUE(ArrayList_dint_clear(xs_idempotent));
+	ASSERT_TRUE(ArrayList_dint_clear(xs_idempotent));
+		// Assert
+	EXPECT_TRUE(ArrayList_dint_empty(xs_idempotent));
+
+	// Fact: list is reusable after clear.
+		// Arrange
+	ArrayList_dint_init(xs_reuse);
+	ASSERT_TRUE(ArrayList_dint_append(xs_reuse, 1));
+		// Act
+	ASSERT_TRUE(ArrayList_dint_clear(xs_reuse));
+	ASSERT_TRUE(ArrayList_dint_append(xs_reuse, 9));
+		// Assert
+	EXPECT_EQ_INT32(1, ArrayList_dint_len(xs_reuse));
+	{end}
+END_TEST_S
+
+TEST_S(test_arraylist_dint_copy)
+	var
+		src_equal: ArrayList_dint_t;
+		dst_equal: ArrayList_dint_t;
+		src_indep: ArrayList_dint_t;
+		dst_indep: ArrayList_dint_t;
+		src_empty: ArrayList_dint_t;
+		dst_empty: ArrayList_dint_t;
+		value: dint;
+		result_eno: bool;
+	end
+	{st}
+
+	// Fact: copy duplicates all elements.
+		// Arrange
+	ArrayList_dint_init(src_equal);
+	ArrayList_dint_init(dst_equal);
+	ASSERT_TRUE(ArrayList_dint_append(src_equal, 7));
+	ASSERT_TRUE(ArrayList_dint_append(src_equal, 8));
+		// Act
+	ASSERT_TRUE(ArrayList_dint_copy(src_equal, dst_equal));
+	ArrayList_dint_get(self:=dst_equal, index:=0, item:=value, eno=>result_eno);
+	ASSERT_TRUE(result_eno);
+		// Assert
+	EXPECT_EQ_INT32(7, value);
+
+	// Fact: copy creates independent instance.
+		// Arrange
+	ArrayList_dint_init(src_indep);
+	ArrayList_dint_init(dst_indep);
+	ASSERT_TRUE(ArrayList_dint_append(src_indep, 7));
+		// Act
+	ASSERT_TRUE(ArrayList_dint_copy(src_indep, dst_indep));
+	ASSERT_TRUE(ArrayList_dint_set(src_indep, 0, 70));
+		// Assert
+	ArrayList_dint_get(self:=src_indep, index:=0, item:=value, eno=>result_eno);
+	ASSERT_TRUE(result_eno);
+	EXPECT_EQ_INT32(70, value);
+	ArrayList_dint_get(self:=dst_indep, index:=0, item:=value, eno=>result_eno);
+	ASSERT_TRUE(result_eno);
+	EXPECT_EQ_INT32(7, value);
+
+	// Fact: copy from empty list clears destination.
+		// Arrange
+	ArrayList_dint_init(src_empty);
+	ArrayList_dint_init(dst_empty);
+	ASSERT_TRUE(ArrayList_dint_append(dst_empty, 1));
+		// Act
+	ASSERT_TRUE(ArrayList_dint_copy(src_empty, dst_empty));
+		// Assert
+	EXPECT_TRUE(ArrayList_dint_empty(dst_empty));
+	{end}
+END_TEST_S
+
+TEST_S(test_arraylist_dint_equals)
+	var
+		list_a: ArrayList_dint_t;
+		list_b: ArrayList_dint_t;
+		list_c: ArrayList_dint_t;
+	end
+	{st}
+
+	// Fact: equals returns true for same content and false for different content.
+		// Arrange
+	ArrayList_dint_init(list_a);
+	ArrayList_dint_init(list_b);
+	ArrayList_dint_init(list_c);
+	ASSERT_TRUE(ArrayList_dint_append(list_a, 1));
+	ASSERT_TRUE(ArrayList_dint_append(list_a, 2));
+	ASSERT_TRUE(ArrayList_dint_append(list_b, 1));
+	ASSERT_TRUE(ArrayList_dint_append(list_b, 2));
+	ASSERT_TRUE(ArrayList_dint_append(list_c, 2));
+	ASSERT_TRUE(ArrayList_dint_append(list_c, 1));
+		// Act / Assert
+	EXPECT_TRUE(ArrayList_dint_equals(list_a, list_b));
+	EXPECT_FALSE(ArrayList_dint_equals(list_a, list_c));
+	ASSERT_TRUE(ArrayList_dint_set(list_c, 1, 3));
+	EXPECT_FALSE(ArrayList_dint_equals(list_a, list_c));
+	{end}
+END_TEST_S
+
+TEST_S(test_arraylist_dint_hash)
+	var
+		list_a: ArrayList_dint_t;
+		list_b: ArrayList_dint_t;
+		hash_a: udint;
+		hash_b: udint;
+	end
+	{st}
+
+	// Fact: hash values match for same content and differ after mutation.
+		// Arrange
+	ArrayList_dint_init(list_a);
+	ArrayList_dint_init(list_b);
+		// Act / Assert
+	hash_a := ArrayList_dint_hash(list_a);
+	hash_b := ArrayList_dint_hash(list_b);
+	EXPECT_EQ_UINT32(hash_a, hash_b);
+	ASSERT_TRUE(ArrayList_dint_append(list_a, 10));
+	ASSERT_TRUE(ArrayList_dint_append(list_a, 20));
+	ASSERT_TRUE(ArrayList_dint_append(list_b, 10));
+	ASSERT_TRUE(ArrayList_dint_append(list_b, 20));
+	hash_a := ArrayList_dint_hash(list_a);
+	hash_b := ArrayList_dint_hash(list_b);
+	EXPECT_EQ_UINT32(hash_a, hash_b);
+	ASSERT_TRUE(ArrayList_dint_append(list_b, 30));
+	hash_b := ArrayList_dint_hash(list_b);
+	EXPECT_NE_UINT32(hash_a, hash_b);
+	{end}
+END_TEST_S
+
+TEST_S(test_arraylist_string_caseinsensitive_usecase)
+	var
+		users: ArrayList_string_ci_t;
+		users_same: ArrayList_string_ci_t;
+		users_diff: ArrayList_string_ci_t;
+		removed: string[16 + 1];
+		value: string[16 + 1];
+		result_eno: bool;
+		hash_a: udint;
+		hash_b: udint;
+	end
+	{st}
+
+	// Fact: contains and index are case-insensitive.
+		// Arrange
+	ArrayList_string_ci_init(users);
+	ASSERT_TRUE(ArrayList_string_ci_append(users, 'Alice'));
+	ASSERT_TRUE(ArrayList_string_ci_append(users, 'Bob'));
+		// Act / Assert
+	EXPECT_TRUE(ArrayList_string_ci_contains(users, 'alice'));
+	EXPECT_EQ_INT32(0, ArrayList_string_ci_index(users, 'ALICE'));
+
+	// Fact: set, remove, and get work with case-insensitive strings.
+		// Arrange
+	ASSERT_TRUE(ArrayList_string_ci_set(users, 1, 'bOb'));
+		// Act / Assert
+	ArrayList_string_ci_get(self:=users, index:=1, item:=value, eno=>result_eno);
+	ASSERT_TRUE(result_eno);
+	EXPECT_EQ_STRING('bOb', value);
+	ASSERT_TRUE(ArrayList_string_ci_remove(users, 0, removed));
+	EXPECT_EQ_STRING('Alice', removed);
+	EXPECT_EQ_INT32(1, ArrayList_string_ci_len(users));
+
+	// Fact: equals and hash are case-insensitive.
+		// Arrange
+	ArrayList_string_ci_init(users_same);
+	ArrayList_string_ci_init(users_diff);
+	ASSERT_TRUE(ArrayList_string_ci_append(users_same, 'BOB'));
+	ASSERT_TRUE(ArrayList_string_ci_append(users_diff, 'Carol'));
+		// Act / Assert
+	EXPECT_TRUE(ArrayList_string_ci_equals(users, users_same));
+	EXPECT_FALSE(ArrayList_string_ci_equals(users, users_diff));
+	hash_a := ArrayList_string_ci_hash(users);
+	hash_b := ArrayList_string_ci_hash(users_same);
+	EXPECT_EQ_UINT32(hash_a, hash_b);
+	{end}
+END_TEST_S

@@ -1,0 +1,63 @@
+{#ifndef __TEST_CONTAINER_LINKEDHASHMAP_DINT_TXT__}
+{#define __TEST_CONTAINER_LINKEDHASHMAP_DINT_TXT__}
+
+{#include <sys_conv.txt>}
+{#include <string_lib/equivalence.txt>}
+
+function Dint_hash_for_linkedhashmap_test: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: dint;
+	end
+	{st}
+	Dint_hash_for_linkedhashmap_test := dword_to_udint(dint_to_dword(self));
+	{end}
+end
+
+{#define LinkedHashMapName dint}
+{#define LinkedHashMapCapacity 8}
+{#define LinkedHashMapKeyType string[16 + 1]}
+{#define LinkedHashMapValueType dint}
+{#define LinkedHashMapKeyEqualsFunction String_equals}
+{#define LinkedHashMapKeyHashFunction String_hash}
+{#define LinkedHashMapValueHashFunction Dint_hash_for_linkedhashmap_test}
+{#include <container/linkedhashmap/linkedhashmap_template.txt>}
+{#undef LinkedHashMapName}
+{#undef LinkedHashMapCapacity}
+{#undef LinkedHashMapKeyType}
+{#undef LinkedHashMapValueType}
+{#undef LinkedHashMapKeyEqualsFunction}
+{#undef LinkedHashMapKeyHashFunction}
+{#undef LinkedHashMapValueHashFunction}
+
+{#define LinkedHashMapName dint_nohash}
+{#define LinkedHashMapCapacity 8}
+{#define LinkedHashMapKeyType string[16 + 1]}
+{#define LinkedHashMapValueType dint}
+{#define LinkedHashMapKeyEqualsFunction String_equals}
+{#define LinkedHashMapKeyHashFunction String_hash}
+{#include <container/linkedhashmap/linkedhashmap_template.txt>}
+{#undef LinkedHashMapName}
+{#undef LinkedHashMapCapacity}
+{#undef LinkedHashMapKeyType}
+{#undef LinkedHashMapValueType}
+{#undef LinkedHashMapKeyEqualsFunction}
+{#undef LinkedHashMapKeyHashFunction}
+
+{#define LinkedHashMapName dint_access}
+{#define LinkedHashMapCapacity 8}
+{#define LinkedHashMapKeyType string[16 + 1]}
+{#define LinkedHashMapValueType dint}
+{#define LinkedHashMapKeyEqualsFunction String_equals}
+{#define LinkedHashMapKeyHashFunction String_hash}
+{#define LinkedHashMapAccessOrder true}
+{#include <container/linkedhashmap/linkedhashmap_template.txt>}
+{#undef LinkedHashMapName}
+{#undef LinkedHashMapCapacity}
+{#undef LinkedHashMapKeyType}
+{#undef LinkedHashMapValueType}
+{#undef LinkedHashMapKeyEqualsFunction}
+{#undef LinkedHashMapKeyHashFunction}
+{#undef LinkedHashMapAccessOrder}
+
+{#endif}

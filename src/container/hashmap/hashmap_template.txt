@@ -1,0 +1,891 @@
+(*
+	================================================================================
+	HashMap Template Generator - Macro-based Generic HashMap
+	================================================================================
+
+	This template generates a typed HashMap from preprocessor macros.
+
+	Usage:
+	1. Define required macros.
+	2. Optionally define behavior macros.
+	3. Include this template once per generated type.
+
+	Required macros:
+	  - HashMapName
+	    Suffix used for generated types and functions.
+	  - HashMapKeyType
+	    Key type.
+	  - HashMapValueType
+	    Value type.
+	  - HashMapKeyEqualsFunction
+	    Key equality function.
+	  - HashMapKeyHashFunction
+	    Key hash function.
+	  - HashMapCapacity
+	    Number of table slots.
+
+	Optional macros:
+	  - HashMapMaxLoadPermille
+	    Maximum load factor in permille.
+	    Default: 800 (80%).
+	  - HashMapValueEqualsFunction
+	    Value equality function for equals.
+	    Default: direct value comparison.
+
+	Generated APIs:
+	  - init, copy, upsert, lookup, delete
+	  - contains, len, keys, values, items
+	  - equals, hash, empty, clear
+
+	Example (string):
+	  {#define HashMapName str}
+	  {#define HashMapCapacity 256}
+	  {#define HashMapValueType dint}
+	  {#define HashMapKeyType string[128]}
+	  {#define HashMapKeyEqualsFunction String_equals}
+	  {#define HashMapKeyHashFunction String_hash}
+	  {#include <container/hashmap/hashmap_template.txt>}
+
+	Example (dint):
+	  {#define HashMapName dint}
+	  {#define HashMapCapacity 256}
+	  {#define HashMapValueType dint}
+	  {#define HashMapKeyType dint}
+	  {#define HashMapKeyEqualsFunction Dint_equals}
+	  {#define HashMapKeyHashFunction Dint_hash}
+	  {#include <container/hashmap/hashmap_template.txt>}
+
+	Algorithm:
+	  Robin Hood hashing with probe-distance insertion and backward-shift delete.
+	================================================================================
+*)
+{#include <sys.txt>}
+{#include <sys_conv.txt>}
+
+{#define HASHMAP_SLOT_EMPTY word#0}
+{#define HASHMAP_SLOT_USED word#1}
+
+{#ifndef HashMapName}
+	{#error require HashMapName macro.}
+{#endif}
+
+{#ifndef HashMapKeyType}
+	{#error require HashMapKeyType macro.}
+{#endif}
+
+{#ifndef HashMapValueType}
+	{#error require HashMapValueType macro.}
+{#endif}
+
+{#ifndef HashMapCapacity}
+	{#error require HashMapCapacity macro.}
+{#endif}
+
+{#ifndef HashMapMaxLoadPermille}
+	{#define HashMapMaxLoadPermille 800}
+	{#define _HASHMAP_DEFAULT_MAX_LOAD_PERMILLE_DEFINED__}
+{#endif}
+
+{#ifdef HashMapValueEqualsFunction}
+	{#define _HASHMAP_VALUE_EQUALS_(A, B) HashMapValueEqualsFunction((A), (B))}
+{#else}
+	{#define _HASHMAP_VALUE_EQUALS_(A, B) ((A) = (B))}
+{#endif}
+
+{#define _HASHMAP_CORE_TYPE_(T) HashMap_@@T@@_t}
+{#define _HASHMAP_ENTRY_TYPE_(T) HashMap_@@T@@_Entry_t}
+{#define _HASHMAP_ITEM_TYPE_(T) HashMap_@@T@@_Item_t}
+{#define _HASHMAP_PRIVATE_PROBE_DISTANCE_(T) HashMap_@@T@@_static_robinhood_probedist}
+{#define _HASHMAP_PRIVATE_FIND_(T) HashMap_@@T@@_static_robinhood_find}
+{#define _HASHMAP_INIT_(T) HashMap_@@T@@_init}
+{#define _HASHMAP_COPY_(T) HashMap_@@T@@_copy}
+{#define _HASHMAP_UPSERT_(T) HashMap_@@T@@_upsert}
+{#define _HASHMAP_LOOKUP_(T) HashMap_@@T@@_lookup}
+{#define _HASHMAP_DELETE_(T) HashMap_@@T@@_delete}
+{#define _HASHMAP_CONTAINS_(T) HashMap_@@T@@_contains}
+{#define _HASHMAP_LEN_(T) HashMap_@@T@@_len}
+{#define _HASHMAP_KEYS_(T) HashMap_@@T@@_keys}
+{#define _HASHMAP_VALUES_(T) HashMap_@@T@@_values}
+{#define _HASHMAP_ITEMS_(T) HashMap_@@T@@_items}
+{#define _HASHMAP_EQUALS_(T) HashMap_@@T@@_equals}
+{#define _HASHMAP_HASH_(T) HashMap_@@T@@_hash}
+{#define _HASHMAP_EMPTY_(T) HashMap_@@T@@_empty}
+{#define _HASHMAP_CLEAR_(T) HashMap_@@T@@_clear}
+
+{#define HASHMAP_CORE_TYPE(T) _HASHMAP_CORE_TYPE_(T)}
+{#define HASHMAP_ENTRY_TYPE(T) _HASHMAP_ENTRY_TYPE_(T)}
+{#define HASHMAP_ITEM_TYPE(T) _HASHMAP_ITEM_TYPE_(T)}
+{#define HASHMAP_PRIVATE_PROBE_DISTANCE(T) _HASHMAP_PRIVATE_PROBE_DISTANCE_(T)}
+{#define HASHMAP_PRIVATE_FIND(T) _HASHMAP_PRIVATE_FIND_(T)}
+{#define HASHMAP_INIT(T) _HASHMAP_INIT_(T)}
+{#define HASHMAP_COPY(T) _HASHMAP_COPY_(T)}
+{#define HASHMAP_UPSERT(T) _HASHMAP_UPSERT_(T)}
+{#define HASHMAP_LOOKUP(T) _HASHMAP_LOOKUP_(T)}
+{#define HASHMAP_DELETE(T) _HASHMAP_DELETE_(T)}
+{#define HASHMAP_CONTAINS(T) _HASHMAP_CONTAINS_(T)}
+{#define HASHMAP_LEN(T) _HASHMAP_LEN_(T)}
+{#define HASHMAP_KEYS(T) _HASHMAP_KEYS_(T)}
+{#define HASHMAP_VALUES(T) _HASHMAP_VALUES_(T)}
+{#define HASHMAP_ITEMS(T) _HASHMAP_ITEMS_(T)}
+{#define HASHMAP_EQUALS(T) _HASHMAP_EQUALS_(T)}
+{#define HASHMAP_HASH(T) _HASHMAP_HASH_(T)}
+{#define HASHMAP_EMPTY(T) _HASHMAP_EMPTY_(T)}
+{#define HASHMAP_CLEAR(T) _HASHMAP_CLEAR_(T)}
+
+{#define HashMapCoreType HASHMAP_CORE_TYPE(HashMapName)}
+{#define HashMapEntryType HASHMAP_ENTRY_TYPE(HashMapName)}
+{#define HashMapItemType HASHMAP_ITEM_TYPE(HashMapName)}
+{#define _HASHMAP_IDEAL_INDEX(hash) (udint_to_dint((hash) mod dint_to_udint(HashMapCapacity)))}
+{#define HashMap_private_static_robinhood_probedist HASHMAP_PRIVATE_PROBE_DISTANCE(HashMapName)}
+{#define HashMap_private_static_robinhood_find HASHMAP_PRIVATE_FIND(HashMapName)}
+{#define HashMap_init HASHMAP_INIT(HashMapName)}
+{#define HashMap_copy HASHMAP_COPY(HashMapName)}
+{#define HashMap_upsert HASHMAP_UPSERT(HashMapName)}
+{#define HashMap_lookup HASHMAP_LOOKUP(HashMapName)}
+{#define HashMap_delete HASHMAP_DELETE(HashMapName)}
+{#define HashMap_contains HASHMAP_CONTAINS(HashMapName)}
+{#define HashMap_len HASHMAP_LEN(HashMapName)}
+{#define HashMap_keys HASHMAP_KEYS(HashMapName)}
+{#define HashMap_values HASHMAP_VALUES(HashMapName)}
+{#define HashMap_items HASHMAP_ITEMS(HashMapName)}
+{#define HashMap_equals HASHMAP_EQUALS(HashMapName)}
+{#define HashMap_hash HASHMAP_HASH(HashMapName)}
+{#define HashMap_empty HASHMAP_EMPTY(HashMapName)}
+{#define HashMap_clear HASHMAP_CLEAR(HashMapName)}
+
+type
+	HashMapEntryType: struct
+		{doc Entry state. HASHMAP_SLOT_EMPTY means unused; HASHMAP_SLOT_USED means occupied.}
+		state: word;
+		{doc Cached key hash value.}
+		hash: udint;
+		{doc Entry key.}
+		key: HashMapKeyType;
+		{doc Entry value.}
+		value: HashMapValueType;
+	end
+end
+
+type
+	HashMapItemType: struct
+		key: HashMapKeyType;
+		value: HashMapValueType;
+	end
+end
+
+type
+	HashMapCoreType: struct
+		count: dint;
+		entries: array[HashMapCapacity] of HashMapEntryType;
+	end
+end
+
+(*{doc Compute probe distance for Robin Hood hashing.
+Calculate wrapped distance from ideal slot to current slot.
+@input idx Current slot index.
+@input ideal_idx Ideal slot index.
+@input capacity Table capacity.
+@return Probe distance in range [0, capacity).
+@error ENO is set to false on invalid input. }*)
+function HashMap_private_static_robinhood_probedist: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		idx: dint;
+		ideal_idx: dint;
+		capacity: dint;
+	end
+	{st}
+	if (capacity <= 0) or (idx < 0) or (idx >= capacity) or (ideal_idx < 0) or (ideal_idx >= capacity) then
+		eno := false;
+		return;
+	end_if;
+
+	if idx >= ideal_idx then
+		HashMap_private_static_robinhood_probedist := idx - ideal_idx;
+	else
+		HashMap_private_static_robinhood_probedist := idx + capacity - ideal_idx;
+	end_if;
+	{end}
+end
+
+(*{doc Find key slot by Robin Hood probing.
+Stop early when probe-order guarantees no later match.
+@inout table Entries.
+@input key Key.
+@input key_hash Hash.
+@output slot Found slot or -1.
+@output did_find Found flag.
+@return true.
+@error ENO is set to false on internal error. }*)
+function HashMap_private_static_robinhood_find: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		table: array[*] of HashMapEntryType;
+	end
+	var_input
+		key: HashMapKeyType;
+		key_hash: udint;
+	end
+	var_output
+		slot: dint;
+		did_find: bool;
+	end
+	var_temp
+		start_idx: dint;
+		probe: dint;
+		idx: dint;
+		entry_ideal: dint;
+		entry_probe: dint;
+		is_eq: bool;
+	end
+	{st}
+	start_idx := _HASHMAP_IDEAL_INDEX(key_hash);
+
+	for probe := 0 to HashMapCapacity - 1 by 1 do
+		idx := (start_idx + probe) mod HashMapCapacity;
+
+		if table[idx].state = HASHMAP_SLOT_EMPTY then
+			slot := -1;
+			did_find := false;
+			HashMap_private_static_robinhood_find := true;
+			return;
+		end_if;
+
+		entry_ideal := _HASHMAP_IDEAL_INDEX(table[idx].hash);
+		entry_probe := HashMap_private_static_robinhood_probedist(idx:=idx, ideal_idx:=entry_ideal, capacity:=HashMapCapacity, eno=>eno);
+		if not eno then
+			return;
+		end_if;
+		if entry_probe < probe then
+			slot := -1;
+			did_find := false;
+			HashMap_private_static_robinhood_find := true;
+			return;
+		end_if;
+
+		if table[idx].hash = key_hash then
+			is_eq := HashMapKeyEqualsFunction(table[idx].key, key);
+			if is_eq then
+				slot := idx;
+				did_find := true;
+				HashMap_private_static_robinhood_find := true;
+				return;
+			end_if;
+		end_if;
+	end_for;
+
+	slot := -1;
+	did_find := false;
+	HashMap_private_static_robinhood_find := true;
+	{end}
+end
+
+(*{doc Initialize the container.
+Reset entry states and count.
+@inout self Target HashMap. }*)
+function HashMap_init
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out self: HashMapCoreType; end
+	var_temp
+		idx: dint;
+	end
+	{st}
+	self.count := 0;
+
+	for idx := 0 to HashMapCapacity - 1 by 1 do
+		self.entries[idx].state := HASHMAP_SLOT_EMPTY;
+		// note: hash key
+	end_for;
+
+	{end}
+end
+
+(*{doc Copy container state.
+Copy count and all table entries.
+@inout self Source HashMap.
+@inout dest Destination HashMap.
+@return true on success. }*)
+function HashMap_copy: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: HashMapCoreType;
+		dest: HashMapCoreType;
+	end
+	var_temp
+		idx: dint;
+	end
+	{st}
+	dest.count := self.count;
+	for idx := 0 to HashMapCapacity - 1 by 1 do
+		dest.entries[idx] := self.entries[idx];
+	end_for;
+
+	HashMap_copy := true;
+	{end}
+end
+
+(*{doc Insert or update a key/value pair.
+Use Robin Hood insertion when key is not present.
+@inout self Target HashMap.
+@input key Key.
+@input value Value.
+@output replaced true when updated, false when inserted.
+@return true on success, false on insert failure.
+@error ENO is set to false on internal error. }*)
+function HashMap_upsert: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out self: HashMapCoreType; end
+	var_input
+		key: HashMapKeyType;
+		value: HashMapValueType;
+	end
+	var_output
+		replaced: bool;
+	end
+	var_temp
+		key_hash: udint;
+		slot: dint;
+		did_find: bool;
+		max_count: dint;
+		cur_hash: udint;
+		cur_key: HashMapKeyType;
+		cur_value: HashMapValueType;
+		cur_start: dint;
+		cur_probe: dint;
+		idx: dint;
+		entry_ideal: dint;
+		entry_probe: dint;
+		tmp_hash: udint;
+		tmp_key: HashMapKeyType;
+		tmp_value: HashMapValueType;
+		scan_idx: dint;
+	end
+	{st}
+
+	key_hash := HashMapKeyHashFunction(key);
+	HashMap_private_static_robinhood_find(table:=self.entries, key:=key, key_hash:=key_hash, slot=>slot, did_find=>did_find, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+	if did_find then
+		self.entries[slot].value := value;
+		replaced := true;
+		HashMap_upsert := true;
+		return;
+	end_if;
+
+	max_count := max((HashMapCapacity * HashMapMaxLoadPermille) / 1000, 1);
+	if self.count >= max_count then
+		replaced := false;
+		HashMap_upsert := false;
+		return;
+	end_if;
+
+	cur_hash := key_hash;
+	cur_key := key;
+	cur_value := value;
+	cur_start := _HASHMAP_IDEAL_INDEX(cur_hash);
+	cur_probe := 0;
+
+	for scan_idx := 0 to HashMapCapacity - 1 by 1 do
+		idx := (cur_start + cur_probe) mod HashMapCapacity;
+
+		if self.entries[idx].state = HASHMAP_SLOT_EMPTY then
+			self.entries[idx].state := HASHMAP_SLOT_USED;
+			self.entries[idx].hash := cur_hash;
+			self.entries[idx].key := cur_key;
+			self.entries[idx].value := cur_value;
+			self.count := self.count + 1;
+			replaced := false;
+			HashMap_upsert := true;
+			return;
+		end_if;
+
+		entry_ideal := _HASHMAP_IDEAL_INDEX(self.entries[idx].hash);
+		entry_probe := HashMap_private_static_robinhood_probedist(idx:=idx, ideal_idx:=entry_ideal, capacity:=HashMapCapacity, eno=>eno);
+		if not eno then
+			return;
+		end_if;
+
+		if entry_probe < cur_probe then
+			tmp_hash := self.entries[idx].hash;
+			tmp_key := self.entries[idx].key;
+			tmp_value := self.entries[idx].value;
+
+			self.entries[idx].hash := cur_hash;
+			self.entries[idx].key := cur_key;
+			self.entries[idx].value := cur_value;
+
+			cur_hash := tmp_hash;
+			cur_key := tmp_key;
+			cur_value := tmp_value;
+			cur_start := _HASHMAP_IDEAL_INDEX(cur_hash);
+			cur_probe := entry_probe;
+		end_if;
+
+		cur_probe := cur_probe + 1;
+	end_for;
+
+	replaced := false;
+	HashMap_upsert := false;
+	{end}
+end
+
+(*{doc Lookup a value by key.
+Read stored value for an existing key.
+@inout self Target HashMap.
+@input key Target key.
+@inout value Output value.
+@error ENO is set to false when the key is not found or on internal error. }*)
+function HashMap_lookup
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out self: HashMapCoreType; end
+	var_input
+		key: HashMapKeyType;
+	end
+	var_in_out
+		value: HashMapValueType;
+	end
+	var_temp
+		key_hash: udint;
+		slot: dint;
+		did_find: bool;
+	end
+	{st}
+	key_hash := HashMapKeyHashFunction(key);
+
+	HashMap_private_static_robinhood_find(table:=self.entries, key:=key, key_hash:=key_hash, slot=>slot, did_find=>did_find, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+	if not did_find then
+		eno := false;
+		return;
+	end_if;
+
+	value := self.entries[slot].value;
+	{end}
+end
+
+(*{doc Delete a key/value pair.
+Apply backward-shift compaction after removal.
+@inout self Target HashMap.
+@input key Target key to delete.
+@return true when deleted, false when the key is not found.
+@error ENO is set to false on internal error. }*)
+function HashMap_delete: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out self: HashMapCoreType; end
+	var_input
+		key: HashMapKeyType;
+	end
+	var_temp
+		key_hash: udint;
+		slot: dint;
+		did_find: bool;
+		shift_idx, scan_idx: dint;
+		next_ideal: dint;
+		next_probe: dint;
+	end
+	{st}
+	key_hash := HashMapKeyHashFunction(key);
+	HashMap_private_static_robinhood_find(table:=self.entries, key:=key, key_hash:=key_hash, slot=>slot, did_find=>did_find, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+	if not did_find then
+		HashMap_delete := false;
+		return;
+	end_if;
+
+	shift_idx := slot;
+	scan_idx := (shift_idx + 1) mod HashMapCapacity;
+	while self.entries[scan_idx].state = HASHMAP_SLOT_USED do
+		next_ideal := _HASHMAP_IDEAL_INDEX(self.entries[scan_idx].hash);
+		next_probe := HashMap_private_static_robinhood_probedist(idx:=scan_idx, ideal_idx:=next_ideal, capacity:=HashMapCapacity, eno=>eno);
+		if not eno then
+			return;
+		end_if;
+		if next_probe = 0 then
+			exit;
+		end_if;
+
+		self.entries[shift_idx] := self.entries[scan_idx];
+		shift_idx := scan_idx;
+		scan_idx := (scan_idx + 1) mod HashMapCapacity;
+	end_while;
+
+	self.entries[shift_idx].state := HASHMAP_SLOT_EMPTY;
+	// note: hash key
+	self.count := self.count - 1;
+
+	HashMap_delete := true;
+	{end}
+end
+
+(*{doc Return true if the target key exists.
+Check membership without exporting value.
+@inout self Target HashMap.
+@input key Target key.
+@return true when found, otherwise false.
+@error ENO is set to false on internal error. }*)
+function HashMap_contains: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out self: HashMapCoreType; end
+	var_input
+		key: HashMapKeyType;
+	end
+	var_temp
+		key_hash: udint;
+		slot: dint;
+		did_find: bool;
+	end
+	{st}
+	key_hash := HashMapKeyHashFunction(key);
+	HashMap_private_static_robinhood_find(table:=self.entries, key:=key, key_hash:=key_hash, slot=>slot, did_find=>did_find, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+
+	HashMap_contains := did_find;
+	{end}
+end
+
+(*{doc Return the number of stored entries.
+Expose current element count.
+@inout self Target HashMap.
+@return Entry count. }*)
+function HashMap_len: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out self: HashMapCoreType; end
+	{st}
+	HashMap_len := self.count;
+	{end}
+end
+
+(*{doc Copy all keys into an output array.
+Export keys from used slots in table order.
+@inout self Target HashMap.
+@inout keys Output array.
+@output written Number of copied keys.
+@return true on success.
+@error ENO is set to false when output capacity is insufficient. }*)
+function HashMap_keys: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out self: HashMapCoreType; end
+	var_in_out
+		keys: array[*] of HashMapKeyType;
+	end
+	var_output
+		written: dint;
+	end
+	var_temp
+		idx: dint;
+		out_idx: dint;
+		out_hi: dint;
+	end
+	{st}
+	out_idx := lower_bound(keys, 1);
+	out_hi := upper_bound(keys, 1);
+	written := 0;
+
+	for idx := 0 to HashMapCapacity - 1 by 1 do
+		if self.entries[idx].state = HASHMAP_SLOT_USED then
+			if out_idx > out_hi then
+				eno := false;
+				return;
+			end_if;
+			keys[out_idx] := self.entries[idx].key;
+			out_idx := out_idx + 1;
+			written := written + 1;
+		end_if;
+	end_for;
+
+	HashMap_keys := true;
+	{end}
+end
+
+(*{doc Copy all values into an output array.
+Export values from used slots in table order.
+@inout self Target HashMap.
+@inout values Output array.
+@output written Number of copied values.
+@return true on success.
+@error ENO is set to false when output capacity is insufficient. }*)
+function HashMap_values: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out self: HashMapCoreType; end
+	var_in_out
+		values: array[*] of HashMapValueType;
+	end
+	var_output
+		written: dint;
+	end
+	var_temp
+		idx: dint;
+		out_idx: dint;
+		out_hi: dint;
+	end
+	{st}
+	out_idx := lower_bound(values, 1);
+	out_hi := upper_bound(values, 1);
+	written := 0;
+
+	for idx := 0 to HashMapCapacity - 1 by 1 do
+		if self.entries[idx].state = HASHMAP_SLOT_USED then
+			if out_idx > out_hi then
+				eno := false;
+				return;
+			end_if;
+			values[out_idx] := self.entries[idx].value;
+			out_idx := out_idx + 1;
+			written := written + 1;
+		end_if;
+	end_for;
+
+	HashMap_values := true;
+	{end}
+end
+
+(*{doc Copy all key/value items into an output array.
+Export entry pairs from used slots in table order.
+@inout self Target HashMap.
+@inout items Output array.
+@output written Number of copied items.
+@return true on success.
+@error ENO is set to false when output capacity is insufficient. }*)
+function HashMap_items: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out self: HashMapCoreType; end
+	var_in_out
+		items: array[*] of HashMapItemType;
+	end
+	var_output
+		written: dint;
+	end
+	var_temp
+		idx: dint;
+		out_idx: dint;
+		out_hi: dint;
+	end
+	{st}
+	out_idx := lower_bound(items, 1);
+	out_hi := upper_bound(items, 1);
+	written := 0;
+
+	for idx := 0 to HashMapCapacity - 1 by 1 do
+		if self.entries[idx].state = HASHMAP_SLOT_USED then
+			if out_idx > out_hi then
+				eno := false;
+				return;
+			end_if;
+			items[out_idx].key := self.entries[idx].key;
+			items[out_idx].value := self.entries[idx].value;
+			out_idx := out_idx + 1;
+			written := written + 1;
+		end_if;
+	end_for;
+
+	HashMap_items := true;
+	{end}
+end
+
+(*{doc Compare two HashMaps for equality.
+Require equal counts and equal values for each key.
+@inout self First HashMap.
+@inout other Second HashMap.
+@return true when all keys and values match. }*)
+function HashMap_equals: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: HashMapCoreType;
+		other: HashMapCoreType;
+	end
+	var_temp
+		keys: array[HashMapCapacity] of HashMapKeyType;
+		written: dint;
+		count_self: dint;
+		count_other: dint;
+		idx: dint;
+		v_self: HashMapValueType;
+		v_other: HashMapValueType;
+	end
+	{st}
+	count_self := HashMap_len(self:=self);
+	count_other := HashMap_len(self:=other);
+
+	if count_self <> count_other then
+		HashMap_equals := false;
+		return;
+	end_if;
+
+	HashMap_keys(self:=self, keys:=keys, written=>written, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+
+	for idx := 0 to written - 1 by 1 do
+		HashMap_lookup(self:=self, key:=keys[idx], value:=v_self, eno=>eno);
+		if not eno then
+			return;
+		end_if;
+
+		HashMap_lookup(self:=other, key:=keys[idx], value:=v_other, eno=>eno);
+		if not eno then
+			return;
+		end_if;
+		if not _HASHMAP_VALUE_EQUALS_(v_self, v_other) then
+			HashMap_equals := false;
+			return;
+		end_if;
+	end_for;
+
+	HashMap_equals := true;
+	{end}
+end
+
+{#ifdef HashMapValueHashFunction}
+(*{doc Compute a hash value from all key/value pairs.
+Combine key and value hashes with order-insensitive accumulation.
+@inout self Target HashMap.
+@return Hash value. }*)
+function HashMap_hash: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: HashMapCoreType;
+	end
+	var_temp
+		keys: array[HashMapCapacity] of HashMapKeyType;
+		written: dint;
+		idx: dint;
+		key_hash, value_hash: udint;
+		value: HashMapValueType;
+		acc1, acc2: udint;
+		cnt: dint;
+	end
+	{st}
+	acc1 := udint#2166136261;
+	acc2 := udint#0;
+
+	HashMap_keys(self:=self, keys:=keys, written=>written, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+
+	for idx := 0 to written - 1 by 1 do
+		key_hash := HashMapKeyHashFunction(keys[idx]);
+		HashMap_lookup(self:=self, key:=keys[idx], value:=value, eno=>eno);
+		if not eno then
+			return;
+		end_if;
+		value_hash := HashMapValueHashFunction(value);
+		acc1 := acc1 + dword_to_udint(udint_to_dword(key_hash) xor udint_to_dword(value_hash * udint#16777619 + udint#31));
+		acc2 := acc2 + (key_hash + udint#7) * (value_hash + udint#13);
+	end_for;
+
+	cnt := HashMap_len(self:=self);
+
+	HashMap_hash := acc1 * udint#2246822519 + acc2 + dint_to_udint(cnt);
+	{end}
+end
+{#endif}
+
+(*{doc Return true when the container is empty.
+Check whether count is zero.
+@inout self Target HashMap.
+@return true if entry count is 0, otherwise false. }*)
+function HashMap_empty: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out self: HashMapCoreType; end
+	{st}
+	HashMap_empty := self.count = 0;
+	{end}
+end
+
+(*{doc Clear all entries.
+Mark all slots empty and reset count.
+@inout self Target HashMap.
+@return true on success. }*)
+function HashMap_clear: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out self: HashMapCoreType; end
+	var_temp
+		idx: dint;
+	end
+	{st}
+	for idx := 0 to HashMapCapacity - 1 by 1 do
+		self.entries[idx].state := HASHMAP_SLOT_EMPTY;
+		// note: hash key
+	end_for;
+	self.count := 0;
+
+	HashMap_clear := true;
+	{end}
+end
+
+{#ifdef _HASHMAP_DEFAULT_MAX_LOAD_PERMILLE_DEFINED__}
+	{#undef HashMapMaxLoadPermille}
+	{#undef _HASHMAP_DEFAULT_MAX_LOAD_PERMILLE_DEFINED__}
+{#endif}
+
+{#undef HashMapCoreType}
+{#undef HashMapEntryType}
+{#undef _HASHMAP_IDEAL_INDEX}
+{#undef HashMap_private_static_robinhood_probedist}
+{#undef HashMap_private_static_robinhood_find}
+{#undef HashMap_init}
+{#undef HashMap_copy}
+{#undef HashMap_upsert}
+{#undef HashMap_lookup}
+{#undef HashMap_delete}
+{#undef HashMap_contains}
+{#undef HashMap_len}
+{#undef HashMap_keys}
+{#undef HashMap_values}
+{#undef HashMap_items}
+{#undef HashMap_equals}
+{#undef HashMap_hash}
+{#undef HashMap_empty}
+{#undef HashMap_clear}
+
+{#undef _HASHMAP_CORE_TYPE_}
+{#undef _HASHMAP_ENTRY_TYPE_}
+{#undef _HASHMAP_ITEM_TYPE_}
+{#undef _HASHMAP_PRIVATE_PROBE_DISTANCE_}
+{#undef _HASHMAP_PRIVATE_FIND_}
+{#undef _HASHMAP_INIT_}
+{#undef _HASHMAP_COPY_}
+{#undef _HASHMAP_UPSERT_}
+{#undef _HASHMAP_LOOKUP_}
+{#undef _HASHMAP_DELETE_}
+{#undef _HASHMAP_CONTAINS_}
+{#undef _HASHMAP_LEN_}
+{#undef _HASHMAP_KEYS_}
+{#undef _HASHMAP_VALUES_}
+{#undef _HASHMAP_ITEMS_}
+{#undef _HASHMAP_EQUALS_}
+{#undef _HASHMAP_HASH_}
+{#undef _HASHMAP_EMPTY_}
+{#undef _HASHMAP_CLEAR_}
+{#undef HASHMAP_CORE_TYPE}
+{#undef HASHMAP_ENTRY_TYPE}
+{#undef HASHMAP_ITEM_TYPE}
+{#undef HASHMAP_PRIVATE_PROBE_DISTANCE}
+{#undef HASHMAP_PRIVATE_FIND}
+{#undef HASHMAP_INIT}
+{#undef HASHMAP_COPY}
+{#undef HASHMAP_UPSERT}
+{#undef HASHMAP_LOOKUP}
+{#undef HASHMAP_DELETE}
+{#undef HASHMAP_CONTAINS}
+{#undef HASHMAP_LEN}
+{#undef HASHMAP_KEYS}
+{#undef HASHMAP_VALUES}
+{#undef HASHMAP_ITEMS}
+{#undef HASHMAP_EQUALS}
+{#undef HASHMAP_HASH}
+{#undef HASHMAP_EMPTY}
+{#undef HASHMAP_CLEAR}
+{#undef HASHMAP_SLOT_EMPTY}
+{#undef HASHMAP_SLOT_USED}
+{#undef _HASHMAP_VALUE_EQUALS_}
