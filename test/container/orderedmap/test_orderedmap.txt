@@ -49,20 +49,20 @@ TEST_S(test_orderedmap_dint_init)
 	// Fact: init sets len to 0.
 		// Arrange
 	OrderedMap_dint_init(om_count);
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(0, OrderedMap_dint_len(om_count));
 
 	// Fact: init results in empty=true.
 		// Arrange
 	OrderedMap_dint_init(om_empty);
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(OrderedMap_dint_empty(om_empty));
 
 	// Fact: init results in keys returning empty array.
 		// Arrange
 	OrderedMap_dint_init(om_keys);
 	ASSERT_TRUE(OrderedMap_dint_keys(om_keys, keys, written));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(0, written);
 	{end}
 END_TEST_S
@@ -83,7 +83,7 @@ TEST_S(test_orderedmap_dint_upsert)
 		// Arrange
 	OrderedMap_dint_init(om_basic);
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_basic, 'a', 10, replaced));
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(replaced);
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_basic, 'a', 20, replaced));
 	EXPECT_TRUE(replaced);
@@ -109,7 +109,9 @@ TEST_S(test_orderedmap_dint_upsert)
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_capacity, 'k4', 4, replaced));
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_capacity, 'k5', 5, replaced));
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_capacity, 'k6', 6, replaced));
+		// Act / Assert
 	EXPECT_FALSE(OrderedMap_dint_upsert(om_capacity, 'k7', 7, replaced));
+		// Assert
 	EXPECT_EQ_INT32(6, OrderedMap_dint_len(om_capacity));
 	{end}
 END_TEST_S
@@ -131,7 +133,7 @@ TEST_S(test_orderedmap_dint_lookup)
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_hit, 'a', 10, replaced));
 	OrderedMap_dint_lookup(self:=om_hit, key:='a', value:=value, eno=>result_eno);
 	ASSERT_TRUE(result_eno);
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(10, value);
 
 	// Fact: lookup returns updated value after upsert.
@@ -142,7 +144,7 @@ TEST_S(test_orderedmap_dint_lookup)
 	ASSERT_TRUE(replaced);
 	OrderedMap_dint_lookup(self:=om_update, key:='a', value:=value, eno=>result_eno);
 	ASSERT_TRUE(result_eno);
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(77, value);
 
 	// Fact: lookup returns eno=false for unregistered key.
@@ -150,7 +152,7 @@ TEST_S(test_orderedmap_dint_lookup)
 	OrderedMap_dint_init(om_miss);
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_miss, 'a', 10, replaced));
 	OrderedMap_dint_lookup(self:=om_miss, key:='z', value:=value, eno=>result_eno);
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(result_eno);
 	{end}
 END_TEST_S
@@ -174,9 +176,11 @@ TEST_S(test_orderedmap_dint_delete)
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_hit, 'k2', 2, replaced));
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_hit, 'k3', 3, replaced));
 	ASSERT_TRUE(OrderedMap_dint_delete(om_hit, 'k2'));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(2, OrderedMap_dint_len(om_hit));
+		// Act
 	ASSERT_TRUE(OrderedMap_dint_keys(om_hit, keys, written));
+		// Assert
 	EXPECT_EQ_INT32(2, written);
 	EXPECT_EQ_STRING('k1', keys[0]);
 	EXPECT_EQ_STRING('k3', keys[1]);
@@ -195,7 +199,7 @@ TEST_S(test_orderedmap_dint_delete)
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_head, 'h2', 2, replaced));
 	ASSERT_TRUE(OrderedMap_dint_delete(om_head, 'h1'));
 	ASSERT_TRUE(OrderedMap_dint_keys(om_head, keys, written));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(1, written);
 	EXPECT_EQ_STRING('h2', keys[0]);
 	{end}
@@ -214,21 +218,21 @@ TEST_S(test_orderedmap_dint_contains)
 	// Fact: contains returns false on empty map.
 		// Arrange
 	OrderedMap_dint_init(om_empty);
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(OrderedMap_dint_contains(om_empty, 'a'));
 
 	// Fact: contains returns true for registered key.
 		// Arrange
 	OrderedMap_dint_init(om_hit);
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_hit, 'a', 1, replaced));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(OrderedMap_dint_contains(om_hit, 'a'));
 
 	// Fact: contains returns false for unregistered key.
 		// Arrange
 	OrderedMap_dint_init(om_miss);
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_miss, 'a', 1, replaced));
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(OrderedMap_dint_contains(om_miss, 'z'));
 	{end}
 END_TEST_S
@@ -246,7 +250,7 @@ TEST_S(test_orderedmap_dint_len)
 	// Fact: len is 0 after init.
 		// Arrange
 	OrderedMap_dint_init(om_init);
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(0, OrderedMap_dint_len(om_init));
 
 	// Fact: len increments after upsert.
@@ -254,7 +258,7 @@ TEST_S(test_orderedmap_dint_len)
 	OrderedMap_dint_init(om_add);
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_add, 'a', 1, replaced));
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_add, 'b', 2, replaced));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(2, OrderedMap_dint_len(om_add));
 
 	// Fact: len stays unchanged on update.
@@ -262,7 +266,7 @@ TEST_S(test_orderedmap_dint_len)
 	OrderedMap_dint_init(om_update);
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_update, 'a', 1, replaced));
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_update, 'a', 2, replaced));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(1, OrderedMap_dint_len(om_update));
 	{end}
 END_TEST_S
@@ -285,7 +289,7 @@ TEST_S(test_orderedmap_dint_keys)
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_basic, 'a', 1, replaced));
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_basic, 'b', 2, replaced));
 	ASSERT_TRUE(OrderedMap_dint_keys(om_basic, keys, written));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(2, written);
 	EXPECT_EQ_STRING('a', keys[0]);
 	EXPECT_EQ_STRING('b', keys[1]);
@@ -294,7 +298,9 @@ TEST_S(test_orderedmap_dint_keys)
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_update_keep, 'k2', 2, replaced));
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_update_keep, 'k3', 3, replaced));
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_update_keep, 'k2', 22, replaced));
+		// Act
 	ASSERT_TRUE(OrderedMap_dint_keys(om_update_keep, keys, written));
+		// Assert
 	EXPECT_EQ_INT32(3, written);
 	EXPECT_EQ_STRING('k1', keys[0]);
 	EXPECT_EQ_STRING('k2', keys[1]);
@@ -304,7 +310,9 @@ TEST_S(test_orderedmap_dint_keys)
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_after_remove, 'k2', 2, replaced));
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_after_remove, 'k3', 3, replaced));
 	ASSERT_TRUE(OrderedMap_dint_delete(om_after_remove, 'k2'));
+		// Act
 	ASSERT_TRUE(OrderedMap_dint_keys(om_after_remove, keys, written));
+		// Assert
 	EXPECT_EQ_INT32(2, written);
 	EXPECT_EQ_STRING('k1', keys[0]);
 	EXPECT_EQ_STRING('k3', keys[1]);
@@ -329,7 +337,7 @@ TEST_S(test_orderedmap_dint_values)
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_basic, 'a', 10, replaced));
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_basic, 'b', 20, replaced));
 	ASSERT_TRUE(OrderedMap_dint_values(om_basic, values, written));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(2, written);
 	EXPECT_EQ_INT32(10, values[0]);
 	EXPECT_EQ_INT32(20, values[1]);
@@ -341,7 +349,7 @@ TEST_S(test_orderedmap_dint_values)
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_updated, 'b', 20, replaced));
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_updated, 'a', 99, replaced));
 	ASSERT_TRUE(OrderedMap_dint_values(om_updated, values, written));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(2, written);
 	EXPECT_EQ_INT32(99, values[0]);
 	EXPECT_EQ_INT32(20, values[1]);
@@ -350,7 +358,7 @@ TEST_S(test_orderedmap_dint_values)
 		// Arrange
 	OrderedMap_dint_init(om_empty);
 	ASSERT_TRUE(OrderedMap_dint_values(om_empty, values, written));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(0, written);
 	{end}
 END_TEST_S
@@ -373,7 +381,7 @@ TEST_S(test_orderedmap_dint_items)
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_basic, 'x', 1, replaced));
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_basic, 'y', 2, replaced));
 	ASSERT_TRUE(OrderedMap_dint_items(om_basic, items, written));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(2, written);
 	EXPECT_EQ_STRING('x', items[0].key);
 	EXPECT_EQ_INT32(1, items[0].value);
@@ -387,7 +395,7 @@ TEST_S(test_orderedmap_dint_items)
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_updated, 'y', 2, replaced));
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_updated, 'x', 11, replaced));
 	ASSERT_TRUE(OrderedMap_dint_items(om_updated, items, written));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(2, written);
 	EXPECT_EQ_STRING('x', items[0].key);
 	EXPECT_EQ_INT32(11, items[0].value);
@@ -398,7 +406,7 @@ TEST_S(test_orderedmap_dint_items)
 		// Arrange
 	OrderedMap_dint_init(om_empty);
 	ASSERT_TRUE(OrderedMap_dint_items(om_empty, items, written));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(0, written);
 	{end}
 END_TEST_S
@@ -427,7 +435,7 @@ TEST_S(test_orderedmap_dint_copy)
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_src1, 'b', 2, replaced));
 	ASSERT_TRUE(OrderedMap_dint_copy(om_src1, om_dst1));
 	ASSERT_TRUE(OrderedMap_dint_keys(om_dst1, keys, written));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(2, written);
 	EXPECT_EQ_STRING('a', keys[0]);
 	EXPECT_EQ_STRING('b', keys[1]);
@@ -441,7 +449,7 @@ TEST_S(test_orderedmap_dint_copy)
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_src2, 'a', 9, replaced));
 	OrderedMap_dint_lookup(self:=om_dst2, key:='a', value:=value, eno=>result_eno);
 	ASSERT_TRUE(result_eno);
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(1, value);
 
 	// Fact: copy from empty map clears destination.
@@ -450,7 +458,7 @@ TEST_S(test_orderedmap_dint_copy)
 	OrderedMap_dint_init(om_dst_empty);
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_dst_empty, 'z', 9, replaced));
 	ASSERT_TRUE(OrderedMap_dint_copy(om_src_empty, om_dst_empty));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(OrderedMap_dint_empty(om_dst_empty));
 	{end}
 END_TEST_S
@@ -476,7 +484,7 @@ TEST_S(test_orderedmap_dint_equals)
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_same1, 'b', 2, replaced));
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_same2, 'a', 1, replaced));
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_same2, 'b', 2, replaced));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(OrderedMap_dint_equals(om_same1, om_same2));
 	OrderedMap_dint_init(om_order1);
 	OrderedMap_dint_init(om_order2);
@@ -484,11 +492,13 @@ TEST_S(test_orderedmap_dint_equals)
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_order1, 'b', 2, replaced));
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_order2, 'b', 2, replaced));
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_order2, 'a', 1, replaced));
+		// Assert
 	EXPECT_FALSE(OrderedMap_dint_equals(om_order1, om_order2));
 	OrderedMap_dint_init(om_value1);
 	OrderedMap_dint_init(om_value2);
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_value1, 'a', 1, replaced));
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_value2, 'a', 9, replaced));
+		// Assert
 	EXPECT_FALSE(OrderedMap_dint_equals(om_value1, om_value2));
 	{end}
 END_TEST_S
@@ -500,15 +510,11 @@ TEST_S(test_orderedmap_dint_hash)
 		om_diff2: OrderedMap_dint_t;
 		om_same1: OrderedMap_dint_t;
 		om_same2: OrderedMap_dint_t;
-		replaced: bool;
-		hash1: udint;
-		hash2: udint;
-		hash3: udint;
-		hash4: udint;
 		om_value1: OrderedMap_dint_t;
 		om_value2: OrderedMap_dint_t;
-		hash5: udint;
-		hash6: udint;
+		replaced: bool;
+		hash_a: udint;
+		hash_b: udint;
 	end
 	{st}
 
@@ -520,10 +526,11 @@ TEST_S(test_orderedmap_dint_hash)
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_diff1, 'b', 2, replaced));
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_diff2, 'b', 2, replaced));
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_diff2, 'a', 1, replaced));
-	hash1 := OrderedMap_dint_hash(om_diff1);
-	hash2 := OrderedMap_dint_hash(om_diff2);
-		// Act / Assert
-	EXPECT_NE_UDINT(hash1, hash2);
+		// Act
+	hash_a := OrderedMap_dint_hash(om_diff1);
+	hash_b := OrderedMap_dint_hash(om_diff2);
+		// Assert
+	EXPECT_NE_UDINT(hash_a, hash_b);
 
 	// Fact: hash values match for equivalent maps.
 		// Arrange
@@ -533,10 +540,11 @@ TEST_S(test_orderedmap_dint_hash)
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_same1, 'b', 2, replaced));
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_same2, 'a', 1, replaced));
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_same2, 'b', 2, replaced));
-	hash3 := OrderedMap_dint_hash(om_same1);
-	hash4 := OrderedMap_dint_hash(om_same2);
-		// Act / Assert
-	EXPECT_EQ_UDINT(hash3, hash4);
+		// Act
+	hash_a := OrderedMap_dint_hash(om_same1);
+	hash_b := OrderedMap_dint_hash(om_same2);
+		// Assert
+	EXPECT_EQ_UDINT(hash_a, hash_b);
 
 	// Fact: hash differs for different values.
 		// Arrange
@@ -544,10 +552,11 @@ TEST_S(test_orderedmap_dint_hash)
 	OrderedMap_dint_init(om_value2);
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_value1, 'a', 1, replaced));
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_value2, 'a', 9, replaced));
-	hash5 := OrderedMap_dint_hash(om_value1);
-	hash6 := OrderedMap_dint_hash(om_value2);
-		// Act / Assert
-	EXPECT_NE_UDINT(hash5, hash6);
+		// Act
+	hash_a := OrderedMap_dint_hash(om_value1);
+	hash_b := OrderedMap_dint_hash(om_value2);
+		// Assert
+	EXPECT_NE_UDINT(hash_a, hash_b);
 	{end}
 END_TEST_S
 
@@ -564,14 +573,14 @@ TEST_S(test_orderedmap_dint_empty)
 	// Fact: empty is true after init.
 		// Arrange
 	OrderedMap_dint_init(om_init);
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(OrderedMap_dint_empty(om_init));
 
 	// Fact: empty is false after upsert.
 		// Arrange
 	OrderedMap_dint_init(om_after_upsert);
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_after_upsert, 'a', 1, replaced));
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(OrderedMap_dint_empty(om_after_upsert));
 
 	// Fact: empty is true after clear.
@@ -579,7 +588,7 @@ TEST_S(test_orderedmap_dint_empty)
 	OrderedMap_dint_init(om_after_clear);
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_after_clear, 'a', 1, replaced));
 	ASSERT_TRUE(OrderedMap_dint_clear(om_after_clear));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(OrderedMap_dint_empty(om_after_clear));
 	{end}
 END_TEST_S
@@ -600,7 +609,7 @@ TEST_S(test_orderedmap_dint_clear)
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_clear, 'a', 1, replaced));
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_clear, 'b', 2, replaced));
 	ASSERT_TRUE(OrderedMap_dint_clear(om_clear));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(0, OrderedMap_dint_len(om_clear));
 
 	// Fact: clear is idempotent.
@@ -609,7 +618,7 @@ TEST_S(test_orderedmap_dint_clear)
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_idempotent, 'a', 1, replaced));
 	ASSERT_TRUE(OrderedMap_dint_clear(om_idempotent));
 	ASSERT_TRUE(OrderedMap_dint_clear(om_idempotent));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(OrderedMap_dint_empty(om_idempotent));
 
 	// Fact: map is reusable after clear.
@@ -618,7 +627,7 @@ TEST_S(test_orderedmap_dint_clear)
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_reuse, 'a', 1, replaced));
 	ASSERT_TRUE(OrderedMap_dint_clear(om_reuse));
 	ASSERT_TRUE(OrderedMap_dint_upsert(om_reuse, 'b', 2, replaced));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(1, OrderedMap_dint_len(om_reuse));
 	{end}
 END_TEST_S
@@ -638,7 +647,7 @@ TEST_S(test_orderedmap_string_caseinsensitive_usecase)
 		// Arrange
 	OrderedMap_string_ci_init(users);
 	ASSERT_TRUE(OrderedMap_string_ci_upsert(users, 'Alice', 10, replaced));
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(replaced);
 	ASSERT_TRUE(OrderedMap_string_ci_upsert(users, 'aLiCe', 99, replaced));
 	EXPECT_TRUE(replaced);
@@ -648,9 +657,11 @@ TEST_S(test_orderedmap_string_caseinsensitive_usecase)
 	EXPECT_EQ_INT32(99, value);
 
 	// Fact: contains/delete work case-insensitively.
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(OrderedMap_string_ci_contains(users, 'alice'));
+		// Act / Assert
 	EXPECT_TRUE(OrderedMap_string_ci_delete(users, 'AlIcE'));
+		// Assert
 	EXPECT_FALSE(OrderedMap_string_ci_contains(users, 'ALICE'));
 	EXPECT_EQ_INT32(0, OrderedMap_string_ci_len(users));
 
@@ -660,7 +671,7 @@ TEST_S(test_orderedmap_string_caseinsensitive_usecase)
 	ASSERT_TRUE(OrderedMap_string_ci_upsert(users, 'carol', 2, replaced));
 	ASSERT_TRUE(OrderedMap_string_ci_upsert(users, 'DAVE', 3, replaced));
 	ASSERT_TRUE(OrderedMap_string_ci_keys(users, keys, written));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(3, written);
 	EXPECT_EQ_STRING('Bob', keys[0]);
 	EXPECT_EQ_STRING('carol', keys[1]);

@@ -36,9 +36,13 @@ TEST_S(test_ringbuffer_init)
 	RingBuffer_int_init(x_1, 0, false);
 		// Act / Assert
 	EXPECT_FALSE(RingBuffer_int_enqueue(x_1, buf, 2));
+		// Arrange
 	RingBuffer_int_init(x_2, BUF_SIZE, false);
+		// Act / Assert
 	ASSERT_TRUE(RingBuffer_int_enqueue(x_2, buf, 2));
+		// Arrange
 	RingBuffer_int_init(x_3, BUF_SIZE + 1, false);
+		// Act / Assert
 	ASSERT_TRUE(RingBuffer_int_enqueue(x_3, buf, 2)); // note
 	{end}
 	{#undef BUF_SIZE}
@@ -72,10 +76,13 @@ TEST_S(test_ringbuffer_enqueue)
 	RingBuffer_int_init(x_2, 3, false);
 	ASSERT_TRUE(RingBuffer_int_enqueue(x_2, buf, 2));
 	ASSERT_TRUE(RingBuffer_int_enqueue(x_2, buf, 3));
+		// Act
 	ASSERT_TRUE(RingBuffer_int_dequeue(x_2, buf, value));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(2, value);
+		// Act
 	ASSERT_TRUE(RingBuffer_int_dequeue(x_2, buf, value));
+		// Assert
 	EXPECT_EQ_INT32(3, value);
 
 	// Fact: dequeue fails on empty buffer.
@@ -122,9 +129,11 @@ TEST_S(test_ringbuffer_dequeue)
 		// Arrange
 	RingBuffer_int_init(x_1, 3, false);
 	ASSERT_TRUE(RingBuffer_int_enqueue(x_1, buf, 2));
+		// Act
 	ASSERT_TRUE(RingBuffer_int_dequeue(x_1, buf, value));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(2, value);
+		// Act / Assert
 	EXPECT_FALSE(RingBuffer_int_dequeue(x_1, buf, value)); // empty
 	EXPECT_FALSE(RingBuffer_int_dequeue(x_1, buf, value)); // empty
 
@@ -134,13 +143,19 @@ TEST_S(test_ringbuffer_dequeue)
 	ASSERT_TRUE(RingBuffer_int_enqueue(x_2, buf, 2));
 	ASSERT_TRUE(RingBuffer_int_enqueue(x_2, buf, 3));
 	ASSERT_TRUE(RingBuffer_int_enqueue(x_2, buf, 5));
+		// Act
 	ASSERT_TRUE(RingBuffer_int_dequeue(x_2, buf, value));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(2, value);
+		// Act
 	ASSERT_TRUE(RingBuffer_int_dequeue(x_2, buf, value));
+		// Assert
 	EXPECT_EQ_INT32(3, value);
+		// Act
 	ASSERT_TRUE(RingBuffer_int_dequeue(x_2, buf, value));
+		// Assert
 	EXPECT_EQ_INT32(5, value);
+		// Act / Assert
 	EXPECT_FALSE(RingBuffer_int_dequeue(x_2, buf, value)); // empty
 	EXPECT_FALSE(RingBuffer_int_dequeue(x_2, buf, value)); // empty
 
@@ -157,15 +172,23 @@ TEST_S(test_ringbuffer_dequeue)
 	ASSERT_TRUE(RingBuffer_int_enqueue(x_full, buf_full, 13));
 	ASSERT_TRUE(RingBuffer_int_enqueue(x_full, buf_full, 17));
 	ASSERT_TRUE(RingBuffer_int_enqueue(x_full, buf_full, 19));
+		// Act
 	ASSERT_TRUE(RingBuffer_int_dequeue(x_full, buf_full, value));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(11, value);
+		// Act
 	ASSERT_TRUE(RingBuffer_int_dequeue(x_full, buf_full, value));
+		// Assert
 	EXPECT_EQ_INT32(13, value);
+		// Act
 	ASSERT_TRUE(RingBuffer_int_dequeue(x_full, buf_full, value));
+		// Assert
 	EXPECT_EQ_INT32(17, value);
+		// Act
 	ASSERT_TRUE(RingBuffer_int_dequeue(x_full, buf_full, value));
+		// Assert
 	EXPECT_EQ_INT32(19, value);
+		// Act / Assert
 	EXPECT_FALSE(RingBuffer_int_dequeue(x_full, buf_full, value));
 
 	// Fact: overwrite mode keeps latest elements in FIFO order.
@@ -177,15 +200,23 @@ TEST_S(test_ringbuffer_dequeue)
 	ASSERT_TRUE(RingBuffer_int_enqueue(x_overwrite, buf_full, 7));
 	ASSERT_TRUE(RingBuffer_int_enqueue(x_overwrite, buf_full, 11));
 	ASSERT_TRUE(RingBuffer_int_enqueue(x_overwrite, buf_full, 13));
+		// Act
 	ASSERT_TRUE(RingBuffer_int_dequeue(x_overwrite, buf_full, value));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(5, value);
+		// Act
 	ASSERT_TRUE(RingBuffer_int_dequeue(x_overwrite, buf_full, value));
+		// Assert
 	EXPECT_EQ_INT32(7, value);
+		// Act
 	ASSERT_TRUE(RingBuffer_int_dequeue(x_overwrite, buf_full, value));
+		// Assert
 	EXPECT_EQ_INT32(11, value);
+		// Act
 	ASSERT_TRUE(RingBuffer_int_dequeue(x_overwrite, buf_full, value));
+		// Assert
 	EXPECT_EQ_INT32(13, value);
+		// Act / Assert
 	EXPECT_FALSE(RingBuffer_int_dequeue(x_overwrite, buf_full, value));
 	{end}
 END_TEST_S

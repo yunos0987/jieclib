@@ -51,19 +51,19 @@ TEST_S(test_linkedlist_dint_init)
 	// Fact: init sets len to 0.
 		// Arrange
 	LinkedList_dint_init(xs_count);
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(0, LinkedList_dint_len(xs_count));
 
 	// Fact: init results in empty=true.
 		// Arrange
 	LinkedList_dint_init(xs_empty);
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(LinkedList_dint_empty(xs_empty));
 
 	// Fact: init sets capacity correctly.
 		// Arrange
 	LinkedList_dint_init(xs_capacity);
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(8, xs_capacity.capacity);
 	{end}
 END_TEST_S
@@ -84,7 +84,7 @@ TEST_S(test_linkedlist_dint_append)
 	for idx := 1 to 8 by 1 do
 		ASSERT_TRUE(LinkedList_dint_append(xs_append, idx));
 	end_for;
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(8, LinkedList_dint_len(xs_append));
 
 	// Fact: append preserves insertion order.
@@ -93,12 +93,15 @@ TEST_S(test_linkedlist_dint_append)
 	for idx := 1 to 8 by 1 do
 		ASSERT_TRUE(LinkedList_dint_append(xs_order, idx));
 	end_for;
+		// Act
 	LinkedList_dint_get(self:=xs_order, index:=0, item:=idx, eno=>result_eno);
 	ASSERT_TRUE(result_eno);
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(1, idx);
+		// Act
 	LinkedList_dint_get(self:=xs_order, index:=7, item:=idx, eno=>result_eno);
 	ASSERT_TRUE(result_eno);
+		// Assert
 	EXPECT_EQ_INT32(8, idx);
 
 	// Fact: append fails at capacity limit.
@@ -128,12 +131,15 @@ TEST_S(test_linkedlist_dint_appendleft)
 	LinkedList_dint_init(xs_basic);
 	ASSERT_TRUE(LinkedList_dint_appendleft(xs_basic, 20));
 	ASSERT_TRUE(LinkedList_dint_appendleft(xs_basic, 10));
+		// Act
 	LinkedList_dint_get(self:=xs_basic, index:=0, item:=value, eno=>result_eno);
 	ASSERT_TRUE(result_eno);
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(10, value);
+		// Act
 	LinkedList_dint_get(self:=xs_basic, index:=1, item:=value, eno=>result_eno);
 	ASSERT_TRUE(result_eno);
+		// Assert
 	EXPECT_EQ_INT32(20, value);
 
 	// Fact: appendleft adds multiple elements in reverse order.
@@ -142,10 +148,12 @@ TEST_S(test_linkedlist_dint_appendleft)
 	for idx := 3 to 8 by 1 do
 		ASSERT_TRUE(LinkedList_dint_appendleft(xs_multi, idx));
 	end_for;
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(6, LinkedList_dint_len(xs_multi));
+		// Act
 	LinkedList_dint_get(self:=xs_multi, index:=0, item:=value, eno=>result_eno);
 	ASSERT_TRUE(result_eno);
+		// Assert
 	EXPECT_EQ_INT32(8, value);
 
 	// Fact: appendleft fails at capacity limit.
@@ -175,8 +183,9 @@ TEST_S(test_linkedlist_dint_pop)
 	ASSERT_TRUE(LinkedList_dint_append(xs_order, 1));
 	ASSERT_TRUE(LinkedList_dint_append(xs_order, 2));
 	ASSERT_TRUE(LinkedList_dint_append(xs_order, 3));
+		// Act
 	ASSERT_TRUE(LinkedList_dint_pop(xs_order, item));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(3, item);
 
 	// Fact: pop decrements len and fails on empty list.
@@ -186,21 +195,28 @@ TEST_S(test_linkedlist_dint_pop)
 	ASSERT_TRUE(LinkedList_dint_append(xs_count, 2));
 	ASSERT_TRUE(LinkedList_dint_append(xs_count, 3));
 	ASSERT_TRUE(LinkedList_dint_pop(xs_count, item));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(2, LinkedList_dint_len(xs_count));
+		// Act
 	ASSERT_TRUE(LinkedList_dint_pop(xs_count, item));
+		// Assert
 	EXPECT_EQ_INT32(2, item);
+		// Act
 	ASSERT_TRUE(LinkedList_dint_pop(xs_count, item));
+		// Assert
 	EXPECT_EQ_INT32(1, item);
+		// Act / Assert
 	EXPECT_FALSE(LinkedList_dint_pop(xs_count, item));
+		// Assert
 	EXPECT_TRUE(LinkedList_dint_empty(xs_count));
 
 	// Fact: pop works correctly on single-element list.
 		// Arrange
 	LinkedList_dint_init(xs_reuse);
 	ASSERT_TRUE(LinkedList_dint_append(xs_reuse, 9));
+		// Act
 	ASSERT_TRUE(LinkedList_dint_pop(xs_reuse, item));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(9, item);
 	{end}
 END_TEST_S
@@ -221,8 +237,9 @@ TEST_S(test_linkedlist_dint_popleft)
 	ASSERT_TRUE(LinkedList_dint_append(xs_order, 1));
 	ASSERT_TRUE(LinkedList_dint_append(xs_order, 2));
 	ASSERT_TRUE(LinkedList_dint_append(xs_order, 3));
+		// Act
 	ASSERT_TRUE(LinkedList_dint_popleft(xs_order, item));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(1, item);
 
 	// Fact: popleft decrements len and fails on empty list.
@@ -232,21 +249,28 @@ TEST_S(test_linkedlist_dint_popleft)
 	ASSERT_TRUE(LinkedList_dint_append(xs_count, 2));
 	ASSERT_TRUE(LinkedList_dint_append(xs_count, 3));
 	ASSERT_TRUE(LinkedList_dint_popleft(xs_count, item));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(2, LinkedList_dint_len(xs_count));
+		// Act
 	ASSERT_TRUE(LinkedList_dint_popleft(xs_count, item));
+		// Assert
 	EXPECT_EQ_INT32(2, item);
+		// Act
 	ASSERT_TRUE(LinkedList_dint_popleft(xs_count, item));
+		// Assert
 	EXPECT_EQ_INT32(3, item);
+		// Act / Assert
 	EXPECT_FALSE(LinkedList_dint_popleft(xs_count, item));
+		// Assert
 	EXPECT_TRUE(LinkedList_dint_empty(xs_count));
 
 	// Fact: popleft works correctly on single-element list.
 		// Arrange
 	LinkedList_dint_init(xs_reuse);
 	ASSERT_TRUE(LinkedList_dint_appendleft(xs_reuse, 9));
+		// Act
 	ASSERT_TRUE(LinkedList_dint_popleft(xs_reuse, item));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(9, item);
 	{end}
 END_TEST_S
@@ -270,15 +294,20 @@ TEST_S(test_linkedlist_dint_insert)
 	ASSERT_TRUE(LinkedList_dint_insert(xs_insert_ok, 1, 20));
 	ASSERT_TRUE(LinkedList_dint_insert(xs_insert_ok, 0, 5));
 	ASSERT_TRUE(LinkedList_dint_insert(xs_insert_ok, LinkedList_dint_len(xs_insert_ok), 40));
+		// Act
 	LinkedList_dint_get(self:=xs_insert_ok, index:=0, item:=value, eno=>result_eno);
 	ASSERT_TRUE(result_eno);
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(5, value);
+		// Act
 	LinkedList_dint_get(self:=xs_insert_ok, index:=2, item:=value, eno=>result_eno);
 	ASSERT_TRUE(result_eno);
+		// Assert
 	EXPECT_EQ_INT32(20, value);
+		// Act
 	LinkedList_dint_get(self:=xs_insert_ok, index:=4, item:=value, eno=>result_eno);
 	ASSERT_TRUE(result_eno);
+		// Assert
 	EXPECT_EQ_INT32(40, value);
 
 	// Fact: insert fails on invalid index.
@@ -300,6 +329,7 @@ TEST_S(test_linkedlist_dint_insert)
 	EXPECT_FALSE(LinkedList_dint_insert(xs_insert_capacity, 0, 99));
 	EXPECT_FALSE(LinkedList_dint_insert(xs_insert_capacity, 4, 99));
 	EXPECT_FALSE(LinkedList_dint_insert(xs_insert_capacity, LinkedList_dint_len(xs_insert_capacity), 99));
+		// Assert
 	EXPECT_EQ_INT32(8, LinkedList_dint_len(xs_insert_capacity));
 	{end}
 END_TEST_S
@@ -319,9 +349,10 @@ TEST_S(test_linkedlist_dint_get)
 	LinkedList_dint_init(xs_head);
 	ASSERT_TRUE(LinkedList_dint_append(xs_head, 11));
 	ASSERT_TRUE(LinkedList_dint_append(xs_head, 22));
+		// Act
 	LinkedList_dint_get(self:=xs_head, index:=0, item:=value, eno=>result_eno);
 	ASSERT_TRUE(result_eno);
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(11, value);
 
 	// Fact: get returns non-head element.
@@ -329,18 +360,22 @@ TEST_S(test_linkedlist_dint_get)
 	LinkedList_dint_init(xs_nonhead);
 	ASSERT_TRUE(LinkedList_dint_append(xs_nonhead, 11));
 	ASSERT_TRUE(LinkedList_dint_append(xs_nonhead, 22));
+		// Act
 	LinkedList_dint_get(self:=xs_nonhead, index:=1, item:=value, eno=>result_eno);
 	ASSERT_TRUE(result_eno);
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(22, value);
 
 	// Fact: get returns eno=false on invalid index.
 		// Arrange
 	LinkedList_dint_init(xs_ng);
+		// Act
 	LinkedList_dint_get(self:=xs_ng, index:=-1, item:=value, eno=>result_eno);
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(result_eno);
+		// Act
 	LinkedList_dint_get(self:=xs_ng, index:=0, item:=value, eno=>result_eno);
+		// Assert
 	EXPECT_FALSE(result_eno);
 	{end}
 END_TEST_S
@@ -360,10 +395,11 @@ TEST_S(test_linkedlist_dint_set)
 	LinkedList_dint_init(xs_set_ok);
 	ASSERT_TRUE(LinkedList_dint_append(xs_set_ok, 1));
 	ASSERT_TRUE(LinkedList_dint_append(xs_set_ok, 2));
+		// Act
 	ASSERT_TRUE(LinkedList_dint_set(xs_set_ok, 0, 9));
 	LinkedList_dint_get(self:=xs_set_ok, index:=0, item:=value, eno=>result_eno);
 	ASSERT_TRUE(result_eno);
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(9, value);
 
 	// Fact: set does not affect other elements.
@@ -371,10 +407,11 @@ TEST_S(test_linkedlist_dint_set)
 	LinkedList_dint_init(xs_set_keep);
 	ASSERT_TRUE(LinkedList_dint_append(xs_set_keep, 1));
 	ASSERT_TRUE(LinkedList_dint_append(xs_set_keep, 2));
+		// Act
 	ASSERT_TRUE(LinkedList_dint_set(xs_set_keep, 0, 9));
 	LinkedList_dint_get(self:=xs_set_keep, index:=1, item:=value, eno=>result_eno);
 	ASSERT_TRUE(result_eno);
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(2, value);
 
 	// Fact: set fails on invalid index.
@@ -406,15 +443,22 @@ TEST_S(test_linkedlist_dint_remove)
 	ASSERT_TRUE(LinkedList_dint_append(xs_remove_pos, 20));
 	ASSERT_TRUE(LinkedList_dint_append(xs_remove_pos, 30));
 	ASSERT_TRUE(LinkedList_dint_append(xs_remove_pos, 40));
+		// Act
 	ASSERT_TRUE(LinkedList_dint_remove(xs_remove_pos, 1, removed));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(20, removed);
+		// Act
 	ASSERT_TRUE(LinkedList_dint_remove(xs_remove_pos, 0, removed));
+		// Assert
 	EXPECT_EQ_INT32(10, removed);
+		// Act
 	ASSERT_TRUE(LinkedList_dint_remove(xs_remove_pos, LinkedList_dint_len(xs_remove_pos) - 1, removed));
+		// Assert
 	EXPECT_EQ_INT32(40, removed);
+		// Act
 	LinkedList_dint_get(self:=xs_remove_pos, index:=0, item:=value, eno=>result_eno);
 	ASSERT_TRUE(result_eno);
+		// Assert
 	EXPECT_EQ_INT32(30, value);
 
 	// Fact: remove decrements len correctly.
@@ -427,7 +471,7 @@ TEST_S(test_linkedlist_dint_remove)
 	ASSERT_TRUE(LinkedList_dint_remove(xs_remove_count, 1, removed));
 	ASSERT_TRUE(LinkedList_dint_remove(xs_remove_count, 0, removed));
 	ASSERT_TRUE(LinkedList_dint_remove(xs_remove_count, LinkedList_dint_len(xs_remove_count) - 1, removed));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(1, LinkedList_dint_len(xs_remove_count));
 
 	// Fact: remove fails on invalid index.
@@ -451,7 +495,7 @@ TEST_S(test_linkedlist_dint_contains)
 	// Fact: contains returns false on empty list.
 		// Arrange
 	LinkedList_dint_init(xs_empty);
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(LinkedList_dint_contains(xs_empty, 1));
 
 	// Fact: contains returns true for existing element.
@@ -459,7 +503,7 @@ TEST_S(test_linkedlist_dint_contains)
 	LinkedList_dint_init(xs_hit);
 	ASSERT_TRUE(LinkedList_dint_append(xs_hit, 1));
 	ASSERT_TRUE(LinkedList_dint_append(xs_hit, 3));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(LinkedList_dint_contains(xs_hit, 1));
 
 	// Fact: contains returns false for non-member.
@@ -467,7 +511,7 @@ TEST_S(test_linkedlist_dint_contains)
 	LinkedList_dint_init(xs_miss);
 	ASSERT_TRUE(LinkedList_dint_append(xs_miss, 1));
 	ASSERT_TRUE(LinkedList_dint_append(xs_miss, 3));
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(LinkedList_dint_contains(xs_miss, 2));
 	{end}
 END_TEST_S
@@ -486,7 +530,7 @@ TEST_S(test_linkedlist_dint_index)
 	ASSERT_TRUE(LinkedList_dint_append(xs_hit, 10));
 	ASSERT_TRUE(LinkedList_dint_append(xs_hit, 20));
 	ASSERT_TRUE(LinkedList_dint_append(xs_hit, 30));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(1, LinkedList_dint_index(xs_hit, 20));
 
 	// Fact: index returns first occurrence for duplicates.
@@ -495,7 +539,7 @@ TEST_S(test_linkedlist_dint_index)
 	ASSERT_TRUE(LinkedList_dint_append(xs_first_dup, 7));
 	ASSERT_TRUE(LinkedList_dint_append(xs_first_dup, 8));
 	ASSERT_TRUE(LinkedList_dint_append(xs_first_dup, 7));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(0, LinkedList_dint_index(xs_first_dup, 7));
 
 	// Fact: index returns -1 for non-member.
@@ -503,7 +547,7 @@ TEST_S(test_linkedlist_dint_index)
 	LinkedList_dint_init(xs_miss);
 	ASSERT_TRUE(LinkedList_dint_append(xs_miss, 1));
 	ASSERT_TRUE(LinkedList_dint_append(xs_miss, 2));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(-1, LinkedList_dint_index(xs_miss, 99));
 	{end}
 END_TEST_S
@@ -526,9 +570,10 @@ TEST_S(test_linkedlist_dint_values)
 	ASSERT_TRUE(LinkedList_dint_append(xs_order, 10));
 	ASSERT_TRUE(LinkedList_dint_append(xs_order, 20));
 	ASSERT_TRUE(LinkedList_dint_append(xs_order, 30));
+		// Act
 	ASSERT_TRUE(LinkedList_dint_values(self:=xs_order, values:=values, written=>written, eno=>result_eno));
 	ASSERT_TRUE(result_eno);
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(3, written);
 	EXPECT_EQ_INT32(10, values[0]);
 	EXPECT_EQ_INT32(20, values[1]);
@@ -537,9 +582,10 @@ TEST_S(test_linkedlist_dint_values)
 	// Fact: values returns written=0 for empty list.
 		// Arrange
 	LinkedList_dint_init(xs_empty);
+		// Act
 	ASSERT_TRUE(LinkedList_dint_values(self:=xs_empty, values:=values, written=>written, eno=>result_eno));
 	ASSERT_TRUE(result_eno);
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(0, written);
 
 	// Fact: values fails when buffer is too small.
@@ -550,6 +596,7 @@ TEST_S(test_linkedlist_dint_values)
 	ASSERT_TRUE(LinkedList_dint_append(xs_small, 3));
 		// Act / Assert
 	EXPECT_FALSE(LinkedList_dint_values(self:=xs_small, values:=small_values, written=>written, eno=>result_eno));
+		// Assert
 	EXPECT_FALSE(result_eno);
 	{end}
 END_TEST_S
@@ -567,7 +614,7 @@ TEST_S(test_linkedlist_dint_len)
 	// Fact: len is 0 after init.
 		// Arrange
 	LinkedList_dint_init(xs_init);
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(0, LinkedList_dint_len(xs_init));
 
 	// Fact: len increments after append.
@@ -575,7 +622,7 @@ TEST_S(test_linkedlist_dint_len)
 	LinkedList_dint_init(xs_added);
 	ASSERT_TRUE(LinkedList_dint_append(xs_added, 1));
 	ASSERT_TRUE(LinkedList_dint_append(xs_added, 2));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(2, LinkedList_dint_len(xs_added));
 
 	// Fact: len decrements after remove.
@@ -584,7 +631,7 @@ TEST_S(test_linkedlist_dint_len)
 	ASSERT_TRUE(LinkedList_dint_append(xs_removed, 1));
 	ASSERT_TRUE(LinkedList_dint_append(xs_removed, 2));
 	ASSERT_TRUE(LinkedList_dint_remove(xs_removed, 0, removed));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(1, LinkedList_dint_len(xs_removed));
 	{end}
 END_TEST_S
@@ -601,14 +648,14 @@ TEST_S(test_linkedlist_dint_empty)
 	// Fact: empty is true after init.
 		// Arrange
 	LinkedList_dint_init(xs_init);
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(LinkedList_dint_empty(xs_init));
 
 	// Fact: empty is false after append.
 		// Arrange
 	LinkedList_dint_init(xs_after_append);
 	ASSERT_TRUE(LinkedList_dint_append(xs_after_append, 1));
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(LinkedList_dint_empty(xs_after_append));
 
 	// Fact: empty is true after clear.
@@ -616,7 +663,7 @@ TEST_S(test_linkedlist_dint_empty)
 	LinkedList_dint_init(xs_after_clear);
 	ASSERT_TRUE(LinkedList_dint_append(xs_after_clear, 1));
 	ASSERT_TRUE(LinkedList_dint_clear(xs_after_clear));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(LinkedList_dint_empty(xs_after_clear));
 	{end}
 END_TEST_S
@@ -635,9 +682,11 @@ TEST_S(test_linkedlist_dint_clear)
 	LinkedList_dint_init(xs_clear_count);
 	ASSERT_TRUE(LinkedList_dint_append(xs_clear_count, 1));
 	ASSERT_TRUE(LinkedList_dint_append(xs_clear_count, 2));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(2, LinkedList_dint_len(xs_clear_count));
+		// Act
 	ASSERT_TRUE(LinkedList_dint_clear(xs_clear_count));
+		// Assert
 	EXPECT_EQ_INT32(0, LinkedList_dint_len(xs_clear_count));
 
 	// Fact: clear is idempotent.
@@ -646,7 +695,7 @@ TEST_S(test_linkedlist_dint_clear)
 	ASSERT_TRUE(LinkedList_dint_append(xs_clear_idempotent, 1));
 	ASSERT_TRUE(LinkedList_dint_clear(xs_clear_idempotent));
 	ASSERT_TRUE(LinkedList_dint_clear(xs_clear_idempotent));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(LinkedList_dint_empty(xs_clear_idempotent));
 
 	// Fact: list is reusable after clear.
@@ -655,7 +704,7 @@ TEST_S(test_linkedlist_dint_clear)
 	ASSERT_TRUE(LinkedList_dint_append(xs_clear_reuse, 1));
 	ASSERT_TRUE(LinkedList_dint_clear(xs_clear_reuse));
 	ASSERT_TRUE(LinkedList_dint_append(xs_clear_reuse, 9));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(1, LinkedList_dint_len(xs_clear_reuse));
 	{end}
 END_TEST_S
@@ -679,10 +728,11 @@ TEST_S(test_linkedlist_dint_copy)
 	LinkedList_dint_init(dst_equal);
 	ASSERT_TRUE(LinkedList_dint_append(src_equal, 7));
 	ASSERT_TRUE(LinkedList_dint_append(src_equal, 8));
+		// Act
 	ASSERT_TRUE(LinkedList_dint_copy(src_equal, dst_equal));
 	LinkedList_dint_get(self:=dst_equal, index:=0, item:=value, eno=>result_eno);
 	ASSERT_TRUE(result_eno);
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(7, value);
 	EXPECT_EQ_INT32(2, LinkedList_dint_len(dst_equal));
 
@@ -692,14 +742,17 @@ TEST_S(test_linkedlist_dint_copy)
 	LinkedList_dint_init(dst_indep);
 	ASSERT_TRUE(LinkedList_dint_append(src_indep, 7));
 	ASSERT_TRUE(LinkedList_dint_append(src_indep, 8));
+		// Act
 	ASSERT_TRUE(LinkedList_dint_copy(src_indep, dst_indep));
 	ASSERT_TRUE(LinkedList_dint_set(src_indep, 0, 70));
 	LinkedList_dint_get(self:=src_indep, index:=0, item:=value, eno=>result_eno);
 	ASSERT_TRUE(result_eno);
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(70, value);
+		// Act
 	LinkedList_dint_get(self:=dst_indep, index:=0, item:=value, eno=>result_eno);
 	ASSERT_TRUE(result_eno);
+		// Assert
 	EXPECT_EQ_INT32(7, value);
 
 	// Fact: copy from empty list clears destination.
@@ -708,7 +761,7 @@ TEST_S(test_linkedlist_dint_copy)
 	LinkedList_dint_init(dst_empty);
 	ASSERT_TRUE(LinkedList_dint_append(dst_empty, 1));
 	ASSERT_TRUE(LinkedList_dint_copy(src_empty, dst_empty));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(LinkedList_dint_empty(dst_empty));
 	{end}
 END_TEST_S
@@ -733,7 +786,7 @@ TEST_S(test_linkedlist_dint_equals)
 	ASSERT_TRUE(LinkedList_dint_append(list_eq_a, 2));
 	ASSERT_TRUE(LinkedList_dint_append(list_eq_b, 1));
 	ASSERT_TRUE(LinkedList_dint_append(list_eq_b, 2));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(LinkedList_dint_equals(list_eq_a, list_eq_b));
 
 	// Fact: equals returns false for different order.
@@ -744,7 +797,7 @@ TEST_S(test_linkedlist_dint_equals)
 	ASSERT_TRUE(LinkedList_dint_append(list_order_a, 2));
 	ASSERT_TRUE(LinkedList_dint_append(list_order_b, 2));
 	ASSERT_TRUE(LinkedList_dint_append(list_order_b, 1));
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(LinkedList_dint_equals(list_order_a, list_order_b));
 
 	// Fact: equals returns false for different values.
@@ -755,7 +808,7 @@ TEST_S(test_linkedlist_dint_equals)
 	ASSERT_TRUE(LinkedList_dint_append(list_value_a, 2));
 	ASSERT_TRUE(LinkedList_dint_append(list_value_b, 1));
 	ASSERT_TRUE(LinkedList_dint_append(list_value_b, 3));
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(LinkedList_dint_equals(list_value_a, list_value_b));
 	{end}
 END_TEST_S
@@ -778,9 +831,10 @@ TEST_S(test_linkedlist_dint_hash)
 		// Arrange
 	LinkedList_dint_init(empty_a);
 	LinkedList_dint_init(empty_b);
+		// Act
 	hash_a := LinkedList_dint_hash(empty_a);
 	hash_b := LinkedList_dint_hash(empty_b);
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_UINT32(hash_a, hash_b);
 
 	// Fact: hash values match for equivalent lists.
@@ -791,9 +845,10 @@ TEST_S(test_linkedlist_dint_hash)
 	ASSERT_TRUE(LinkedList_dint_append(same_a, 20));
 	ASSERT_TRUE(LinkedList_dint_append(same_b, 10));
 	ASSERT_TRUE(LinkedList_dint_append(same_b, 20));
+		// Act
 	hash_a := LinkedList_dint_hash(same_a);
 	hash_b := LinkedList_dint_hash(same_b);
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_UINT32(hash_a, hash_b);
 
 	// Fact: hash differs for lists with different elements.
@@ -805,9 +860,10 @@ TEST_S(test_linkedlist_dint_hash)
 	ASSERT_TRUE(LinkedList_dint_append(diff_b, 10));
 	ASSERT_TRUE(LinkedList_dint_append(diff_b, 20));
 	ASSERT_TRUE(LinkedList_dint_append(diff_b, 30));
+		// Act
 	hash_a := LinkedList_dint_hash(diff_a);
 	hash_b := LinkedList_dint_hash(diff_b);
-		// Act / Assert
+		// Assert
 	EXPECT_NE_UINT32(hash_a, hash_b);
 	{end}
 END_TEST_S
@@ -830,18 +886,20 @@ TEST_S(test_linkedlist_string_caseinsensitive_usecase)
 	LinkedList_string_ci_init(users);
 	ASSERT_TRUE(LinkedList_string_ci_append(users, 'Alice'));
 	ASSERT_TRUE(LinkedList_string_ci_append(users, 'Bob'));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(LinkedList_string_ci_contains(users, 'alice'));
 	EXPECT_EQ_INT32(0, LinkedList_string_ci_index(users, 'ALICE'));
 
 	// Fact: remove/get preserve original case.
 		// Arrange
 	ASSERT_TRUE(LinkedList_string_ci_remove(users, 0, removed));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(String_equals(removed, 'Alice'));
 	EXPECT_EQ_INT32(1, LinkedList_string_ci_len(users));
+		// Act
 	LinkedList_string_ci_get(self:=users, index:=0, item:=item, eno=>result_eno);
 	ASSERT_TRUE(result_eno);
+		// Assert
 	EXPECT_TRUE(String_equals(item, 'Bob'));
 
 	// Fact: equals/hash work case-insensitively.
@@ -850,11 +908,13 @@ TEST_S(test_linkedlist_string_caseinsensitive_usecase)
 	LinkedList_string_ci_init(users_diff);
 	ASSERT_TRUE(LinkedList_string_ci_append(users_same, 'bOb'));
 	ASSERT_TRUE(LinkedList_string_ci_append(users_diff, 'Carol'));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(LinkedList_string_ci_equals(users, users_same));
 	EXPECT_FALSE(LinkedList_string_ci_equals(users, users_diff));
+		// Act
 	hash_a := LinkedList_string_ci_hash(users);
 	hash_b := LinkedList_string_ci_hash(users_same);
+		// Assert
 	EXPECT_EQ_UINT32(hash_a, hash_b);
 	{end}
 END_TEST_S

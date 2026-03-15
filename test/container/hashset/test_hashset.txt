@@ -50,7 +50,7 @@ TEST_S(test_hashset_dint_init)
 	// Fact: init sets len to 0 and contains returns false.
 		// Arrange
 	HashSet_dint_init(hs1);
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(0, HashSet_dint_len(hs1));
 	EXPECT_FALSE(HashSet_dint_contains(hs1, 10));
 
@@ -60,14 +60,14 @@ TEST_S(test_hashset_dint_init)
 	ASSERT_TRUE(HashSet_dint_add(hs2, 10, added));
 	ASSERT_TRUE(HashSet_dint_contains(hs2, 10));
 	HashSet_dint_init(hs2);
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(0, HashSet_dint_len(hs2));
 	EXPECT_FALSE(HashSet_dint_contains(hs2, 10));
 
 	// Fact: init results in empty=true.
 		// Arrange
 	HashSet_dint_init(hs3);
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(HashSet_dint_empty(hs3));
 	{end}
 END_TEST_S
@@ -89,7 +89,7 @@ TEST_S(test_hashset_dint_copy)
 	ASSERT_TRUE(HashSet_dint_add(hs_src, 10, added));
 	ASSERT_TRUE(HashSet_dint_add(hs_src, 20, added));
 	ASSERT_TRUE(HashSet_dint_copy(hs_src, hs_dst));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(2, HashSet_dint_len(hs_dst));
 	EXPECT_TRUE(HashSet_dint_contains(hs_dst, 10));
 	EXPECT_TRUE(HashSet_dint_contains(hs_dst, 20));
@@ -97,7 +97,7 @@ TEST_S(test_hashset_dint_copy)
 	// Fact: copy creates independent instance.
 		// Arrange
 	ASSERT_TRUE(HashSet_dint_add(hs_src, 30, added));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(HashSet_dint_contains(hs_src, 30));
 	EXPECT_FALSE(HashSet_dint_contains(hs_dst, 30));
 
@@ -107,7 +107,7 @@ TEST_S(test_hashset_dint_copy)
 	HashSet_dint_init(hs_dst_empty);
 	ASSERT_TRUE(HashSet_dint_add(hs_dst_empty, 1, added));
 	ASSERT_TRUE(HashSet_dint_copy(hs_src_empty, hs_dst_empty));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(HashSet_dint_empty(hs_dst_empty));
 	{end}
 END_TEST_S
@@ -127,7 +127,7 @@ TEST_S(test_hashset_dint_add)
 		// Arrange
 	HashSet_dint_init(hs1);
 	ASSERT_TRUE(HashSet_dint_add(hs1, 10, added));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(added);
 	EXPECT_EQ_INT32(1, HashSet_dint_len(hs1));
 	HashSet_dint_init(hs2);
@@ -152,8 +152,11 @@ TEST_S(test_hashset_dint_add)
 	EXPECT_TRUE(added);
 	ASSERT_TRUE(HashSet_dint_add(hs4, 202, added));
 	EXPECT_TRUE(added);
+		// Assert
 	EXPECT_EQ_INT32(6, HashSet_dint_len(hs4));
+		// Act / Assert
 	EXPECT_FALSE(HashSet_dint_add(hs4, 999, added));
+		// Assert
 	EXPECT_EQ_INT32(6, HashSet_dint_len(hs4));
 	EXPECT_FALSE(HashSet_dint_contains(hs4, 999));
 	{end}
@@ -178,7 +181,7 @@ TEST_S(test_hashset_dint_add_all)
 	input1[4] := 20;
 	HashSet_dint_init(hs1);
 	ASSERT_TRUE(HashSet_dint_add_all(hs1, input1, added_count));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(3, added_count);
 	EXPECT_EQ_INT32(3, HashSet_dint_len(hs1));
 	EXPECT_TRUE(HashSet_dint_contains(hs1, 10));
@@ -186,8 +189,11 @@ TEST_S(test_hashset_dint_add_all)
 	EXPECT_TRUE(HashSet_dint_contains(hs1, 30));
 
 	// Fact: add_all does not add elements not in input.
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(HashSet_dint_contains(hs1, 99));
+
+	// Fact: add_all fails when capacity exceeded.
+		// Arrange
 	input2[0] := 1;
 	input2[1] := 2;
 	input2[2] := 3;
@@ -195,12 +201,10 @@ TEST_S(test_hashset_dint_add_all)
 	input2[4] := 5;
 	input2[5] := 6;
 	input2[6] := 7;
-
-	// Fact: add_all fails when capacity exceeded.
-		// Arrange
 	HashSet_dint_init(hs2);
 		// Act / Assert
 	EXPECT_FALSE(HashSet_dint_add_all(hs2, input2, added_count));
+		// Assert
 	EXPECT_EQ_INT32(6, HashSet_dint_len(hs2));
 	EXPECT_FALSE(HashSet_dint_contains(hs2, 7));
 	{end}
@@ -229,7 +233,7 @@ TEST_S(test_hashset_dint_remove_all)
 	ASSERT_TRUE(HashSet_dint_add(hs1, 20, added));
 	ASSERT_TRUE(HashSet_dint_add(hs1, 30, added));
 	ASSERT_TRUE(HashSet_dint_remove_all(hs1, input1, removed_count));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(2, removed_count);
 	EXPECT_EQ_INT32(1, HashSet_dint_len(hs1));
 	EXPECT_TRUE(HashSet_dint_contains(hs1, 10));
@@ -237,7 +241,7 @@ TEST_S(test_hashset_dint_remove_all)
 	EXPECT_FALSE(HashSet_dint_contains(hs1, 30));
 
 	// Fact: remove_all returns correct removed count.
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(2, removed_count);
 
 	// Fact: remove_all returns 0 when no matches found.
@@ -248,7 +252,7 @@ TEST_S(test_hashset_dint_remove_all)
 	HashSet_dint_init(hs2);
 	ASSERT_TRUE(HashSet_dint_add(hs2, 1, added));
 	ASSERT_TRUE(HashSet_dint_remove_all(hs2, input2, removed_count));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(0, removed_count);
 	EXPECT_EQ_INT32(1, HashSet_dint_len(hs2));
 	{end}
@@ -265,7 +269,7 @@ TEST_S(test_hashset_dint_contains)
 	// Fact: contains returns false on empty set.
 		// Arrange
 	HashSet_dint_init(hs1);
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(HashSet_dint_contains(hs1, 1));
 	EXPECT_FALSE(HashSet_dint_contains(hs1, -1));
 
@@ -275,13 +279,13 @@ TEST_S(test_hashset_dint_contains)
 	ASSERT_TRUE(HashSet_dint_add(hs2, 1, added));
 	ASSERT_TRUE(HashSet_dint_add(hs2, 2, added));
 	ASSERT_TRUE(HashSet_dint_add(hs2, -1, added));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(HashSet_dint_contains(hs2, 1));
 	EXPECT_TRUE(HashSet_dint_contains(hs2, 2));
 	EXPECT_TRUE(HashSet_dint_contains(hs2, -1));
 
 	// Fact: contains returns false for non-member.
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(HashSet_dint_contains(hs2, 999));
 	{end}
 END_TEST_S
@@ -301,7 +305,7 @@ TEST_S(test_hashset_dint_remove)
 	ASSERT_TRUE(HashSet_dint_add(hs1, 20, added));
 	ASSERT_TRUE(HashSet_dint_add(hs1, 30, added));
 	ASSERT_TRUE(HashSet_dint_remove(hs1, 20));
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(HashSet_dint_contains(hs1, 20));
 	EXPECT_EQ_INT32(2, HashSet_dint_len(hs1));
 
@@ -314,7 +318,7 @@ TEST_S(test_hashset_dint_remove)
 	EXPECT_FALSE(HashSet_dint_remove(hs2, 999));
 
 	// Fact: remove does not affect other elements.
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(2, HashSet_dint_len(hs2));
 	{end}
 END_TEST_S
@@ -333,7 +337,7 @@ TEST_S(test_hashset_dint_len)
 	// Fact: len tracks additions correctly.
 		// Arrange
 	HashSet_dint_init(hs1);
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(0, HashSet_dint_len(hs1));
 	HashSet_dint_init(hs2);
 	ASSERT_TRUE(HashSet_dint_add(hs2, 1, added));
@@ -349,7 +353,7 @@ TEST_S(test_hashset_dint_len)
 	ASSERT_TRUE(HashSet_dint_add(hs4, 1, added));
 	ASSERT_TRUE(HashSet_dint_add(hs4, 2, added));
 	ASSERT_TRUE(HashSet_dint_add(hs4, 2, added));
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(added);
 	EXPECT_EQ_INT32(2, HashSet_dint_len(hs4));
 
@@ -359,7 +363,7 @@ TEST_S(test_hashset_dint_len)
 	ASSERT_TRUE(HashSet_dint_add(hs5, 1, added));
 	ASSERT_TRUE(HashSet_dint_add(hs5, 2, added));
 	ASSERT_TRUE(HashSet_dint_remove(hs5, 1));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(1, HashSet_dint_len(hs5));
 	{end}
 END_TEST_S
@@ -391,16 +395,16 @@ TEST_S(test_hashset_dint_equals)
 	ASSERT_TRUE(HashSet_dint_add(hs4, 10, added));
 	ASSERT_TRUE(HashSet_dint_add(hs4, 20, added));
 	ASSERT_TRUE(HashSet_dint_add(hs4, 99, added));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(HashSet_dint_equals(hs1, hs2));
 	EXPECT_TRUE(HashSet_dint_equals(hs2, hs1));
 
 	// Fact: equals returns false for different element count.
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(HashSet_dint_equals(hs1, hs3));
 
 	// Fact: equals returns false for different elements.
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(HashSet_dint_equals(hs1, hs4));
 	{end}
 END_TEST_S
@@ -426,6 +430,7 @@ TEST_S(test_hashset_dint_elements)
 	HashSet_dint_init(hs1);
 		// Act / Assert
 	EXPECT_TRUE(HashSet_dint_elements(hs1, elements, written));
+		// Assert
 	EXPECT_EQ_INT32(0, written);
 
 	// Fact: elements returns all added elements.
@@ -439,6 +444,7 @@ TEST_S(test_hashset_dint_elements)
 	found_30 := false;
 		// Act / Assert
 	EXPECT_TRUE(HashSet_dint_elements(hs2, elements, written));
+		// Assert
 	EXPECT_EQ_INT32(3, written);
 	for idx := 0 to written - 1 by 1 do
 		if elements[idx] = 10 then
@@ -460,6 +466,7 @@ TEST_S(test_hashset_dint_elements)
 	found_40 := false;
 		// Act / Assert
 	EXPECT_TRUE(HashSet_dint_elements(hs3, elements, written));
+		// Assert
 	if written = 1 then
 		if elements[0] = 40 then
 			found_40 := true;
@@ -476,46 +483,53 @@ TEST_S(test_hashset_dint_hash)
 		hs3: HashSet_dint_t;
 		hs4: HashSet_dint_t;
 		hs5: HashSet_dint_t;
+		hs6: HashSet_dint_t;
 		added: bool;
-		hash1: udint;
-		hash2: udint;
-		hash3: udint;
-		hash4: udint;
-		hash5: udint;
+		hash_a: udint;
+		hash_b: udint;
 	end
 	{st}
 
 	// Fact: hash values match for equivalent sets.
 		// Arrange
 	HashSet_dint_init(hs1);
-	HashSet_dint_init(hs2);
-	HashSet_dint_init(hs3);
-	HashSet_dint_init(hs4);
-	HashSet_dint_init(hs5);
 	ASSERT_TRUE(HashSet_dint_add(hs1, 10, added));
 	ASSERT_TRUE(HashSet_dint_add(hs1, 20, added));
 	ASSERT_TRUE(HashSet_dint_add(hs1, 30, added));
+	HashSet_dint_init(hs2);
 	ASSERT_TRUE(HashSet_dint_add(hs2, 30, added));
 	ASSERT_TRUE(HashSet_dint_add(hs2, 10, added));
 	ASSERT_TRUE(HashSet_dint_add(hs2, 20, added));
-	ASSERT_TRUE(HashSet_dint_add(hs3, 10, added));
-	ASSERT_TRUE(HashSet_dint_add(hs3, 20, added));
-	hash1 := HashSet_dint_hash(hs1);
-	hash2 := HashSet_dint_hash(hs2);
-	hash3 := HashSet_dint_hash(hs3);
-		// Act / Assert
-	EXPECT_EQ_UDINT(hash1, hash2);
+		// Act
+	hash_a := HashSet_dint_hash(hs1);
+	hash_b := HashSet_dint_hash(hs2);
+		// Assert
+	EXPECT_EQ_UDINT(hash_a, hash_b);
 
 	// Fact: hash differs for sets with different element counts.
-		// Act / Assert
-	EXPECT_NE_UDINT(hash1, hash3);
+		// Arrange
+	HashSet_dint_init(hs3);
+	ASSERT_TRUE(HashSet_dint_add(hs3, 10, added));
+	ASSERT_TRUE(HashSet_dint_add(hs3, 20, added));
+	ASSERT_TRUE(HashSet_dint_add(hs3, 30, added));
+	HashSet_dint_init(hs4);
+	ASSERT_TRUE(HashSet_dint_add(hs4, 10, added));
+	ASSERT_TRUE(HashSet_dint_add(hs4, 20, added));
+		// Act
+	hash_a := HashSet_dint_hash(hs3);
+	hash_b := HashSet_dint_hash(hs4);
+		// Assert
+	EXPECT_NE_UDINT(hash_a, hash_b);
 
 	// Fact: empty sets produce identical hash.
 		// Arrange
-	hash4 := HashSet_dint_hash(hs4);
-	hash5 := HashSet_dint_hash(hs5);
-		// Act / Assert
-	EXPECT_EQ_UDINT(hash4, hash5);
+	HashSet_dint_init(hs5);
+	HashSet_dint_init(hs6);
+		// Act
+	hash_a := HashSet_dint_hash(hs5);
+	hash_b := HashSet_dint_hash(hs6);
+		// Assert
+	EXPECT_EQ_UDINT(hash_a, hash_b);
 	{end}
 END_TEST_S
 
@@ -531,14 +545,14 @@ TEST_S(test_hashset_dint_empty)
 	// Fact: empty is true immediately after init.
 		// Arrange
 	HashSet_dint_init(hs1);
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(HashSet_dint_empty(hs1));
 
 	// Fact: empty is false after add.
 		// Arrange
 	HashSet_dint_init(hs2);
 	ASSERT_TRUE(HashSet_dint_add(hs2, 1, added));
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(HashSet_dint_empty(hs2));
 
 	// Fact: empty is true after removing all elements.
@@ -546,7 +560,7 @@ TEST_S(test_hashset_dint_empty)
 	HashSet_dint_init(hs3);
 	ASSERT_TRUE(HashSet_dint_add(hs3, 1, added));
 	ASSERT_TRUE(HashSet_dint_remove(hs3, 1));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(HashSet_dint_empty(hs3));
 	{end}
 END_TEST_S
@@ -566,9 +580,11 @@ TEST_S(test_hashset_dint_clear)
 	ASSERT_TRUE(HashSet_dint_add(hs, 1, added));
 	ASSERT_TRUE(HashSet_dint_add(hs, 2, added));
 	ASSERT_TRUE(HashSet_dint_add(hs, 3, added));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(3, HashSet_dint_len(hs));
+		// Act
 	ASSERT_TRUE(HashSet_dint_clear(hs));
+		// Assert
 	EXPECT_EQ_INT32(0, HashSet_dint_len(hs));
 	EXPECT_FALSE(HashSet_dint_contains(hs, 1));
 	EXPECT_FALSE(HashSet_dint_contains(hs, 2));
@@ -580,7 +596,7 @@ TEST_S(test_hashset_dint_clear)
 	ASSERT_TRUE(HashSet_dint_add(hs_idempotent, 1, added));
 	ASSERT_TRUE(HashSet_dint_clear(hs_idempotent));
 	ASSERT_TRUE(HashSet_dint_clear(hs_idempotent));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(HashSet_dint_empty(hs_idempotent));
 
 	// Fact: set is reusable after clear.
@@ -589,7 +605,7 @@ TEST_S(test_hashset_dint_clear)
 	ASSERT_TRUE(HashSet_dint_add(hs_reuse, 1, added));
 	ASSERT_TRUE(HashSet_dint_clear(hs_reuse));
 	ASSERT_TRUE(HashSet_dint_add(hs_reuse, 9, added));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(HashSet_dint_contains(hs_reuse, 9));
 	{end}
 END_TEST_S
@@ -609,7 +625,7 @@ TEST_S(test_hashset_dint_collision_usecase)
 	HashSet_dint_collision_init(hs1);
 	for idx := 1 to 6 by 1 do
 		ASSERT_TRUE(HashSet_dint_collision_add(hs1, 100 + idx, added));
-		// Act / Assert
+		// Assert
 		EXPECT_TRUE(added);
 	end_for;
 	EXPECT_EQ_INT32(6, HashSet_dint_collision_len(hs1));
@@ -646,7 +662,7 @@ TEST_S(test_hashset_string_usecase)
 		// Arrange
 	HashSet_string16_init(hs_add);
 	ASSERT_TRUE(HashSet_string16_add(hs_add, 'alpha', added));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(added);
 	EXPECT_TRUE(HashSet_string16_contains(hs_add, 'alpha'));
 	HashSet_string16_init(hs_dup);
@@ -701,21 +717,30 @@ TEST_S(test_hashset_record_usecase)
 	rec3.active := true;
 	HashSet_record_init(hs_usecase);
 	ASSERT_TRUE(HashSet_record_add(hs_usecase, rec1, added));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(added);
 	EXPECT_TRUE(HashSet_record_contains(hs_usecase, rec1));
+		// Act
 	ASSERT_TRUE(HashSet_record_add(hs_usecase, rec1_dup, added));
+		// Assert
 	EXPECT_FALSE(added);
 	EXPECT_EQ_INT32(1, HashSet_record_len(hs_usecase));
+		// Act
 	ASSERT_TRUE(HashSet_record_add(hs_usecase, rec2, added));
+		// Assert
 	EXPECT_TRUE(added);
 	EXPECT_EQ_INT32(2, HashSet_record_len(hs_usecase));
 	EXPECT_TRUE(HashSet_record_contains(hs_usecase, rec2));
+		// Act
 	ASSERT_TRUE(HashSet_record_remove(hs_usecase, rec1));
+		// Assert
 	EXPECT_FALSE(HashSet_record_contains(hs_usecase, rec1_dup));
 	EXPECT_EQ_INT32(1, HashSet_record_len(hs_usecase));
+		// Act
 	ASSERT_TRUE(HashSet_record_clear(hs_usecase));
+		// Assert
 	EXPECT_EQ_INT32(0, HashSet_record_len(hs_usecase));
+		// Arrange
 	HashSet_record_init(hs_eq_base);
 	HashSet_record_init(hs_empty);
 	HashSet_record_init(hs_same);
@@ -732,13 +757,16 @@ TEST_S(test_hashset_record_usecase)
 	ASSERT_TRUE(added);
 	ASSERT_TRUE(HashSet_record_add(hs_diff, rec3, added));
 	ASSERT_TRUE(added);
+		// Assert
 	EXPECT_TRUE(HashSet_record_equals(hs_empty, hs_empty));
 	EXPECT_TRUE(HashSet_record_equals(hs_same, hs_same));
 	EXPECT_TRUE(HashSet_record_equals(hs_eq_base, hs_same));
 	EXPECT_FALSE(HashSet_record_equals(hs_eq_base, hs_diff));
+		// Act
 	hash1 := HashSet_record_hash(hs_eq_base);
 	hash2 := HashSet_record_hash(hs_same);
 	hash3 := HashSet_record_hash(hs_diff);
+		// Assert
 	EXPECT_EQ_UDINT(hash1, hash2);
 	EXPECT_NE_UDINT(hash2, hash3);
 	{end}

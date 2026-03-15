@@ -46,7 +46,7 @@ TEST_S(test_dequeue_init)
 	// Fact: initialization sets empty state and boundary behavior correctly.
 		// Act
 	Dequeue_int_init(x_1);
-		// Assert
+		// Act / Assert
 	EXPECT_FALSE(Dequeue_int_popleft(x_1, value));
 
 	// Fact: append then popleft returns elements in FIFO order.
@@ -89,12 +89,16 @@ TEST_S(test_dequeue_string_caseinsensitive_usecase)
 	Dequeue_string_ci_init(sessions_contains);
 	ASSERT_TRUE(Dequeue_string_ci_append(sessions_contains, 'Alice'));
 	ASSERT_TRUE(Dequeue_string_ci_append(sessions_contains, 'Bob'));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(Dequeue_string_ci_contains(sessions_contains, 'alice'));
 	EXPECT_TRUE(Dequeue_string_ci_contains(sessions_contains, 'BOB'));
+		// Act
 	ASSERT_TRUE(Dequeue_string_ci_first(sessions_contains, item));
+		// Assert
 	EXPECT_TRUE(String_equals(item, 'Alice'));
+		// Act
 	ASSERT_TRUE(Dequeue_string_ci_last(sessions_contains, item));
+		// Assert
 	EXPECT_TRUE(String_equals(item, 'Bob'));
 
 	// Fact: appendleft, pop, and popleft keep expected order.
@@ -107,9 +111,13 @@ TEST_S(test_dequeue_string_caseinsensitive_usecase)
 	ASSERT_TRUE(Dequeue_string_ci_pop(sessions_ops, item));
 		// Assert
 	EXPECT_TRUE(String_equals(item, 'Bob'));
+		// Act
 	ASSERT_TRUE(Dequeue_string_ci_popleft(sessions_ops, item));
+		// Assert
 	EXPECT_TRUE(String_equals(item, 'Carol'));
+		// Act
 	ASSERT_TRUE(Dequeue_string_ci_elements(sessions_ops, elements, written));
+		// Assert
 	EXPECT_EQ_INT32(1, written);
 	EXPECT_TRUE(String_equals(elements[0], 'Alice'));
 
@@ -154,11 +162,17 @@ TEST_S(test_dequeue_copy)
 	ASSERT_TRUE(Dequeue_int_copy(x_src, x_dst));
 		// Assert
 	EXPECT_EQ_INT32(3, Dequeue_int_len(x_dst));
+		// Act
 	ASSERT_TRUE(Dequeue_int_popleft(x_dst, value));
+		// Assert
 	EXPECT_EQ_INT32(5, value);
+		// Act
 	ASSERT_TRUE(Dequeue_int_popleft(x_dst, value));
+		// Assert
 	EXPECT_EQ_INT32(10, value);
+		// Act
 	ASSERT_TRUE(Dequeue_int_popleft(x_dst, value));
+		// Assert
 	EXPECT_EQ_INT32(20, value);
 
 	// Fact: copied queue preserves element order and length.
@@ -169,11 +183,15 @@ TEST_S(test_dequeue_copy)
 	ASSERT_TRUE(Dequeue_int_append(x_src_indep, 2));
 	ASSERT_TRUE(Dequeue_int_copy(x_src_indep, x_dst_indep));
 	ASSERT_TRUE(Dequeue_int_append(x_src_indep, 3));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(2, Dequeue_int_len(x_dst_indep));
+		// Act
 	ASSERT_TRUE(Dequeue_int_popleft(x_dst_indep, value));
+		// Assert
 	EXPECT_EQ_INT32(1, value);
+		// Act
 	ASSERT_TRUE(Dequeue_int_popleft(x_dst_indep, value));
+		// Assert
 	EXPECT_EQ_INT32(2, value);
 
 	// Fact: copy from empty queue succeeds with zero length.
@@ -208,9 +226,11 @@ TEST_S(test_dequeue_empty)
 		// Arrange
 	Dequeue_int_init(x_after_io);
 	ASSERT_TRUE(Dequeue_int_append(x_after_io, 1));
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(Dequeue_int_empty(x_after_io));
+		// Act
 	ASSERT_TRUE(Dequeue_int_popleft(x_after_io, value));
+		// Assert
 	EXPECT_EQ_INT32(1, value);
 	EXPECT_TRUE(Dequeue_int_empty(x_after_io));
 
@@ -285,12 +305,14 @@ TEST_S(test_dequeue_len)
 	// Fact: empty/len match state transitions for append and appendleft.
 		// Arrange
 	Dequeue_int_init(x_transitions);
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(Dequeue_int_empty(x_transitions));
 	EXPECT_EQ_INT32(0, Dequeue_int_len(x_transitions));
+		// Act
 	ASSERT_TRUE(Dequeue_int_append(x_transitions, 20));
 	ASSERT_TRUE(Dequeue_int_appendleft(x_transitions, 10));
 	ASSERT_TRUE(Dequeue_int_append(x_transitions, 30));
+		// Assert
 	EXPECT_FALSE(Dequeue_int_empty(x_transitions));
 	EXPECT_EQ_INT32(3, Dequeue_int_len(x_transitions));
 	{end}
@@ -323,9 +345,10 @@ TEST_S(test_dequeue_clear)
 	ASSERT_TRUE(Dequeue_int_append(x_after_clear, 1));
 	ASSERT_TRUE(Dequeue_int_append(x_after_clear, 2));
 	Dequeue_int_clear(x_after_clear);
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(Dequeue_int_empty(x_after_clear));
 	EXPECT_EQ_INT32(0, Dequeue_int_len(x_after_clear));
+		// Act / Assert
 	EXPECT_FALSE(Dequeue_int_pop(x_after_clear, value));
 	EXPECT_FALSE(Dequeue_int_popleft(x_after_clear, value));
 
@@ -359,7 +382,7 @@ TEST_S(test_dequeue_append)
 	ASSERT_TRUE(Dequeue_int_append(x_fill, 13));
 	ASSERT_TRUE(Dequeue_int_append(x_fill, 17));
 	ASSERT_TRUE(Dequeue_int_append(x_fill, 19));
-		// Assert
+		// Act / Assert
 	EXPECT_FALSE(Dequeue_int_append(x_fill, 23));
 
 	// Fact: append then popleft returns expected values in order.
@@ -371,7 +394,9 @@ TEST_S(test_dequeue_append)
 	ASSERT_TRUE(Dequeue_int_popleft(x_order, value));
 		// Assert
 	EXPECT_EQ_INT32(11, value);
+		// Act
 	ASSERT_TRUE(Dequeue_int_popleft(x_order, value));
+		// Assert
 	EXPECT_EQ_INT32(13, value);
 
 	// Fact: popleft on empty queue returns failure.
@@ -399,7 +424,7 @@ TEST_S(test_dequeue_appendleft)
 	ASSERT_TRUE(Dequeue_int_appendleft(x_fill, 10));
 	ASSERT_TRUE(Dequeue_int_appendleft(x_fill, 5));
 	ASSERT_TRUE(Dequeue_int_appendleft(x_fill, 1));
-		// Assert
+		// Act / Assert
 	EXPECT_FALSE(Dequeue_int_appendleft(x_fill, 0));
 
 	// Fact: appendleft then popleft validates front insertion order.
@@ -412,9 +437,13 @@ TEST_S(test_dequeue_appendleft)
 	ASSERT_TRUE(Dequeue_int_popleft(x_order, value));
 		// Assert
 	EXPECT_EQ_INT32(5, value);
+		// Act
 	ASSERT_TRUE(Dequeue_int_popleft(x_order, value));
+		// Assert
 	EXPECT_EQ_INT32(10, value);
+		// Act
 	ASSERT_TRUE(Dequeue_int_popleft(x_order, value));
+		// Assert
 	EXPECT_EQ_INT32(20, value);
 
 	// Fact: pop on empty queue returns failure.
@@ -455,10 +484,15 @@ TEST_S(test_dequeue_pop)
 	ASSERT_TRUE(Dequeue_int_pop(x_data, value));
 		// Assert
 	EXPECT_EQ_INT32(3, value);
+		// Act
 	ASSERT_TRUE(Dequeue_int_pop(x_data, value));
+		// Assert
 	EXPECT_EQ_INT32(2, value);
+		// Act
 	ASSERT_TRUE(Dequeue_int_pop(x_data, value));
+		// Assert
 	EXPECT_EQ_INT32(1, value);
+		// Act / Assert
 	EXPECT_FALSE(Dequeue_int_pop(x_data, value));
 
 	// Fact: queue is reusable after becoming empty.
@@ -466,7 +500,7 @@ TEST_S(test_dequeue_pop)
 	Dequeue_int_init(x_reuse);
 	ASSERT_TRUE(Dequeue_int_append(x_reuse, 9));
 	ASSERT_TRUE(Dequeue_int_pop(x_reuse, value));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(9, value);
 
 	// Fact: appendleft/append pop returns tail element in expected order.
@@ -480,11 +514,17 @@ TEST_S(test_dequeue_pop)
 	ASSERT_TRUE(Dequeue_int_pop(x_mix, value));
 		// Assert
 	EXPECT_EQ_INT32(40, value);
+		// Act
 	ASSERT_TRUE(Dequeue_int_pop(x_mix, value));
+		// Assert
 	EXPECT_EQ_INT32(30, value);
+		// Act
 	ASSERT_TRUE(Dequeue_int_pop(x_mix, value));
+		// Assert
 	EXPECT_EQ_INT32(20, value);
+		// Act
 	ASSERT_TRUE(Dequeue_int_pop(x_mix, value));
+		// Assert
 	EXPECT_EQ_INT32(10, value);
 
 	// Fact: pop then appendleft keeps order under wraparound.
@@ -494,10 +534,12 @@ TEST_S(test_dequeue_pop)
 	ASSERT_TRUE(Dequeue_int_append(x_wrap_al, 3));
 	ASSERT_TRUE(Dequeue_int_append(x_wrap_al, 4));
 	ASSERT_TRUE(Dequeue_int_pop(x_wrap_al, value));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(4, value);
+		// Act
 	ASSERT_TRUE(Dequeue_int_appendleft(x_wrap_al, 9));
 	ASSERT_TRUE(Dequeue_int_elements(x_wrap_al, elements, written));
+		// Assert
 	EXPECT_EQ_INT32(3, written);
 	EXPECT_EQ_INT32(9, elements[0]);
 	EXPECT_EQ_INT32(2, elements[1]);
@@ -527,9 +569,13 @@ TEST_S(test_dequeue_popleft)
 	ASSERT_TRUE(Dequeue_int_popleft(x_fifo, value));
 		// Assert
 	EXPECT_EQ_INT32(2, value);
+		// Act
 	ASSERT_TRUE(Dequeue_int_popleft(x_fifo, value));
+		// Assert
 	EXPECT_EQ_INT32(3, value);
+		// Act
 	ASSERT_TRUE(Dequeue_int_popleft(x_fifo, value));
+		// Assert
 	EXPECT_EQ_INT32(5, value);
 
 	// Fact: popleft on empty queue returns failure.
@@ -556,13 +602,19 @@ TEST_S(test_dequeue_popleft)
 	ASSERT_TRUE(Dequeue_int_popleft(x_roundtrip, value));
 		// Assert
 	EXPECT_EQ_INT32(10, value);
+		// Act
 	ASSERT_TRUE(Dequeue_int_append(x_roundtrip, 30));
 	ASSERT_TRUE(Dequeue_int_append(x_roundtrip, 40));
 	ASSERT_TRUE(Dequeue_int_popleft(x_roundtrip, value));
+		// Assert
 	EXPECT_EQ_INT32(20, value);
+		// Act
 	ASSERT_TRUE(Dequeue_int_popleft(x_roundtrip, value));
+		// Assert
 	EXPECT_EQ_INT32(30, value);
+		// Act
 	ASSERT_TRUE(Dequeue_int_popleft(x_roundtrip, value));
+		// Assert
 	EXPECT_EQ_INT32(40, value);
 
 	// Fact: wraparound dequeue order remains FIFO.
@@ -575,12 +627,18 @@ TEST_S(test_dequeue_popleft)
 	ASSERT_TRUE(Dequeue_int_popleft(x_wrap, value));
 		// Assert
 	EXPECT_EQ_INT32(1, value);
+		// Act
 	ASSERT_TRUE(Dequeue_int_append(x_wrap, 4));
 	ASSERT_TRUE(Dequeue_int_popleft(x_wrap, value));
+		// Assert
 	EXPECT_EQ_INT32(2, value);
+		// Act
 	ASSERT_TRUE(Dequeue_int_popleft(x_wrap, value));
+		// Assert
 	EXPECT_EQ_INT32(3, value);
+		// Act
 	ASSERT_TRUE(Dequeue_int_popleft(x_wrap, value));
+		// Assert
 	EXPECT_EQ_INT32(4, value);
 	{end}
 END_TEST_S
@@ -675,7 +733,7 @@ TEST_S(test_dequeue_contains)
 	// Fact: contains returns false on empty queue.
 		// Arrange
 	Dequeue_int_init(x_empty);
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(Dequeue_int_contains(x_empty, 10));
 
 	// Fact: contains returns true for hit and false for miss.
@@ -684,7 +742,7 @@ TEST_S(test_dequeue_contains)
 	ASSERT_TRUE(Dequeue_int_append(x_data, 10));
 	ASSERT_TRUE(Dequeue_int_append(x_data, 20));
 	ASSERT_TRUE(Dequeue_int_appendleft(x_data, 5));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(Dequeue_int_contains(x_data, 5));
 	EXPECT_TRUE(Dequeue_int_contains(x_data, 10));
 	EXPECT_TRUE(Dequeue_int_contains(x_data, 20));
@@ -696,7 +754,7 @@ TEST_S(test_dequeue_contains)
 	ASSERT_TRUE(Dequeue_int_append(x_after_remove, 10));
 	ASSERT_TRUE(Dequeue_int_append(x_after_remove, 20));
 	ASSERT_TRUE(Dequeue_int_popleft(x_after_remove, value));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(10, value);
 	EXPECT_FALSE(Dequeue_int_contains(x_after_remove, 10));
 	EXPECT_TRUE(Dequeue_int_contains(x_after_remove, 20));
@@ -722,6 +780,7 @@ TEST_S(test_dequeue_elements)
 	Dequeue_int_init(x_empty);
 		// Act / Assert
 	EXPECT_TRUE(Dequeue_int_elements(x_empty, elements, written));
+		// Assert
 	EXPECT_EQ_INT32(0, written);
 
 	// Fact: elements preserves logical queue order after dequeue/enqueue.
@@ -731,10 +790,13 @@ TEST_S(test_dequeue_elements)
 	ASSERT_TRUE(Dequeue_int_append(x_data, 20));
 	ASSERT_TRUE(Dequeue_int_append(x_data, 30));
 	ASSERT_TRUE(Dequeue_int_popleft(x_data, value));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(10, value);
+		// Act
 	ASSERT_TRUE(Dequeue_int_append(x_data, 40));
+		// Act / Assert
 	EXPECT_TRUE(Dequeue_int_elements(x_data, elements, written));
+		// Assert
 	EXPECT_EQ_INT32(3, written);
 	EXPECT_EQ_INT32(20, elements[0]);
 	EXPECT_EQ_INT32(30, elements[1]);
@@ -772,8 +834,10 @@ TEST_S(test_dequeue_elements)
 	ASSERT_TRUE(Dequeue_int_popleft(x_wrap_pa, value));
 		// Assert
 	EXPECT_EQ_INT32(1, value);
+		// Act
 	ASSERT_TRUE(Dequeue_int_append(x_wrap_pa, 4));
 	ASSERT_TRUE(Dequeue_int_elements(x_wrap_pa, elements, written));
+		// Assert
 	EXPECT_EQ_INT32(3, written);
 	EXPECT_EQ_INT32(2, elements[0]);
 	EXPECT_EQ_INT32(3, elements[1]);
@@ -804,7 +868,7 @@ TEST_S(test_dequeue_equals)
 	ASSERT_TRUE(Dequeue_int_append(x_same_b, 10));
 	ASSERT_TRUE(Dequeue_int_append(x_same_b, 20));
 	ASSERT_TRUE(Dequeue_int_appendleft(x_same_b, 5));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(Dequeue_int_equals(x_same_a, x_same_b));
 
 	// Fact: equals returns false for different order/content.
@@ -817,7 +881,7 @@ TEST_S(test_dequeue_equals)
 	ASSERT_TRUE(Dequeue_int_append(x_diff, 5));
 	ASSERT_TRUE(Dequeue_int_append(x_diff, 20));
 	ASSERT_TRUE(Dequeue_int_append(x_diff, 10));
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(Dequeue_int_equals(x_diff_base, x_diff));
 
 	// Fact: equals returns false after mutating one queue.
@@ -834,7 +898,7 @@ TEST_S(test_dequeue_equals)
 	ASSERT_TRUE(Dequeue_int_append(x_mutate_b, 30));
 	ASSERT_TRUE(Dequeue_int_popleft(x_mutate_b, value));
 	ASSERT_TRUE(Dequeue_int_appendleft(x_mutate_b, 10));
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(Dequeue_int_equals(x_mutate_a, x_mutate_b));
 	{end}
 END_TEST_S
