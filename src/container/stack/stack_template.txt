@@ -1,0 +1,366 @@
+(*
+	================================================================================
+	Stack Template Generator - Fixed-array LIFO Stack
+	================================================================================
+
+	This template generates a typed LIFO Stack from preprocessor macros.
+	The internal implementation is a fixed-size array with a top pointer.
+
+	Usage:
+	1. Define required macros.
+	2. Optionally define behavior macros.
+	3. Include this template once per generated type.
+
+	Required macros:
+	  - StackName
+	    Suffix used for generated types and functions.
+	  - StackElementType
+	    Element type stored in the stack.
+	  - StackCapacity
+	    Maximum number of elements.
+
+	Optional macros:
+	  - StackElementEqualsFunction
+	    Element equality function for equals.
+	    Default: direct value comparison.
+	  - StackElementHashFunction
+	    Element hash function. When defined, the hash function is generated.
+
+	Generated APIs:
+	  - init, copy, push, pop, peek
+	  - len, empty, clear
+	  - equals (always generated)
+	  - hash (only when StackElementHashFunction is defined)
+
+	Example (dint):
+	  {#define StackName dint}
+	  {#define StackCapacity 64}
+	  {#define StackElementType dint}
+	  {#define StackElementEqualsFunction Dint_equals}
+	  {#define StackElementHashFunction Dint_hash}
+	  {#include <container/stack/stack_template.txt>}
+
+	Example (string):
+	  {#define StackName str}
+	  {#define StackCapacity 64}
+	  {#define StackElementType string[128]}
+	  {#define StackElementEqualsFunction String_equals}
+	  {#define StackElementHashFunction String_hash}
+	  {#include <container/stack/stack_template.txt>}
+
+	Algorithm:
+	  Fixed-size array with a top counter.
+	  push appends to the top; pop removes from the top (LIFO).
+	================================================================================
+*)
+{#include <sys.txt>}
+{#include <sys_conv.txt>}
+
+{#ifndef StackName}
+	{#error require StackName macro.}
+{#endif}
+
+{#ifndef StackElementType}
+	{#error require StackElementType macro.}
+{#endif}
+
+{#ifndef StackCapacity}
+	{#error require StackCapacity macro.}
+{#endif}
+
+{#ifdef StackElementEqualsFunction}
+	{#define _STACK_ELEM_EQUALS_(A, B) StackElementEqualsFunction((A), (B))}
+{#else}
+	{#define _STACK_ELEM_EQUALS_(A, B) ((A) = (B))}
+{#endif}
+
+{#define _STACK_CORE_TYPE_(T) Stack_@@T@@_t}
+{#define _STACK_INIT_(T) Stack_@@T@@_init}
+{#define _STACK_COPY_(T) Stack_@@T@@_copy}
+{#define _STACK_PUSH_(T) Stack_@@T@@_push}
+{#define _STACK_POP_(T) Stack_@@T@@_pop}
+{#define _STACK_PEEK_(T) Stack_@@T@@_peek}
+{#define _STACK_LEN_(T) Stack_@@T@@_len}
+{#define _STACK_EMPTY_(T) Stack_@@T@@_empty}
+{#define _STACK_CLEAR_(T) Stack_@@T@@_clear}
+{#define _STACK_EQUALS_(T) Stack_@@T@@_equals}
+{#define _STACK_HASH_(T) Stack_@@T@@_hash}
+
+{#define STACK_CORE_TYPE(T) _STACK_CORE_TYPE_(T)}
+{#define STACK_INIT(T) _STACK_INIT_(T)}
+{#define STACK_COPY(T) _STACK_COPY_(T)}
+{#define STACK_PUSH(T) _STACK_PUSH_(T)}
+{#define STACK_POP(T) _STACK_POP_(T)}
+{#define STACK_PEEK(T) _STACK_PEEK_(T)}
+{#define STACK_LEN(T) _STACK_LEN_(T)}
+{#define STACK_EMPTY(T) _STACK_EMPTY_(T)}
+{#define STACK_CLEAR(T) _STACK_CLEAR_(T)}
+{#define STACK_EQUALS(T) _STACK_EQUALS_(T)}
+{#define STACK_HASH(T) _STACK_HASH_(T)}
+
+{#define StackCoreType STACK_CORE_TYPE(StackName)}
+{#define Stack_init STACK_INIT(StackName)}
+{#define Stack_copy STACK_COPY(StackName)}
+{#define Stack_push STACK_PUSH(StackName)}
+{#define Stack_pop STACK_POP(StackName)}
+{#define Stack_peek STACK_PEEK(StackName)}
+{#define Stack_len STACK_LEN(StackName)}
+{#define Stack_empty STACK_EMPTY(StackName)}
+{#define Stack_clear STACK_CLEAR(StackName)}
+{#define Stack_equals STACK_EQUALS(StackName)}
+{#define Stack_hash STACK_HASH(StackName)}
+
+type
+	(* Stack runtime state. *)
+	StackCoreType: struct
+		(* Element storage array. *)
+		data: array[StackCapacity] of StackElementType;
+		(* Number of elements currently on the stack. *)
+		top: dint;
+	end
+end
+
+(*{doc Initialize the stack.
+Reset top pointer to zero.
+@inout self Target Stack. }*)
+function Stack_init
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: StackCoreType;
+	end
+	{st}
+	self.top := 0;
+	{end}
+end
+
+(*{doc Copy stack state.
+Copy all elements and the top pointer.
+@inout self Source Stack.
+@inout dest Destination Stack.
+@return true on success. }*)
+function Stack_copy: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: StackCoreType;
+		dest: StackCoreType;
+	end
+	var_temp
+		idx: dint;
+	end
+	{st}
+	dest.top := self.top;
+	for idx := 0 to self.top - 1 by 1 do
+		dest.data[idx] := self.data[idx];
+	end_for;
+	Stack_copy := true;
+	{end}
+end
+
+(*{doc Push one element onto the top of the stack.
+@inout self Target Stack.
+@input element Element to push.
+@return true on success, false when capacity is exceeded.
+@error ENO is set to false when capacity is exceeded. }*)
+function Stack_push: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: StackCoreType;
+	end
+	var_input
+		element: StackElementType;
+	end
+	{st}
+	if self.top >= StackCapacity then
+		eno := false;
+		return;
+	end_if;
+	self.data[self.top] := element;
+	self.top := self.top + 1;
+	Stack_push := true;
+	{end}
+end
+
+(*{doc Pop the top element from the stack.
+Remove and return the top element.
+@inout self Target Stack.
+@inout value Output: the popped element.
+@return true on success, false when the stack is empty.
+@error ENO is set to false when the stack is empty. }*)
+function Stack_pop: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: StackCoreType;
+	end
+	var_in_out
+		value: StackElementType;
+	end
+	{st}
+	if self.top <= 0 then
+		eno := false;
+		return;
+	end_if;
+	self.top := self.top - 1;
+	value := self.data[self.top];
+	Stack_pop := true;
+	{end}
+end
+
+(*{doc Peek at the top element without removing it.
+Read the top element without modifying the stack.
+@inout self Target Stack.
+@inout value Output: the top element.
+@return true on success, false when the stack is empty.
+@error ENO is set to false when the stack is empty. }*)
+function Stack_peek: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: StackCoreType;
+	end
+	var_in_out
+		value: StackElementType;
+	end
+	{st}
+	if self.top <= 0 then
+		eno := false;
+		return;
+	end_if;
+	value := self.data[self.top - 1];
+	Stack_peek := true;
+	{end}
+end
+
+(*{doc Return the number of elements currently on the stack.
+@inout self Target Stack.
+@return Element count. }*)
+function Stack_len: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: StackCoreType;
+	end
+	{st}
+	Stack_len := self.top;
+	{end}
+end
+
+(*{doc Return true when the stack is empty.
+@inout self Target Stack.
+@return true if top is 0, otherwise false. }*)
+function Stack_empty: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: StackCoreType;
+	end
+	{st}
+	Stack_empty := self.top = 0;
+	{end}
+end
+
+(*{doc Clear all elements.
+Reset top pointer to zero.
+@inout self Target Stack.
+@return true on success. }*)
+function Stack_clear: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: StackCoreType;
+	end
+	{st}
+	self.top := 0;
+	Stack_clear := true;
+	{end}
+end
+
+(*{doc Compare two stacks for equality.
+Require same depth and equal elements in bottom-to-top order.
+@inout self First Stack.
+@inout other Second Stack.
+@return true when both stacks have equal elements in equal order. }*)
+function Stack_equals: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: StackCoreType;
+		other: StackCoreType;
+	end
+	var_temp
+		idx: dint;
+	end
+	{st}
+	if self.top <> other.top then
+		Stack_equals := false;
+		return;
+	end_if;
+
+	for idx := 0 to self.top - 1 by 1 do
+		if not _STACK_ELEM_EQUALS_(self.data[idx], other.data[idx]) then
+			Stack_equals := false;
+			return;
+		end_if;
+	end_for;
+
+	Stack_equals := true;
+	{end}
+end
+
+{#ifdef StackElementHashFunction}
+(*{doc Compute a hash value from all elements in bottom-to-top order.
+Accumulate element hashes with sequence sensitivity.
+@inout self Target Stack.
+@return Hash value. }*)
+function Stack_hash: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: StackCoreType;
+	end
+	var_temp
+		acc: udint;
+		idx: dint;
+		elem_hash: udint;
+	end
+	{st}
+	acc := udint#2166136261;
+	for idx := 0 to self.top - 1 by 1 do
+		elem_hash := StackElementHashFunction(self.data[idx]);
+		acc := dword_to_udint(udint_to_dword(acc) xor udint_to_dword(elem_hash * udint#16777619)) * udint#16777619 + dint_to_udint(idx + 1);
+	end_for;
+	Stack_hash := acc + dint_to_udint(self.top);
+	{end}
+end
+{#endif}
+
+{#undef StackCoreType}
+{#undef Stack_init}
+{#undef Stack_copy}
+{#undef Stack_push}
+{#undef Stack_pop}
+{#undef Stack_peek}
+{#undef Stack_len}
+{#undef Stack_empty}
+{#undef Stack_clear}
+{#undef Stack_equals}
+{#undef Stack_hash}
+
+{#undef STACK_CORE_TYPE}
+{#undef STACK_INIT}
+{#undef STACK_COPY}
+{#undef STACK_PUSH}
+{#undef STACK_POP}
+{#undef STACK_PEEK}
+{#undef STACK_LEN}
+{#undef STACK_EMPTY}
+{#undef STACK_CLEAR}
+{#undef STACK_EQUALS}
+{#undef STACK_HASH}
+
+{#undef _STACK_CORE_TYPE_}
+{#undef _STACK_INIT_}
+{#undef _STACK_COPY_}
+{#undef _STACK_PUSH_}
+{#undef _STACK_POP_}
+{#undef _STACK_PEEK_}
+{#undef _STACK_LEN_}
+{#undef _STACK_EMPTY_}
+{#undef _STACK_CLEAR_}
+{#undef _STACK_EQUALS_}
+{#undef _STACK_HASH_}
+
+{#undef _STACK_ELEM_EQUALS_}

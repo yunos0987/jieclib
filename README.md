@@ -123,7 +123,7 @@ IEC 61131-10 XML生成コマンド: `jiecc ./src/array/array.txt -I./src -o ./sr
 
 ### [container](./src/container)
 
-コンテナ系ライブラリ（`arraylist` / `linkedlist` / `dequeue` / `hashmap` / `orderedmap` / `linkedhashmap` / `hashset` / `ringbuffer`）です。
+コンテナ系ライブラリ（`arraylist` / `linkedlist` / `dequeue` / `hashmap` / `orderedmap` / `linkedhashmap` / `hashset` / `orderedset` / `linkedhashset` / `stack` / `ringbuffer`）です。
 
 #### arraylist（[arraylist_template](./src/container/arraylist/arraylist_template.txt)）
 
@@ -324,6 +324,85 @@ HashMapベースの集合（HashSet）テンプレートです。
 ```
 
 テスト用XML生成コマンド: `jiecc ./test/container/hashset/test_hashset.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/container/hashset/test_hashset.xml -t omron`
+
+#### orderedset（[orderedset_template](./src/container/orderedset/orderedset_template.txt)）
+
+OrderedMapベースの挿入順序維持集合（OrderedSet）テンプレートです。
+
+`#include` 時に要素型・等価判定関数（任意）・ハッシュ関数・容量を指定してインスタンス生成します。
+
+| 関数 | 説明 |
+|------|------|
+| `init` | 初期化 |
+| `copy` | コピー |
+| `add` | 要素追加 |
+| `add_all` | 複数要素追加 |
+| `remove` | 要素削除 |
+| `remove_all` | 複数要素削除 |
+| `contains` | 要素存在判定 |
+| `len` | 要素数取得 |
+| `elements` | 全要素取得（挿入順） |
+| `equals` | 等価判定（挿入順考慮） |
+| `hash` | ハッシュ値計算（挿入順考慮） |
+| `empty` | 空判定 |
+| `clear` | 全要素削除 |
+
+テスト用XML生成コマンド: `jiecc ./test/container/orderedset/test_orderedset.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/container/orderedset/test_orderedset.xml -t omron`
+
+#### linkedhashset（[linkedhashset_template](./src/container/linkedhashset/linkedhashset_template.txt)）
+
+LinkedHashMapベースの挿入順序維持集合（LinkedHashSet）テンプレートです。オプションで `LinkedHashSetAccessOrder true` を指定するとアクセス順（LRU）モードになります。
+
+`#include` 時に要素型・等価判定関数（任意）・ハッシュ関数・容量・アクセス順モード（任意）を指定してインスタンス生成します。
+
+| 関数 | 説明 |
+|------|------|
+| `init` | 初期化 |
+| `copy` | コピー |
+| `add` | 要素追加（アクセス順モード時は既存要素を末尾へ移動） |
+| `add_all` | 複数要素追加 |
+| `remove` | 要素削除 |
+| `remove_all` | 複数要素削除 |
+| `contains` | 要素存在判定 |
+| `len` | 要素数取得 |
+| `elements` | 全要素取得（挿入順/アクセス順） |
+| `equals` | 等価判定（順序考慮） |
+| `hash` | ハッシュ値計算（順序考慮） |
+| `empty` | 空判定 |
+| `clear` | 全要素削除 |
+
+テスト用XML生成コマンド: `jiecc ./test/container/linkedhashset/test_linkedhashset.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/container/linkedhashset/test_linkedhashset.xml -t omron`
+
+#### stack（[stack_template](./src/container/stack/stack_template.txt)）
+
+固定長配列ベースのLIFOスタック（Stack）テンプレートです。
+
+`#include` 時に要素型・最大容量・等価判定関数（任意）・ハッシュ関数（任意）を指定してインスタンス生成します。
+
+| 関数 | 説明 |
+|------|------|
+| `init` | 初期化 |
+| `copy` | コピー |
+| `push` | 要素をスタックトップへ追加 |
+| `pop` | スタックトップの要素を取り出して削除 |
+| `peek` | スタックトップの要素を参照（削除しない） |
+| `len` | 要素数取得 |
+| `empty` | 空判定 |
+| `clear` | 全要素削除 |
+| `equals` | 等価判定（底から頂の順） |
+| `hash` | ハッシュ値計算（`StackElementHashFunction` 指定時） |
+
+生成例（dint要素）:
+```
+{#define StackName dint}
+{#define StackCapacity 64}
+{#define StackElementType dint}
+{#define StackElementEqualsFunction Dint_equals}
+{#define StackElementHashFunction Dint_hash}
+{#include <container/stack/stack_template.txt>}
+```
+
+テスト用XML生成コマンド: `jiecc ./test/container/stack/test_stack.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/container/stack/test_stack.xml -t omron`
 
 #### ringbuffer（[ringbuffer_template](./src/container/ringbuffer/ringbuffer_template.txt)）
 

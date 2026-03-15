@@ -1,0 +1,40 @@
+{#ifndef __TEST_CONTAINER_LINKEDHASHSET_DINT_COLLISION_TXT__}
+{#define __TEST_CONTAINER_LINKEDHASHSET_DINT_COLLISION_TXT__}
+
+{#include <sys.txt>}
+{#include <sys_conv.txt>}
+
+function Dint_collision_equals_for_linkedhashset_test: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		lhs: dint;
+		rhs: dint;
+	end
+	{st}
+	Dint_collision_equals_for_linkedhashset_test := lhs = rhs;
+	{end}
+end
+
+function Dint_collision_hash_for_linkedhashset_test: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: dint;
+	end
+	{st}
+	Dint_collision_hash_for_linkedhashset_test := udint#1;
+	{end}
+end
+
+{#define LinkedHashSetName dint_collision}
+{#define LinkedHashSetCapacity 8}
+{#define LinkedHashSetElementType dint}
+{#define LinkedHashSetElementEqualsFunction Dint_collision_equals_for_linkedhashset_test}
+{#define LinkedHashSetElementHashFunction Dint_collision_hash_for_linkedhashset_test}
+{#include <container/linkedhashset/linkedhashset_template.txt>}
+{#undef LinkedHashSetName}
+{#undef LinkedHashSetCapacity}
+{#undef LinkedHashSetElementType}
+{#undef LinkedHashSetElementEqualsFunction}
+{#undef LinkedHashSetElementHashFunction}
+
+{#endif}

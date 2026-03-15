@@ -1,0 +1,819 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/container/linkedhashset/test_linkedhashset.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/container/linkedhashset/test_linkedhashset.xml -t omron
+ * or
+ * $ jiecc ./test/container/linkedhashset/test_linkedhashset.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/container/linkedhashset/test_linkedhashset.xml -t keyence
+ *)
+{#include <jiecunit.txt>}
+{#if _JIECUNIT_VER < 302}
+	{#error "JiecUnit version 3.2 or higher is required to compile this test."}
+{#endif}
+
+{#include "linkedhashset_dint.txt"}
+{#include "linkedhashset_dint_collision.txt"}
+{#include "linkedhashset_string.txt"}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_linkedhashset_dint_init',
+		'test_linkedhashset_dint_add',
+		'test_linkedhashset_dint_add_all',
+		'test_linkedhashset_dint_remove',
+		'test_linkedhashset_dint_remove_all',
+		'test_linkedhashset_dint_contains',
+		'test_linkedhashset_dint_len',
+		'test_linkedhashset_dint_elements',
+		'test_linkedhashset_dint_copy',
+		'test_linkedhashset_dint_equals',
+		'test_linkedhashset_dint_hash',
+		'test_linkedhashset_dint_empty',
+		'test_linkedhashset_dint_clear',
+		'test_linkedhashset_dint_collision_usecase',
+		'test_linkedhashset_dint_access_order_usecase',
+		'test_linkedhashset_string_usecase'
+	)
+)
+
+{#endif}
+
+TEST_S(test_linkedhashset_dint_init)
+	var
+		os1: LinkedHashSet_dint_t;
+		os2: LinkedHashSet_dint_t;
+		os3: LinkedHashSet_dint_t;
+		added: bool;
+		elements: array[0..7] of dint;
+		written: dint;
+	end
+	{st}
+
+	// Fact: init sets count to 0 and contains returns false.
+		// Arrange
+	LinkedHashSet_dint_init(os1);
+		// Assert
+	EXPECT_EQ_INT32(0, LinkedHashSet_dint_len(os1));
+	EXPECT_FALSE(LinkedHashSet_dint_contains(os1, 10));
+
+	// Fact: init sets head_idx and tail_idx to -1.
+		// Arrange
+	LinkedHashSet_dint_init(os2);
+		// Assert
+	EXPECT_EQ_INT32(-1, os2.backing.head_idx);
+	EXPECT_EQ_INT32(-1, os2.backing.tail_idx);
+
+	// Fact: re-init clears existing elements.
+		// Arrange
+	LinkedHashSet_dint_init(os3);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os3, 10, added));
+		// Act
+	LinkedHashSet_dint_init(os3);
+		// Assert
+	EXPECT_TRUE(LinkedHashSet_dint_empty(os3));
+	ASSERT_TRUE(LinkedHashSet_dint_elements(os3, elements, written));
+	EXPECT_EQ_INT32(0, written);
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashset_dint_add)
+	var
+		os1: LinkedHashSet_dint_t;
+		os2: LinkedHashSet_dint_t;
+		os3: LinkedHashSet_dint_t;
+		os4: LinkedHashSet_dint_t;
+		added: bool;
+		idx: dint;
+	end
+	{st}
+
+	// Fact: add returns added=true for new element and increments len.
+		// Arrange
+	LinkedHashSet_dint_init(os1);
+		// Act
+	ASSERT_TRUE(LinkedHashSet_dint_add(os1, 10, added));
+		// Assert
+	EXPECT_TRUE(added);
+	EXPECT_EQ_INT32(1, LinkedHashSet_dint_len(os1));
+
+	// Fact: add returns added=false for duplicate and len is unchanged.
+		// Arrange
+	LinkedHashSet_dint_init(os2);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os2, 10, added));
+		// Act
+	ASSERT_TRUE(LinkedHashSet_dint_add(os2, 10, added));
+		// Assert
+	EXPECT_FALSE(added);
+	EXPECT_EQ_INT32(1, LinkedHashSet_dint_len(os2));
+
+	// Fact: add handles negative values.
+		// Arrange
+	LinkedHashSet_dint_init(os3);
+		// Act
+	ASSERT_TRUE(LinkedHashSet_dint_add(os3, -3, added));
+	EXPECT_TRUE(added);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os3, 0, added));
+	EXPECT_TRUE(added);
+		// Assert
+	EXPECT_EQ_INT32(2, LinkedHashSet_dint_len(os3));
+
+	// Fact: add fails when capacity exceeded.
+		// Arrange
+	LinkedHashSet_dint_init(os4);
+	for idx := 1 to 6 by 1 do
+		ASSERT_TRUE(LinkedHashSet_dint_add(os4, 100 + idx, added));
+		EXPECT_TRUE(added);
+	end_for;
+		// Assert
+	EXPECT_FALSE(LinkedHashSet_dint_add(os4, 999, added));
+	EXPECT_EQ_INT32(6, LinkedHashSet_dint_len(os4));
+	EXPECT_FALSE(LinkedHashSet_dint_contains(os4, 999));
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashset_dint_add_all)
+	var
+		os1: LinkedHashSet_dint_t;
+		os2: LinkedHashSet_dint_t;
+		input1: array[0..4] of dint;
+		input2: array[0..6] of dint;
+		added_count: dint;
+	end
+	{st}
+
+	// Fact: add_all inserts unique elements and deduplicates.
+		// Arrange
+	input1[0] := 10;
+	input1[1] := 20;
+	input1[2] := 10;
+	input1[3] := 30;
+	input1[4] := 20;
+	LinkedHashSet_dint_init(os1);
+		// Act
+	ASSERT_TRUE(LinkedHashSet_dint_add_all(os1, input1, added_count));
+		// Assert
+	EXPECT_EQ_INT32(3, added_count);
+	EXPECT_EQ_INT32(3, LinkedHashSet_dint_len(os1));
+	EXPECT_TRUE(LinkedHashSet_dint_contains(os1, 10));
+	EXPECT_TRUE(LinkedHashSet_dint_contains(os1, 20));
+	EXPECT_TRUE(LinkedHashSet_dint_contains(os1, 30));
+	EXPECT_FALSE(LinkedHashSet_dint_contains(os1, 99));
+
+	// Fact: add_all fails when capacity exceeded.
+		// Arrange
+	input2[0] := 1;
+	input2[1] := 2;
+	input2[2] := 3;
+	input2[3] := 4;
+	input2[4] := 5;
+	input2[5] := 6;
+	input2[6] := 7;
+	LinkedHashSet_dint_init(os2);
+		// Assert
+	EXPECT_FALSE(LinkedHashSet_dint_add_all(os2, input2, added_count));
+	EXPECT_EQ_INT32(6, LinkedHashSet_dint_len(os2));
+	EXPECT_FALSE(LinkedHashSet_dint_contains(os2, 7));
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashset_dint_remove)
+	var
+		os1: LinkedHashSet_dint_t;
+		os2: LinkedHashSet_dint_t;
+		added: bool;
+	end
+	{st}
+
+	// Fact: remove deletes existing element.
+		// Arrange
+	LinkedHashSet_dint_init(os1);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os1, 10, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os1, 20, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os1, 30, added));
+		// Act
+	ASSERT_TRUE(LinkedHashSet_dint_remove(os1, 20));
+		// Assert
+	EXPECT_FALSE(LinkedHashSet_dint_contains(os1, 20));
+	EXPECT_EQ_INT32(2, LinkedHashSet_dint_len(os1));
+	EXPECT_TRUE(LinkedHashSet_dint_contains(os1, 10));
+	EXPECT_TRUE(LinkedHashSet_dint_contains(os1, 30));
+
+	// Fact: remove returns false for non-member.
+		// Arrange
+	LinkedHashSet_dint_init(os2);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os2, 10, added));
+		// Assert
+	EXPECT_FALSE(LinkedHashSet_dint_remove(os2, 999));
+	EXPECT_EQ_INT32(1, LinkedHashSet_dint_len(os2));
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashset_dint_remove_all)
+	var
+		os1: LinkedHashSet_dint_t;
+		os2: LinkedHashSet_dint_t;
+		input1: array[0..4] of dint;
+		input2: array[0..2] of dint;
+		removed_count: dint;
+		added: bool;
+	end
+	{st}
+
+	// Fact: remove_all removes matching elements and returns correct count.
+		// Arrange
+	input1[0] := 20;
+	input1[1] := 99;
+	input1[2] := 30;
+	input1[3] := 20;
+	input1[4] := -1;
+	LinkedHashSet_dint_init(os1);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os1, 10, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os1, 20, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os1, 30, added));
+		// Act
+	ASSERT_TRUE(LinkedHashSet_dint_remove_all(os1, input1, removed_count));
+		// Assert
+	EXPECT_EQ_INT32(2, removed_count);
+	EXPECT_EQ_INT32(1, LinkedHashSet_dint_len(os1));
+	EXPECT_TRUE(LinkedHashSet_dint_contains(os1, 10));
+	EXPECT_FALSE(LinkedHashSet_dint_contains(os1, 20));
+	EXPECT_FALSE(LinkedHashSet_dint_contains(os1, 30));
+
+	// Fact: remove_all returns 0 when no matches found.
+		// Arrange
+	input2[0] := 99;
+	input2[1] := 98;
+	input2[2] := 97;
+	LinkedHashSet_dint_init(os2);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os2, 1, added));
+		// Act
+	ASSERT_TRUE(LinkedHashSet_dint_remove_all(os2, input2, removed_count));
+		// Assert
+	EXPECT_EQ_INT32(0, removed_count);
+	EXPECT_EQ_INT32(1, LinkedHashSet_dint_len(os2));
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashset_dint_contains)
+	var
+		os1: LinkedHashSet_dint_t;
+		os2: LinkedHashSet_dint_t;
+		os3: LinkedHashSet_dint_t;
+		added: bool;
+	end
+	{st}
+
+	// Fact: contains returns false on empty set.
+		// Arrange
+	LinkedHashSet_dint_init(os1);
+		// Assert
+	EXPECT_FALSE(LinkedHashSet_dint_contains(os1, 1));
+	EXPECT_FALSE(LinkedHashSet_dint_contains(os1, -1));
+
+	// Fact: contains returns true for added element.
+		// Arrange
+	LinkedHashSet_dint_init(os2);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os2, 1, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os2, 2, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os2, -1, added));
+		// Assert
+	EXPECT_TRUE(LinkedHashSet_dint_contains(os2, 1));
+	EXPECT_TRUE(LinkedHashSet_dint_contains(os2, 2));
+	EXPECT_TRUE(LinkedHashSet_dint_contains(os2, -1));
+
+	// Fact: contains returns false for non-member.
+		// Arrange
+	LinkedHashSet_dint_init(os3);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os3, 1, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os3, 2, added));
+		// Assert
+	EXPECT_FALSE(LinkedHashSet_dint_contains(os3, 999));
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashset_dint_len)
+	var
+		os1: LinkedHashSet_dint_t;
+		os2: LinkedHashSet_dint_t;
+		os3: LinkedHashSet_dint_t;
+		os4: LinkedHashSet_dint_t;
+		os5: LinkedHashSet_dint_t;
+		added: bool;
+	end
+	{st}
+
+	// Fact: len is 0 after init.
+		// Arrange
+	LinkedHashSet_dint_init(os1);
+		// Assert
+	EXPECT_EQ_INT32(0, LinkedHashSet_dint_len(os1));
+
+	// Fact: len increments after each unique add.
+		// Arrange
+	LinkedHashSet_dint_init(os2);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os2, 1, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os2, 2, added));
+		// Assert
+	EXPECT_EQ_INT32(2, LinkedHashSet_dint_len(os2));
+
+	// Fact: len stays unchanged on duplicate add.
+		// Arrange
+	LinkedHashSet_dint_init(os3);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os3, 1, added));
+		// Act
+	ASSERT_TRUE(LinkedHashSet_dint_add(os3, 1, added));
+		// Assert
+	EXPECT_EQ_INT32(1, LinkedHashSet_dint_len(os3));
+
+	// Fact: len decrements after remove.
+		// Arrange
+	LinkedHashSet_dint_init(os4);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os4, 1, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os4, 2, added));
+		// Act
+	ASSERT_TRUE(LinkedHashSet_dint_remove(os4, 1));
+		// Assert
+	EXPECT_EQ_INT32(1, LinkedHashSet_dint_len(os4));
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashset_dint_elements)
+	var
+		os1: LinkedHashSet_dint_t;
+		os2: LinkedHashSet_dint_t;
+		os3: LinkedHashSet_dint_t;
+		elements: array[0..7] of dint;
+		written: dint;
+		added: bool;
+	end
+	{st}
+
+	// Fact: elements returns empty array for empty set.
+		// Arrange
+	LinkedHashSet_dint_init(os1);
+		// Act
+	ASSERT_TRUE(LinkedHashSet_dint_elements(os1, elements, written));
+		// Assert
+	EXPECT_EQ_INT32(0, written);
+
+	// Fact: elements returns elements in insertion order.
+		// Arrange
+	LinkedHashSet_dint_init(os2);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os2, 30, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os2, 10, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os2, 20, added));
+		// Act
+	ASSERT_TRUE(LinkedHashSet_dint_elements(os2, elements, written));
+		// Assert
+	EXPECT_EQ_INT32(3, written);
+	EXPECT_EQ_INT32(30, elements[0]);
+	EXPECT_EQ_INT32(10, elements[1]);
+	EXPECT_EQ_INT32(20, elements[2]);
+
+	// Fact: order after remove-then-add reflects removal gap and new tail.
+		// Arrange
+	LinkedHashSet_dint_init(os3);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os3, 1, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os3, 2, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os3, 3, added));
+	ASSERT_TRUE(LinkedHashSet_dint_remove(os3, 2));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os3, 4, added));
+		// Act
+	ASSERT_TRUE(LinkedHashSet_dint_elements(os3, elements, written));
+		// Assert
+	EXPECT_EQ_INT32(3, written);
+	EXPECT_EQ_INT32(1, elements[0]);
+	EXPECT_EQ_INT32(3, elements[1]);
+	EXPECT_EQ_INT32(4, elements[2]);
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashset_dint_copy)
+	var
+		os_src: LinkedHashSet_dint_t;
+		os_dst: LinkedHashSet_dint_t;
+		os_src2: LinkedHashSet_dint_t;
+		os_dst2: LinkedHashSet_dint_t;
+		os_src_empty: LinkedHashSet_dint_t;
+		os_dst_empty: LinkedHashSet_dint_t;
+		elements: array[0..7] of dint;
+		written: dint;
+		added: bool;
+	end
+	{st}
+
+	// Fact: copy duplicates all elements in insertion order.
+		// Arrange
+	LinkedHashSet_dint_init(os_src);
+	LinkedHashSet_dint_init(os_dst);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os_src, 30, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os_src, 10, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os_src, 20, added));
+		// Act
+	ASSERT_TRUE(LinkedHashSet_dint_copy(os_src, os_dst));
+		// Assert
+	EXPECT_EQ_INT32(3, LinkedHashSet_dint_len(os_dst));
+	ASSERT_TRUE(LinkedHashSet_dint_elements(os_dst, elements, written));
+	EXPECT_EQ_INT32(3, written);
+	EXPECT_EQ_INT32(30, elements[0]);
+	EXPECT_EQ_INT32(10, elements[1]);
+	EXPECT_EQ_INT32(20, elements[2]);
+
+	// Fact: copy creates independent instance.
+		// Arrange
+	LinkedHashSet_dint_init(os_src2);
+	LinkedHashSet_dint_init(os_dst2);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os_src2, 10, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os_src2, 20, added));
+	ASSERT_TRUE(LinkedHashSet_dint_copy(os_src2, os_dst2));
+		// Act
+	ASSERT_TRUE(LinkedHashSet_dint_add(os_src2, 99, added));
+		// Assert
+	EXPECT_TRUE(LinkedHashSet_dint_contains(os_src2, 99));
+	EXPECT_FALSE(LinkedHashSet_dint_contains(os_dst2, 99));
+
+	// Fact: copy from empty set clears destination.
+		// Arrange
+	LinkedHashSet_dint_init(os_src_empty);
+	LinkedHashSet_dint_init(os_dst_empty);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os_dst_empty, 1, added));
+		// Act
+	ASSERT_TRUE(LinkedHashSet_dint_copy(os_src_empty, os_dst_empty));
+		// Assert
+	EXPECT_TRUE(LinkedHashSet_dint_empty(os_dst_empty));
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashset_dint_equals)
+	var
+		os1: LinkedHashSet_dint_t;
+		os2: LinkedHashSet_dint_t;
+		os3: LinkedHashSet_dint_t;
+		os4: LinkedHashSet_dint_t;
+		os5: LinkedHashSet_dint_t;
+		os_empty1: LinkedHashSet_dint_t;
+		os_empty2: LinkedHashSet_dint_t;
+		added: bool;
+	end
+	{st}
+
+	// Fact: equals returns true for same elements in same insertion order.
+		// Arrange
+	LinkedHashSet_dint_init(os1);
+	LinkedHashSet_dint_init(os2);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os1, 10, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os1, 20, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os1, 30, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os2, 10, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os2, 20, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os2, 30, added));
+		// Assert
+	EXPECT_TRUE(LinkedHashSet_dint_equals(os1, os2));
+
+	// Fact: equals returns false for same elements in different order.
+		// Arrange
+	LinkedHashSet_dint_init(os3);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os3, 30, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os3, 10, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os3, 20, added));
+		// Assert
+	EXPECT_FALSE(LinkedHashSet_dint_equals(os1, os3));
+
+	// Fact: equals returns false for different element count.
+		// Arrange
+	LinkedHashSet_dint_init(os4);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os4, 10, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os4, 20, added));
+		// Assert
+	EXPECT_FALSE(LinkedHashSet_dint_equals(os1, os4));
+
+	// Fact: equals returns false for different elements.
+		// Arrange
+	LinkedHashSet_dint_init(os5);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os5, 10, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os5, 20, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os5, 99, added));
+		// Assert
+	EXPECT_FALSE(LinkedHashSet_dint_equals(os1, os5));
+
+	// Fact: two empty sets are equal.
+		// Arrange
+	LinkedHashSet_dint_init(os_empty1);
+	LinkedHashSet_dint_init(os_empty2);
+		// Assert
+	EXPECT_TRUE(LinkedHashSet_dint_equals(os_empty1, os_empty2));
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashset_dint_hash)
+	var
+		os1: LinkedHashSet_dint_t;
+		os2: LinkedHashSet_dint_t;
+		os3: LinkedHashSet_dint_t;
+		os4: LinkedHashSet_dint_t;
+		os5: LinkedHashSet_dint_t;
+		os6: LinkedHashSet_dint_t;
+		os_empty1: LinkedHashSet_dint_t;
+		os_empty2: LinkedHashSet_dint_t;
+		added: bool;
+		hash_a: udint;
+		hash_b: udint;
+	end
+	{st}
+
+	// Fact: hash values match for sets with same elements in same order.
+		// Arrange
+	LinkedHashSet_dint_init(os1);
+	LinkedHashSet_dint_init(os2);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os1, 10, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os1, 20, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os1, 30, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os2, 10, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os2, 20, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os2, 30, added));
+		// Act
+	hash_a := LinkedHashSet_dint_hash(os1);
+	hash_b := LinkedHashSet_dint_hash(os2);
+		// Assert
+	EXPECT_EQ_UDINT(hash_a, hash_b);
+
+	// Fact: hash differs for same elements in different order.
+		// Arrange
+	LinkedHashSet_dint_init(os3);
+	LinkedHashSet_dint_init(os4);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os3, 10, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os3, 20, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os3, 30, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os4, 30, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os4, 10, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os4, 20, added));
+		// Act
+	hash_a := LinkedHashSet_dint_hash(os3);
+	hash_b := LinkedHashSet_dint_hash(os4);
+		// Assert
+	EXPECT_NE_UDINT(hash_a, hash_b);
+
+	// Fact: hash differs for sets with different element count.
+		// Arrange
+	LinkedHashSet_dint_init(os5);
+	LinkedHashSet_dint_init(os6);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os5, 10, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os5, 20, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os5, 30, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os6, 10, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os6, 20, added));
+		// Act
+	hash_a := LinkedHashSet_dint_hash(os5);
+	hash_b := LinkedHashSet_dint_hash(os6);
+		// Assert
+	EXPECT_NE_UDINT(hash_a, hash_b);
+
+	// Fact: empty sets produce identical hash.
+		// Arrange
+	LinkedHashSet_dint_init(os_empty1);
+	LinkedHashSet_dint_init(os_empty2);
+		// Act
+	hash_a := LinkedHashSet_dint_hash(os_empty1);
+	hash_b := LinkedHashSet_dint_hash(os_empty2);
+		// Assert
+	EXPECT_EQ_UDINT(hash_a, hash_b);
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashset_dint_empty)
+	var
+		os1: LinkedHashSet_dint_t;
+		os2: LinkedHashSet_dint_t;
+		os3: LinkedHashSet_dint_t;
+		added: bool;
+	end
+	{st}
+
+	// Fact: empty is true immediately after init.
+		// Arrange
+	LinkedHashSet_dint_init(os1);
+		// Assert
+	EXPECT_TRUE(LinkedHashSet_dint_empty(os1));
+
+	// Fact: empty is false after add.
+		// Arrange
+	LinkedHashSet_dint_init(os2);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os2, 1, added));
+		// Assert
+	EXPECT_FALSE(LinkedHashSet_dint_empty(os2));
+
+	// Fact: empty is true after removing all elements.
+		// Arrange
+	LinkedHashSet_dint_init(os3);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os3, 1, added));
+	ASSERT_TRUE(LinkedHashSet_dint_remove(os3, 1));
+		// Assert
+	EXPECT_TRUE(LinkedHashSet_dint_empty(os3));
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashset_dint_clear)
+	var
+		os: LinkedHashSet_dint_t;
+		os_idempotent: LinkedHashSet_dint_t;
+		os_reuse: LinkedHashSet_dint_t;
+		elements: array[0..7] of dint;
+		written: dint;
+		added: bool;
+	end
+	{st}
+
+	// Fact: clear removes all elements.
+		// Arrange
+	LinkedHashSet_dint_init(os);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os, 1, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os, 2, added));
+	ASSERT_TRUE(LinkedHashSet_dint_add(os, 3, added));
+		// Act
+	ASSERT_TRUE(LinkedHashSet_dint_clear(os));
+		// Assert
+	EXPECT_EQ_INT32(0, LinkedHashSet_dint_len(os));
+	EXPECT_FALSE(LinkedHashSet_dint_contains(os, 1));
+	ASSERT_TRUE(LinkedHashSet_dint_elements(os, elements, written));
+	EXPECT_EQ_INT32(0, written);
+
+	// Fact: clear is idempotent.
+		// Arrange
+	LinkedHashSet_dint_init(os_idempotent);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os_idempotent, 1, added));
+	ASSERT_TRUE(LinkedHashSet_dint_clear(os_idempotent));
+		// Act
+	ASSERT_TRUE(LinkedHashSet_dint_clear(os_idempotent));
+		// Assert
+	EXPECT_TRUE(LinkedHashSet_dint_empty(os_idempotent));
+
+	// Fact: set is reusable after clear.
+		// Arrange
+	LinkedHashSet_dint_init(os_reuse);
+	ASSERT_TRUE(LinkedHashSet_dint_add(os_reuse, 1, added));
+	ASSERT_TRUE(LinkedHashSet_dint_clear(os_reuse));
+		// Act
+	ASSERT_TRUE(LinkedHashSet_dint_add(os_reuse, 9, added));
+		// Assert
+	EXPECT_TRUE(LinkedHashSet_dint_contains(os_reuse, 9));
+	EXPECT_FALSE(LinkedHashSet_dint_contains(os_reuse, 1));
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashset_dint_collision_usecase)
+	var
+		os1: LinkedHashSet_dint_collision_t;
+		os2: LinkedHashSet_dint_collision_t;
+		os_elements: LinkedHashSet_dint_collision_t;
+		elements: array[0..7] of dint;
+		written: dint;
+		added: bool;
+		idx: dint;
+	end
+	{st}
+
+	// Fact: collision usecase validates add/contains/elements/remove flows.
+		// Arrange
+	LinkedHashSet_dint_collision_init(os1);
+	for idx := 1 to 6 by 1 do
+		ASSERT_TRUE(LinkedHashSet_dint_collision_add(os1, 100 + idx, added));
+		EXPECT_TRUE(added);
+	end_for;
+		// Assert
+	EXPECT_EQ_INT32(6, LinkedHashSet_dint_collision_len(os1));
+	for idx := 1 to 6 by 1 do
+		EXPECT_TRUE(LinkedHashSet_dint_collision_contains(os1, 100 + idx));
+	end_for;
+
+	// Fact: insertion order is preserved under collision.
+		// Arrange
+	LinkedHashSet_dint_collision_init(os_elements);
+	for idx := 1 to 6 by 1 do
+		ASSERT_TRUE(LinkedHashSet_dint_collision_add(os_elements, 100 + idx, added));
+	end_for;
+		// Act
+	ASSERT_TRUE(LinkedHashSet_dint_collision_elements(os_elements, elements, written));
+		// Assert
+	EXPECT_EQ_INT32(6, written);
+	for idx := 0 to written - 1 by 1 do
+		EXPECT_EQ_INT32(101 + idx, elements[idx]);
+	end_for;
+
+	// Fact: duplicate add is ignored under collision.
+		// Arrange
+	LinkedHashSet_dint_collision_init(os2);
+	ASSERT_TRUE(LinkedHashSet_dint_collision_add(os2, 7, added));
+		// Act
+	ASSERT_TRUE(LinkedHashSet_dint_collision_add(os2, 7, added));
+		// Assert
+	EXPECT_FALSE(added);
+	EXPECT_EQ_INT32(1, LinkedHashSet_dint_collision_len(os2));
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashset_dint_access_order_usecase)
+	var
+		os1: LinkedHashSet_dint_access_t;
+		os2: LinkedHashSet_dint_access_t;
+		elements: array[0..7] of dint;
+		written: dint;
+		added: bool;
+	end
+	{st}
+
+	// Fact: in access-order mode, re-adding an existing element moves it to the tail.
+		// Arrange
+	LinkedHashSet_dint_access_init(os1);
+	ASSERT_TRUE(LinkedHashSet_dint_access_add(os1, 10, added));
+	ASSERT_TRUE(LinkedHashSet_dint_access_add(os1, 20, added));
+	ASSERT_TRUE(LinkedHashSet_dint_access_add(os1, 30, added));
+		// Act
+	ASSERT_TRUE(LinkedHashSet_dint_access_add(os1, 10, added));
+		// Assert
+	EXPECT_FALSE(added);
+	ASSERT_TRUE(LinkedHashSet_dint_access_elements(os1, elements, written));
+	EXPECT_EQ_INT32(3, written);
+	EXPECT_EQ_INT32(20, elements[0]);
+	EXPECT_EQ_INT32(30, elements[1]);
+	EXPECT_EQ_INT32(10, elements[2]);
+
+	// Fact: in access-order mode, tail element re-add does not change order.
+		// Arrange
+	LinkedHashSet_dint_access_init(os2);
+	ASSERT_TRUE(LinkedHashSet_dint_access_add(os2, 1, added));
+	ASSERT_TRUE(LinkedHashSet_dint_access_add(os2, 2, added));
+		// Act
+	ASSERT_TRUE(LinkedHashSet_dint_access_add(os2, 2, added));
+		// Assert
+	EXPECT_FALSE(added);
+	ASSERT_TRUE(LinkedHashSet_dint_access_elements(os2, elements, written));
+	EXPECT_EQ_INT32(2, written);
+	EXPECT_EQ_INT32(1, elements[0]);
+	EXPECT_EQ_INT32(2, elements[1]);
+	{end}
+END_TEST_S
+
+TEST_S(test_linkedhashset_string_usecase)
+	var
+		os_add: LinkedHashSet_string16_t;
+		os_order: LinkedHashSet_string16_t;
+		os_order2: LinkedHashSet_string16_t;
+		os_eq: LinkedHashSet_string16_t;
+		elements: array[0..7] of string[16 + 1];
+		written: dint;
+		added: bool;
+	end
+	{st}
+
+	// Fact: string set validates add, duplicate handling, and remove.
+		// Arrange
+	LinkedHashSet_string16_init(os_add);
+		// Act
+	ASSERT_TRUE(LinkedHashSet_string16_add(os_add, 'alpha', added));
+		// Assert
+	EXPECT_TRUE(added);
+	EXPECT_TRUE(LinkedHashSet_string16_contains(os_add, 'alpha'));
+		// Act
+	ASSERT_TRUE(LinkedHashSet_string16_add(os_add, 'alpha', added));
+		// Assert
+	EXPECT_FALSE(added);
+	EXPECT_EQ_INT32(1, LinkedHashSet_string16_len(os_add));
+		// Act
+	ASSERT_TRUE(LinkedHashSet_string16_add(os_add, 'beta', added));
+	ASSERT_TRUE(LinkedHashSet_string16_remove(os_add, 'alpha'));
+		// Assert
+	EXPECT_FALSE(LinkedHashSet_string16_contains(os_add, 'alpha'));
+	EXPECT_TRUE(LinkedHashSet_string16_contains(os_add, 'beta'));
+
+	// Fact: insertion order is preserved for string elements.
+		// Arrange
+	LinkedHashSet_string16_init(os_order);
+	ASSERT_TRUE(LinkedHashSet_string16_add(os_order, 'gamma', added));
+	ASSERT_TRUE(LinkedHashSet_string16_add(os_order, 'alpha', added));
+	ASSERT_TRUE(LinkedHashSet_string16_add(os_order, 'beta', added));
+		// Act
+	ASSERT_TRUE(LinkedHashSet_string16_elements(os_order, elements, written));
+		// Assert
+	EXPECT_EQ_INT32(3, written);
+	EXPECT_TRUE(String_equals(elements[0], 'gamma'));
+	EXPECT_TRUE(String_equals(elements[1], 'alpha'));
+	EXPECT_TRUE(String_equals(elements[2], 'beta'));
+
+	// Fact: equals is order-sensitive for string sets.
+		// Arrange
+	LinkedHashSet_string16_init(os_order2);
+	ASSERT_TRUE(LinkedHashSet_string16_add(os_order2, 'gamma', added));
+	ASSERT_TRUE(LinkedHashSet_string16_add(os_order2, 'alpha', added));
+	ASSERT_TRUE(LinkedHashSet_string16_add(os_order2, 'beta', added));
+	LinkedHashSet_string16_init(os_eq);
+	ASSERT_TRUE(LinkedHashSet_string16_add(os_eq, 'gamma', added));
+	ASSERT_TRUE(LinkedHashSet_string16_add(os_eq, 'alpha', added));
+	ASSERT_TRUE(LinkedHashSet_string16_add(os_eq, 'beta', added));
+		// Assert
+	EXPECT_TRUE(LinkedHashSet_string16_equals(os_order2, os_eq));
+		// Arrange
+	ASSERT_TRUE(LinkedHashSet_string16_remove(os_eq, 'gamma'));
+	ASSERT_TRUE(LinkedHashSet_string16_add(os_eq, 'gamma', added));
+		// Assert
+	EXPECT_FALSE(LinkedHashSet_string16_equals(os_order2, os_eq));
+	{end}
+END_TEST_S

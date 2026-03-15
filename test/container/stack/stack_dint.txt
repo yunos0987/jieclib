@@ -1,0 +1,26 @@
+{#ifndef __TEST_CONTAINER_STACK_DINT_TXT__}
+{#define __TEST_CONTAINER_STACK_DINT_TXT__}
+
+{#include <sys_conv.txt>}
+
+function Dint_hash_for_stack_test: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: dint;
+	end
+	{st}
+	Dint_hash_for_stack_test := dword_to_udint(dint_to_dword(self));
+	{end}
+end
+
+{#define StackName dint}
+{#define StackCapacity 8}
+{#define StackElementType dint}
+{#define StackElementHashFunction Dint_hash_for_stack_test}
+{#include <container/stack/stack_template.txt>}
+{#undef StackName}
+{#undef StackCapacity}
+{#undef StackElementType}
+{#undef StackElementHashFunction}
+
+{#endif}
