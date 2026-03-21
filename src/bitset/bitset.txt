@@ -1,0 +1,254 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/bitset/bitset.txt -I./src -o ./src/bitset/bitset.xml -t omron
+ *)
+{#ifndef __BITSET_TXT__}
+{#define __BITSET_TXT__}
+
+{#include <sys.txt>}
+
+(*{doc Set a single bit of a 32-bit bitset.
+@input val Source bitset.
+@input pos Zero-based bit position to set (0–31).
+@return val with bit pos set to 1.
+@error If pos is outside [0, 31].}*)
+function bitset_set: dword
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc Source bitset.}*)
+		val: dword;
+		(*{doc Zero-based bit position to set (0–31).}*)
+		pos: dint;
+	end
+	{st}
+	if (pos < 0) or (pos > 31) then
+		eno := false;
+		return;
+	end_if;
+	bitset_set := val or shl(dword#1, pos);
+	{end}
+end
+
+(*{doc Clear a single bit of a 32-bit bitset.
+@input val Source bitset.
+@input pos Zero-based bit position to clear (0–31).
+@return val with bit pos set to 0.
+@error If pos is outside [0, 31].}*)
+function bitset_clear: dword
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc Source bitset.}*)
+		val: dword;
+		(*{doc Zero-based bit position to clear (0–31).}*)
+		pos: dint;
+	end
+	{st}
+	if (pos < 0) or (pos > 31) then
+		eno := false;
+		return;
+	end_if;
+	bitset_clear := val and (not shl(dword#1, pos));
+	{end}
+end
+
+(*{doc Test a single bit of a 32-bit bitset.
+@input val Source bitset.
+@input pos Zero-based bit position to test (0–31).
+@return true if bit pos is 1, false if it is 0.
+@error If pos is outside [0, 31].}*)
+function bitset_test: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc Source bitset.}*)
+		val: dword;
+		(*{doc Zero-based bit position to test (0–31).}*)
+		pos: dint;
+	end
+	{st}
+	if (pos < 0) or (pos > 31) then
+		eno := false;
+		return;
+	end_if;
+	bitset_test := (val and shl(dword#1, pos)) <> dword#0;
+	{end}
+end
+
+(*{doc Toggle (invert) a single bit of a 32-bit bitset.
+@input val Source bitset.
+@input pos Zero-based bit position to toggle (0–31).
+@return val with bit pos inverted.
+@error If pos is outside [0, 31].}*)
+function bitset_toggle: dword
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc Source bitset.}*)
+		val: dword;
+		(*{doc Zero-based bit position to toggle (0–31).}*)
+		pos: dint;
+	end
+	{st}
+	if (pos < 0) or (pos > 31) then
+		eno := false;
+		return;
+	end_if;
+	bitset_toggle := val xor shl(dword#1, pos);
+	{end}
+end
+
+(*{doc Count the number of bits set to 1 (population count).
+@input val Source bitset.
+@return Number of 1-bits in val (0–32).}*)
+function bitset_popcount: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc Source bitset.}*)
+		val: dword;
+	end
+	var_temp
+		ww: dword;
+		cnt, ii: dint;
+	end
+	{st}
+	ww  := val;
+	cnt := 0;
+	ii  := 0;
+	while ii < 32 do
+		if (ww and dword#1) <> dword#0 then
+			cnt := cnt + 1;
+		end_if;
+		ww := shr(ww, 1);
+		ii := ii + 1;
+	end_while;
+	bitset_popcount := cnt;
+	{end}
+end
+
+(*{doc Find the position of the lowest set bit (Bit Scan Forward).
+@input val Source bitset.
+@return Zero-based index of the lowest 1-bit, or -1 if val is 0.}*)
+function bitset_ffs: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc Source bitset.}*)
+		val: dword;
+	end
+	var_temp
+		ww: dword;
+		ii: dint;
+	end
+	{st}
+	if val = dword#0 then
+		bitset_ffs := -1;
+		return;
+	end_if;
+	ww := val;
+	ii := 0;
+	while (ww and dword#1) = dword#0 do
+		ww := shr(ww, 1);
+		ii := ii + 1;
+	end_while;
+	bitset_ffs := ii;
+	{end}
+end
+
+(*{doc Find the position of the lowest clear bit.
+@input val Source bitset.
+@return Zero-based index of the lowest 0-bit, or -1 if all 32 bits are 1.}*)
+function bitset_ffc: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc Source bitset.}*)
+		val: dword;
+	end
+	var_temp
+		ww: dword;
+		ii: dint;
+	end
+	{st}
+	ww := not val;
+	if ww = dword#0 then
+		bitset_ffc := -1;
+		return;
+	end_if;
+	ii := 0;
+	while (ww and dword#1) = dword#0 do
+		ww := shr(ww, 1);
+		ii := ii + 1;
+	end_while;
+	bitset_ffc := ii;
+	{end}
+end
+
+(*{doc Extract a contiguous bit field from a 32-bit bitset.
+The field occupies bits [pos, pos+width-1] and is returned right-justified (LSB at bit 0).
+@input val Source bitset.
+@input pos Zero-based index of the lowest bit of the field (0–31).
+@input width Number of bits in the field (1–32).
+@return Right-justified field value.
+@error If pos < 0, width < 1, or pos + width > 32.}*)
+function bitset_extract: dword
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc Source bitset.}*)
+		val: dword;
+		(*{doc Zero-based index of the lowest bit of the field (0–31).}*)
+		pos: dint;
+		(*{doc Number of bits in the field (1–32).}*)
+		width: dint;
+	end
+	var_temp
+		mask: dword;
+		ii: dint;
+	end
+	{st}
+	if (pos < 0) or (width < 1) or ((pos + width) > 32) then
+		eno := false;
+		return;
+	end_if;
+	mask := dword#0;
+	for ii := 0 to width - 1 by 1 do
+		mask := mask or shl(dword#1, ii);
+	end_for;
+	bitset_extract := shr(val, pos) and mask;
+	{end}
+end
+
+(*{doc Insert a right-justified bit field into a 32-bit bitset.
+The field is placed into bits [pos, pos+width-1]; all other bits of val are preserved.
+Only the lowest width bits of field are used.
+@input val Destination bitset.
+@input pos Zero-based index of the lowest bit of the field (0–31).
+@input width Number of bits in the field (1–32).
+@input field Right-justified value to insert.
+@return Updated bitset.
+@error If pos < 0, width < 1, or pos + width > 32.}*)
+function bitset_insert: dword
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc Destination bitset.}*)
+		val: dword;
+		(*{doc Zero-based index of the lowest bit of the field (0–31).}*)
+		pos: dint;
+		(*{doc Number of bits in the field (1–32).}*)
+		width: dint;
+		(*{doc Right-justified value to insert.}*)
+		field: dword;
+	end
+	var_temp
+		mask: dword;
+		ii: dint;
+	end
+	{st}
+	if (pos < 0) or (width < 1) or ((pos + width) > 32) then
+		eno := false;
+		return;
+	end_if;
+	mask := dword#0;
+	for ii := 0 to width - 1 by 1 do
+		mask := mask or shl(dword#1, pos + ii);
+	end_for;
+	bitset_insert := (val and (not mask)) or (shl(field, pos) and mask);
+	{end}
+end
+
+{#endif}
