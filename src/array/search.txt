@@ -1,0 +1,20 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/array/search.txt -I./src -o ./src/array/search.xml -t omron
+ *)
+{#ifndef __ARRAY_SEARCH_TXT__}
+{#define __ARRAY_SEARCH_TXT__}
+
+{#define ArraySearchName lreal}
+{#define ArraySearchElementType lreal}
+{#include "search_template.txt"}
+{#undef ArraySearchName}
+{#undef ArraySearchElementType}
+
+{#define ArraySearchName dint}
+{#define ArraySearchElementType dint}
+{#include "search_template.txt"}
+{#undef ArraySearchName}
+{#undef ArraySearchElementType}
+
+{#endif}

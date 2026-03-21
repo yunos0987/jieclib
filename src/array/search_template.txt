@@ -1,0 +1,159 @@
+(*
+	================================================================================
+	Array search template
+	================================================================================
+
+	This template generates typed Array_index_of, Array_last_index_of, and
+	Array_contains functions from preprocessor macros.
+
+	Usage:
+	1. Define required macros.
+	2. Include this template once per generated type.
+
+	Required macros:
+	  - ArraySearchName
+	    Suffix appended to function names.
+	    Example: lreal  ->  Array_index_of_lreal, Array_contains_lreal, ...
+	  - ArraySearchElementType
+	    Element type of the source array.
+	    Example: lreal, dint
+
+	Generated API:
+	  - Array_index_of_@@ArraySearchName@@(self, value) : dint
+	  - Array_last_index_of_@@ArraySearchName@@(self, value) : dint
+	  - Array_contains_@@ArraySearchName@@(self, value) : bool
+	  - Convenience aliases:
+	      Array_index_of       -> Array_index_of_@@ArraySearchName@@
+	      Array_last_index_of  -> Array_last_index_of_@@ArraySearchName@@
+	      Array_contains       -> Array_contains_@@ArraySearchName@@
+
+	Example (lreal):
+	  {#define ArraySearchName lreal}
+	  {#define ArraySearchElementType lreal}
+	  {#include <array/search_template.txt>}
+	================================================================================
+*)
+{#include <sys.txt>}
+
+{#ifndef ArraySearchName}
+	{#error require ArraySearchName macro.}
+{#endif}
+
+{#ifndef ArraySearchElementType}
+	{#error require ArraySearchElementType macro.}
+{#endif}
+
+{#define _ARRAY_INDEX_OF_(T)      Array_index_of_@@T}
+{#define ARRAY_INDEX_OF(T)        _ARRAY_INDEX_OF_(T)}
+{#define Array_index_of           ARRAY_INDEX_OF(ArraySearchName)}
+
+{#define _ARRAY_LAST_INDEX_OF_(T) Array_last_index_of_@@T}
+{#define ARRAY_LAST_INDEX_OF(T)   _ARRAY_LAST_INDEX_OF_(T)}
+{#define Array_last_index_of      ARRAY_LAST_INDEX_OF(ArraySearchName)}
+
+{#define _ARRAY_CONTAINS_(T)      Array_contains_@@T}
+{#define ARRAY_CONTAINS(T)        _ARRAY_CONTAINS_(T)}
+{#define Array_contains           ARRAY_CONTAINS(ArraySearchName)}
+
+(*{doc Return the array index of the first element equal to value, or -1 if not found.
+@inout self Source array.
+@input value Value to search for.
+@return Array index of the first matching element, or -1 if not found.}*)
+function Array_index_of: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc Source array.}*)
+		self: array[*] of ArraySearchElementType;
+	end
+	var_input
+		(*{doc Value to search for.}*)
+		value: ArraySearchElementType;
+	end
+	var_temp
+		ii, i_0, i_1: dint;
+	end
+	{st}
+	i_0 := lower_bound(self, 1);
+	i_1 := upper_bound(self, 1);
+	Array_index_of := -1;
+	for ii := i_0 to i_1 by 1 do
+		if self[ii] = value then
+			Array_index_of := ii;
+			return;
+		end_if;
+	end_for;
+	{end}
+end
+
+(*{doc Return the array index of the last element equal to value, or -1 if not found.
+Scanning proceeds from the highest index toward the lowest.
+@inout self Source array.
+@input value Value to search for.
+@return Array index of the last matching element, or -1 if not found.}*)
+function Array_last_index_of: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc Source array.}*)
+		self: array[*] of ArraySearchElementType;
+	end
+	var_input
+		(*{doc Value to search for.}*)
+		value: ArraySearchElementType;
+	end
+	var_temp
+		ii, i_0, i_1: dint;
+	end
+	{st}
+	i_0 := lower_bound(self, 1);
+	i_1 := upper_bound(self, 1);
+	Array_last_index_of := -1;
+	ii := i_1;
+	while ii >= i_0 do
+		if self[ii] = value then
+			Array_last_index_of := ii;
+			return;
+		end_if;
+		ii := ii - 1;
+	end_while;
+	{end}
+end
+
+(*{doc Return true if the array contains at least one element equal to value.
+@inout self Source array.
+@input value Value to search for.
+@return true if a matching element is found, false otherwise.}*)
+function Array_contains: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc Source array.}*)
+		self: array[*] of ArraySearchElementType;
+	end
+	var_input
+		(*{doc Value to search for.}*)
+		value: ArraySearchElementType;
+	end
+	var_temp
+		ii, i_0, i_1: dint;
+	end
+	{st}
+	i_0 := lower_bound(self, 1);
+	i_1 := upper_bound(self, 1);
+	for ii := i_0 to i_1 by 1 do
+		if self[ii] = value then
+			Array_contains := true;
+			return;
+		end_if;
+	end_for;
+	Array_contains := false;
+	{end}
+end
+
+{#undef _ARRAY_INDEX_OF_}
+{#undef ARRAY_INDEX_OF}
+{#undef Array_index_of}
+{#undef _ARRAY_LAST_INDEX_OF_}
+{#undef ARRAY_LAST_INDEX_OF}
+{#undef Array_last_index_of}
+{#undef _ARRAY_CONTAINS_}
+{#undef ARRAY_CONTAINS}
+{#undef Array_contains}

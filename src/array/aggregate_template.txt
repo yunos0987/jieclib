@@ -1,0 +1,197 @@
+(*
+	================================================================================
+	Array aggregate template
+	================================================================================
+
+	This template generates typed Array_min, Array_max, Array_min_index, and
+	Array_max_index functions from preprocessor macros.
+
+	Usage:
+	1. Define required macros.
+	2. Include this template once per generated type.
+
+	Required macros:
+	  - ArrayAggregateName
+	    Suffix appended to function names.
+	    Example: lreal  ->  Array_min_lreal, Array_max_lreal, ...
+	  - ArrayAggregateElementType
+	    Element type of the source array.
+	    Example: lreal, dint
+
+	Generated API:
+	  - Array_min_@@ArrayAggregateName@@(self) : ArrayAggregateElementType
+	  - Array_max_@@ArrayAggregateName@@(self) : ArrayAggregateElementType
+	  - Array_min_index_@@ArrayAggregateName@@(self) : dint
+	  - Array_max_index_@@ArrayAggregateName@@(self) : dint
+	  - Convenience aliases:
+	      Array_min       -> Array_min_@@ArrayAggregateName@@
+	      Array_max       -> Array_max_@@ArrayAggregateName@@
+	      Array_min_index -> Array_min_index_@@ArrayAggregateName@@
+	      Array_max_index -> Array_max_index_@@ArrayAggregateName@@
+
+	Example (lreal):
+	  {#define ArrayAggregateName lreal}
+	  {#define ArrayAggregateElementType lreal}
+	  {#include <array/aggregate_template.txt>}
+	================================================================================
+*)
+{#include <sys.txt>}
+
+{#ifndef ArrayAggregateName}
+	{#error require ArrayAggregateName macro.}
+{#endif}
+
+{#ifndef ArrayAggregateElementType}
+	{#error require ArrayAggregateElementType macro.}
+{#endif}
+
+{#define _ARRAY_MIN_(T)         Array_min_@@T}
+{#define ARRAY_MIN(T)           _ARRAY_MIN_(T)}
+{#define Array_min              ARRAY_MIN(ArrayAggregateName)}
+
+{#define _ARRAY_MAX_(T)         Array_max_@@T}
+{#define ARRAY_MAX(T)           _ARRAY_MAX_(T)}
+{#define Array_max              ARRAY_MAX(ArrayAggregateName)}
+
+{#define _ARRAY_MIN_INDEX_(T)   Array_min_index_@@T}
+{#define ARRAY_MIN_INDEX(T)     _ARRAY_MIN_INDEX_(T)}
+{#define Array_min_index        ARRAY_MIN_INDEX(ArrayAggregateName)}
+
+{#define _ARRAY_MAX_INDEX_(T)   Array_max_index_@@T}
+{#define ARRAY_MAX_INDEX(T)     _ARRAY_MAX_INDEX_(T)}
+{#define Array_max_index        ARRAY_MAX_INDEX(ArrayAggregateName)}
+
+(*{doc Return the minimum value in a 1-D array.
+@inout self Source array.
+@return Minimum element value.
+@error If the array is empty.}*)
+function Array_min: ArrayAggregateElementType
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc Source array.}*)
+		self: array[*] of ArrayAggregateElementType;
+	end
+	var_temp
+		ii, i_0, i_1: dint;
+		min_val: ArrayAggregateElementType;
+	end
+	{st}
+	i_0 := lower_bound(self, 1);
+	i_1 := upper_bound(self, 1);
+	if i_0 > i_1 then
+		eno := false;
+		return;
+	end_if;
+	min_val := self[i_0];
+	for ii := i_0 + 1 to i_1 by 1 do
+		if self[ii] < min_val then
+			min_val := self[ii];
+		end_if;
+	end_for;
+	Array_min := min_val;
+	{end}
+end
+
+(*{doc Return the maximum value in a 1-D array.
+@inout self Source array.
+@return Maximum element value.
+@error If the array is empty.}*)
+function Array_max: ArrayAggregateElementType
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc Source array.}*)
+		self: array[*] of ArrayAggregateElementType;
+	end
+	var_temp
+		ii, i_0, i_1: dint;
+		max_val: ArrayAggregateElementType;
+	end
+	{st}
+	i_0 := lower_bound(self, 1);
+	i_1 := upper_bound(self, 1);
+	if i_0 > i_1 then
+		eno := false;
+		return;
+	end_if;
+	max_val := self[i_0];
+	for ii := i_0 + 1 to i_1 by 1 do
+		if self[ii] > max_val then
+			max_val := self[ii];
+		end_if;
+	end_for;
+	Array_max := max_val;
+	{end}
+end
+
+(*{doc Return the array index of the first minimum element in a 1-D array.
+@inout self Source array.
+@return Array index of the minimum element.
+@error If the array is empty.}*)
+function Array_min_index: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc Source array.}*)
+		self: array[*] of ArrayAggregateElementType;
+	end
+	var_temp
+		ii, i_0, i_1, min_idx: dint;
+	end
+	{st}
+	i_0 := lower_bound(self, 1);
+	i_1 := upper_bound(self, 1);
+	if i_0 > i_1 then
+		eno := false;
+		return;
+	end_if;
+	min_idx := i_0;
+	for ii := i_0 + 1 to i_1 by 1 do
+		if self[ii] < self[min_idx] then
+			min_idx := ii;
+		end_if;
+	end_for;
+	Array_min_index := min_idx;
+	{end}
+end
+
+(*{doc Return the array index of the first maximum element in a 1-D array.
+@inout self Source array.
+@return Array index of the maximum element.
+@error If the array is empty.}*)
+function Array_max_index: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc Source array.}*)
+		self: array[*] of ArrayAggregateElementType;
+	end
+	var_temp
+		ii, i_0, i_1, max_idx: dint;
+	end
+	{st}
+	i_0 := lower_bound(self, 1);
+	i_1 := upper_bound(self, 1);
+	if i_0 > i_1 then
+		eno := false;
+		return;
+	end_if;
+	max_idx := i_0;
+	for ii := i_0 + 1 to i_1 by 1 do
+		if self[ii] > self[max_idx] then
+			max_idx := ii;
+		end_if;
+	end_for;
+	Array_max_index := max_idx;
+	{end}
+end
+
+{#undef _ARRAY_MIN_}
+{#undef ARRAY_MIN}
+{#undef Array_min}
+{#undef _ARRAY_MAX_}
+{#undef ARRAY_MAX}
+{#undef Array_max}
+{#undef _ARRAY_MIN_INDEX_}
+{#undef ARRAY_MIN_INDEX}
+{#undef Array_min_index}
+{#undef _ARRAY_MAX_INDEX_}
+{#undef ARRAY_MAX_INDEX}
+{#undef Array_max_index}

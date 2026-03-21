@@ -1,0 +1,121 @@
+(*
+	================================================================================
+	Array rotate template
+	================================================================================
+
+	This template generates a typed Array_rotate function from preprocessor macros.
+
+	Usage:
+	1. Define required macros.
+	2. Include this template once per generated type.
+
+	Required macros:
+	  - ArrayRotateName
+	    Suffix appended to Array_rotate_ to form the function name.
+	    Example: lreal  ->  Array_rotate_lreal
+	  - ArrayRotateElementType
+	    Element type of the target array.
+	    Example: lreal, dint, string[256]
+
+	Generated API:
+	  - Array_rotate_@@ArrayRotateName@@(self, shift)
+	  - Convenience alias: Array_rotate -> Array_rotate_@@ArrayRotateName@@
+
+	Example (lreal):
+	  {#define ArrayRotateName lreal}
+	  {#define ArrayRotateElementType lreal}
+	  {#include <array/rotate_template.txt>}
+	================================================================================
+*)
+{#include <sys.txt>}
+
+{#ifndef ArrayRotateName}
+	{#error require ArrayRotateName macro.}
+{#endif}
+
+{#ifndef ArrayRotateElementType}
+	{#error require ArrayRotateElementType macro.}
+{#endif}
+
+{#define _ARRAY_ROTATE_(T) Array_rotate_@@T}
+{#define ARRAY_ROTATE(T)   _ARRAY_ROTATE_(T)}
+{#define Array_rotate      ARRAY_ROTATE(ArrayRotateName)}
+
+(*{doc Rotate the elements of a 1-D array in-place using the three-reversal algorithm.
+Positive shift rotates left: each element moves toward a lower index and the
+first shift elements wrap around to the end.
+Negative shift rotates right.
+A shift of 0 or any multiple of the array length is a no-op.
+@inout self Array to rotate.
+@input shift Number of positions to rotate left (negative rotates right).}*)
+function Array_rotate
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc Array to rotate.}*)
+		self: array[*] of ArrayRotateElementType;
+	end
+	var_input
+		(*{doc Number of positions to rotate left (negative rotates right).}*)
+		shift: dint;
+	end
+	var_temp
+		nn, kk: dint;
+		i_0, i_1: dint;
+		lo, hi: dint;
+		tmp: ArrayRotateElementType;
+	end
+	{st}
+	i_0 := lower_bound(self, 1);
+	i_1 := upper_bound(self, 1);
+	nn  := i_1 - i_0 + 1;
+	if nn <= 1 then
+		return;
+	end_if;
+
+	// Normalize shift to [0, nn)
+	kk := shift mod nn;
+	if kk < 0 then
+		kk := kk + nn;
+	end_if;
+	if kk = 0 then
+		return;
+	end_if;
+
+	// Step 1: Reverse first kk elements [i_0, i_0+kk-1]
+	lo := i_0;
+	hi := i_0 + kk - 1;
+	while lo < hi do
+		tmp      := self[lo];
+		self[lo] := self[hi];
+		self[hi] := tmp;
+		lo := lo + 1;
+		hi := hi - 1;
+	end_while;
+
+	// Step 2: Reverse remaining (nn-kk) elements [i_0+kk, i_1]
+	lo := i_0 + kk;
+	hi := i_1;
+	while lo < hi do
+		tmp      := self[lo];
+		self[lo] := self[hi];
+		self[hi] := tmp;
+		lo := lo + 1;
+		hi := hi - 1;
+	end_while;
+
+	// Step 3: Reverse entire array [i_0, i_1]
+	lo := i_0;
+	hi := i_1;
+	while lo < hi do
+		tmp      := self[lo];
+		self[lo] := self[hi];
+		self[hi] := tmp;
+		lo := lo + 1;
+		hi := hi - 1;
+	end_while;
+	{end}
+end
+
+{#undef _ARRAY_ROTATE_}
+{#undef ARRAY_ROTATE}
+{#undef Array_rotate}

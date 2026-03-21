@@ -11,28 +11,30 @@ DEFINE_CONFIGURATION(
 		'test_array_copy',
 		'test_array_copy_offset',
 		'test_array_copy_x_index_0',
-		'test_array_copy_x_partial'
+		'test_array_copy_x_partial',
+		'test_array_copy_dint',
+		'test_array_copy_x_error'
 	)
 )
-
 {#endif}
 
 TEST_S(test_array_copy)
 	var
-        x_1: array[0..0] of lreal := [1.0];
+		x_1: array[0..0] of lreal := [1.0];
 		x_3: array[0..2] of lreal := [2.0, 3.0, 5.0];
-        //
 		y_1: array[0..0] of lreal := [-1.0];
 		y_2: array[0..1] of lreal := [-1.0, -1.0];
 		y_3: array[0..2] of lreal := [-1.0, -1.0, -1.0];
 		y_4: array[0..3] of lreal := [-1.0, -1.0, -1.0, -1.0];
-        //
-        copied: dint;
-        result_eno: bool;
+		copied: dint;
+		result_eno: bool;
 	end
 	{st}
-	// 正常ケース：同じサイズへのコピー
+	// Fact: Copying to a destination of the same size copies all elements and returns the element count.
+		// Arrange
+		// Act
 	copied := Array_copy_lreal(src:=x_3, dst:=y_3);
+		// Assert
 	EXPECT_EQ_INT32(3, copied);
 	EXPECT_EQ_LREAL(2.0, y_3[0]);
 	EXPECT_EQ_LREAL(3.0, y_3[1]);
@@ -42,16 +44,22 @@ TEST_S(test_array_copy)
 	EXPECT_EQ_INT32(1, copied);
 	EXPECT_EQ_LREAL(1.0, y_1[0]);
 
-	// 正常ケース：より大きいサイズへのコピー
+	// Fact: Copying to a larger destination copies all src elements; elements beyond the copy range are unchanged.
+		// Arrange
+		// Act
 	copied := Array_copy_lreal(src:=x_3, dst:=y_4);
+		// Assert
 	EXPECT_EQ_INT32(3, copied);
 	EXPECT_EQ_LREAL(2.0, y_4[0]);
 	EXPECT_EQ_LREAL(3.0, y_4[1]);
 	EXPECT_EQ_LREAL(5.0, y_4[2]);
 	EXPECT_EQ_LREAL(-1.0, y_4[3]);
 
-	// 異常ケース：より小さいサイズへのコピー
+	// Fact: Copying to a smaller destination returns an error.
+		// Arrange
+		// Act
 	copied := Array_copy_lreal(src:=x_3, dst:=y_2, eno=>result_eno);
+		// Assert
 	EXPECT_FALSE(result_eno);
 	{end}
 END_TEST_S
@@ -61,7 +69,6 @@ TEST_S(test_array_copy_offset)
 		copied: dint;
 		result_eno: bool;
 		x_3: array[13..15] of lreal := [2.0, 3.0, 5.0];
-        //
 		y_3_1: array[10..12] of lreal := [-1.0, -1.0, -1.0];
 		y_3_2: array[11..13] of lreal := [-1.0, -1.0, -1.0];
 		y_3_3: array[12..14] of lreal := [-1.0, -1.0, -1.0];
@@ -69,16 +76,14 @@ TEST_S(test_array_copy_offset)
 		y_3_5: array[14..16] of lreal := [-1.0, -1.0, -1.0];
 		y_3_6: array[15..17] of lreal := [-1.0, -1.0, -1.0];
 		y_3_7: array[16..18] of lreal := [-1.0, -1.0, -1.0];
-		//
 		y_4_1: array[ 9..12] of lreal := [-1.0, -1.0, -1.0, -1.0];
 		y_4_2: array[10..13] of lreal := [-1.0, -1.0, -1.0, -1.0];
 		y_4_3: array[11..14] of lreal := [-1.0, -1.0, -1.0, -1.0];
-        y_4_4: array[12..15] of lreal := [-1.0, -1.0, -1.0, -1.0];
+		y_4_4: array[12..15] of lreal := [-1.0, -1.0, -1.0, -1.0];
 		y_4_5: array[13..16] of lreal := [-1.0, -1.0, -1.0, -1.0];
 		y_4_6: array[14..17] of lreal := [-1.0, -1.0, -1.0, -1.0];
 		y_4_7: array[15..18] of lreal := [-1.0, -1.0, -1.0, -1.0];
-        y_4_8: array[16..19] of lreal := [-1.0, -1.0, -1.0, -1.0];
-        //
+		y_4_8: array[16..19] of lreal := [-1.0, -1.0, -1.0, -1.0];
 		y_2_1: array[11..12] of lreal := [-1.0, -1.0];
 		y_2_2: array[12..13] of lreal := [-1.0, -1.0];
 		y_2_3: array[13..14] of lreal := [-1.0, -1.0];
@@ -87,7 +92,9 @@ TEST_S(test_array_copy_offset)
 		y_2_6: array[16..17] of lreal := [-1.0, -1.0];
 	end
 	{st}
-	// 正常ケース：オフセット配列で同じサイズへのコピー
+	// Fact: Array_copy works correctly regardless of the lower bound of src and dst when sizes are equal.
+		// Arrange
+		// Act/Assert
 	copied := Array_copy_lreal(src:=x_3, dst:=y_3_1);
 	EXPECT_EQ_INT32(3, copied);
 	EXPECT_EQ_LREAL(2.0, y_3_1[10]);
@@ -130,7 +137,9 @@ TEST_S(test_array_copy_offset)
 	EXPECT_EQ_LREAL(3.0, y_3_7[17]);
 	EXPECT_EQ_LREAL(5.0, y_3_7[18]);
 
-	// 正常ケース：異なるオフセットの配列へのコピー
+	// Fact: Array_copy works correctly when dst has a different lower bound and is larger than src.
+		// Arrange
+		// Act/Assert
 	copied := Array_copy_lreal(src:=x_3, dst:=y_4_1);
 	EXPECT_EQ_INT32(3, copied);
 	EXPECT_EQ_LREAL(2.0, y_4_1[ 9]);
@@ -138,56 +147,58 @@ TEST_S(test_array_copy_offset)
 	EXPECT_EQ_LREAL(5.0, y_4_1[11]);
 	EXPECT_EQ_LREAL(-1.0, y_4_1[12]);
 
-    copied := Array_copy_lreal(src:=x_3, dst:=y_4_2);
-    EXPECT_EQ_INT32(3, copied);
-    EXPECT_EQ_LREAL(2.0, y_4_2[10]);
-    EXPECT_EQ_LREAL(3.0, y_4_2[11]);
-    EXPECT_EQ_LREAL(5.0, y_4_2[12]);
+	copied := Array_copy_lreal(src:=x_3, dst:=y_4_2);
+	EXPECT_EQ_INT32(3, copied);
+	EXPECT_EQ_LREAL(2.0, y_4_2[10]);
+	EXPECT_EQ_LREAL(3.0, y_4_2[11]);
+	EXPECT_EQ_LREAL(5.0, y_4_2[12]);
 	EXPECT_EQ_LREAL(-1.0, y_4_2[13]);
 
-    copied := Array_copy_lreal(src:=x_3, dst:=y_4_3);
-    EXPECT_EQ_INT32(3, copied);
-    EXPECT_EQ_LREAL(2.0, y_4_3[11]);
-    EXPECT_EQ_LREAL(3.0, y_4_3[12]);
-    EXPECT_EQ_LREAL(5.0, y_4_3[13]);
+	copied := Array_copy_lreal(src:=x_3, dst:=y_4_3);
+	EXPECT_EQ_INT32(3, copied);
+	EXPECT_EQ_LREAL(2.0, y_4_3[11]);
+	EXPECT_EQ_LREAL(3.0, y_4_3[12]);
+	EXPECT_EQ_LREAL(5.0, y_4_3[13]);
 	EXPECT_EQ_LREAL(-1.0, y_4_3[14]);
 
-    copied := Array_copy_lreal(src:=x_3, dst:=y_4_4);
-    EXPECT_EQ_INT32(3, copied);
-    EXPECT_EQ_LREAL(2.0, y_4_4[12]);
-    EXPECT_EQ_LREAL(3.0, y_4_4[13]);
-    EXPECT_EQ_LREAL(5.0, y_4_4[14]);
+	copied := Array_copy_lreal(src:=x_3, dst:=y_4_4);
+	EXPECT_EQ_INT32(3, copied);
+	EXPECT_EQ_LREAL(2.0, y_4_4[12]);
+	EXPECT_EQ_LREAL(3.0, y_4_4[13]);
+	EXPECT_EQ_LREAL(5.0, y_4_4[14]);
 	EXPECT_EQ_LREAL(-1.0, y_4_4[15]);
 
-    copied := Array_copy_lreal(src:=x_3, dst:=y_4_5);
-    EXPECT_EQ_INT32(3, copied);
-    EXPECT_EQ_LREAL(2.0, y_4_5[13]);
-    EXPECT_EQ_LREAL(3.0, y_4_5[14]);
-    EXPECT_EQ_LREAL(5.0, y_4_5[15]);
+	copied := Array_copy_lreal(src:=x_3, dst:=y_4_5);
+	EXPECT_EQ_INT32(3, copied);
+	EXPECT_EQ_LREAL(2.0, y_4_5[13]);
+	EXPECT_EQ_LREAL(3.0, y_4_5[14]);
+	EXPECT_EQ_LREAL(5.0, y_4_5[15]);
 	EXPECT_EQ_LREAL(-1.0, y_4_5[16]);
 
-    copied := Array_copy_lreal(src:=x_3, dst:=y_4_6);
-    EXPECT_EQ_INT32(3, copied);
-    EXPECT_EQ_LREAL(2.0, y_4_6[14]);
-    EXPECT_EQ_LREAL(3.0, y_4_6[15]);
-    EXPECT_EQ_LREAL(5.0, y_4_6[16]);
+	copied := Array_copy_lreal(src:=x_3, dst:=y_4_6);
+	EXPECT_EQ_INT32(3, copied);
+	EXPECT_EQ_LREAL(2.0, y_4_6[14]);
+	EXPECT_EQ_LREAL(3.0, y_4_6[15]);
+	EXPECT_EQ_LREAL(5.0, y_4_6[16]);
 	EXPECT_EQ_LREAL(-1.0, y_4_6[17]);
 
-    copied := Array_copy_lreal(src:=x_3, dst:=y_4_7);
-    EXPECT_EQ_INT32(3, copied);
-    EXPECT_EQ_LREAL(2.0, y_4_7[15]);
-    EXPECT_EQ_LREAL(3.0, y_4_7[16]);
-    EXPECT_EQ_LREAL(5.0, y_4_7[17]);
+	copied := Array_copy_lreal(src:=x_3, dst:=y_4_7);
+	EXPECT_EQ_INT32(3, copied);
+	EXPECT_EQ_LREAL(2.0, y_4_7[15]);
+	EXPECT_EQ_LREAL(3.0, y_4_7[16]);
+	EXPECT_EQ_LREAL(5.0, y_4_7[17]);
 	EXPECT_EQ_LREAL(-1.0, y_4_7[18]);
 
-    copied := Array_copy_lreal(src:=x_3, dst:=y_4_8);
-    EXPECT_EQ_INT32(3, copied);
-    EXPECT_EQ_LREAL(2.0, y_4_8[16]);
-    EXPECT_EQ_LREAL(3.0, y_4_8[17]);
-    EXPECT_EQ_LREAL(5.0, y_4_8[18]);
+	copied := Array_copy_lreal(src:=x_3, dst:=y_4_8);
+	EXPECT_EQ_INT32(3, copied);
+	EXPECT_EQ_LREAL(2.0, y_4_8[16]);
+	EXPECT_EQ_LREAL(3.0, y_4_8[17]);
+	EXPECT_EQ_LREAL(5.0, y_4_8[18]);
 	EXPECT_EQ_LREAL(-1.0, y_4_8[19]);
 
-	// 異常ケース：サイズ不足へのコピー
+	// Fact: Copying to an undersized destination returns an error regardless of lower bound.
+		// Arrange
+		// Act/Assert
 	copied := Array_copy_lreal(src:=x_3, dst:=y_2_1, eno=>result_eno);
 	EXPECT_FALSE(result_eno);
 
@@ -212,22 +223,22 @@ TEST_S(test_array_copy_x_index_0)
 	var
 		copied: dint;
 		result_eno: bool;
-		//
 		x_5: array[0..4] of lreal := [1.0, 2.0, 3.0, 5.0, 7.0];
 		y_5_m1: array[0..4] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0];
-		y_5_5: array[0..4] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0];
-		y_5_0: array[0..4] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0];
-		//
+		y_5_5:  array[0..4] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0];
+		y_5_0:  array[0..4] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0];
 		y_6_m1: array[0..5] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0, -1.0];
-		y_6_5: array[0..5] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0, -1.0];
-		//
+		y_6_5:  array[0..5] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0, -1.0];
 		y_4_m1: array[0..3] of lreal := [-1.0, -1.0, -1.0, -1.0];
-		y_4_4: array[0..3] of lreal := [-1.0, -1.0, -1.0, -1.0];
-		y_4_5: array[0..3] of lreal := [-1.0, -1.0, -1.0, -1.0];
+		y_4_4:  array[0..3] of lreal := [-1.0, -1.0, -1.0, -1.0];
+		y_4_5:  array[0..3] of lreal := [-1.0, -1.0, -1.0, -1.0];
 	end
 	{st}
-	// 正常ケース：先頭からsrc要素分コピー（n=-1）
+	// Fact: n=-1 copies all elements from src_index to the end of src.
+		// Arrange
+		// Act
 	copied := Array_copy_x_lreal(src:=x_5, src_index:=0, dst:=y_5_m1, dst_index:=0, n:=-1);
+		// Assert
 	EXPECT_EQ_INT32(5, copied);
 	EXPECT_EQ_LREAL(1.0, y_5_m1[0]);
 	EXPECT_EQ_LREAL(2.0, y_5_m1[1]);
@@ -235,8 +246,11 @@ TEST_S(test_array_copy_x_index_0)
 	EXPECT_EQ_LREAL(5.0, y_5_m1[3]);
 	EXPECT_EQ_LREAL(7.0, y_5_m1[4]);
 
-	// 正常ケース：先頭からsrc要素分コピー（n=5）
+	// Fact: n=5 copies exactly 5 elements starting at src_index=0.
+		// Arrange
+		// Act
 	copied := Array_copy_x_lreal(src:=x_5, src_index:=0, dst:=y_5_5, dst_index:=0, n:=5);
+		// Assert
 	EXPECT_EQ_INT32(5, copied);
 	EXPECT_EQ_LREAL(1.0, y_5_5[0]);
 	EXPECT_EQ_LREAL(2.0, y_5_5[1]);
@@ -244,8 +258,11 @@ TEST_S(test_array_copy_x_index_0)
 	EXPECT_EQ_LREAL(5.0, y_5_5[3]);
 	EXPECT_EQ_LREAL(7.0, y_5_5[4]);
 
-	// 正常ケース：転送サイズ０の場合、成功する。
+	// Fact: n=0 copies nothing and leaves dst unchanged.
+		// Arrange
+		// Act
 	copied := Array_copy_x_lreal(src:=x_5, src_index:=0, dst:=y_5_0, dst_index:=0, n:=0);
+		// Assert
 	EXPECT_EQ_INT32(0, copied);
 	EXPECT_EQ_LREAL(-1.0, y_5_0[0]);
 	EXPECT_EQ_LREAL(-1.0, y_5_0[1]);
@@ -253,8 +270,11 @@ TEST_S(test_array_copy_x_index_0)
 	EXPECT_EQ_LREAL(-1.0, y_5_0[3]);
 	EXPECT_EQ_LREAL(-1.0, y_5_0[4]);
 
-	// 正常ケース：転送先のサイズが異なる場合でも、転送要素数が転送先サイズ以内なら成功（n=-1）
+	// Fact: n=-1 succeeds when dst is larger than src; trailing dst elements are unchanged.
+		// Arrange
+		// Act
 	copied := Array_copy_x_lreal(src:=x_5, src_index:=0, dst:=y_6_m1, dst_index:=0, n:=-1);
+		// Assert
 	EXPECT_EQ_INT32(5, copied);
 	EXPECT_EQ_LREAL(1.0, y_6_m1[0]);
 	EXPECT_EQ_LREAL(2.0, y_6_m1[1]);
@@ -263,8 +283,11 @@ TEST_S(test_array_copy_x_index_0)
 	EXPECT_EQ_LREAL(7.0, y_6_m1[4]);
 	EXPECT_EQ_LREAL(-1.0, y_6_m1[5]);
 
-	// 正常ケース：転送先のサイズが異なる場合でも、転送要素数が転送先サイズ以内なら成功（n=5）
+	// Fact: n=5 succeeds when dst is larger; the extra dst element is unchanged.
+		// Arrange
+		// Act
 	copied := Array_copy_x_lreal(src:=x_5, src_index:=0, dst:=y_6_5, dst_index:=0, n:=5);
+		// Assert
 	EXPECT_EQ_INT32(5, copied);
 	EXPECT_EQ_LREAL(1.0, y_6_5[0]);
 	EXPECT_EQ_LREAL(2.0, y_6_5[1]);
@@ -273,22 +296,36 @@ TEST_S(test_array_copy_x_index_0)
 	EXPECT_EQ_LREAL(7.0, y_6_5[4]);
 	EXPECT_EQ_LREAL(-1.0, y_6_5[5]);
 
-	// 正常ケース：転送先のサイズが小さい場合でも、転送要素数が転送先サイズ以内なら成功（n=4）
+	// Fact: n=4 succeeds when dst is smaller than src but large enough for n elements.
+		// Arrange
+		// Act
 	copied := Array_copy_x_lreal(src:=x_5, src_index:=0, dst:=y_4_4, dst_index:=0, n:=4);
+		// Assert
 	EXPECT_EQ_INT32(4, copied);
 	EXPECT_EQ_LREAL(1.0, y_4_4[0]);
 	EXPECT_EQ_LREAL(2.0, y_4_4[1]);
 	EXPECT_EQ_LREAL(3.0, y_4_4[2]);
 	EXPECT_EQ_LREAL(5.0, y_4_4[3]);
 
-	// 異常ケース：src配列サイズ不足
+	// Fact: n exceeding the src array size returns an error.
+		// Arrange
+		// Act
 	copied := Array_copy_x_lreal(src:=x_5, src_index:=0, dst:=y_6_m1, dst_index:=0, n:=6, eno=>result_eno);
+		// Assert
 	EXPECT_FALSE(result_eno);
 
-	// 異常ケース：dst配列サイズ不足
+	// Fact: n=-1 returns an error when dst is too small to hold all remaining src elements.
+		// Arrange
+		// Act
 	copied := Array_copy_x_lreal(src:=x_5, src_index:=0, dst:=y_4_m1, dst_index:=0, n:=-1, eno=>result_eno);
+		// Assert
 	EXPECT_FALSE(result_eno);
+
+	// Fact: n=5 returns an error when dst has fewer than 5 elements.
+		// Arrange
+		// Act
 	copied := Array_copy_x_lreal(src:=x_5, src_index:=0, dst:=y_4_5, dst_index:=0, n:=5, eno=>result_eno);
+		// Assert
 	EXPECT_FALSE(result_eno);
 	{end}
 END_TEST_S
@@ -297,43 +334,118 @@ TEST_S(test_array_copy_x_partial)
 	var
 		copied: dint;
 		result_eno: bool;
-		//
 		x_5: array[0..4] of lreal := [1.0, 2.0, 3.0, 5.0, 7.0];
 		y_5_m1: array[0..4] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0];
-		y_5_2: array[0..4] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0];
-		y_5_3: array[0..4] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0];
-		y_5_4: array[0..4] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0];
+		y_5_2:  array[0..4] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0];
+		y_5_3:  array[0..4] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0];
+		y_5_4:  array[0..4] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0];
 	end
 	{st}
-	// 正常ケース
+	// Fact: src_index=1 with n=-1 copies elements from index 1 to the end of src.
+		// Arrange
+		// Act
 	copied := Array_copy_x_lreal(src:=x_5, src_index:=1, dst:=y_5_m1, dst_index:=1, n:=-1);
+		// Assert
 	EXPECT_EQ_INT32(4, copied);
 	EXPECT_EQ_LREAL(-1.0, y_5_m1[0]);
-	EXPECT_EQ_LREAL(2.0, y_5_m1[1]);
-	EXPECT_EQ_LREAL(3.0, y_5_m1[2]);
-	EXPECT_EQ_LREAL(5.0, y_5_m1[3]);
-	EXPECT_EQ_LREAL(7.0, y_5_m1[4]);
+	EXPECT_EQ_LREAL(2.0,  y_5_m1[1]);
+	EXPECT_EQ_LREAL(3.0,  y_5_m1[2]);
+	EXPECT_EQ_LREAL(5.0,  y_5_m1[3]);
+	EXPECT_EQ_LREAL(7.0,  y_5_m1[4]);
 
-	// 正常ケース
+	// Fact: n=2 copies 2 elements from src_index=1 into dst starting at dst_index=2.
+		// Arrange
+		// Act
 	copied := Array_copy_x_lreal(src:=x_5, src_index:=1, dst:=y_5_2, dst_index:=2, n:=2);
+		// Assert
 	EXPECT_EQ_INT32(2, copied);
 	EXPECT_EQ_LREAL(-1.0, y_5_2[0]);
 	EXPECT_EQ_LREAL(-1.0, y_5_2[1]);
-	EXPECT_EQ_LREAL(2.0, y_5_2[2]);
-	EXPECT_EQ_LREAL(3.0, y_5_2[3]);
+	EXPECT_EQ_LREAL(2.0,  y_5_2[2]);
+	EXPECT_EQ_LREAL(3.0,  y_5_2[3]);
 	EXPECT_EQ_LREAL(-1.0, y_5_2[4]);
 
-	// 正常ケース
+	// Fact: n=3 copies 3 elements from src_index=1 into dst starting at dst_index=2.
+		// Arrange
+		// Act
 	copied := Array_copy_x_lreal(src:=x_5, src_index:=1, dst:=y_5_3, dst_index:=2, n:=3);
+		// Assert
 	EXPECT_EQ_INT32(3, copied);
 	EXPECT_EQ_LREAL(-1.0, y_5_3[0]);
 	EXPECT_EQ_LREAL(-1.0, y_5_3[1]);
-	EXPECT_EQ_LREAL(2.0, y_5_3[2]);
-	EXPECT_EQ_LREAL(3.0, y_5_3[3]);
-	EXPECT_EQ_LREAL(5.0, y_5_3[4]);
+	EXPECT_EQ_LREAL(2.0,  y_5_3[2]);
+	EXPECT_EQ_LREAL(3.0,  y_5_3[3]);
+	EXPECT_EQ_LREAL(5.0,  y_5_3[4]);
 
-	// 異常ケース：dst配列サイズ不足
+	// Fact: n=4 from src_index=1 to dst_index=2 returns an error when dst cannot hold 4 elements from index 2.
+		// Arrange
+		// Act
 	copied := Array_copy_x_lreal(src:=x_5, src_index:=1, dst:=y_5_4, dst_index:=2, n:=4, eno=>result_eno);
+		// Assert
+	EXPECT_FALSE(result_eno);
+	{end}
+END_TEST_S
+
+TEST_S(test_array_copy_dint)
+	var
+		x_3: array[0..2] of dint := [10, 20, 30];
+		y_3: array[0..2] of dint := [-1, -1, -1];
+		y_4: array[0..3] of dint := [-1, -1, -1, -1];
+		y_2: array[0..1] of dint := [-1, -1];
+		copied: dint;
+		result_eno: bool;
+	end
+	{st}
+	// Fact: Copying a dint array to a destination of the same size copies all elements.
+		// Arrange
+		// Act
+	copied := Array_copy_dint(src:=x_3, dst:=y_3);
+		// Assert
+	EXPECT_EQ_INT32(3, copied);
+	EXPECT_EQ_INT32(10, y_3[0]);
+	EXPECT_EQ_INT32(20, y_3[1]);
+	EXPECT_EQ_INT32(30, y_3[2]);
+
+	// Fact: Copying a dint array to a larger destination leaves trailing elements unchanged.
+		// Arrange
+		// Act
+	copied := Array_copy_dint(src:=x_3, dst:=y_4);
+		// Assert
+	EXPECT_EQ_INT32(3, copied);
+	EXPECT_EQ_INT32(10, y_4[0]);
+	EXPECT_EQ_INT32(20, y_4[1]);
+	EXPECT_EQ_INT32(30, y_4[2]);
+	EXPECT_EQ_INT32(-1, y_4[3]);
+
+	// Fact: Copying a dint array to a smaller destination returns an error.
+		// Arrange
+		// Act
+	copied := Array_copy_dint(src:=x_3, dst:=y_2, eno=>result_eno);
+		// Assert
+	EXPECT_FALSE(result_eno);
+	{end}
+END_TEST_S
+
+TEST_S(test_array_copy_x_error)
+	var
+		copied: dint;
+		result_eno: bool;
+		x_5: array[3..7] of lreal := [1.0, 2.0, 3.0, 5.0, 7.0];
+		y_5: array[2..6] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0];
+	end
+	{st}
+	// Fact: src_index below the lower bound of src returns an error.
+		// Arrange
+		// Act
+	copied := Array_copy_x_lreal(src:=x_5, src_index:=2, dst:=y_5, dst_index:=2, n:=1, eno=>result_eno);
+		// Assert
+	EXPECT_FALSE(result_eno);
+
+	// Fact: dst_index below the lower bound of dst returns an error.
+		// Arrange
+		// Act
+	copied := Array_copy_x_lreal(src:=x_5, src_index:=3, dst:=y_5, dst_index:=1, n:=1, eno=>result_eno);
+		// Assert
 	EXPECT_FALSE(result_eno);
 	{end}
 END_TEST_S

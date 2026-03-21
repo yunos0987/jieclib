@@ -1,0 +1,76 @@
+(*
+	================================================================================
+	Array reverse template
+	================================================================================
+
+	This template generates a typed Array_reverse function from preprocessor macros.
+
+	Usage:
+	1. Define required macros.
+	2. Include this template once per generated type.
+
+	Required macros:
+	  - ArrayReverseName
+	    Suffix appended to Array_reverse_ to form the function name.
+	    Example: lreal  ->  Array_reverse_lreal
+	  - ArrayReverseElementType
+	    Element type of the target array.
+	    Example: lreal, dint, string[256]
+
+	Generated API:
+	  - Array_reverse_@@ArrayReverseName@@(self)
+	  - Convenience alias: Array_reverse -> Array_reverse_@@ArrayReverseName@@
+
+	Example (lreal):
+	  {#define ArrayReverseName lreal}
+	  {#define ArrayReverseElementType lreal}
+	  {#include <array/reverse_template.txt>}
+
+	Example (string):
+	  {#define ArrayReverseName str256}
+	  {#define ArrayReverseElementType string[256]}
+	  {#include <array/reverse_template.txt>}
+	================================================================================
+*)
+{#include <sys.txt>}
+
+{#ifndef ArrayReverseName}
+	{#error require ArrayReverseName macro.}
+{#endif}
+
+{#ifndef ArrayReverseElementType}
+	{#error require ArrayReverseElementType macro.}
+{#endif}
+
+{#define _ARRAY_REVERSE_(T) Array_reverse_@@T}
+{#define ARRAY_REVERSE(T)   _ARRAY_REVERSE_(T)}
+{#define Array_reverse      ARRAY_REVERSE(ArrayReverseName)}
+
+(*{doc Reverse the elements of a 1-D array in-place.
+@inout self Array to reverse.}*)
+function Array_reverse
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc Array to reverse.}*)
+		self: array[*] of ArrayReverseElementType;
+	end
+	var_temp
+		lo, hi: dint;
+		tmp: ArrayReverseElementType;
+	end
+	{st}
+	lo := lower_bound(self, 1);
+	hi := upper_bound(self, 1);
+	while lo < hi do
+		tmp      := self[lo];
+		self[lo] := self[hi];
+		self[hi] := tmp;
+		lo := lo + 1;
+		hi := hi - 1;
+	end_while;
+	{end}
+end
+
+{#undef _ARRAY_REVERSE_}
+{#undef ARRAY_REVERSE}
+{#undef Array_reverse}

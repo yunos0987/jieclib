@@ -1,0 +1,76 @@
+(*
+	================================================================================
+	Array fill template
+	================================================================================
+
+	This template generates a typed Array_fill function from preprocessor macros.
+
+	Usage:
+	1. Define required macros.
+	2. Include this template once per generated type.
+
+	Required macros:
+	  - ArrayFillName
+	    Suffix appended to Array_fill_ to form the function name.
+	    Example: lreal  ->  Array_fill_lreal
+	  - ArrayFillElementType
+	    Element type of the target array.
+	    Example: lreal, dint, string[256]
+
+	Generated API:
+	  - Array_fill_@@ArrayFillName@@(self, value)
+	  - Convenience alias: Array_fill -> Array_fill_@@ArrayFillName@@
+
+	Example (lreal):
+	  {#define ArrayFillName lreal}
+	  {#define ArrayFillElementType lreal}
+	  {#include <array/fill_template.txt>}
+
+	Example (string):
+	  {#define ArrayFillName str256}
+	  {#define ArrayFillElementType string[256]}
+	  {#include <array/fill_template.txt>}
+	================================================================================
+*)
+{#include <sys.txt>}
+
+{#ifndef ArrayFillName}
+	{#error require ArrayFillName macro.}
+{#endif}
+
+{#ifndef ArrayFillElementType}
+	{#error require ArrayFillElementType macro.}
+{#endif}
+
+{#define _ARRAY_FILL_(T) Array_fill_@@T}
+{#define ARRAY_FILL(T)   _ARRAY_FILL_(T)}
+{#define Array_fill      ARRAY_FILL(ArrayFillName)}
+
+(*{doc Fill every element of a 1-D array with the given value.
+@inout self Array to fill.
+@input value Value to write into every element.}*)
+function Array_fill
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc Array to fill.}*)
+		self: array[*] of ArrayFillElementType;
+	end
+	var_input
+		(*{doc Value to write into every element.}*)
+		value: ArrayFillElementType;
+	end
+	var_temp
+		ii, i_0, i_1: dint;
+	end
+	{st}
+	i_0 := lower_bound(self, 1);
+	i_1 := upper_bound(self, 1);
+	for ii := i_0 to i_1 by 1 do
+		self[ii] := value;
+	end_for;
+	{end}
+end
+
+{#undef _ARRAY_FILL_}
+{#undef ARRAY_FILL}
+{#undef Array_fill}

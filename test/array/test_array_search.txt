@@ -1,0 +1,214 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/array/test_array_search.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/array/test_array_search.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <array/array.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_array_index_of',
+		'test_array_last_index_of',
+		'test_array_contains',
+		'test_array_search_empty'
+	)
+)
+{#endif}
+
+TEST_S(test_array_index_of)
+	var
+		xx: array[0..4] of lreal := [1.0, 2.0, 3.0, 2.0, 5.0];
+		yy: array[0..4] of dint  := [10, 20, 30, 20, 50];
+		ri: dint;
+	end
+	{st}
+	// Fact: Array_index_of_lreal returns the index of the first match.
+		// Arrange
+		// Act
+	ri := Array_index_of_lreal(self:=xx, value:=2.0);
+		// Assert
+	EXPECT_EQ_INT32(1, ri);
+
+	// Fact: Array_index_of_lreal returns -1 when the value is absent.
+		// Arrange
+		// Act
+	ri := Array_index_of_lreal(self:=xx, value:=9.0);
+		// Assert
+	EXPECT_EQ_INT32(-1, ri);
+
+	// Fact: Array_index_of_dint returns the index of the first match.
+		// Arrange
+		// Act
+	ri := Array_index_of_dint(self:=yy, value:=20);
+		// Assert
+	EXPECT_EQ_INT32(1, ri);
+
+	// Fact: Array_index_of_dint returns -1 when the value is absent.
+		// Arrange
+		// Act
+	ri := Array_index_of_dint(self:=yy, value:=99);
+		// Assert
+	EXPECT_EQ_INT32(-1, ri);
+
+	// Fact: Searching for the first element returns index 0.
+		// Arrange
+		// Act
+	ri := Array_index_of_lreal(self:=xx, value:=1.0);
+		// Assert
+	EXPECT_EQ_INT32(0, ri);
+
+	// Fact: Searching for the last element returns its index.
+		// Arrange
+		// Act
+	ri := Array_index_of_dint(self:=yy, value:=50);
+		// Assert
+	EXPECT_EQ_INT32(4, ri);
+	{end}
+END_TEST_S
+
+TEST_S(test_array_last_index_of)
+	var
+		xx: array[0..5] of lreal := [1.0, 2.0, 3.0, 2.0, 5.0, 2.0];
+		yy: array[0..4] of dint  := [10, 20, 30, 20, 50];
+		ri: dint;
+	end
+	{st}
+	// Fact: Array_last_index_of_lreal returns the index of the last match.
+		// Arrange: value 2.0 appears at indices 1, 3, 5 -- last is 5
+		// Act
+	ri := Array_last_index_of_lreal(self:=xx, value:=2.0);
+		// Assert
+	EXPECT_EQ_INT32(5, ri);
+
+	// Fact: Array_last_index_of_lreal returns -1 when the value is absent.
+		// Arrange
+		// Act
+	ri := Array_last_index_of_lreal(self:=xx, value:=9.0);
+		// Assert
+	EXPECT_EQ_INT32(-1, ri);
+
+	// Fact: When the value appears only at index 0, that index is returned.
+		// Arrange
+		// Act
+	ri := Array_last_index_of_lreal(self:=xx, value:=1.0);
+		// Assert
+	EXPECT_EQ_INT32(0, ri);
+
+	// Fact: When the value appears only at the last index, that index is returned.
+		// Arrange
+		// Act
+	ri := Array_last_index_of_lreal(self:=xx, value:=5.0);
+		// Assert
+	EXPECT_EQ_INT32(4, ri);
+
+	// Fact: Array_last_index_of_dint returns the index of the last match.
+		// Arrange: value 20 appears at indices 1 and 3 -- last is 3
+		// Act
+	ri := Array_last_index_of_dint(self:=yy, value:=20);
+		// Assert
+	EXPECT_EQ_INT32(3, ri);
+
+	// Fact: Array_last_index_of_dint returns -1 when the value is absent.
+		// Arrange
+		// Act
+	ri := Array_last_index_of_dint(self:=yy, value:=99);
+		// Assert
+	EXPECT_EQ_INT32(-1, ri);
+
+	// Fact: Array_last_index_of_dint and Array_index_of_dint agree when the value is unique.
+		// Arrange: value 30 appears only at index 2
+		// Act/Assert
+	EXPECT_EQ_INT32(2, Array_last_index_of_dint(self:=yy, value:=30));
+	EXPECT_EQ_INT32(2, Array_index_of_dint(self:=yy, value:=30));
+	{end}
+END_TEST_S
+
+TEST_S(test_array_contains)
+	var
+		xx: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		yy: array[0..4] of dint  := [10, 20, 30, 40, 50];
+		ok: bool;
+	end
+	{st}
+	// Fact: Array_contains_lreal is true when the value is present.
+		// Arrange
+		// Act
+	ok := Array_contains_lreal(self:=xx, value:=3.0);
+		// Assert
+	EXPECT_TRUE(ok);
+
+	// Fact: Array_contains_lreal is false when the value is absent.
+		// Arrange
+		// Act
+	ok := Array_contains_lreal(self:=xx, value:=9.0);
+		// Assert
+	EXPECT_FALSE(ok);
+
+	// Fact: Array_contains_dint is true when the value is present.
+		// Arrange
+		// Act
+	ok := Array_contains_dint(self:=yy, value:=10);
+		// Assert
+	EXPECT_TRUE(ok);
+
+	// Fact: Array_contains_dint is false when the value is absent.
+		// Arrange
+		// Act
+	ok := Array_contains_dint(self:=yy, value:=99);
+		// Assert
+	EXPECT_FALSE(ok);
+	{end}
+END_TEST_S
+
+TEST_S(test_array_search_empty)
+	var
+		xx: array[5..9] of lreal := [1.0, 2.0, 3.0, 2.0, 5.0];
+		yy: array[5..9] of dint  := [10, 20, 30, 20, 50];
+		ri: dint;
+		ok: bool;
+	end
+	{st}
+	// Fact: Array_index_of_lreal on an offset array returns the actual array index.
+		// Arrange
+		// Act
+	ri := Array_index_of_lreal(self:=xx, value:=2.0);
+		// Assert
+	EXPECT_EQ_INT32(6, ri);
+
+	// Fact: Array_last_index_of_lreal on an offset array returns the actual array index.
+		// Arrange
+		// Act
+	ri := Array_last_index_of_lreal(self:=xx, value:=2.0);
+		// Assert
+	EXPECT_EQ_INT32(8, ri);
+
+	// Fact: Array_contains_lreal on an offset array returns true when present.
+		// Arrange
+		// Act
+	ok := Array_contains_lreal(self:=xx, value:=3.0);
+		// Assert
+	EXPECT_TRUE(ok);
+
+	// Fact: Array_index_of_dint on an offset array returns the actual array index.
+		// Arrange
+		// Act
+	ri := Array_index_of_dint(self:=yy, value:=20);
+		// Assert
+	EXPECT_EQ_INT32(6, ri);
+
+	// Fact: Array_last_index_of_dint on an offset array returns the actual array index.
+		// Arrange
+		// Act
+	ri := Array_last_index_of_dint(self:=yy, value:=20);
+		// Assert
+	EXPECT_EQ_INT32(8, ri);
+
+	// Fact: Array_index_of_dint returns -1 when no match exists in an offset array.
+		// Arrange
+		// Act
+	ri := Array_index_of_dint(self:=yy, value:=99);
+		// Assert
+	EXPECT_EQ_INT32(-1, ri);
+	{end}
+END_TEST_S

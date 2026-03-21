@@ -11,10 +11,42 @@ DEFINE_CONFIGURATION(
 		'test_array_size',
 		'test_array_isRegular',
 		'test_array_isRegular2d',
-		'test_array_isRegular2d_x'
+		'test_array_isRegular2d_x',
+		'test_array_fill',
+		'test_array_fill_offset',
+		'test_array_reverse',
+		'test_array_reverse_offset',
+		'test_array_rotate_lreal',
+		'test_array_rotate_dint',
+		'test_array_rotate_offset',
+		'test_array_equals',
+		'test_array_equals_offset',
+		'test_array_min',
+		'test_array_max',
+		'test_array_min_index',
+		'test_array_max_index',
+		'test_array_index_of',
+		'test_array_last_index_of',
+		'test_array_contains',
+		'test_array_search_empty',
+		'test_array_copy',
+		'test_array_copy_offset',
+		'test_array_copy_x_index_0',
+		'test_array_copy_x_partial',
+		'test_array_copy_dint',
+		'test_array_copy_x_error',
+		'test_array_bubblesort',
+		'test_array_bubblesort_offset',
+		'test_array_bubblesort_n',
+		'test_array_mergesort',
+		'test_array_mergesort_offset',
+		'test_array_mergesort_n',
+		'test_array_quicksort',
+		'test_array_quicksort_offset',
+		'test_array_quicksort_n'
 	)
 )
-
+{#undef _TEST_}
 {#endif}
 
 TEST_S(test_array_size)
@@ -27,9 +59,16 @@ TEST_S(test_array_size)
 		y_3: array[4..6] of lreal;
 	end
 	{st}
+	// Fact: Array_size returns the element count for zero-based arrays.
+		// Arrange
+		// Act/Assert
 	EXPECT_EQ_INT32(1, Array_size_lreal(x_1));
 	EXPECT_EQ_INT32(2, Array_size_lreal(x_2));
 	EXPECT_EQ_INT32(3, Array_size_lreal(x_3));
+
+	// Fact: Array_size returns the element count for offset arrays.
+		// Arrange
+		// Act/Assert
 	EXPECT_EQ_INT32(1, Array_size_lreal(y_1));
 	EXPECT_EQ_INT32(2, Array_size_lreal(y_2));
 	EXPECT_EQ_INT32(3, Array_size_lreal(y_3));
@@ -46,16 +85,32 @@ TEST_S(test_array_isRegular2d)
 		result: dint;
 	end
 	{st}
+	// Fact: A regular 2D array (both dimensions start at 0) returns its total element count.
+		// Arrange
+		// Act
 	result := Array_isRegular2d_lreal(x_regular);
+		// Assert
 	EXPECT_EQ_INT32(6, result);
 
+	// Fact: A single-element regular 2D array returns 1.
+		// Arrange
+		// Act
 	result := Array_isRegular2d_lreal(x_regular_one);
+		// Assert
 	EXPECT_EQ_INT32(1, result);
 
+	// Fact: A 2D array with a non-zero lower bound on dimension 1 is non-regular and returns 0.
+		// Arrange
+		// Act
 	result := Array_isRegular2d_lreal(x_nonregular_lb1);
+		// Assert
 	EXPECT_EQ_INT32(0, result);
 
+	// Fact: A 2D array with a non-zero lower bound on dimension 2 is non-regular and returns 0.
+		// Arrange
+		// Act
 	result := Array_isRegular2d_lreal(x_nonregular_lb2);
+		// Assert
 	EXPECT_EQ_INT32(0, result);
 	{end}
 END_TEST_S
@@ -68,27 +123,35 @@ TEST_S(test_array_isRegular2d_x)
 		result: dint;
 	end
 	{st}
+	// Fact: For a regular 2D array, dim=1 returns the row count and dim=2 returns the column count.
+		// Arrange
+		// Act/Assert
 	result := Array_isRegular2d_x_lreal(x_regular, 1);
 	EXPECT_EQ_INT32(2, result);
-
 	result := Array_isRegular2d_x_lreal(x_regular, 2);
 	EXPECT_EQ_INT32(3, result);
 
+	// Fact: When dimension 1 has a non-zero lower bound, dim=1 returns 0 and dim=2 returns the column count.
+		// Arrange
+		// Act/Assert
 	result := Array_isRegular2d_x_lreal(x_nonregular_lb1, 1);
 	EXPECT_EQ_INT32(0, result);
-
 	result := Array_isRegular2d_x_lreal(x_nonregular_lb1, 2);
 	EXPECT_EQ_INT32(3, result);
 
+	// Fact: When dimension 2 has a non-zero lower bound, dim=1 returns the row count and dim=2 returns 0.
+		// Arrange
+		// Act/Assert
 	result := Array_isRegular2d_x_lreal(x_nonregular_lb2, 1);
 	EXPECT_EQ_INT32(2, result);
-
 	result := Array_isRegular2d_x_lreal(x_nonregular_lb2, 2);
 	EXPECT_EQ_INT32(0, result);
 
+	// Fact: Out-of-range dim values return 0.
+		// Arrange
+		// Act/Assert
 	result := Array_isRegular2d_x_lreal(x_regular, 0);
 	EXPECT_EQ_INT32(0, result);
-
 	result := Array_isRegular2d_x_lreal(x_regular, 3);
 	EXPECT_EQ_INT32(0, result);
 	{end}
@@ -106,15 +169,19 @@ TEST_S(test_array_isRegular)
 		result: dint;
 	end
 	{st}
+	// Fact: A 1-D array starting at index 0 is regular and returns its element count.
+		// Arrange
+		// Act/Assert
 	result := Array_isRegular_lreal(x_regular);
 	EXPECT_EQ_INT32(5, result);
-
 	result := Array_isRegular_lreal(x_regular_zero);
 	EXPECT_EQ_INT32(1, result);
 
+	// Fact: A 1-D array with a non-zero lower bound is non-regular and returns 0.
+		// Arrange
+		// Act/Assert
 	result := Array_isRegular_lreal(x_nonregular);
 	EXPECT_EQ_INT32(0, result);
-
 	result := Array_isRegular_lreal(x_nonregular_one);
 	EXPECT_EQ_INT32(0, result);
 
@@ -125,3 +192,12 @@ TEST_S(test_array_isRegular)
 	//EXPECT_EQ_INT32(0, result);
 	{end}
 END_TEST_S
+
+{#include "test_array_fill.txt"}
+{#include "test_array_reverse.txt"}
+{#include "test_array_rotate.txt"}
+{#include "test_array_equivalence.txt"}
+{#include "test_array_aggregate.txt"}
+{#include "test_array_search.txt"}
+{#include "test_array_copy.txt"}
+{#include "test_array_sort.txt"}
