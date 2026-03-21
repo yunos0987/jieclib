@@ -1,0 +1,157 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/encoding/json_string.txt -I./src -o ./src/encoding/json_string.xml -t omron
+ *)
+{#ifndef __ENCODING_JSON_STRING_TXT__}
+{#define __ENCODING_JSON_STRING_TXT__}
+
+{#include <sys.txt>}
+{#include <string_lib/string_lib.txt>}
+{#include <encoding/hex.txt>}
+
+{#define STRING string[STRING_MAX_SIZE]}
+
+(*{doc Escape a string as a JSON string value (RFC 8259).
+Control characters (0x00-0x1F) are escaped as \uXXXX.
+The following shorthand escapes are used:
+  0x08 -> \b, 0x09 -> \t, 0x0A -> \n, 0x0B -> \f, 0x0D -> \r
+  0x22 -> \&quot;, 0x2F -> \/, 0x5C -> \\
+@input txt Input string.
+@return Escaped string.
+@error If the ASCII code of an input character cannot be obtained.}*)
+function json_escape: STRING
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		txt: STRING;
+	end
+	var_temp
+		HEX: array[0..15] of string[1 + 1] constant := [
+			'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
+		];
+		i, l, code: dint;
+		out: STRING;
+	end
+	{st}
+	out := '';
+	l := uint_to_dint(len(txt));
+	for i := 0 to l - 1 by 1 do
+		code := String_asciiCharCodeAt(txt, i);
+		if code < 0 then
+			eno := false;
+			return;
+		end_if;
+		case code of
+		34:                       // " -> \"
+			out := concat(out, '\"');
+		92:                       // \ -> \\
+			out := concat(out, '\\');
+		47:                       // / -> \/
+			out := concat(out, '\/');
+		8:                        // BS -> \b
+			out := concat(out, '\b');
+		9:                        // HT -> \t
+			out := concat(out, '\t');
+		10:                       // LF -> \n
+			out := concat(out, '\n');
+		11:                       // VT -> \f
+			out := concat(out, '\f');
+		13:                       // CR -> \r
+			out := concat(out, '\r');
+		else
+			if code < 32 then     // other control characters -> \u00XX
+				out := concat(out, '\u00');
+				out := concat(out, HEX[code / 16]);
+				out := concat(out, HEX[code mod 16]);
+			else
+				out := concat(out, String_fromAsciiCharCode1(code));
+			end_if;
+		end_case;
+	end_for;
+	json_escape := out;
+	{end}
+end
+
+(*{doc Unescape a JSON string value back to a plain string (RFC 8259).
+\uXXXX sequences are supported only in the range U+0000 to U+007F.
+@input txt Input string (a JSON-escaped string value).
+@return Unescaped string.
+@error If an invalid escape sequence is found, or a \uXXXX value exceeds U+007F.}*)
+function json_unescape: STRING
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		txt: STRING;
+	end
+	var_temp
+		i, l, code: dint;
+		h1, h2, h3, h4: dint;
+		decoded_code: dint;
+		out: STRING;
+	end
+	{st}
+	out := '';
+	l := uint_to_dint(len(txt));
+	i := 0;
+	while i < l do
+		code := String_asciiCharCodeAt(txt, i);
+		if code < 0 then
+			eno := false;
+			return;
+		end_if;
+		if code = 92 then   // backslash
+			i := i + 1;
+			if i >= l then
+				eno := false;
+				return;
+			end_if;
+			code := String_asciiCharCodeAt(txt, i);
+			case code of
+			34:                    // \" -> "
+				out := concat(out, '"');
+			92:                    // \\ -> \
+				out := concat(out, '\');
+			47:                    // \/ -> /
+				out := concat(out, '/');
+			98:                    // \b -> BS (0x08)
+				out := concat(out, '$08');
+			116:                   // \t -> HT (0x09)
+				out := concat(out, '$09');
+			110:                   // \n -> LF (0x0A)
+				out := concat(out, '$0A');
+			102:                   // \f -> VT (0x0B)
+				out := concat(out, '$0B');
+			114:                   // \r -> CR (0x0D)
+				out := concat(out, '$0D');
+			117:                   // \uXXXX
+				if i + 4 >= l then
+					eno := false;
+					return;
+				end_if;
+				h1 := hex_nibble(String_asciiCharCodeAt(txt, i + 1));
+				h2 := hex_nibble(String_asciiCharCodeAt(txt, i + 2));
+				h3 := hex_nibble(String_asciiCharCodeAt(txt, i + 3));
+				h4 := hex_nibble(String_asciiCharCodeAt(txt, i + 4));
+				if (h1 < 0) or (h2 < 0) or (h3 < 0) or (h4 < 0) then
+					eno := false;
+					return;
+				end_if;
+				decoded_code := h1 * 4096 + h2 * 256 + h3 * 16 + h4;
+				if decoded_code > 127 then
+					eno := false;
+					return;
+				end_if;
+				out := concat(out, String_fromAsciiCharCode1(decoded_code));
+				i := i + 4;
+			else
+				eno := false;
+				return;
+			end_case;
+		else
+			out := concat(out, String_fromAsciiCharCode1(code));
+		end_if;
+		i := i + 1;
+	end_while;
+	json_unescape := out;
+	{end}
+end
+
+{#endif}

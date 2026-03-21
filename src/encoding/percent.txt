@@ -7,47 +7,21 @@
 
 {#include <sys.txt>}
 {#include <string_lib/string_lib.txt>}
+{#include <encoding/hex.txt>}
 
 {#define STRING string[STRING_MAX_SIZE]}
 
 {#define CODE_0 48}
 {#define CODE_9 57}
 {#define CODE_A 65}
-{#define CODE_F 70}
 {#define CODE_Z 90}
 {#define CODE_a 97}
-{#define CODE_f 102}
 {#define CODE_z 122}
 
-(*{doc 16進文字の1桁を数値へ変換する。
-@input code ASCIIコード。
-@return 0..15の値。16進文字でない場合、-1。}*)
-function percent_hex_nibble: dint
-	_PROLOGUE_OF_FUNCTION_()
-	var_input
-		code: dint;
-	end
-	{st}
-	if (code >= CODE_0) and (code <= CODE_9) then
-		percent_hex_nibble := code - CODE_0;
-		return;
-	end_if;
-	if (code >= CODE_A) and (code <= CODE_F) then
-		percent_hex_nibble := code - CODE_A + 10;
-		return;
-	end_if;
-	if (code >= CODE_a) and (code <= CODE_f) then
-		percent_hex_nibble := code - CODE_a + 10;
-		return;
-	end_if;
-	percent_hex_nibble := -1;
-	{end}
-end
-
-(*{doc 文字列をパーセントエンコード（URLエンコード）する。
-@input txt 入力文字列。
-@return エンコード後文字列。
-@error 入力文字のASCIIコード取得に失敗した場合。}*)
+(*{doc Encode a string using percent-encoding (URL encoding).
+@input txt Input string.
+@return Encoded string.
+@error If the ASCII code of an input character cannot be obtained.}*)
 function percentencode: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
@@ -85,10 +59,10 @@ function percentencode: STRING
 	{end}
 end
 
-(*{doc パーセントエンコード文字列をデコードする。
-@input txt 入力文字列。
-@return デコード後文字列。
-@error %に続く2桁の16進数が不正な場合、またはASCIIコード取得に失敗した場合。}*)
+(*{doc Decode a percent-encoded string.
+@input txt Input string.
+@return Decoded string.
+@error If the two hex digits following '%' are invalid, or if the ASCII code cannot be obtained.}*)
 function percentdecode: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
@@ -116,8 +90,8 @@ function percentdecode: STRING
 				eno := false;
 				return;
 			end_if;
-			h1 := percent_hex_nibble(String_asciiCharCodeAt(txt, i + 1));
-			h2 := percent_hex_nibble(String_asciiCharCodeAt(txt, i + 2));
+			h1 := hex_nibble(String_asciiCharCodeAt(txt, i + 1));
+			h2 := hex_nibble(String_asciiCharCodeAt(txt, i + 2));
 			if (h1 < 0) or (h2 < 0) then
 				eno := false;
 				return;
@@ -141,10 +115,8 @@ end
 {#undef CODE_0}
 {#undef CODE_9}
 {#undef CODE_A}
-{#undef CODE_F}
 {#undef CODE_Z}
 {#undef CODE_a}
-{#undef CODE_f}
 {#undef CODE_z}
 
 {#endif}
