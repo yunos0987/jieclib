@@ -1,0 +1,231 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/compress/rle.txt -I./src -o ./src/compress/rle.xml -t omron
+ *)
+{#ifndef __COMPRESS_RLE_TXT__}
+{#define __COMPRESS_RLE_TXT__}
+
+{#include <sys.txt>}
+
+(*{doc Compress a byte array using PackBits run-length encoding.
+Output packet format:
+  header = 128        : no-op (skipped by decoder)
+  header in 129..255  : repeat the following byte (257 - header) times  [2..128 repeats]
+  header in 0..127    : copy the following (header + 1) bytes literally  [1..128 literals]
+@in_out dat Source byte array.
+@input offset Start offset in dat.
+  Default value: 0
+@input length Number of bytes to encode. -1 means to the end of dat.
+  Default value: -1
+@in_out dst Destination byte array for compressed output.
+@input dst_offset Start offset in dst.
+  Default value: 0
+@return Number of bytes written to dst.
+@error If offset/length is out of dat bounds, or dst is too small.}*)
+function rle_encode: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		dat: array[*] of byte;
+		dst: array[*] of byte;
+	end
+	var_input
+		offset: dint := 0;
+		length: dint := -1;
+		dst_offset: dint := 0;
+	end
+	var_temp
+		i0_in, i1_in, i0_out, i1_out: dint;
+		in_idx, end_in, out_idx: dint;
+		run_byt: byte;
+		run_len: dint;
+		lit_start: dint;
+		lit_len: dint;
+		more_lit: bool;
+		kk: dint;
+	end
+	{st}
+	i0_in  := lower_bound(dat, 1);
+	i1_in  := upper_bound(dat, 1);
+	i0_out := lower_bound(dst, 1);
+	i1_out := upper_bound(dst, 1);
+
+	// Validate input range
+	if (offset < 0) then
+		eno := false;
+		return;
+	end_if;
+	in_idx := i0_in + offset;
+	if length = -1 then
+		end_in := i1_in;
+	else
+		if length = 0 then
+			rle_encode := 0;
+			return;
+		end_if;
+		end_in := in_idx + length - 1;
+	end_if;
+	if (in_idx < i0_in) or (end_in > i1_in) then
+		eno := false;
+		return;
+	end_if;
+
+	// Validate output range
+	if (dst_offset < 0) or (i0_out + dst_offset > i1_out) then
+		eno := false;
+		return;
+	end_if;
+	out_idx := i0_out + dst_offset;
+
+	while in_idx <= end_in do
+		run_byt := dat[in_idx];
+		run_len := 1;
+		// Count the run of identical bytes (max 128)
+		while (in_idx + run_len <= end_in) and (run_len < 128) and (dat[in_idx + run_len] = run_byt) do
+			run_len := run_len + 1;
+		end_while;
+
+		if run_len >= 2 then
+			// Run packet: header = 257 - run_len (range 129..255)
+			if out_idx + 1 > i1_out then
+				eno := false;
+				return;
+			end_if;
+			dst[out_idx] := dint_to_byte(257 - run_len);
+			out_idx := out_idx + 1;
+			dst[out_idx] := run_byt;
+			out_idx := out_idx + 1;
+			in_idx := in_idx + run_len;
+		else
+			// Literal packet: collect up to 128 non-run bytes
+			lit_start := in_idx;
+			lit_len := 0;
+			more_lit := true;
+			while (in_idx <= end_in) and (lit_len < 128) and more_lit do
+				if (in_idx < end_in) and (dat[in_idx] = dat[in_idx + 1]) then
+					// Next byte starts a run; stop collecting literals
+					more_lit := false;
+				else
+					lit_len := lit_len + 1;
+					in_idx := in_idx + 1;
+				end_if;
+			end_while;
+			// Write header + literal bytes
+			if out_idx + lit_len > i1_out then
+				eno := false;
+				return;
+			end_if;
+			dst[out_idx] := dint_to_byte(lit_len - 1);  // header: 0..127
+			out_idx := out_idx + 1;
+			for kk := 0 to lit_len - 1 by 1 do
+				dst[out_idx] := dat[lit_start + kk];
+				out_idx := out_idx + 1;
+			end_for;
+		end_if;
+	end_while;
+
+	rle_encode := out_idx - (i0_out + dst_offset);
+	{end}
+end
+
+(*{doc Decompress a PackBits run-length encoded byte array.
+@in_out dat Source byte array containing compressed data.
+@input offset Start offset in dat.
+  Default value: 0
+@input length Number of compressed bytes to read.
+@in_out dst Destination byte array for decompressed output.
+@input dst_offset Start offset in dst.
+  Default value: 0
+@return Number of bytes written to dst.
+@error If the compressed data is malformed, or dst is too small.}*)
+function rle_decode: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		dat: array[*] of byte;
+		dst: array[*] of byte;
+	end
+	var_input
+		offset: dint := 0;
+		length: dint;
+		dst_offset: dint := 0;
+	end
+	var_temp
+		i0_in, i1_in, i0_out, i1_out: dint;
+		in_idx, end_in, out_idx: dint;
+		pkt_nn: dint;
+		rep_byt: byte;
+		rep_cnt: dint;
+		lit_cnt: dint;
+		kk: dint;
+	end
+	{st}
+	i0_in  := lower_bound(dat, 1);
+	i1_in  := upper_bound(dat, 1);
+	i0_out := lower_bound(dst, 1);
+	i1_out := upper_bound(dst, 1);
+
+	if length < 0 then
+		eno := false;
+		return;
+	end_if;
+	if (offset < 0) or (i0_in + offset + length - 1 > i1_in) then
+		eno := false;
+		return;
+	end_if;
+	if (dst_offset < 0) or (i0_out + dst_offset > i1_out) then
+		eno := false;
+		return;
+	end_if;
+
+	in_idx  := i0_in  + offset;
+	end_in  := i0_in  + offset + length - 1;
+	out_idx := i0_out + dst_offset;
+
+	while in_idx <= end_in do
+		pkt_nn := byte_to_dint(dat[in_idx]);
+		in_idx := in_idx + 1;
+
+		if pkt_nn = 128 then
+			// No-op: skip
+			;
+		elsif pkt_nn > 128 then
+			// Run packet: repeat next byte (257 - pkt_nn) times
+			if in_idx > end_in then
+				eno := false;
+				return;
+			end_if;
+			rep_byt := dat[in_idx];
+			in_idx := in_idx + 1;
+			rep_cnt := 257 - pkt_nn;
+			for kk := 0 to rep_cnt - 1 by 1 do
+				if out_idx > i1_out then
+					eno := false;
+					return;
+				end_if;
+				dst[out_idx] := rep_byt;
+				out_idx := out_idx + 1;
+			end_for;
+
+		else
+			// Literal packet: copy next (pkt_nn + 1) bytes
+			lit_cnt := pkt_nn + 1;
+			for kk := 0 to lit_cnt - 1 by 1 do
+				if in_idx > end_in then
+					eno := false;
+					return;
+				end_if;
+				if out_idx > i1_out then
+					eno := false;
+					return;
+				end_if;
+				dst[out_idx] := dat[in_idx];
+				out_idx := out_idx + 1;
+				in_idx := in_idx + 1;
+			end_for;
+		end_if;
+	end_while;
+
+	rle_decode := out_idx - (i0_out + dst_offset);
+	{end}
+end
+
+{#endif}

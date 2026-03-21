@@ -1,0 +1,29 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/compress/test_compress.txt -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/compress/test_compress.xml -t omron
+ *)
+{#if _JIECC and (_JIECC_VER < 514)}
+	{#error This test requires Jiecc 5.14 or later.}
+{#endif}
+{#include <jiecunit.txt>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 210)}
+	{#error This test requires JiecUnit 2.10 or later.}
+{#endif}
+
+{#include <src/compress/rle.txt>}
+{#include <src/compress/huffman.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_rle_encode',
+		'test_rle_decode',
+		'test_huffman_encode',
+		'test_huffman_decode'
+	)
+)
+{#undef _TEST_}
+{#endif}
+
+{#include "test_rle.txt"}
+{#include "test_huffman.txt"}
