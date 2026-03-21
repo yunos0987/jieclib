@@ -6,6 +6,18 @@
 - [必要環境](#必要環境)
 - [Sysmac StudioでJiecLib内のライブラリを取り込む方法](#sysmac-studioでjieclib内のライブラリを取り込む方法)
 - [JiecLibに含まれるライブラリ](#jieclibに含まれるライブラリ)
+  - [array](#array)
+  - [encoding](#encoding)
+  - [compress](#compress)
+  - [bitset](#bitset)
+  - [hash](#hash)
+  - [container](#container)
+  - [math](#math)
+  - [vector](#vector)
+  - [linalg](#linalg)
+  - [random](#random)
+  - [stats](#stats)
+  - [string\_lib](#string_lib)
 - [JiecLib開発者向け](#jieclib開発者向け)
   - [サブモジュール含むリポジトリのクローン方法](#サブモジュール含むリポジトリのクローン方法)
   - [JiecLibのテスト方法](#jieclibのテスト方法)
@@ -77,6 +89,23 @@ IEC 61131-10 XML生成コマンド: `jiecc ./src/array/array.txt -I./src -o ./sr
 * **コピー**
   * [Array_copy_lreal](./src/array/copy.txt) / [Array_copy_dint](./src/array/copy.txt): 全要素コピー
   * [Array_copy_x_lreal](./src/array/copy.txt) / [Array_copy_x_dint](./src/array/copy.txt): 範囲指定コピー
+* **埋め込み**
+  * [Array_fill_lreal](./src/array/fill.txt) / [Array_fill_dint](./src/array/fill.txt): 全要素を指定値で埋める
+* **反転**
+  * [Array_reverse_lreal](./src/array/reverse.txt) / [Array_reverse_dint](./src/array/reverse.txt): 配列をin-placeで逆順にする
+* **回転**
+  * [Array_rotate_lreal](./src/array/rotate.txt) / [Array_rotate_dint](./src/array/rotate.txt): 配列をin-placeで回転する（正のshiftで左回転、負で右回転）
+* **インデックス検索・存在判定**
+  * [Array_index_of_lreal](./src/array/search.txt) / [Array_index_of_dint](./src/array/search.txt): 値の最初の出現インデックスを返す（見つからない場合は -1）
+  * [Array_last_index_of_lreal](./src/array/search.txt) / [Array_last_index_of_dint](./src/array/search.txt): 値の最後の出現インデックスを返す（見つからない場合は -1）
+  * [Array_contains_lreal](./src/array/search.txt) / [Array_contains_dint](./src/array/search.txt): 値が含まれるか判定する
+* **集計**
+  * [Array_min_lreal](./src/array/aggregate.txt) / [Array_min_dint](./src/array/aggregate.txt): 最小値を返す
+  * [Array_max_lreal](./src/array/aggregate.txt) / [Array_max_dint](./src/array/aggregate.txt): 最大値を返す
+  * [Array_min_index_lreal](./src/array/aggregate.txt) / [Array_min_index_dint](./src/array/aggregate.txt): 最小値の配列インデックスを返す
+  * [Array_max_index_lreal](./src/array/aggregate.txt) / [Array_max_index_dint](./src/array/aggregate.txt): 最大値の配列インデックスを返す
+* **等価判定**
+  * [Array_equals_lreal](./src/array/equivalence.txt) / [Array_equals_dint](./src/array/equivalence.txt): 2つの配列が等しいか判定する
 * **ソート**
   * [Array_bubblesort_lreal](./src/array/sort.txt) / [Array_bubblesort_dint](./src/array/sort.txt): バブルソート
   * [Array_mergesort_lreal](./src/array/sort.txt) / [Array_mergesort_dint](./src/array/sort.txt): マージソート
@@ -89,12 +118,56 @@ IEC 61131-10 XML生成コマンド: `jiecc ./src/array/array.txt -I./src -o ./sr
 * **Base64**
   * [base64encode](./src/encoding/base64.txt) / [base64decode](./src/encoding/base64.txt)
   * IEC 61131-10 XML生成コマンド: `jiecc ./src/encoding/base64.txt -I./src -o ./src/encoding/base64.xml -t omron`
+* **Base64URL**（RFC 4648 §5、URL-safe・パディングなし）
+  * [base64url_encode](./src/encoding/base64url.txt) / [base64url_decode](./src/encoding/base64url.txt)
+  * JWT・OAuth2 などの Web API で使われる `-`/`_` ベースの Base64 亜種
+  * IEC 61131-10 XML生成コマンド: `jiecc ./src/encoding/base64url.txt -I./src -o ./src/encoding/base64url.xml -t omron`
 * **Percent（URLエンコード）**
   * [percentencode](./src/encoding/percent.txt) / [percentdecode](./src/encoding/percent.txt)
   * IEC 61131-10 XML生成コマンド: `jiecc ./src/encoding/percent.txt -I./src -o ./src/encoding/percent.xml -t omron`
 * **Hex**
   * [hexencode](./src/encoding/hex.txt) / [hexdecode](./src/encoding/hex.txt)
   * IEC 61131-10 XML生成コマンド: `jiecc ./src/encoding/hex.txt -I./src -o ./src/encoding/hex.xml -t omron`
+* **JSON文字列エスケープ**（RFC 8259）
+  * [json_escape](./src/encoding/json_string.txt) / [json_unescape](./src/encoding/json_string.txt)
+  * REST API へ JSON ペイロードを送信する際の文字列値のエスケープ／アンエスケープ
+  * IEC 61131-10 XML生成コマンド: `jiecc ./src/encoding/json_string.txt -I./src -o ./src/encoding/json_string.xml -t omron`
+* **BCD（Packed BCD）**
+  * [bcd_encode](./src/encoding/bcd.txt) / [bcd_decode](./src/encoding/bcd.txt)
+  * HMI・計量器・Modbus 機器など産業機器との通信で使われる Packed BCD 形式
+  * IEC 61131-10 XML生成コマンド: `jiecc ./src/encoding/bcd.txt -I./src -o ./src/encoding/bcd.xml -t omron`
+
+### [compress](./src/compress)
+
+データ圧縮ライブラリです。入力配列を `dat`、出力配列を `dst` という名前の `var_in_out` 引数で渡し、戻り値は `dst` に書き込んだバイト数（dint型）です。
+
+* **RLE（PackBits ランレングス符号化）**
+  * [rle_encode](./src/compress/rle.txt) / [rle_decode](./src/compress/rle.txt)
+  * `offset`/`length` で入力範囲、`dst_offset` で出力先オフセットを指定可能
+  * IEC 61131-10 XML生成コマンド: `jiecc ./src/compress/rle.txt -I./src -o ./src/compress/rle.xml -t omron`
+* **Huffman（動的ハフマン符号化）**
+  * [huffman_encode](./src/compress/huffman.txt) / [huffman_decode](./src/compress/huffman.txt)
+  * 出力形式: 先頭4バイト（元データ長、big-endian）＋256バイト（符号長テーブル）＋ビットストリーム（MSBファースト）
+  * `offset`/`length` で入力範囲を指定可能
+  * IEC 61131-10 XML生成コマンド: `jiecc ./src/compress/huffman.txt -I./src -o ./src/compress/huffman.xml -t omron`
+
+### [bitset](./src/bitset)
+
+32ビット整数（DWORD）をビット集合として扱うライブラリです。個々のビットの設定・取得から、ビットフィールドの抽出・挿入まで対応します。
+
+| 関数 | 説明 |
+|---|---|
+| [bitset_set](./src/bitset/bitset.txt) | 指定ビットを 1 にする |
+| [bitset_clear](./src/bitset/bitset.txt) | 指定ビットを 0 にする |
+| [bitset_test](./src/bitset/bitset.txt) | 指定ビットが 1 か判定する |
+| [bitset_toggle](./src/bitset/bitset.txt) | 指定ビットを反転する |
+| [bitset_popcount](./src/bitset/bitset.txt) | セットされているビット数を返す |
+| [bitset_ffs](./src/bitset/bitset.txt) | 最下位の 1-bit の位置を返す（ない場合は -1） |
+| [bitset_ffc](./src/bitset/bitset.txt) | 最下位の 0-bit の位置を返す（ない場合は -1） |
+| [bitset_extract](./src/bitset/bitset.txt) | ビットフィールド [pos, pos+width-1] を右詰めで抽出する |
+| [bitset_insert](./src/bitset/bitset.txt) | 右詰め値をビットフィールド [pos, pos+width-1] に埋め込む |
+
+IEC 61131-10 XML生成コマンド: `jiecc ./src/bitset/bitset.txt -I./src -o ./src/bitset/bitset.xml -t omron`
 
 ### [hash](./src/hash)
 
@@ -593,6 +666,7 @@ IEC 61131-10 XML生成コマンド: `jiecc ./src/stats/stats.txt -I./src -o ./sr
   * [String_substitute](./src/string_lib/string_lib.txt): 文字列置換
 
 IEC 61131-10 XML生成コマンド: `jiecc ./src/string_lib/string_lib.txt -I./src -o ./src/string_lib/string_lib.xml -t omron`
+
 ## JiecLib開発者向け
 
 JiecLibプロジェクトの一部のライブラリは、外部の[JiecUnit](https://github.com/yunos0987/jiecunit)に依存しています。JiecLibプロジェクトは、外部依存のライブラリ管理のため、Git submodule を使用します。
