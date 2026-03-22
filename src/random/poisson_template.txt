@@ -1,0 +1,96 @@
+(*
+	================================================================================
+	Random Poisson template
+	================================================================================
+
+	This template generates a typed nextPoisson function (Knuth's algorithm)
+	from preprocessor macros.
+
+	Usage:
+	1. Define required macros.
+	2. Include this template once per generator type.
+
+	Required macros:
+	  - RandomGeneratorPrefix
+	    Prefix prepended to function names.
+	    Example: Xorshift32  ->  Xorshift32_nextPoisson
+	  - RandomGeneratorType
+	    Type of the self parameter.
+	    Example: Xorshift32_t
+
+	Generated API:
+	  - RandomGeneratorPrefix@@_nextPoisson(self, lambda) : dint
+
+	Example (Xorshift32):
+	  {#define RandomGeneratorPrefix Xorshift32}
+	  {#define RandomGeneratorType Xorshift32_t}
+	  {#include "poisson_template.txt"}
+	  {#undef RandomGeneratorPrefix}
+	  {#undef RandomGeneratorType}
+	================================================================================
+*)
+
+{#ifndef RandomGeneratorPrefix}
+	{#error require RandomGeneratorPrefix macro.}
+{#endif}
+
+{#ifndef RandomGeneratorType}
+	{#error require RandomGeneratorType macro.}
+{#endif}
+
+{#define _RANDOM_NEXT_POISSON_(P) P@@_nextPoisson}
+{#define RANDOM_NEXT_POISSON(P)   _RANDOM_NEXT_POISSON_(P)}
+{#define Random_nextPoisson        RANDOM_NEXT_POISSON(RandomGeneratorPrefix)}
+
+{#define _RANDOM_NEXT_DOUBLE_(P) P@@_nextDouble}
+{#define RANDOM_NEXT_DOUBLE(P)   _RANDOM_NEXT_DOUBLE_(P)}
+{#define Random_nextDouble        RANDOM_NEXT_DOUBLE(RandomGeneratorPrefix)}
+
+(*{doc Generates a Poisson distributed pseudo-random integer using Knuth&apos;s algorithm.
+@inout self The generator state.
+@input lambda The expected number of occurrences (lambda > 0).
+@return A pseudo-random non-negative integer from the Poisson distribution.
+@error If lambda <= 0. }*)
+function Random_nextPoisson: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The generator state.}*)
+		self: RandomGeneratorType;
+	end
+	var_input
+		(*{doc The expected number of occurrences (lambda > 0).}*)
+		lambda: lreal;
+	end
+	var_temp
+		exp_limit: lreal;
+		cnt: dint;
+		prod: lreal;
+		rand_val: lreal;
+	end
+	{st}
+	if lambda <= lreal#0.0 then
+		eno := false;
+	else
+		exp_limit := EXP(-lambda);
+		cnt := 0;
+		prod := lreal#1.0;
+		repeat
+			cnt := cnt + 1;
+			rand_val := Random_nextDouble(self);
+			if rand_val <= lreal#0.0 then
+				rand_val := lreal#2.2204460492503e-16;
+			end_if;
+			prod := prod * rand_val;
+		until prod <= exp_limit
+		end_repeat;
+		Random_nextPoisson := cnt - 1;
+	end_if;
+	{end}
+end
+
+{#undef _RANDOM_NEXT_POISSON_}
+{#undef RANDOM_NEXT_POISSON}
+{#undef Random_nextPoisson}
+{#undef _RANDOM_NEXT_DOUBLE_}
+{#undef RANDOM_NEXT_DOUBLE}
+{#undef Random_nextDouble}

@@ -10,13 +10,22 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_MersenneTwister_nextUDINT',
-		'test_MersenneTwister_nextLREAL'
+		'test_MersenneTwister_nextUint32',
+		'test_MersenneTwister_nextBool',
+		'test_MersenneTwister_nextUint64',
+		'test_MersenneTwister_nextFloat',
+		'test_MersenneTwister_nextDouble',
+		'test_MersenneTwister_nextIntInRange',
+		'test_MersenneTwister_nextRealInRange',
+		'test_MersenneTwister_nextBernoulli',
+		'test_MersenneTwister_nextGaussian',
+		'test_MersenneTwister_nextExponential',
+		'test_MersenneTwister_nextPoisson'
 	)
 )
 {#endif}
 
-TEST_S(test_MersenneTwister_nextUDINT)
+TEST_S(test_MersenneTwister_nextUint32)
 	var
 		mt: MersenneTwister_t;
 		seeds: array[0..3] of dword := [16#123, 16#234, 16#345, 16#456];
@@ -26,17 +35,51 @@ TEST_S(test_MersenneTwister_nextUDINT)
 	{st}
 	MersenneTwister_initByArray(mt, seeds, seeds_length);
 	// see https://www.math.sci.hiroshima-u.ac.jp/m-mat/MT/MT2002/mt19937ar.html
-	ASSERT_EQ_UDINT(udint#1067595299, MersenneTwister_nextUDINT(mt));
-	ASSERT_EQ_UDINT(udint#955945823, MersenneTwister_nextUDINT(mt));
+	ASSERT_EQ_UDINT(udint#1067595299, MersenneTwister_nextUint32(mt));
+	ASSERT_EQ_UDINT(udint#955945823, MersenneTwister_nextUint32(mt));
 	for temp := 3 to 998 by 1 do
-		MersenneTwister_nextUDINT(mt);
+		MersenneTwister_nextUint32(mt);
 	end_for;
-	ASSERT_EQ_UDINT(udint#1397735321, MersenneTwister_nextUDINT(mt));
-	ASSERT_EQ_UDINT(udint#3460025646, MersenneTwister_nextUDINT(mt));
+	ASSERT_EQ_UDINT(udint#1397735321, MersenneTwister_nextUint32(mt));
+	ASSERT_EQ_UDINT(udint#3460025646, MersenneTwister_nextUint32(mt));
 	{end}
 END_TEST_S
 
-TEST_S(test_MersenneTwister_nextLREAL)
+TEST_S(test_MersenneTwister_nextBool)
+	var
+		mt: MersenneTwister_t;
+		seeds: array[0..3] of dword := [16#123, 16#234, 16#345, 16#456];
+		seeds_length: dint := 4;
+		b1: bool;
+	end
+	{st}
+	// first nextBool from reference seed: MSB of 1st output (1067595299) = 0 → false
+	MersenneTwister_initByArray(mt, seeds, seeds_length);
+	EXPECT_EQ_BOOL(false, MersenneTwister_nextBool(mt));
+	// reproducibility
+	MersenneTwister_init(mt, dword#16#cafe_babe);
+	b1 := MersenneTwister_nextBool(mt);
+	MersenneTwister_init(mt, dword#16#cafe_babe);
+	EXPECT_EQ_BOOL(b1, MersenneTwister_nextBool(mt));
+	{end}
+END_TEST_S
+
+{#if not (_KEYENCE)}
+TEST_S(test_MersenneTwister_nextUint64)
+	var
+		mt: MersenneTwister_t;
+		seeds: array[0..3] of dword := [16#123, 16#234, 16#345, 16#456];
+		seeds_length: dint := 4;
+	end
+	{st}
+	// h=1st next(32)=1067595299=0x3FA23623, l=2nd=955945823=0x38FA935F
+	MersenneTwister_initByArray(mt, seeds, seeds_length);
+	ASSERT_EQ_ULINT(ulint#16#3FA2362338FA935F, MersenneTwister_nextUint64(mt));
+	{end}
+END_TEST_S
+{#endif}
+
+TEST_S(test_MersenneTwister_nextFloat)
 	var
 		mt: MersenneTwister_t;
 		seeds: array[0..3] of dword := [16#123, 16#234, 16#345, 16#456];
@@ -48,14 +91,155 @@ TEST_S(test_MersenneTwister_nextLREAL)
 	// see https://www.math.sci.hiroshima-u.ac.jp/m-mat/MT/MT2002/mt19937ar.html
 	// kludge
 	for temp := 1 to 1000 by 1 do
-		MersenneTwister_nextUDINT(mt);
+		MersenneTwister_nextUint32(mt);
 	end_for;
-	ASSERT_NEAR(0.76275443, MersenneTwister_nextREAL(mt), 1.0e-7);
-	ASSERT_NEAR(0.99000644, MersenneTwister_nextREAL(mt), 1.0e-7);
+	ASSERT_NEAR(0.76275443, MersenneTwister_nextFloat(mt), 1.0e-7);
+	ASSERT_NEAR(0.99000644, MersenneTwister_nextFloat(mt), 1.0e-7);
 	for temp := 3 to 998 by 1 do
-		MersenneTwister_nextREAL(mt);
+		MersenneTwister_nextFloat(mt);
 	end_for;
-	ASSERT_NEAR(0.74566046, MersenneTwister_nextREAL(mt), 1.0e-7);
-	ASSERT_NEAR(0.72157152, MersenneTwister_nextREAL(mt), 1.0e-7);
+	ASSERT_NEAR(0.74566046, MersenneTwister_nextFloat(mt), 1.0e-7);
+	ASSERT_NEAR(0.72157152, MersenneTwister_nextFloat(mt), 1.0e-7);
+	{end}
+END_TEST_S
+
+TEST_S(test_MersenneTwister_nextDouble)
+	var
+		mt: MersenneTwister_t;
+		lr: lreal;
+		lr2: lreal;
+	end
+	{st}
+	// nextDouble must be in [0.0, 1.0)
+	MersenneTwister_init(mt, dword#16#cafe_babe);
+	lr := MersenneTwister_nextDouble(mt);
+	EXPECT_GE_LREAL(lr, lreal#0.0);
+	EXPECT_LT_LREAL(lr, lreal#1.0);
+	// Python reference value (seed=0xCAFEBABE)
+	EXPECT_NEAR(lreal#5.180914967247703e-01, lr, lreal#1.0e-15);
+
+	// reproducibility: same seed yields same result
+	MersenneTwister_init(mt, dword#16#cafe_babe);
+	lr2 := MersenneTwister_nextDouble(mt);
+	MersenneTwister_init(mt, dword#16#cafe_babe);
+	EXPECT_NEAR(lr2, MersenneTwister_nextDouble(mt), lreal#0.0);
+	{end}
+END_TEST_S
+
+TEST_S(test_MersenneTwister_nextIntInRange)
+	var
+		mt: MersenneTwister_t;
+		result: dint;
+		ok: bool;
+	end
+	{st}
+	// min > max → error
+	MersenneTwister_init(mt, dword#16#cafe_babe);
+	MersenneTwister_nextIntInRange(self:=mt, min_val:=10, max_val:=5, eno=>ok);
+	EXPECT_FALSE(ok);
+	// min == max → always returns min
+	MersenneTwister_init(mt, dword#16#cafe_babe);
+	EXPECT_EQ_DINT(dint#3, MersenneTwister_nextIntInRange(mt, 3, 3));
+	// result must be in [min_val, max_val]
+	MersenneTwister_init(mt, dword#16#cafe_babe);
+	result := MersenneTwister_nextIntInRange(mt, -100, 100);
+	EXPECT_GE_DINT(result, -100);
+	EXPECT_LE_DINT(result, 100);
+	// Python reference value (seed=0xCAFEBABE, range=-100..100)
+	EXPECT_EQ_DINT(dint#-55, result);
+	{end}
+END_TEST_S
+
+TEST_S(test_MersenneTwister_nextRealInRange)
+	var
+		mt: MersenneTwister_t;
+		result: lreal;
+		ok: bool;
+	end
+	{st}
+	// min >= max → error
+	MersenneTwister_init(mt, dword#16#cafe_babe);
+	MersenneTwister_nextRealInRange(self:=mt, min_val:=lreal#5.0, max_val:=lreal#5.0, eno=>ok);
+	EXPECT_FALSE(ok);
+	// result must be in [min_val, max_val)
+	MersenneTwister_init(mt, dword#16#cafe_babe);
+	result := MersenneTwister_nextRealInRange(mt, lreal#-1.0, lreal#1.0);
+	EXPECT_GE_LREAL(result, lreal#-1.0);
+	EXPECT_LT_LREAL(result, lreal#1.0);
+	// Python reference value (seed=0xCAFEBABE, range=-1.0..1.0)
+	EXPECT_NEAR(lreal#3.618299344954057e-02, result, lreal#1.0e-15);
+	{end}
+END_TEST_S
+
+TEST_S(test_MersenneTwister_nextBernoulli)
+	var
+		mt: MersenneTwister_t;
+	end
+	{st}
+	// prob=1.0: always true
+	MersenneTwister_init(mt, dword#16#cafe_babe);
+	EXPECT_EQ_BOOL(true, MersenneTwister_nextBernoulli(mt, lreal#1.0));
+	// prob=0.0: always false
+	MersenneTwister_init(mt, dword#16#cafe_babe);
+	EXPECT_EQ_BOOL(false, MersenneTwister_nextBernoulli(mt, lreal#0.0));
+	{end}
+END_TEST_S
+
+TEST_S(test_MersenneTwister_nextGaussian)
+	var
+		mt: MersenneTwister_t;
+		ok: bool;
+	end
+	{st}
+	// sigma < 0 → error
+	MersenneTwister_init(mt, dword#16#cafe_babe);
+	MersenneTwister_nextGaussian(self:=mt, mean:=lreal#0.0, sigma:=lreal#-1.0, eno=>ok);
+	EXPECT_FALSE(ok);
+	// sigma=0 → returns mean exactly
+	MersenneTwister_init(mt, dword#16#cafe_babe);
+	EXPECT_NEAR(lreal#5.0, MersenneTwister_nextGaussian(mt, lreal#5.0, lreal#0.0), lreal#1.0e-10);
+	// Python reference value (seed=0xCAFEBABE, mean=0, sigma=1)
+	MersenneTwister_init(mt, dword#16#cafe_babe);
+	EXPECT_NEAR(lreal#1.0082240222967978e-01, MersenneTwister_nextGaussian(mt, lreal#0.0, lreal#1.0), lreal#1.0e-10);
+	{end}
+END_TEST_S
+
+TEST_S(test_MersenneTwister_nextExponential)
+	var
+		mt: MersenneTwister_t;
+		result: lreal;
+		ok: bool;
+	end
+	{st}
+	// lambda <= 0 → error
+	MersenneTwister_init(mt, dword#16#cafe_babe);
+	MersenneTwister_nextExponential(self:=mt, lambda:=lreal#0.0, eno=>ok);
+	EXPECT_FALSE(ok);
+	// result must be > 0
+	MersenneTwister_init(mt, dword#16#cafe_babe);
+	result := MersenneTwister_nextExponential(mt, lreal#1.0);
+	EXPECT_GT_LREAL(result, lreal#0.0);
+	// Python reference value (seed=0xCAFEBABE, lambda=1.0)
+	EXPECT_NEAR(lreal#6.576034177169052e-01, result, lreal#1.0e-10);
+	{end}
+END_TEST_S
+
+TEST_S(test_MersenneTwister_nextPoisson)
+	var
+		mt: MersenneTwister_t;
+		result: dint;
+		ok: bool;
+	end
+	{st}
+	// lambda <= 0 → error
+	MersenneTwister_init(mt, dword#16#cafe_babe);
+	MersenneTwister_nextPoisson(self:=mt, lambda:=lreal#0.0, eno=>ok);
+	EXPECT_FALSE(ok);
+	// result must be >= 0
+	MersenneTwister_init(mt, dword#16#cafe_babe);
+	result := MersenneTwister_nextPoisson(mt, lreal#1.0);
+	EXPECT_GE_DINT(result, 0);
+	// Python reference value (seed=0xCAFEBABE, lambda=1.0)
+	EXPECT_EQ_DINT(dint#2, result);
 	{end}
 END_TEST_S

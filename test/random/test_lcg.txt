@@ -1,0 +1,154 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/random/test_lcg.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/random/test_lcg.xml -t omron
+ * or
+ * $ jiecc ./test/random/test_lcg.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/random/test_lcg.xml -t keyence
+ *)
+{#include <jiecunit.txt>}
+{#include <random/lcg.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_LCG_nextUint32',
+		'test_LCG_nextBool',
+		'test_LCG_nextFloat',
+		'test_LCG_nextDouble',
+		'test_LCG_nextIntInRange',
+		'test_LCG_nextRealInRange',
+		'test_LCG_nextBernoulli'
+	)
+)
+{#endif}
+
+TEST_S(test_LCG_nextUint32)
+	var
+		lcg: LCG_t;
+		v1: udint;
+	end
+	{st}
+	// seed=0: 1664525*0 + 1013904223 = 1013904223
+	LCG_init(self:=lcg, seed:=udint#0);
+	EXPECT_EQ_UDINT(udint#1013904223, LCG_nextUint32(lcg));
+
+	// seed=1: 1664525*1 + 1013904223 = 1015568748
+	LCG_init(self:=lcg, seed:=udint#1);
+	EXPECT_EQ_UDINT(udint#1015568748, LCG_nextUint32(lcg));
+
+	// reproducibility: same seed yields same sequence
+	LCG_init(self:=lcg, seed:=udint#16#CAFEBABE);
+	v1 := LCG_nextUint32(lcg);
+	LCG_init(self:=lcg, seed:=udint#16#CAFEBABE);
+	EXPECT_EQ_UDINT(v1, LCG_nextUint32(lcg));
+	{end}
+END_TEST_S
+
+TEST_S(test_LCG_nextBool)
+	var
+		lcg: LCG_t;
+	end
+	{st}
+	// seed=0: first value=1013904223=0x3C6EF35F, MSB=0 → false
+	LCG_init(self:=lcg, seed:=udint#0);
+	EXPECT_EQ_BOOL(false, LCG_nextBool(lcg));
+
+	// seed=1: first value=1015568748=0x3C6EF36C, MSB=0 → false
+	LCG_init(self:=lcg, seed:=udint#1);
+	EXPECT_EQ_BOOL(false, LCG_nextBool(lcg));
+	{end}
+END_TEST_S
+
+TEST_S(test_LCG_nextFloat)
+	var
+		lcg: LCG_t;
+		float_val: real;
+	end
+	{st}
+	// nextFloat must be in [0.0, 1.0)
+	LCG_init(self:=lcg, seed:=udint#16#12345678);
+	float_val := LCG_nextFloat(lcg);
+	EXPECT_GE_LREAL(lreal_to_real(float_val), lreal#0.0);
+	EXPECT_LT_LREAL(lreal_to_real(float_val), lreal#1.0);
+	// Python reference value
+	EXPECT_NEAR(real#4.58055943250656e-01, float_val, 1.0e-7);
+	{end}
+END_TEST_S
+
+TEST_S(test_LCG_nextDouble)
+	var
+		lcg: LCG_t;
+		lr: lreal;
+	end
+	{st}
+	// nextDouble must be in [0.0, 1.0)
+	LCG_init(self:=lcg, seed:=udint#16#12345678);
+	lr := LCG_nextDouble(lcg);
+	EXPECT_GE_LREAL(lr, lreal#0.0);
+	EXPECT_LT_LREAL(lr, lreal#1.0);
+	// Python reference value
+	EXPECT_NEAR(lreal#4.580559417718596e-01, lr, lreal#1.0e-15);
+	{end}
+END_TEST_S
+
+TEST_S(test_LCG_nextIntInRange)
+	var
+		lcg: LCG_t;
+		result: dint;
+		ok: bool;
+	end
+	{st}
+	// min > max → error
+	LCG_init(self:=lcg, seed:=udint#1);
+	LCG_nextIntInRange(self:=lcg, min_val:=10, max_val:=5, eno=>ok);
+	EXPECT_FALSE(ok);
+
+	// min == max → always returns min
+	LCG_init(self:=lcg, seed:=udint#1);
+	EXPECT_EQ_DINT(dint#42, LCG_nextIntInRange(lcg, 42, 42));
+
+	// result must be in [min_val, max_val]
+	LCG_init(self:=lcg, seed:=udint#16#DEADBEEF);
+	result := LCG_nextIntInRange(lcg, -5, 5);
+	EXPECT_GE_DINT(result, -5);
+	EXPECT_LE_DINT(result, 5);
+	// Python reference value (seed=0xDEADBEEF, range=-5..5)
+	EXPECT_EQ_DINT(dint#3, result);
+	{end}
+END_TEST_S
+
+TEST_S(test_LCG_nextRealInRange)
+	var
+		lcg: LCG_t;
+		result: lreal;
+		ok: bool;
+	end
+	{st}
+	// min >= max → error
+	LCG_init(self:=lcg, seed:=udint#1);
+	LCG_nextRealInRange(self:=lcg, min_val:=lreal#5.0, max_val:=lreal#5.0, eno=>ok);
+	EXPECT_FALSE(ok);
+
+	// result must be in [min_val, max_val)
+	LCG_init(self:=lcg, seed:=udint#16#12345678);
+	result := LCG_nextRealInRange(lcg, lreal#-1.0, lreal#1.0);
+	EXPECT_GE_LREAL(result, lreal#-1.0);
+	EXPECT_LT_LREAL(result, lreal#1.0);
+	// Python reference value (seed=0x12345678, range=-1.0..1.0)
+	EXPECT_NEAR(lreal#-8.38881164562808e-02, result, lreal#1.0e-15);
+	{end}
+END_TEST_S
+
+TEST_S(test_LCG_nextBernoulli)
+	var
+		lcg: LCG_t;
+	end
+	{st}
+	// prob=1.0: nextDouble < 1.0 always → always true
+	LCG_init(self:=lcg, seed:=udint#16#12345678);
+	EXPECT_EQ_BOOL(true, LCG_nextBernoulli(lcg, lreal#1.0));
+
+	// prob=0.0: nextDouble >= 0.0 always → always false
+	LCG_init(self:=lcg, seed:=udint#16#12345678);
+	EXPECT_EQ_BOOL(false, LCG_nextBernoulli(lcg, lreal#0.0));
+	{end}
+END_TEST_S

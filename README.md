@@ -179,7 +179,7 @@ IEC 61131-10 XML生成コマンド: `jiecc ./src/bitset/bitset.txt -I./src -o ./
   * IEC 61131-10 XML生成コマンド: `jiecc ./src/hash/crc32.txt -I./src -o ./src/hash/crc32.xml -t omron`
 * **MD5**
   * [MD5_string](./src/hash/md5.txt): 文字列入力のMD5
-  * [MD5_bytes](./src/hash/md5.txt): バイト配列入力のMD5（`offset`/`length`/を指定）
+  * [MD5_bytes](./src/hash/md5.txt): バイト配列入力のMD5（`offset`/`length`を指定）
   * IEC 61131-10 XML生成コマンド: `jiecc ./src/hash/md5.txt -I./src -o ./src/hash/md5.xml -t omron`
 * **SHA-1**
   * [SHA1_string](./src/hash/sha1.txt): 文字列入力のSHA-1
@@ -563,7 +563,7 @@ IEC 61131-10 XML生成コマンド: `jiecc ./src/linalg/linalg.txt -I./src -o ./
 
 ### [random](./src/random)
 
-乱数生成ライブラリです。
+乱数生成ライブラリです。FA（Factory Automation）用途に必要なアルゴリズムと統計分布を提供します。
 
 * **Mersenne Twister**
   * [mersenne_twister](./src/random/mersenne_twister.txt): 高速かつ超長周期の疑似乱数生成アルゴリズム
@@ -572,6 +572,39 @@ IEC 61131-10 XML生成コマンド: `jiecc ./src/linalg/linalg.txt -I./src -o ./
 * **Xorshift32**
   * [xorshift32](./src/random/xorshift32.txt): 軽量で高速な疑似乱数生成アルゴリズム
   * IEC 61131-10 XML生成コマンド: `jiecc ./src/random/xorshift32.txt -I./src -o ./src/random/xorshift32.xml -t omron`
+* **LCG**（線形合同法）
+  * [lcg](./src/random/lcg.txt): 資源制約のある組込みPLCに適した超軽量決定論的乱数生成アルゴリズム
+  * 式: `state := 1664525 * state + 1013904223`（Numerical Recipes標準パラメータ）
+  * IEC 61131-10 XML生成コマンド: `jiecc ./src/random/lcg.txt -I./src -o ./src/random/lcg.xml -t omron`
+* **LFSR32**（Galois 線形帰還シフトレジスタ）
+  * [lfsr32](./src/random/lfsr32.txt): PRBSテストパターン生成、基板試験（ICT/ATE）、シリアル通信スクランブル、BISTに適した32ビットGalois LFSR
+  * 多項式 `0xB4BCD35C`（デフォルト）で周期 2^32 − 1 の最大長系列を生成
+  * IEC 61131-10 XML生成コマンド: `jiecc ./src/random/lfsr32.txt -I./src -o ./src/random/lfsr32.xml -t omron`
+
+**API 対応表**（○: あり、-: なし、※: Keyence除く）
+
+| 関数 | 戻り値 | MersenneTwister | Xorshift32 | LCG | LFSR32 |
+|---|---|:---:|:---:|:---:|:---:|
+| `nextBool()` | bool | ○ | ○ | ○ | ○ |
+| `nextByte()` | byte | - | - | - | ○ |
+| `nextUint32()` | udint | ○ | ○ | ○ | ○ |
+| `nextUint64()` | ulint | ○※ | ○※ | - | - |
+| `nextFloat()` | real | ○ | ○ | ○ | - |
+| `nextDouble()` | lreal | ○ | ○ | ○ | - |
+| `nextIntInRange(min_val, max_val)` | dint | ○ | ○ | ○ | ○ |
+| `nextRealInRange(min_val, max_val)` | lreal | ○ | ○ | ○ | - |
+| `nextBernoulli(prob)` | bool | ○ | ○ | ○ | - |
+| `nextGaussian(mean, sigma)` | lreal | ○ | ○ | - | - |
+| `nextExponential(lambda)` | lreal | ○ | ○ | - | - |
+| `nextPoisson(lambda)` | dint | ○ | ○ | - | - |
+
+**統計分布関数**（Mersenne Twister・Xorshift32）
+
+| 関数 | 用途 | 実装 |
+|---|---|---|
+| `nextGaussian(mean, sigma)` | SPC・工程変動シミュレーション | Box-Muller変換 |
+| `nextExponential(lambda)` | 故障間隔(MTBF)シミュレーション | 逆CDF: `-LN(U)/lambda` |
+| `nextPoisson(lambda)` | 不良数・イベント到着モデル | Knuthのアルゴリズム |
 
 ### [stats](./src/stats)
 
