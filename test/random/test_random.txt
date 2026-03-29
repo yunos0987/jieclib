@@ -13,9 +13,40 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_MersenneTwister_nextUDINT',
-		'test_MersenneTwister_nextLREAL',
-		'test_xorshift32'
+		'test_MersenneTwister_nextUint32',
+		'test_MersenneTwister_nextBool',
+		'test_MersenneTwister_nextUint64',
+		'test_MersenneTwister_nextFloat',
+		'test_MersenneTwister_nextDouble',
+		'test_MersenneTwister_nextIntInRange',
+		'test_MersenneTwister_nextRealInRange',
+		'test_MersenneTwister_nextBernoulli',
+		'test_MersenneTwister_nextGaussian',
+		'test_MersenneTwister_nextExponential',
+		'test_MersenneTwister_nextPoisson',
+		'test_xorshift32_nextUint32',
+		'test_xorshift32_nextBool',
+		'test_xorshift32_nextUint64',
+		'test_xorshift32_nextFloat',
+		'test_xorshift32_nextDouble',
+		'test_xorshift32_nextIntInRange',
+		'test_xorshift32_nextRealInRange',
+		'test_xorshift32_nextBernoulli',
+		'test_xorshift32_nextGaussian',
+		'test_xorshift32_nextExponential',
+		'test_xorshift32_nextPoisson',
+		'test_LFSR32_init',
+		'test_LFSR32_nextBool',
+		'test_LFSR32_nextByte',
+		'test_LFSR32_nextUint32',
+		'test_LFSR32_nextIntInRange',
+		'test_LCG_nextUint32',
+		'test_LCG_nextBool',
+		'test_LCG_nextFloat',
+		'test_LCG_nextDouble',
+		'test_LCG_nextIntInRange',
+		'test_LCG_nextRealInRange',
+		'test_LCG_nextBernoulli'
 	)
 )
 {#undef _TEST_}
@@ -23,3 +54,5 @@ DEFINE_CONFIGURATION(
 
 {#include "test_mersenne_twister.txt"}
 {#include "test_xorshift32.txt"}
+{#include "test_lfsr32.txt"}
+{#include "test_lcg.txt"}

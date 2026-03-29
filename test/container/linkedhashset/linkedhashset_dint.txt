@@ -1,0 +1,38 @@
+{#ifndef __TEST_CONTAINER_LINKEDHASHSET_DINT_TXT__}
+{#define __TEST_CONTAINER_LINKEDHASHSET_DINT_TXT__}
+
+{#include <sys_conv.txt>}
+
+function Dint_hash_for_linkedhashset_test: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: dint;
+	end
+	{st}
+	Dint_hash_for_linkedhashset_test := dword_to_udint(dint_to_dword(self));
+	{end}
+end
+
+{#define LinkedHashSetName dint}
+{#define LinkedHashSetCapacity 8}
+{#define LinkedHashSetElementType dint}
+{#define LinkedHashSetElementHashFunction Dint_hash_for_linkedhashset_test}
+{#include <container/linkedhashset/linkedhashset_template.txt>}
+{#undef LinkedHashSetName}
+{#undef LinkedHashSetCapacity}
+{#undef LinkedHashSetElementType}
+{#undef LinkedHashSetElementHashFunction}
+
+{#define LinkedHashSetName dint_access}
+{#define LinkedHashSetCapacity 8}
+{#define LinkedHashSetElementType dint}
+{#define LinkedHashSetElementHashFunction Dint_hash_for_linkedhashset_test}
+{#define LinkedHashSetAccessOrder true}
+{#include <container/linkedhashset/linkedhashset_template.txt>}
+{#undef LinkedHashSetName}
+{#undef LinkedHashSetCapacity}
+{#undef LinkedHashSetElementType}
+{#undef LinkedHashSetElementHashFunction}
+{#undef LinkedHashSetAccessOrder}
+
+{#endif}

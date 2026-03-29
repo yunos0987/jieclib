@@ -1,0 +1,175 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/array/test_array_rotate.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/array/test_array_rotate.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <array/array.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_array_rotate_lreal',
+		'test_array_rotate_dint',
+		'test_array_rotate_offset'
+	)
+)
+{#endif}
+
+TEST_S(test_array_rotate_lreal)
+	var
+		aa: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+	end
+	{st}
+	// Fact: Rotating left by 1 moves the first element to the end.
+		// Arrange
+	aa[0] := 1.0; aa[1] := 2.0; aa[2] := 3.0; aa[3] := 4.0; aa[4] := 5.0;
+		// Act
+	Array_rotate_lreal(self:=aa, shift:=1);
+		// Assert
+	EXPECT_EQ_LREAL(2.0, aa[0]);
+	EXPECT_EQ_LREAL(3.0, aa[1]);
+	EXPECT_EQ_LREAL(4.0, aa[2]);
+	EXPECT_EQ_LREAL(5.0, aa[3]);
+	EXPECT_EQ_LREAL(1.0, aa[4]);
+
+	// Fact: Rotating left by 2 shifts two elements to the end.
+		// Arrange
+	aa[0] := 1.0; aa[1] := 2.0; aa[2] := 3.0; aa[3] := 4.0; aa[4] := 5.0;
+		// Act
+	Array_rotate_lreal(self:=aa, shift:=2);
+		// Assert
+	EXPECT_EQ_LREAL(3.0, aa[0]);
+	EXPECT_EQ_LREAL(4.0, aa[1]);
+	EXPECT_EQ_LREAL(5.0, aa[2]);
+	EXPECT_EQ_LREAL(1.0, aa[3]);
+	EXPECT_EQ_LREAL(2.0, aa[4]);
+
+	// Fact: Rotating right by 1 (shift=-1) moves the last element to the front.
+		// Arrange
+	aa[0] := 1.0; aa[1] := 2.0; aa[2] := 3.0; aa[3] := 4.0; aa[4] := 5.0;
+		// Act
+	Array_rotate_lreal(self:=aa, shift:=-1);
+		// Assert
+	EXPECT_EQ_LREAL(5.0, aa[0]);
+	EXPECT_EQ_LREAL(1.0, aa[1]);
+	EXPECT_EQ_LREAL(2.0, aa[2]);
+	EXPECT_EQ_LREAL(3.0, aa[3]);
+	EXPECT_EQ_LREAL(4.0, aa[4]);
+
+	// Fact: Rotating by 0 leaves the array unchanged.
+		// Arrange
+	aa[0] := 1.0; aa[1] := 2.0; aa[2] := 3.0; aa[3] := 4.0; aa[4] := 5.0;
+		// Act
+	Array_rotate_lreal(self:=aa, shift:=0);
+		// Assert
+	EXPECT_EQ_LREAL(1.0, aa[0]);
+	EXPECT_EQ_LREAL(2.0, aa[1]);
+	EXPECT_EQ_LREAL(3.0, aa[2]);
+	EXPECT_EQ_LREAL(4.0, aa[3]);
+	EXPECT_EQ_LREAL(5.0, aa[4]);
+
+	// Fact: Rotating by exactly n (array length) is a no-op.
+		// Arrange
+	aa[0] := 1.0; aa[1] := 2.0; aa[2] := 3.0; aa[3] := 4.0; aa[4] := 5.0;
+		// Act
+	Array_rotate_lreal(self:=aa, shift:=5);
+		// Assert
+	EXPECT_EQ_LREAL(1.0, aa[0]);
+	EXPECT_EQ_LREAL(2.0, aa[1]);
+	EXPECT_EQ_LREAL(3.0, aa[2]);
+	EXPECT_EQ_LREAL(4.0, aa[3]);
+	EXPECT_EQ_LREAL(5.0, aa[4]);
+
+	// Fact: Rotating by n+1 is equivalent to rotating by 1.
+		// Arrange
+	aa[0] := 1.0; aa[1] := 2.0; aa[2] := 3.0; aa[3] := 4.0; aa[4] := 5.0;
+		// Act
+	Array_rotate_lreal(self:=aa, shift:=6);
+		// Assert
+	EXPECT_EQ_LREAL(2.0, aa[0]);
+	EXPECT_EQ_LREAL(3.0, aa[1]);
+	EXPECT_EQ_LREAL(4.0, aa[2]);
+	EXPECT_EQ_LREAL(5.0, aa[3]);
+	EXPECT_EQ_LREAL(1.0, aa[4]);
+	{end}
+END_TEST_S
+
+TEST_S(test_array_rotate_dint)
+	var
+		bb: array[0..3] of dint := [10, 20, 30, 40];
+		cc: array[0..0] of dint := [99];
+	end
+	{st}
+	// Fact: Rotating a 4-element dint array left by 1 wraps the first element.
+		// Arrange
+	bb[0] := 10; bb[1] := 20; bb[2] := 30; bb[3] := 40;
+		// Act
+	Array_rotate_dint(self:=bb, shift:=1);
+		// Assert
+	EXPECT_EQ_INT32(20, bb[0]);
+	EXPECT_EQ_INT32(30, bb[1]);
+	EXPECT_EQ_INT32(40, bb[2]);
+	EXPECT_EQ_INT32(10, bb[3]);
+
+	// Fact: Rotating right by 2 (shift=-2) equals rotating left by 2.
+		// Arrange
+	bb[0] := 10; bb[1] := 20; bb[2] := 30; bb[3] := 40;
+		// Act
+	Array_rotate_dint(self:=bb, shift:=-2);
+		// Assert
+	EXPECT_EQ_INT32(30, bb[0]);
+	EXPECT_EQ_INT32(40, bb[1]);
+	EXPECT_EQ_INT32(10, bb[2]);
+	EXPECT_EQ_INT32(20, bb[3]);
+
+	// Fact: A 1-element array is unchanged by any rotation.
+		// Arrange
+		// Act
+	Array_rotate_dint(self:=cc, shift:=7);
+		// Assert
+	EXPECT_EQ_INT32(99, cc[0]);
+	{end}
+END_TEST_S
+
+TEST_S(test_array_rotate_offset)
+	var
+		aa: array[5..9] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
+		bb: array[10..13] of dint := [10, 20, 30, 40];
+	end
+	{st}
+	// Fact: Rotating an offset lreal array left by 1 wraps the first element to the end.
+		// Arrange
+	aa[5] := 1.0; aa[6] := 2.0; aa[7] := 3.0; aa[8] := 4.0; aa[9] := 5.0;
+		// Act
+	Array_rotate_lreal(self:=aa, shift:=1);
+		// Assert
+	EXPECT_EQ_LREAL(2.0, aa[5]);
+	EXPECT_EQ_LREAL(3.0, aa[6]);
+	EXPECT_EQ_LREAL(4.0, aa[7]);
+	EXPECT_EQ_LREAL(5.0, aa[8]);
+	EXPECT_EQ_LREAL(1.0, aa[9]);
+
+	// Fact: Rotating an offset dint array right by 1 wraps the last element to the front.
+		// Arrange
+	bb[10] := 10; bb[11] := 20; bb[12] := 30; bb[13] := 40;
+		// Act
+	Array_rotate_dint(self:=bb, shift:=-1);
+		// Assert
+	EXPECT_EQ_INT32(40, bb[10]);
+	EXPECT_EQ_INT32(10, bb[11]);
+	EXPECT_EQ_INT32(20, bb[12]);
+	EXPECT_EQ_INT32(30, bb[13]);
+
+	// Fact: Rotating by exactly n on an offset array is a no-op.
+		// Arrange
+	aa[5] := 1.0; aa[6] := 2.0; aa[7] := 3.0; aa[8] := 4.0; aa[9] := 5.0;
+		// Act
+	Array_rotate_lreal(self:=aa, shift:=5);
+		// Assert
+	EXPECT_EQ_LREAL(1.0, aa[5]);
+	EXPECT_EQ_LREAL(2.0, aa[6]);
+	EXPECT_EQ_LREAL(3.0, aa[7]);
+	EXPECT_EQ_LREAL(4.0, aa[8]);
+	EXPECT_EQ_LREAL(5.0, aa[9]);
+	{end}
+END_TEST_S

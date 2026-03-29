@@ -1,0 +1,81 @@
+(*
+	================================================================================
+	Random real-in-range template
+	================================================================================
+
+	This template generates a typed nextRealInRange function
+	from preprocessor macros.
+
+	Usage:
+	1. Define required macros.
+	2. Include this template once per generator type.
+
+	Required macros:
+	  - RandomGeneratorPrefix
+	    Prefix prepended to function names.
+	    Example: LCG  ->  LCG_nextRealInRange
+	  - RandomGeneratorType
+	    Type of the self parameter.
+	    Example: LCG_t
+
+	Generated API:
+	  - RandomGeneratorPrefix@@_nextRealInRange(self, min_val, max_val) : lreal
+
+	Example (LCG):
+	  {#define RandomGeneratorPrefix LCG}
+	  {#define RandomGeneratorType LCG_t}
+	  {#include "real_in_range_template.txt"}
+	  {#undef RandomGeneratorPrefix}
+	  {#undef RandomGeneratorType}
+	================================================================================
+*)
+
+{#ifndef RandomGeneratorPrefix}
+	{#error require RandomGeneratorPrefix macro.}
+{#endif}
+
+{#ifndef RandomGeneratorType}
+	{#error require RandomGeneratorType macro.}
+{#endif}
+
+{#define _RANDOM_NEXT_REAL_IN_RANGE_(P) P@@_nextRealInRange}
+{#define RANDOM_NEXT_REAL_IN_RANGE(P)   _RANDOM_NEXT_REAL_IN_RANGE_(P)}
+{#define Random_nextRealInRange          RANDOM_NEXT_REAL_IN_RANGE(RandomGeneratorPrefix)}
+
+{#define _RANDOM_NEXT_DOUBLE_(P) P@@_nextDouble}
+{#define RANDOM_NEXT_DOUBLE(P)   _RANDOM_NEXT_DOUBLE_(P)}
+{#define Random_nextDouble        RANDOM_NEXT_DOUBLE(RandomGeneratorPrefix)}
+
+(*{doc Generates a uniformly distributed floating-point pseudo-random number in the range [min_val, max_val).
+@inout self The generator state.
+@input min_val The minimum value (inclusive).
+@input max_val The maximum value (exclusive).
+@return A pseudo-random value in [min_val, max_val).
+@error If min_val >= max_val. }*)
+function Random_nextRealInRange: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The generator state.}*)
+		self: RandomGeneratorType;
+	end
+	var_input
+		(*{doc The minimum value (inclusive).}*)
+		min_val: lreal;
+		(*{doc The maximum value (exclusive).}*)
+		max_val: lreal;
+	end
+	{st}
+	if min_val >= max_val then
+		eno := false;
+	else
+		Random_nextRealInRange := min_val + Random_nextDouble(self) * (max_val - min_val);
+	end_if;
+	{end}
+end
+
+{#undef _RANDOM_NEXT_REAL_IN_RANGE_}
+{#undef RANDOM_NEXT_REAL_IN_RANGE}
+{#undef Random_nextRealInRange}
+{#undef _RANDOM_NEXT_DOUBLE_}
+{#undef RANDOM_NEXT_DOUBLE}
+{#undef Random_nextDouble}

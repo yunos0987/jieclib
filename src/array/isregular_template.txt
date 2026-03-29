@@ -1,0 +1,143 @@
+(*
+	================================================================================
+	Array isRegular template
+	================================================================================
+
+	This template generates typed Array_isRegular2d_x, Array_isRegular2d, and
+	Array_isRegular functions from preprocessor macros.
+
+	Usage:
+	1. Define required macros.
+	2. Include this template once per generated type.
+
+	Note: These functions are only available on Omron NX/NJ platforms.
+
+	Required macros:
+	  - ArrayIsRegularName
+	    Suffix appended to function names.
+	    Example: lreal  ->  Array_isRegular_lreal, Array_isRegular2d_lreal, ...
+	  - ArrayIsRegularElementType
+	    Element type of the array.
+	    Example: lreal, dint
+
+	Generated API:
+	  - Array_isRegular2d_x_@@ArrayIsRegularName@@(self, dim) : dint
+	  - Array_isRegular2d_@@ArrayIsRegularName@@(self) : dint
+	  - Array_isRegular_@@ArrayIsRegularName@@(self) : dint
+	  - Convenience aliases:
+	      Array_isRegular2d_x -> Array_isRegular2d_x_@@ArrayIsRegularName@@
+	      Array_isRegular2d   -> Array_isRegular2d_@@ArrayIsRegularName@@
+	      Array_isRegular     -> Array_isRegular_@@ArrayIsRegularName@@
+
+	Example (lreal):
+	  {#define ArrayIsRegularName lreal}
+	  {#define ArrayIsRegularElementType lreal}
+	  {#include <array/isregular_template.txt>}
+	================================================================================
+*)
+{#include <sys.txt>}
+
+{#ifndef ArrayIsRegularName}
+	{#error require ArrayIsRegularName macro.}
+{#endif}
+
+{#ifndef ArrayIsRegularElementType}
+	{#error require ArrayIsRegularElementType macro.}
+{#endif}
+
+{#define _ARRAY_IS_REGULAR2D_X_(T) Array_isRegular2d_x_@@T}
+{#define ARRAY_IS_REGULAR2D_X(T)   _ARRAY_IS_REGULAR2D_X_(T)}
+{#define Array_isRegular2d_x       ARRAY_IS_REGULAR2D_X(ArrayIsRegularName)}
+
+{#define _ARRAY_IS_REGULAR2D_(T)   Array_isRegular2d_@@T}
+{#define ARRAY_IS_REGULAR2D(T)     _ARRAY_IS_REGULAR2D_(T)}
+{#define Array_isRegular2d         ARRAY_IS_REGULAR2D(ArrayIsRegularName)}
+
+{#define _ARRAY_IS_REGULAR_(T)     Array_isRegular_@@T}
+{#define ARRAY_IS_REGULAR(T)       _ARRAY_IS_REGULAR_(T)}
+{#define Array_isRegular           ARRAY_IS_REGULAR(ArrayIsRegularName)}
+
+(*{doc Return the size of one dimension of a 2-D array if it is regular, or 0.
+A dimension is regular when lower_bound = 0 and size >= 1.
+@inout self 2-D array to inspect.
+@input dim Dimension to check (1 or 2).
+@return Element count of the dimension if regular, 0 otherwise.}*)
+function Array_isRegular2d_x: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 2-D array to inspect.}*)
+		self: array[*, *] of ArrayIsRegularElementType;
+	end
+	var_input
+		(*{doc Dimension to check (1 or 2).}*)
+		dim: dint;
+	end
+	var_temp
+		lb, ub: dint;
+	end
+	{st}
+	if (dim = 1) or (dim = 2) then
+		lb := lower_bound(self, dim);
+		ub := upper_bound(self, dim);
+		if lb = 0 then
+			Array_isRegular2d_x := max(ub - lb + 1, 0);
+			return;
+		end_if;
+	end_if;
+	Array_isRegular2d_x := 0;
+	{end}
+end
+
+(*{doc Return the total element count of a 2-D array if both dimensions are regular, or 0.
+Both dimensions must have lower_bound = 0 and size >= 1.
+@inout self 2-D array to inspect.
+@return rows * cols if both dimensions are regular, 0 otherwise.}*)
+function Array_isRegular2d: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 2-D array to inspect.}*)
+		self: array[*, *] of ArrayIsRegularElementType;
+	end
+	var_temp
+		n1, n2: dint;
+	end
+	{st}
+	n1 := Array_isRegular2d_x(self:=self, dim:=1);
+	n2 := Array_isRegular2d_x(self:=self, dim:=2);
+	Array_isRegular2d := n1 * n2;
+	{end}
+end
+
+(*{doc Return the element count of a 1-D array if it is regular, or 0.
+A 1-D array is regular when lower_bound = 0 and size >= 1.
+@inout self 1-D array to inspect.
+@return Element count if the array is regular, 0 otherwise.}*)
+function Array_isRegular: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc 1-D array to inspect.}*)
+		self: array[*] of ArrayIsRegularElementType;
+	end
+	var_temp
+		lb, ub: dint;
+	end
+	{st}
+	lb := lower_bound(self, 1);
+	ub := upper_bound(self, 1);
+	if lb = 0 then
+		Array_isRegular := max(ub - lb + 1, 0);
+	else
+		Array_isRegular := 0;
+	end_if;
+	{end}
+end
+
+{#undef _ARRAY_IS_REGULAR2D_X_}
+{#undef ARRAY_IS_REGULAR2D_X}
+{#undef Array_isRegular2d_x}
+{#undef _ARRAY_IS_REGULAR2D_}
+{#undef ARRAY_IS_REGULAR2D}
+{#undef Array_isRegular2d}
+{#undef _ARRAY_IS_REGULAR_}
+{#undef ARRAY_IS_REGULAR}
+{#undef Array_isRegular}

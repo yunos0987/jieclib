@@ -91,12 +91,15 @@ TEST_S(test_arraylist_dint_append)
 		// Act
 	ASSERT_TRUE(ArrayList_dint_append(xs_order, 10));
 	ASSERT_TRUE(ArrayList_dint_append(xs_order, 20));
-		// Assert
+		// Act
 	ArrayList_dint_get(self:=xs_order, index:=0, item:=value, eno=>result_eno);
 	ASSERT_TRUE(result_eno);
+		// Assert
 	EXPECT_EQ_INT32(10, value);
+		// Act
 	ArrayList_dint_get(self:=xs_order, index:=1, item:=value, eno=>result_eno);
 	ASSERT_TRUE(result_eno);
+		// Assert
 	EXPECT_EQ_INT32(20, value);
 
 	// Fact: append fails when capacity is reached.
@@ -264,15 +267,22 @@ TEST_S(test_arraylist_dint_remove)
 	ASSERT_TRUE(ArrayList_dint_append(xs_remove, 20));
 	ASSERT_TRUE(ArrayList_dint_append(xs_remove, 30));
 	ASSERT_TRUE(ArrayList_dint_append(xs_remove, 40));
-		// Act / Assert
+		// Act
 	ASSERT_TRUE(ArrayList_dint_remove(xs_remove, 1, removed));
+		// Assert
 	EXPECT_EQ_INT32(20, removed);
+		// Act
 	ASSERT_TRUE(ArrayList_dint_remove(xs_remove, 0, removed));
+		// Assert
 	EXPECT_EQ_INT32(10, removed);
+		// Act
 	ASSERT_TRUE(ArrayList_dint_remove(xs_remove, ArrayList_dint_len(xs_remove) - 1, removed));
+		// Assert
 	EXPECT_EQ_INT32(40, removed);
+		// Act
 	ArrayList_dint_get(self:=xs_remove, index:=0, item:=value, eno=>result_eno);
 	ASSERT_TRUE(result_eno);
+		// Assert
 	EXPECT_EQ_INT32(30, value);
 
 	// Fact: remove decrements length by 1.
@@ -305,7 +315,7 @@ TEST_S(test_arraylist_dint_contains)
 	// Fact: contains returns false on empty list.
 		// Arrange
 	ArrayList_dint_init(xs_empty);
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(ArrayList_dint_contains(xs_empty, 1));
 
 	// Fact: contains returns true when element exists.
@@ -313,7 +323,7 @@ TEST_S(test_arraylist_dint_contains)
 	ArrayList_dint_init(xs_hit);
 	ASSERT_TRUE(ArrayList_dint_append(xs_hit, 1));
 	ASSERT_TRUE(ArrayList_dint_append(xs_hit, 3));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(ArrayList_dint_contains(xs_hit, 1));
 
 	// Fact: contains returns false when element does not exist.
@@ -321,7 +331,7 @@ TEST_S(test_arraylist_dint_contains)
 	ArrayList_dint_init(xs_miss);
 	ASSERT_TRUE(ArrayList_dint_append(xs_miss, 1));
 	ASSERT_TRUE(ArrayList_dint_append(xs_miss, 3));
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(ArrayList_dint_contains(xs_miss, 2));
 	{end}
 END_TEST_S
@@ -340,7 +350,7 @@ TEST_S(test_arraylist_dint_index)
 	ASSERT_TRUE(ArrayList_dint_append(xs_hit, 10));
 	ASSERT_TRUE(ArrayList_dint_append(xs_hit, 20));
 	ASSERT_TRUE(ArrayList_dint_append(xs_hit, 30));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(1, ArrayList_dint_index(xs_hit, 20));
 
 	// Fact: index returns first occurrence for duplicates.
@@ -349,7 +359,7 @@ TEST_S(test_arraylist_dint_index)
 	ASSERT_TRUE(ArrayList_dint_append(xs_first_dup, 7));
 	ASSERT_TRUE(ArrayList_dint_append(xs_first_dup, 8));
 	ASSERT_TRUE(ArrayList_dint_append(xs_first_dup, 7));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(0, ArrayList_dint_index(xs_first_dup, 7));
 
 	// Fact: index returns -1 when element is not found.
@@ -357,7 +367,7 @@ TEST_S(test_arraylist_dint_index)
 	ArrayList_dint_init(xs_miss);
 	ASSERT_TRUE(ArrayList_dint_append(xs_miss, 1));
 	ASSERT_TRUE(ArrayList_dint_append(xs_miss, 2));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(-1, ArrayList_dint_index(xs_miss, 99));
 	{end}
 END_TEST_S
@@ -406,6 +416,7 @@ TEST_S(test_arraylist_dint_values)
 	ASSERT_TRUE(ArrayList_dint_append(xs_small, 3));
 		// Act / Assert
 	EXPECT_FALSE(ArrayList_dint_values(self:=xs_small, values:=small_values, written=>written, eno=>result_eno));
+		// Assert
 	EXPECT_FALSE(result_eno);
 	{end}
 END_TEST_S
@@ -422,7 +433,7 @@ TEST_S(test_arraylist_dint_len)
 	// Fact: len is 0 immediately after init.
 		// Arrange
 	ArrayList_dint_init(xs_init);
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(0, ArrayList_dint_len(xs_init));
 
 	// Fact: len increments after append.
@@ -430,7 +441,7 @@ TEST_S(test_arraylist_dint_len)
 	ArrayList_dint_init(xs_add);
 	ASSERT_TRUE(ArrayList_dint_append(xs_add, 1));
 	ASSERT_TRUE(ArrayList_dint_append(xs_add, 2));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(2, ArrayList_dint_len(xs_add));
 
 	// Fact: len decrements after remove.
@@ -439,7 +450,7 @@ TEST_S(test_arraylist_dint_len)
 	ASSERT_TRUE(ArrayList_dint_append(xs_remove, 1));
 	ASSERT_TRUE(ArrayList_dint_append(xs_remove, 2));
 	ASSERT_TRUE(ArrayList_dint_remove(xs_remove, 0, removed));
-		// Act / Assert
+		// Assert
 	EXPECT_EQ_INT32(1, ArrayList_dint_len(xs_remove));
 	{end}
 END_TEST_S
@@ -455,14 +466,14 @@ TEST_S(test_arraylist_dint_empty)
 	// Fact: empty is true immediately after init.
 		// Arrange
 	ArrayList_dint_init(xs_init);
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(ArrayList_dint_empty(xs_init));
 
 	// Fact: empty is false after append.
 		// Arrange
 	ArrayList_dint_init(xs_after_append);
 	ASSERT_TRUE(ArrayList_dint_append(xs_after_append, 1));
-		// Act / Assert
+		// Assert
 	EXPECT_FALSE(ArrayList_dint_empty(xs_after_append));
 
 	// Fact: empty is true after clear.
@@ -470,7 +481,7 @@ TEST_S(test_arraylist_dint_empty)
 	ArrayList_dint_init(xs_after_clear);
 	ASSERT_TRUE(ArrayList_dint_append(xs_after_clear, 1));
 	ASSERT_TRUE(ArrayList_dint_clear(xs_after_clear));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(ArrayList_dint_empty(xs_after_clear));
 	{end}
 END_TEST_S
@@ -549,12 +560,15 @@ TEST_S(test_arraylist_dint_copy)
 		// Act
 	ASSERT_TRUE(ArrayList_dint_copy(src_indep, dst_indep));
 	ASSERT_TRUE(ArrayList_dint_set(src_indep, 0, 70));
-		// Assert
+		// Act
 	ArrayList_dint_get(self:=src_indep, index:=0, item:=value, eno=>result_eno);
 	ASSERT_TRUE(result_eno);
+		// Assert
 	EXPECT_EQ_INT32(70, value);
+		// Act
 	ArrayList_dint_get(self:=dst_indep, index:=0, item:=value, eno=>result_eno);
 	ASSERT_TRUE(result_eno);
+		// Assert
 	EXPECT_EQ_INT32(7, value);
 
 	// Fact: copy from empty list clears destination.
@@ -588,10 +602,12 @@ TEST_S(test_arraylist_dint_equals)
 	ASSERT_TRUE(ArrayList_dint_append(list_b, 2));
 	ASSERT_TRUE(ArrayList_dint_append(list_c, 2));
 	ASSERT_TRUE(ArrayList_dint_append(list_c, 1));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(ArrayList_dint_equals(list_a, list_b));
 	EXPECT_FALSE(ArrayList_dint_equals(list_a, list_c));
+		// Act
 	ASSERT_TRUE(ArrayList_dint_set(list_c, 1, 3));
+		// Assert
 	EXPECT_FALSE(ArrayList_dint_equals(list_a, list_c));
 	{end}
 END_TEST_S
@@ -609,19 +625,24 @@ TEST_S(test_arraylist_dint_hash)
 		// Arrange
 	ArrayList_dint_init(list_a);
 	ArrayList_dint_init(list_b);
-		// Act / Assert
+		// Act
 	hash_a := ArrayList_dint_hash(list_a);
 	hash_b := ArrayList_dint_hash(list_b);
+		// Assert
 	EXPECT_EQ_UINT32(hash_a, hash_b);
 	ASSERT_TRUE(ArrayList_dint_append(list_a, 10));
 	ASSERT_TRUE(ArrayList_dint_append(list_a, 20));
 	ASSERT_TRUE(ArrayList_dint_append(list_b, 10));
 	ASSERT_TRUE(ArrayList_dint_append(list_b, 20));
+		// Act
 	hash_a := ArrayList_dint_hash(list_a);
 	hash_b := ArrayList_dint_hash(list_b);
+		// Assert
 	EXPECT_EQ_UINT32(hash_a, hash_b);
 	ASSERT_TRUE(ArrayList_dint_append(list_b, 30));
+		// Act
 	hash_b := ArrayList_dint_hash(list_b);
+		// Assert
 	EXPECT_NE_UINT32(hash_a, hash_b);
 	{end}
 END_TEST_S
@@ -644,18 +665,21 @@ TEST_S(test_arraylist_string_caseinsensitive_usecase)
 	ArrayList_string_ci_init(users);
 	ASSERT_TRUE(ArrayList_string_ci_append(users, 'Alice'));
 	ASSERT_TRUE(ArrayList_string_ci_append(users, 'Bob'));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(ArrayList_string_ci_contains(users, 'alice'));
 	EXPECT_EQ_INT32(0, ArrayList_string_ci_index(users, 'ALICE'));
 
 	// Fact: set, remove, and get work with case-insensitive strings.
 		// Arrange
 	ASSERT_TRUE(ArrayList_string_ci_set(users, 1, 'bOb'));
-		// Act / Assert
+		// Act
 	ArrayList_string_ci_get(self:=users, index:=1, item:=value, eno=>result_eno);
 	ASSERT_TRUE(result_eno);
+		// Assert
 	EXPECT_EQ_STRING('bOb', value);
+		// Act
 	ASSERT_TRUE(ArrayList_string_ci_remove(users, 0, removed));
+		// Assert
 	EXPECT_EQ_STRING('Alice', removed);
 	EXPECT_EQ_INT32(1, ArrayList_string_ci_len(users));
 
@@ -665,11 +689,13 @@ TEST_S(test_arraylist_string_caseinsensitive_usecase)
 	ArrayList_string_ci_init(users_diff);
 	ASSERT_TRUE(ArrayList_string_ci_append(users_same, 'BOB'));
 	ASSERT_TRUE(ArrayList_string_ci_append(users_diff, 'Carol'));
-		// Act / Assert
+		// Assert
 	EXPECT_TRUE(ArrayList_string_ci_equals(users, users_same));
 	EXPECT_FALSE(ArrayList_string_ci_equals(users, users_diff));
+		// Act
 	hash_a := ArrayList_string_ci_hash(users);
 	hash_b := ArrayList_string_ci_hash(users_same);
+		// Assert
 	EXPECT_EQ_UINT32(hash_a, hash_b);
 	{end}
 END_TEST_S

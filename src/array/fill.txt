@@ -1,0 +1,20 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/array/fill.txt -I./src -o ./src/array/fill.xml -t omron
+ *)
+{#ifndef __ARRAY_FILL_TXT__}
+{#define __ARRAY_FILL_TXT__}
+
+{#define ArrayFillName lreal}
+{#define ArrayFillElementType lreal}
+{#include "fill_template.txt"}
+{#undef ArrayFillName}
+{#undef ArrayFillElementType}
+
+{#define ArrayFillName dint}
+{#define ArrayFillElementType dint}
+{#include "fill_template.txt"}
+{#undef ArrayFillName}
+{#undef ArrayFillElementType}
+
+{#endif}

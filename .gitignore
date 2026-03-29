@@ -5,3 +5,5 @@ __pycache__
 #
 /src/**/*.xml
 /test/**/*.xml
+#
+\.claude/settings\.local\.json

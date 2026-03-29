@@ -1,0 +1,40 @@
+{#ifndef __TEST_CONTAINER_ORDEREDSET_DINT_COLLISION_TXT__}
+{#define __TEST_CONTAINER_ORDEREDSET_DINT_COLLISION_TXT__}
+
+{#include <sys.txt>}
+{#include <sys_conv.txt>}
+
+function Dint_collision_equals_for_orderedset_test: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		lhs: dint;
+		rhs: dint;
+	end
+	{st}
+	Dint_collision_equals_for_orderedset_test := lhs = rhs;
+	{end}
+end
+
+function Dint_collision_hash_for_orderedset_test: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: dint;
+	end
+	{st}
+	Dint_collision_hash_for_orderedset_test := udint#1;
+	{end}
+end
+
+{#define OrderedSetName dint_collision}
+{#define OrderedSetElementType dint}
+{#define OrderedSetElementEqualsFunction Dint_collision_equals_for_orderedset_test}
+{#define OrderedSetElementHashFunction Dint_collision_hash_for_orderedset_test}
+{#define OrderedSetCapacity 8}
+{#include <container/orderedset/orderedset_template.txt>}
+{#undef OrderedSetName}
+{#undef OrderedSetElementType}
+{#undef OrderedSetElementEqualsFunction}
+{#undef OrderedSetElementHashFunction}
+{#undef OrderedSetCapacity}
+
+{#endif}

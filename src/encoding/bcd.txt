@@ -1,0 +1,122 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/encoding/bcd.txt -I./src -o ./src/encoding/bcd.xml -t omron
+ *)
+{#ifndef __ENCODING_BCD_TXT__}
+{#define __ENCODING_BCD_TXT__}
+
+{#include <sys.txt>}
+
+(*{doc Encode a DINT value into a Packed BCD byte array.
+Each byte stores two decimal digits: upper nibble = higher digit, lower nibble = lower digit.
+Example: val=1234, digits=4 -> dat[offset]=0x12, dat[offset+1]=0x34
+@input val Value to encode (must be >= 0).
+@in_out dat Destination byte array.
+@input offset Write start offset in dat.
+  Default value: 0
+@input digits Number of decimal digits to encode (must be >= 1).
+  Required bytes = ceil(digits / 2).
+@return true on success.
+@error If val is negative, digits <= 0, val exceeds the given number of digits, or dat is out of range.}*)
+function bcd_encode: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		val: dint;
+		digits: dint;
+	end
+	var_in_out
+		dat: array[*] of byte;
+	end
+	var_input
+		offset: dint := 0;
+	end
+	var_temp
+		i0, i1: dint;
+		bytes_needed: dint;
+		remaining: dint;
+		hi_nibble, lo_nibble: dint;
+		jj: dint;
+	end
+	{st}
+	bcd_encode := false;
+	if (val < 0) or (digits <= 0) then
+		eno := false;
+		return;
+	end_if;
+	bytes_needed := (digits + 1) / 2;
+	i0 := lower_bound(dat, 1);
+	i1 := upper_bound(dat, 1);
+	if (offset < 0) or (i0 + offset + bytes_needed - 1 > i1) then
+		eno := false;
+		return;
+	end_if;
+	// Fill BCD bytes from least significant (right to left)
+	remaining := val;
+	jj := bytes_needed - 1;
+	while jj >= 0 do
+		lo_nibble := remaining mod 10;
+		remaining := remaining / 10;
+		hi_nibble := remaining mod 10;
+		remaining := remaining / 10;
+		dat[i0 + offset + jj] := dint_to_byte(hi_nibble * 16 + lo_nibble);
+		jj := jj - 1;
+	end_while;
+	// Error if val has more digits than allowed
+	if remaining <> 0 then
+		eno := false;
+		return;
+	end_if;
+	bcd_encode := true;
+	{end}
+end
+
+(*{doc Decode a Packed BCD byte array into a DINT value.
+@in_out dat Input byte array.
+@input offset Read start offset in dat.
+  Default value: 0
+@input length Number of bytes to read.
+@return Decoded DINT value.
+@error If an invalid BCD nibble (0xA-0xF) is found, or dat is out of range.}*)
+function bcd_decode: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		dat: array[*] of byte;
+	end
+	var_input
+		offset: dint := 0;
+		length: dint;
+	end
+	var_temp
+		i0, i1: dint;
+		jj: dint;
+		bb: byte;
+		hi, lo: dint;
+		result: dint;
+	end
+	{st}
+	if length < 0 then
+		eno := false;
+		return;
+	end_if;
+	i0 := lower_bound(dat, 1);
+	i1 := upper_bound(dat, 1);
+	if (offset < 0) or (i0 + offset + length - 1 > i1) then
+		eno := false;
+		return;
+	end_if;
+	result := 0;
+	for jj := 0 to length - 1 by 1 do
+		bb := dat[i0 + offset + jj];
+		hi := byte_to_dint(shr(bb, 4));
+		lo := byte_to_dint(bb and byte#16#0F);
+		if (hi > 9) or (lo > 9) then
+			eno := false;
+			return;
+		end_if;
+		result := result * 100 + hi * 10 + lo;
+	end_for;
+	bcd_decode := result;
+	{end}
+end
+
+{#endif}

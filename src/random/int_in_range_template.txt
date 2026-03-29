@@ -1,0 +1,85 @@
+(*
+	================================================================================
+	Random integer-in-range template
+	================================================================================
+
+	This template generates a typed nextIntInRange function
+	from preprocessor macros.
+
+	Usage:
+	1. Define required macros.
+	2. Include this template once per generator type.
+
+	Required macros:
+	  - RandomGeneratorPrefix
+	    Prefix prepended to function names.
+	    Example: LCG  ->  LCG_nextIntInRange
+	  - RandomGeneratorType
+	    Type of the self parameter.
+	    Example: LCG_t
+
+	Generated API:
+	  - RandomGeneratorPrefix@@_nextIntInRange(self, min_val, max_val) : dint
+
+	Example (LCG):
+	  {#define RandomGeneratorPrefix LCG}
+	  {#define RandomGeneratorType LCG_t}
+	  {#include "int_in_range_template.txt"}
+	  {#undef RandomGeneratorPrefix}
+	  {#undef RandomGeneratorType}
+	================================================================================
+*)
+
+{#ifndef RandomGeneratorPrefix}
+	{#error require RandomGeneratorPrefix macro.}
+{#endif}
+
+{#ifndef RandomGeneratorType}
+	{#error require RandomGeneratorType macro.}
+{#endif}
+
+{#define _RANDOM_NEXT_INT_IN_RANGE_(P) P@@_nextIntInRange}
+{#define RANDOM_NEXT_INT_IN_RANGE(P)   _RANDOM_NEXT_INT_IN_RANGE_(P)}
+{#define Random_nextIntInRange          RANDOM_NEXT_INT_IN_RANGE(RandomGeneratorPrefix)}
+
+{#define _RANDOM_NEXT_UINT32_(P) P@@_nextUint32}
+{#define RANDOM_NEXT_UINT32(P)   _RANDOM_NEXT_UINT32_(P)}
+{#define Random_nextUint32        RANDOM_NEXT_UINT32(RandomGeneratorPrefix)}
+
+(*{doc Generates a uniformly distributed integer pseudo-random number in the range [min_val, max_val].
+@inout self The generator state.
+@input min_val The minimum value (inclusive).
+@input max_val The maximum value (inclusive).
+@return A pseudo-random integer in [min_val, max_val].
+@error If min_val > max_val. }*)
+function Random_nextIntInRange: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The generator state.}*)
+		self: RandomGeneratorType;
+	end
+	var_input
+		(*{doc The minimum value (inclusive).}*)
+		min_val: dint;
+		(*{doc The maximum value (inclusive).}*)
+		max_val: dint;
+	end
+	var_temp
+		range: udint;
+	end
+	{st}
+	if min_val > max_val then
+		eno := false;
+	else
+		range := dint_to_udint(max_val - min_val) + udint#1;
+		Random_nextIntInRange := min_val + dword_to_dint(udint_to_dword(Random_nextUint32(self) mod range));
+	end_if;
+	{end}
+end
+
+{#undef _RANDOM_NEXT_INT_IN_RANGE_}
+{#undef RANDOM_NEXT_INT_IN_RANGE}
+{#undef Random_nextIntInRange}
+{#undef _RANDOM_NEXT_UINT32_}
+{#undef RANDOM_NEXT_UINT32}
+{#undef Random_nextUint32}

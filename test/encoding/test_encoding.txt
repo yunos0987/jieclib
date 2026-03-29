@@ -11,25 +11,35 @@
 {#endif}
 
 {#include <src/encoding/base64.txt>}
-{#include <src/encoding/percent.txt>}
+{#include <src/encoding/base64url.txt>}
 {#include <src/encoding/hex.txt>}
+{#include <src/encoding/percent.txt>}
+{#include <src/encoding/json_string.txt>}
+{#include <src/encoding/bcd.txt>}
 
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
 		'test_base64encode',
 		'test_base64decode',
+		'test_base64url_encode',
+		'test_base64url_decode',
 		'test_percentencode',
 		'test_percentdecode',
 		'test_hexencode',
-		'test_hexdecode'
+		'test_hexdecode',
+		'test_json_escape',
+		'test_json_unescape',
+		'test_bcd_encode',
+		'test_bcd_decode'
 	)
 )
 {#undef _TEST_}
 {#endif}
 
 {#include "test_base64.txt"}
+{#include "test_base64url.txt"}
 {#include "test_percent.txt"}
 {#include "test_hex.txt"}
-
-{#undef _TEST_}
+{#include "test_json_string.txt"}
+{#include "test_bcd.txt"}

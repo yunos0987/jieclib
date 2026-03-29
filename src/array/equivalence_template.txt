@@ -1,0 +1,104 @@
+(*
+	================================================================================
+	Array equals template
+	================================================================================
+
+	This template generates a typed Array_equals function from preprocessor macros.
+
+	Usage:
+	1. Define required macros.
+	2. Optionally define behavior macros.
+	3. Include this template once per generated type.
+
+	Required macros:
+	  - ArrayEqualsName
+	    Suffix appended to Array_equals_ to form the function name.
+	    Example: lreal  ->  Array_equals_lreal
+	  - ArrayEqualsElementType
+	    Element type of the arrays to compare.
+	    Example: lreal, dint, string[256]
+
+	Optional macros:
+	  - ArrayEqualsElementEqualsFunction
+	    Binary function f(a, b) returning bool.
+	    If omitted, the = operator is used.
+
+	Generated API:
+	  - Array_equals_@@ArrayEqualsName@@(self, other) : bool
+	  - Convenience alias: Array_equals -> Array_equals_@@ArrayEqualsName@@
+
+	Example (lreal):
+	  {#define ArrayEqualsName lreal}
+	  {#define ArrayEqualsElementType lreal}
+	  {#include <array/equivalence_template.txt>}
+
+	Example (string, custom equals):
+	  {#define ArrayEqualsName str256}
+	  {#define ArrayEqualsElementType string[256]}
+	  {#define ArrayEqualsElementEqualsFunction String_equals}
+	  {#include <array/equivalence_template.txt>}
+	================================================================================
+*)
+{#include <sys.txt>}
+
+{#ifndef ArrayEqualsName}
+	{#error require ArrayEqualsName macro.}
+{#endif}
+
+{#ifndef ArrayEqualsElementType}
+	{#error require ArrayEqualsElementType macro.}
+{#endif}
+
+{#ifdef ArrayEqualsElementEqualsFunction}
+	{#define _ARRAY_EQUALS_ELEM_EQ_(A, B) ArrayEqualsElementEqualsFunction((A), (B))}
+{#else}
+	{#define _ARRAY_EQUALS_ELEM_EQ_(A, B) ((A) = (B))}
+{#endif}
+
+{#define _ARRAY_EQUALS_(T) Array_equals_@@T}
+{#define ARRAY_EQUALS(T)   _ARRAY_EQUALS_(T)}
+{#define Array_equals      ARRAY_EQUALS(ArrayEqualsName)}
+
+(*{doc Return true if self and other have the same length and all corresponding elements are equal.
+@inout self First array.
+@inout other Second array.
+@return true if both arrays are element-wise equal.}*)
+function Array_equals: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc First array.}*)
+		self: array[*] of ArrayEqualsElementType;
+		(*{doc Second array.}*)
+		other: array[*] of ArrayEqualsElementType;
+	end
+	var_temp
+		ii, i_0, i_1: dint;
+		jj, j_0, j_1: dint;
+	end
+	{st}
+	i_0 := lower_bound(self, 1);
+	i_1 := upper_bound(self, 1);
+	j_0 := lower_bound(other, 1);
+	j_1 := upper_bound(other, 1);
+	if (i_1 - i_0) <> (j_1 - j_0) then
+		Array_equals := false;
+		return;
+	end_if;
+	ii := i_0;
+	jj := j_0;
+	while ii <= i_1 do
+		if not _ARRAY_EQUALS_ELEM_EQ_(self[ii], other[jj]) then
+			Array_equals := false;
+			return;
+		end_if;
+		ii := ii + 1;
+		jj := jj + 1;
+	end_while;
+	Array_equals := true;
+	{end}
+end
+
+{#undef _ARRAY_EQUALS_ELEM_EQ_}
+{#undef _ARRAY_EQUALS_}
+{#undef ARRAY_EQUALS}
+{#undef Array_equals}

@@ -1,0 +1,617 @@
+(*
+	================================================================================
+	LinkedHashSet Template Generator - LinkedHashMap-backed Linked-Order Set
+	================================================================================
+
+	This template generates a typed LinkedHashSet from preprocessor macros.
+	The internal implementation is based on LinkedHashMap (element as key, bool as value).
+
+	Usage:
+	1. Define required macros.
+	2. Optionally define behavior macros.
+	3. Include this template once per generated type.
+
+	Required macros:
+	  - LinkedHashSetName
+	    Suffix used for generated types and functions.
+	  - LinkedHashSetElementType
+	    Element type stored in the set.
+	  - LinkedHashSetElementHashFunction
+	    Element hash function.
+	  - LinkedHashSetCapacity
+	    Number of table slots.
+
+	Optional macros:
+	  - LinkedHashSetMaxLoadPermille
+	    Maximum load factor in permille.
+	    Default: 800 (80%).
+	  - LinkedHashSetElementEqualsFunction
+	    Element equality function.
+	    Default: direct value comparison.
+	  - LinkedHashSetAccessOrder
+	    When true, add of an existing element moves it to tail (LRU behavior).
+	    Default: false.
+
+	Generated APIs:
+	  - init, copy, add, add_all
+	  - remove, remove_all, contains, len
+	  - elements, equals, hash, empty, clear
+
+	Example (dint):
+	  {#define LinkedHashSetName dint}
+	  {#define LinkedHashSetCapacity 256}
+	  {#define LinkedHashSetElementType dint}
+	  {#define LinkedHashSetElementEqualsFunction Dint_equals}
+	  {#define LinkedHashSetElementHashFunction Dint_hash}
+	  {#include <container/linkedhashset/linkedhashset_template.txt>}
+
+	Example (string):
+	  {#define LinkedHashSetName str}
+	  {#define LinkedHashSetCapacity 256}
+	  {#define LinkedHashSetElementType string[128]}
+	  {#define LinkedHashSetElementEqualsFunction String_equals}
+	  {#define LinkedHashSetElementHashFunction String_hash}
+	  {#include <container/linkedhashset/linkedhashset_template.txt>}
+
+	Algorithm:
+	  LinkedHashMap-backed set preserving insertion order via doubly linked nodes.
+	  equals and hash are linked-order sensitive.
+	================================================================================
+*)
+{#include <sys.txt>}
+{#include <sys_conv.txt>}
+
+{#ifndef LinkedHashSetName}
+	{#error require LinkedHashSetName macro.}
+{#endif}
+
+{#ifndef LinkedHashSetElementType}
+	{#error require LinkedHashSetElementType macro.}
+{#endif}
+
+{#ifndef LinkedHashSetElementHashFunction}
+	{#error require LinkedHashSetElementHashFunction macro.}
+{#endif}
+
+{#ifndef LinkedHashSetCapacity}
+	{#error require LinkedHashSetCapacity macro.}
+{#endif}
+
+{#ifndef LinkedHashSetMaxLoadPermille}
+	{#define LinkedHashSetMaxLoadPermille 800}
+	{#define _LINKEDHASHSET_DEFAULT_MAX_LOAD_PERMILLE_DEFINED__}
+{#endif}
+
+{#ifdef LinkedHashSetElementEqualsFunction}
+	{#define _LINKEDHASHSET_ELEM_EQUALS_(A, B) LinkedHashSetElementEqualsFunction((A), (B))}
+{#else}
+	{#define _LINKEDHASHSET_ELEM_EQUALS_(A, B) ((A) = (B))}
+{#endif}
+
+{#define _LINKEDHASHSET_INNER_LINKEDHASHMAP_NAME_(T) LHSIT@@T}
+{#define LINKEDHASHSET_INNER_LINKEDHASHMAP_NAME(T) _LINKEDHASHSET_INNER_LINKEDHASHMAP_NAME_(T)}
+{#define LinkedHashMapName LINKEDHASHSET_INNER_LINKEDHASHMAP_NAME(LinkedHashSetName)}
+{#define LinkedHashMapKeyType LinkedHashSetElementType}
+{#define LinkedHashMapValueType bool}
+{#define LinkedHashMapKeyEqualsFunction _LINKEDHASHSET_ELEM_EQUALS_}
+{#define LinkedHashMapKeyHashFunction LinkedHashSetElementHashFunction}
+{#define LinkedHashMapCapacity LinkedHashSetCapacity}
+{#define LinkedHashMapMaxLoadPermille LinkedHashSetMaxLoadPermille}
+{#ifdef LinkedHashSetAccessOrder}
+	{#define LinkedHashMapAccessOrder LinkedHashSetAccessOrder}
+{#endif}
+{#include <container/linkedhashmap/linkedhashmap_template.txt>}
+{#undef _LINKEDHASHSET_INNER_LINKEDHASHMAP_NAME_}
+{#undef LINKEDHASHSET_INNER_LINKEDHASHMAP_NAME}
+{#undef LinkedHashMapName}
+{#undef LinkedHashMapKeyType}
+{#undef LinkedHashMapValueType}
+{#undef LinkedHashMapKeyEqualsFunction}
+{#undef LinkedHashMapKeyHashFunction}
+{#undef LinkedHashMapCapacity}
+{#undef LinkedHashMapMaxLoadPermille}
+{#ifdef LinkedHashSetAccessOrder}
+	{#undef LinkedHashMapAccessOrder}
+{#endif}
+
+{#define _LINKEDHASHSET_CORE_TYPE_(T) LinkedHashSet_@@T@@_t}
+{#define _LINKEDHASHSET_INIT_(T) LinkedHashSet_@@T@@_init}
+{#define _LINKEDHASHSET_COPY_(T) LinkedHashSet_@@T@@_copy}
+{#define _LINKEDHASHSET_ADD_(T) LinkedHashSet_@@T@@_add}
+{#define _LINKEDHASHSET_ADD_ALL_(T) LinkedHashSet_@@T@@_add_all}
+{#define _LINKEDHASHSET_REMOVE_(T) LinkedHashSet_@@T@@_remove}
+{#define _LINKEDHASHSET_REMOVE_ALL_(T) LinkedHashSet_@@T@@_remove_all}
+{#define _LINKEDHASHSET_CONTAINS_(T) LinkedHashSet_@@T@@_contains}
+{#define _LINKEDHASHSET_LEN_(T) LinkedHashSet_@@T@@_len}
+{#define _LINKEDHASHSET_ELEMENTS_(T) LinkedHashSet_@@T@@_elements}
+{#define _LINKEDHASHSET_EQUALS_(T) LinkedHashSet_@@T@@_equals}
+{#define _LINKEDHASHSET_HASH_(T) LinkedHashSet_@@T@@_hash}
+{#define _LINKEDHASHSET_EMPTY_(T) LinkedHashSet_@@T@@_empty}
+{#define _LINKEDHASHSET_CLEAR_(T) LinkedHashSet_@@T@@_clear}
+	// LHSIT: LinkedHashSet Inner Type (LinkedHashMap_LHSIT@@T@@_t) LinkedHashSet
+{#define _LINKEDHASHSET_BACKING_CORE_TYPE_(T) LinkedHashMap_LHSIT@@T@@_t}
+{#define _LINKEDHASHSET_BACKING_INIT_(T) LinkedHashMap_LHSIT@@T@@_init}
+{#define _LINKEDHASHSET_BACKING_COPY_(T) LinkedHashMap_LHSIT@@T@@_copy}
+{#define _LINKEDHASHSET_BACKING_UPSERT_(T) LinkedHashMap_LHSIT@@T@@_upsert}
+{#define _LINKEDHASHSET_BACKING_DELETE_(T) LinkedHashMap_LHSIT@@T@@_delete}
+{#define _LINKEDHASHSET_BACKING_CONTAINS_(T) LinkedHashMap_LHSIT@@T@@_contains}
+{#define _LINKEDHASHSET_BACKING_KEYS_(T) LinkedHashMap_LHSIT@@T@@_keys}
+{#define _LINKEDHASHSET_BACKING_EMPTY_(T) LinkedHashMap_LHSIT@@T@@_empty}
+{#define _LINKEDHASHSET_BACKING_CLEAR_(T) LinkedHashMap_LHSIT@@T@@_clear}
+
+{#define LINKEDHASHSET_CORE_TYPE(T) _LINKEDHASHSET_CORE_TYPE_(T)}
+{#define LINKEDHASHSET_INIT(T) _LINKEDHASHSET_INIT_(T)}
+{#define LINKEDHASHSET_COPY(T) _LINKEDHASHSET_COPY_(T)}
+{#define LINKEDHASHSET_ADD(T) _LINKEDHASHSET_ADD_(T)}
+{#define LINKEDHASHSET_ADD_ALL(T) _LINKEDHASHSET_ADD_ALL_(T)}
+{#define LINKEDHASHSET_REMOVE(T) _LINKEDHASHSET_REMOVE_(T)}
+{#define LINKEDHASHSET_REMOVE_ALL(T) _LINKEDHASHSET_REMOVE_ALL_(T)}
+{#define LINKEDHASHSET_CONTAINS(T) _LINKEDHASHSET_CONTAINS_(T)}
+{#define LINKEDHASHSET_LEN(T) _LINKEDHASHSET_LEN_(T)}
+{#define LINKEDHASHSET_ELEMENTS(T) _LINKEDHASHSET_ELEMENTS_(T)}
+{#define LINKEDHASHSET_EQUALS(T) _LINKEDHASHSET_EQUALS_(T)}
+{#define LINKEDHASHSET_HASH(T) _LINKEDHASHSET_HASH_(T)}
+{#define LINKEDHASHSET_EMPTY(T) _LINKEDHASHSET_EMPTY_(T)}
+{#define LINKEDHASHSET_CLEAR(T) _LINKEDHASHSET_CLEAR_(T)}
+
+{#define LINKEDHASHSET_BACKING_CORE_TYPE(T) _LINKEDHASHSET_BACKING_CORE_TYPE_(T)}
+{#define LINKEDHASHSET_BACKING_INIT(T) _LINKEDHASHSET_BACKING_INIT_(T)}
+{#define LINKEDHASHSET_BACKING_COPY(T) _LINKEDHASHSET_BACKING_COPY_(T)}
+{#define LINKEDHASHSET_BACKING_UPSERT(T) _LINKEDHASHSET_BACKING_UPSERT_(T)}
+{#define LINKEDHASHSET_BACKING_DELETE(T) _LINKEDHASHSET_BACKING_DELETE_(T)}
+{#define LINKEDHASHSET_BACKING_CONTAINS(T) _LINKEDHASHSET_BACKING_CONTAINS_(T)}
+{#define LINKEDHASHSET_BACKING_KEYS(T) _LINKEDHASHSET_BACKING_KEYS_(T)}
+{#define LINKEDHASHSET_BACKING_EMPTY(T) _LINKEDHASHSET_BACKING_EMPTY_(T)}
+{#define LINKEDHASHSET_BACKING_CLEAR(T) _LINKEDHASHSET_BACKING_CLEAR_(T)}
+
+{#define LinkedHashSetCoreType LINKEDHASHSET_CORE_TYPE(LinkedHashSetName)}
+{#define LinkedHashSetBackingCoreType LINKEDHASHSET_BACKING_CORE_TYPE(LinkedHashSetName)}
+{#define LinkedHashSet_init LINKEDHASHSET_INIT(LinkedHashSetName)}
+{#define LinkedHashSet_copy LINKEDHASHSET_COPY(LinkedHashSetName)}
+{#define LinkedHashSet_add LINKEDHASHSET_ADD(LinkedHashSetName)}
+{#define LinkedHashSet_add_all LINKEDHASHSET_ADD_ALL(LinkedHashSetName)}
+{#define LinkedHashSet_remove LINKEDHASHSET_REMOVE(LinkedHashSetName)}
+{#define LinkedHashSet_remove_all LINKEDHASHSET_REMOVE_ALL(LinkedHashSetName)}
+{#define LinkedHashSet_contains LINKEDHASHSET_CONTAINS(LinkedHashSetName)}
+{#define LinkedHashSet_len LINKEDHASHSET_LEN(LinkedHashSetName)}
+{#define LinkedHashSet_elements LINKEDHASHSET_ELEMENTS(LinkedHashSetName)}
+{#define LinkedHashSet_equals LINKEDHASHSET_EQUALS(LinkedHashSetName)}
+{#define LinkedHashSet_hash LINKEDHASHSET_HASH(LinkedHashSetName)}
+{#define LinkedHashSet_empty LINKEDHASHSET_EMPTY(LinkedHashSetName)}
+{#define LinkedHashSet_clear LINKEDHASHSET_CLEAR(LinkedHashSetName)}
+
+{#define LinkedHashSet_backing_init LINKEDHASHSET_BACKING_INIT(LinkedHashSetName)}
+{#define LinkedHashSet_backing_copy LINKEDHASHSET_BACKING_COPY(LinkedHashSetName)}
+{#define LinkedHashSet_backing_upsert LINKEDHASHSET_BACKING_UPSERT(LinkedHashSetName)}
+{#define LinkedHashSet_backing_delete LINKEDHASHSET_BACKING_DELETE(LinkedHashSetName)}
+{#define LinkedHashSet_backing_contains LINKEDHASHSET_BACKING_CONTAINS(LinkedHashSetName)}
+{#define LinkedHashSet_backing_keys LINKEDHASHSET_BACKING_KEYS(LinkedHashSetName)}
+{#define LinkedHashSet_backing_empty LINKEDHASHSET_BACKING_EMPTY(LinkedHashSetName)}
+{#define LinkedHashSet_backing_clear LINKEDHASHSET_BACKING_CLEAR(LinkedHashSetName)}
+
+type
+	(* LinkedHashSet runtime state. *)
+	LinkedHashSetCoreType: struct
+		(* Backing LinkedHashMap for element storage and linked-order tracking. *)
+		backing: LinkedHashSetBackingCoreType;
+	end
+end
+
+(*{doc Initialize the container.
+Reset backing state.
+@inout self Target LinkedHashSet. }*)
+function LinkedHashSet_init
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashSetCoreType;
+	end
+	{st}
+	LinkedHashSet_backing_init(self:=self.backing);
+	{end}
+end
+
+(*{doc Copy container state.
+Rebuild destination by ordered insertion from source.
+@inout self Source LinkedHashSet.
+@inout dest Destination LinkedHashSet.
+@return true on success.
+@error ENO is set to false on internal error. }*)
+function LinkedHashSet_copy: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashSetCoreType;
+		dest: LinkedHashSetCoreType;
+	end
+	{st}
+	LinkedHashSet_copy := LinkedHashSet_backing_copy(self:=self.backing, dest:=dest.backing, eno=>eno);
+	{end}
+end
+
+(*{doc Add one element.
+Insert the element if not already present; preserve linked order.
+In access-order mode, re-adding an existing element moves it to the tail.
+@inout self Target LinkedHashSet.
+@input element Element to add.
+@output added true when newly added, false when already present.
+@return true on success, false on insert failure.
+@error ENO is set to false on internal error. }*)
+function LinkedHashSet_add: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashSetCoreType;
+	end
+	var_input
+		element: LinkedHashSetElementType;
+	end
+	var_output
+		added: bool;
+	end
+	var_temp
+		replaced: bool;
+	end
+	{st}
+	LinkedHashSet_add := LinkedHashSet_backing_upsert(self:=self.backing, key:=element, value:=true, replaced=>replaced, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+	added := not replaced;
+	{end}
+end
+
+(*{doc Add all elements from an input array.
+Process input array in index order and count new insertions.
+@inout self Target LinkedHashSet.
+@inout elements Input elements.
+@output added_count Number of newly added elements.
+@return true on success, false if an insert fails.
+@error ENO is propagated from backing LinkedHashMap. }*)
+function LinkedHashSet_add_all: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashSetCoreType;
+	end
+	var_in_out
+		elements: array[*] of LinkedHashSetElementType;
+	end
+	var_output
+		added_count: dint;
+	end
+	var_temp
+		idx: dint;
+		idx_begin, idx_end: dint;
+		replaced: bool;
+		succeeded: bool;
+	end
+	{st}
+	idx_begin := lower_bound(elements, 1);
+	idx_end := upper_bound(elements, 1);
+	added_count := 0;
+
+	for idx := idx_begin to idx_end by 1 do
+		succeeded := LinkedHashSet_backing_upsert(self:=self.backing, key:=elements[idx], value:=true, replaced=>replaced, eno=>eno);
+		if not eno then
+			return;
+		end_if;
+		if not succeeded then
+			LinkedHashSet_add_all := false;
+			return;
+		end_if;
+		if not replaced then
+			added_count := added_count + 1;
+		end_if;
+	end_for;
+
+	LinkedHashSet_add_all := true;
+	{end}
+end
+
+(*{doc Remove one element.
+Delete the element if present.
+@inout self Target LinkedHashSet.
+@input element Element to remove.
+@return true when removed, false when not found. }*)
+function LinkedHashSet_remove: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashSetCoreType;
+	end
+	var_input
+		element: LinkedHashSetElementType;
+	end
+	{st}
+	LinkedHashSet_remove := LinkedHashSet_backing_delete(self:=self.backing, key:=element, eno=>eno);
+	{end}
+end
+
+(*{doc Remove all matching elements from an input array.
+Process input array in index order and count successful deletions.
+@inout self Target LinkedHashSet.
+@inout elements Input elements.
+@output removed_count Number of removed elements.
+@return true on success.
+@error Propagates ENO from backing LinkedHashMap operations. }*)
+function LinkedHashSet_remove_all: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashSetCoreType;
+	end
+	var_in_out
+		elements: array[*] of LinkedHashSetElementType;
+	end
+	var_output
+		removed_count: dint;
+	end
+	var_temp
+		idx: dint;
+		idx_begin, idx_end: dint;
+		removed: bool;
+	end
+	{st}
+	idx_begin := lower_bound(elements, 1);
+	idx_end := upper_bound(elements, 1);
+	removed_count := 0;
+
+	for idx := idx_begin to idx_end by 1 do
+		removed := LinkedHashSet_backing_delete(self:=self.backing, key:=elements[idx], eno=>eno);
+		if not eno then
+			return;
+		end_if;
+		if removed then
+			removed_count := removed_count + 1;
+		end_if;
+	end_for;
+
+	LinkedHashSet_remove_all := true;
+	{end}
+end
+
+(*{doc Return true if the target element exists.
+Check membership via backing map without affecting order.
+@inout self Target LinkedHashSet.
+@input element Target element.
+@return true when found, otherwise false.
+@error ENO is set to false on internal error. }*)
+function LinkedHashSet_contains: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashSetCoreType;
+	end
+	var_input
+		element: LinkedHashSetElementType;
+	end
+	{st}
+	LinkedHashSet_contains := LinkedHashSet_backing_contains(self:=self.backing, key:=element, eno=>eno);
+	{end}
+end
+
+(*{doc Return the number of stored elements.
+Expose current element count.
+@inout self Target LinkedHashSet.
+@return Element count. }*)
+function LinkedHashSet_len: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashSetCoreType;
+	end
+	{st}
+	LinkedHashSet_len := self.backing.count;
+	{end}
+end
+
+(*{doc Copy elements into an output array in linked order.
+Export elements from head to tail.
+@inout self Target LinkedHashSet.
+@inout elements Output array.
+@output written Number of copied elements.
+@return true on success.
+@error ENO is set to false on invalid state or insufficient output capacity. }*)
+function LinkedHashSet_elements: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashSetCoreType;
+	end
+	var_in_out
+		elements: array[*] of LinkedHashSetElementType;
+	end
+	var_output
+		written: dint;
+	end
+	{st}
+	LinkedHashSet_elements := LinkedHashSet_backing_keys(self:=self.backing, keys:=elements, written=>written, eno=>eno);
+	{end}
+end
+
+(*{doc Compare two LinkedHashSets for equality.
+Require same count, same elements in same linked order.
+@inout self First LinkedHashSet.
+@inout other Second LinkedHashSet.
+@return true when both contain equal elements in equal linked order.
+@error ENO is set to false on internal error. }*)
+function LinkedHashSet_equals: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashSetCoreType;
+		other: LinkedHashSetCoreType;
+	end
+	var_temp
+		cur_self: dint;
+		cur_other: dint;
+	end
+	{st}
+	if self.backing.count <> other.backing.count then
+		LinkedHashSet_equals := false;
+		return;
+	end_if;
+
+	cur_self := self.backing.head_idx;
+	cur_other := other.backing.head_idx;
+	while (cur_self >= 0) and (cur_other >= 0) do
+		if (cur_self >= LinkedHashSetCapacity) or (not self.backing.nodes[cur_self].used) then
+			eno := false;
+			return;
+		end_if;
+		if (cur_other >= LinkedHashSetCapacity) or (not other.backing.nodes[cur_other].used) then
+			eno := false;
+			return;
+		end_if;
+
+		if not _LINKEDHASHSET_ELEM_EQUALS_(self.backing.nodes[cur_self].key, other.backing.nodes[cur_other].key) then
+			LinkedHashSet_equals := false;
+			return;
+		end_if;
+
+		cur_self := self.backing.nodes[cur_self].next;
+		cur_other := other.backing.nodes[cur_other].next;
+	end_while;
+
+	if (cur_self <> -1) or (cur_other <> -1) then
+		eno := false;
+		return;
+	end_if;
+
+	LinkedHashSet_equals := true;
+	{end}
+end
+
+(*{doc Compute a hash value from all elements in linked order.
+Accumulate element hashes with sequence sensitivity.
+@inout self Target LinkedHashSet.
+@return Hash value. }*)
+function LinkedHashSet_hash: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashSetCoreType;
+	end
+	var_temp
+		acc: udint;
+		elem_hash: udint;
+		cur: dint;
+		sequence_idx: dint;
+	end
+	{st}
+	acc := udint#2166136261;
+	cur := self.backing.head_idx;
+	sequence_idx := 0;
+
+	while cur >= 0 do
+		if (cur >= LinkedHashSetCapacity) or (not self.backing.nodes[cur].used) then
+			eno := false;
+			return;
+		end_if;
+		elem_hash := LinkedHashSetElementHashFunction(self.backing.nodes[cur].key);
+		acc := dword_to_udint(udint_to_dword(acc) xor udint_to_dword(elem_hash)) * udint#16777619 + elem_hash + dint_to_udint(sequence_idx + 1);
+		cur := self.backing.nodes[cur].next;
+		sequence_idx := sequence_idx + 1;
+	end_while;
+
+	LinkedHashSet_hash := acc + dint_to_udint(self.backing.count);
+	{end}
+end
+
+(*{doc Return true when the container is empty.
+Check whether count is zero.
+@inout self Target LinkedHashSet.
+@return true if count is 0, otherwise false. }*)
+function LinkedHashSet_empty: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashSetCoreType;
+	end
+	{st}
+	LinkedHashSet_empty := self.backing.count = 0;
+	{end}
+end
+
+(*{doc Clear all elements.
+Reset backing structure to empty state.
+@inout self Target LinkedHashSet.
+@return true on success.
+@error Propagates ENO from backing LinkedHashMap operations. }*)
+function LinkedHashSet_clear: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashSetCoreType;
+	end
+	{st}
+	LinkedHashSet_clear := LinkedHashSet_backing_clear(self:=self.backing, eno=>eno);
+	{end}
+end
+
+{#undef LinkedHashSetCoreType}
+{#undef LinkedHashSetBackingCoreType}
+{#undef LinkedHashSet_init}
+{#undef LinkedHashSet_copy}
+{#undef LinkedHashSet_add}
+{#undef LinkedHashSet_add_all}
+{#undef LinkedHashSet_remove}
+{#undef LinkedHashSet_remove_all}
+{#undef LinkedHashSet_contains}
+{#undef LinkedHashSet_len}
+{#undef LinkedHashSet_elements}
+{#undef LinkedHashSet_equals}
+{#undef LinkedHashSet_hash}
+{#undef LinkedHashSet_empty}
+{#undef LinkedHashSet_clear}
+{#undef LinkedHashSet_backing_init}
+{#undef LinkedHashSet_backing_copy}
+{#undef LinkedHashSet_backing_upsert}
+{#undef LinkedHashSet_backing_delete}
+{#undef LinkedHashSet_backing_contains}
+{#undef LinkedHashSet_backing_keys}
+{#undef LinkedHashSet_backing_empty}
+{#undef LinkedHashSet_backing_clear}
+
+{#undef LINKEDHASHSET_CORE_TYPE}
+{#undef LINKEDHASHSET_INIT}
+{#undef LINKEDHASHSET_COPY}
+{#undef LINKEDHASHSET_ADD}
+{#undef LINKEDHASHSET_ADD_ALL}
+{#undef LINKEDHASHSET_REMOVE}
+{#undef LINKEDHASHSET_REMOVE_ALL}
+{#undef LINKEDHASHSET_CONTAINS}
+{#undef LINKEDHASHSET_LEN}
+{#undef LINKEDHASHSET_ELEMENTS}
+{#undef LINKEDHASHSET_EQUALS}
+{#undef LINKEDHASHSET_HASH}
+{#undef LINKEDHASHSET_EMPTY}
+{#undef LINKEDHASHSET_CLEAR}
+{#undef LINKEDHASHSET_BACKING_CORE_TYPE}
+{#undef LINKEDHASHSET_BACKING_INIT}
+{#undef LINKEDHASHSET_BACKING_COPY}
+{#undef LINKEDHASHSET_BACKING_UPSERT}
+{#undef LINKEDHASHSET_BACKING_DELETE}
+{#undef LINKEDHASHSET_BACKING_CONTAINS}
+{#undef LINKEDHASHSET_BACKING_KEYS}
+{#undef LINKEDHASHSET_BACKING_EMPTY}
+{#undef LINKEDHASHSET_BACKING_CLEAR}
+
+{#undef _LINKEDHASHSET_CORE_TYPE_}
+{#undef _LINKEDHASHSET_INIT_}
+{#undef _LINKEDHASHSET_COPY_}
+{#undef _LINKEDHASHSET_ADD_}
+{#undef _LINKEDHASHSET_ADD_ALL_}
+{#undef _LINKEDHASHSET_REMOVE_}
+{#undef _LINKEDHASHSET_REMOVE_ALL_}
+{#undef _LINKEDHASHSET_CONTAINS_}
+{#undef _LINKEDHASHSET_LEN_}
+{#undef _LINKEDHASHSET_ELEMENTS_}
+{#undef _LINKEDHASHSET_EQUALS_}
+{#undef _LINKEDHASHSET_HASH_}
+{#undef _LINKEDHASHSET_EMPTY_}
+{#undef _LINKEDHASHSET_CLEAR_}
+{#undef _LINKEDHASHSET_BACKING_CORE_TYPE_}
+{#undef _LINKEDHASHSET_BACKING_INIT_}
+{#undef _LINKEDHASHSET_BACKING_COPY_}
+{#undef _LINKEDHASHSET_BACKING_UPSERT_}
+{#undef _LINKEDHASHSET_BACKING_DELETE_}
+{#undef _LINKEDHASHSET_BACKING_CONTAINS_}
+{#undef _LINKEDHASHSET_BACKING_KEYS_}
+{#undef _LINKEDHASHSET_BACKING_EMPTY_}
+{#undef _LINKEDHASHSET_BACKING_CLEAR_}
+
+{#ifdef _LINKEDHASHSET_DEFAULT_MAX_LOAD_PERMILLE_DEFINED__}
+	{#undef LinkedHashSetMaxLoadPermille}
+	{#undef _LINKEDHASHSET_DEFAULT_MAX_LOAD_PERMILLE_DEFINED__}
+{#endif}
+
+{#undef _LINKEDHASHSET_ELEM_EQUALS_}

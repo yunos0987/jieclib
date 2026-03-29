@@ -1,0 +1,183 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/compress/test_rle.txt -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/compress/test_rle.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+
+{#include <src/compress/rle.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_rle_encode',
+		'test_rle_decode'
+	)
+)
+{#endif}
+
+TEST_S(test_rle_encode)
+	var
+		src: array[0..255] of byte;
+		dst: array[0..511] of byte;
+		nn: dint;
+		ok: bool;
+	end
+	{st}
+	// Fact: A run of identical bytes produces a 2-byte run packet.
+		// Arrange
+	src[0] := byte#16#AA;
+	src[1] := byte#16#AA;
+	src[2] := byte#16#AA;
+	src[3] := byte#16#AA;
+		// Act
+	nn := rle_encode(dat:=src, dst:=dst, offset:=0, length:=4);
+		// Assert
+	EXPECT_EQ_INT32(2, nn);
+	EXPECT_EQ_BYTE(byte#16#FD, dst[0]);  // header: 257 - 4 = 253 = 0xFD
+	EXPECT_EQ_BYTE(byte#16#AA, dst[1]);
+
+	// Fact: A run of 2 identical bytes encodes to 2 bytes (header=255, value).
+		// Arrange
+	src[0] := byte#16#42;
+	src[1] := byte#16#42;
+		// Act
+	nn := rle_encode(dat:=src, dst:=dst, offset:=0, length:=2);
+		// Assert
+	EXPECT_EQ_INT32(2, nn);
+	EXPECT_EQ_BYTE(byte#16#FF, dst[0]);  // header: 257 - 2 = 255 = 0xFF
+	EXPECT_EQ_BYTE(byte#16#42, dst[1]);
+
+	// Fact: Non-repeating bytes produce a literal packet.
+		// Arrange
+	src[0] := byte#16#01;
+	src[1] := byte#16#02;
+	src[2] := byte#16#03;
+		// Act
+	nn := rle_encode(dat:=src, dst:=dst, offset:=0, length:=3);
+		// Assert
+	EXPECT_EQ_INT32(4, nn);
+	EXPECT_EQ_BYTE(byte#16#02, dst[0]);  // header: 3 - 1 = 2
+	EXPECT_EQ_BYTE(byte#16#01, dst[1]);
+	EXPECT_EQ_BYTE(byte#16#02, dst[2]);
+	EXPECT_EQ_BYTE(byte#16#03, dst[3]);
+
+	// Fact: A single byte encodes as a 2-byte literal packet.
+		// Arrange
+	src[0] := byte#16#7F;
+		// Act
+	nn := rle_encode(dat:=src, dst:=dst, offset:=0, length:=1);
+		// Assert
+	EXPECT_EQ_INT32(2, nn);
+	EXPECT_EQ_BYTE(byte#16#00, dst[0]);  // header: 1 - 1 = 0
+	EXPECT_EQ_BYTE(byte#16#7F, dst[1]);
+
+	// Fact: Mixed run and literal regions encode correctly.
+		// Arrange: [AA AA AA 01 02]
+	src[0] := byte#16#AA;
+	src[1] := byte#16#AA;
+	src[2] := byte#16#AA;
+	src[3] := byte#16#01;
+	src[4] := byte#16#02;
+		// Act
+	nn := rle_encode(dat:=src, dst:=dst, offset:=0, length:=5);
+		// Assert
+	EXPECT_EQ_INT32(5, nn);
+	EXPECT_EQ_BYTE(byte#16#FE, dst[0]);  // run header: 257 - 3 = 254
+	EXPECT_EQ_BYTE(byte#16#AA, dst[1]);
+	EXPECT_EQ_BYTE(byte#16#01, dst[2]);  // literal header: 2 - 1 = 1
+	EXPECT_EQ_BYTE(byte#16#01, dst[3]);
+	EXPECT_EQ_BYTE(byte#16#02, dst[4]);
+
+	// Fact: length=0 returns 0 without error.
+		// Act
+	nn := rle_encode(dat:=src, dst:=dst, offset:=0, length:=0, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_EQ_INT32(0, nn);
+
+	// Fact: An out-of-range offset returns an error.
+		// Act
+	rle_encode(dat:=src, dst:=dst, offset:=300, length:=1, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	{end}
+END_TEST_S
+
+TEST_S(test_rle_decode)
+	var
+		src: array[0..511] of byte;
+		dst: array[0..255] of byte;
+		nn: dint;
+		ok: bool;
+	end
+	{st}
+	// Fact: A run packet decodes to repeated bytes.
+		// Arrange: header=0xFD (run 4), value=0xAA
+	src[0] := byte#16#FD;
+	src[1] := byte#16#AA;
+		// Act
+	nn := rle_decode(dat:=src, length:=2, dst:=dst);
+		// Assert
+	EXPECT_EQ_INT32(4, nn);
+	EXPECT_EQ_BYTE(byte#16#AA, dst[0]);
+	EXPECT_EQ_BYTE(byte#16#AA, dst[1]);
+	EXPECT_EQ_BYTE(byte#16#AA, dst[2]);
+	EXPECT_EQ_BYTE(byte#16#AA, dst[3]);
+
+	// Fact: A literal packet decodes to its constituent bytes.
+		// Arrange: header=0x02 (3 literals), then [01 02 03]
+	src[0] := byte#16#02;
+	src[1] := byte#16#01;
+	src[2] := byte#16#02;
+	src[3] := byte#16#03;
+		// Act
+	nn := rle_decode(dat:=src, length:=4, dst:=dst);
+		// Assert
+	EXPECT_EQ_INT32(3, nn);
+	EXPECT_EQ_BYTE(byte#16#01, dst[0]);
+	EXPECT_EQ_BYTE(byte#16#02, dst[1]);
+	EXPECT_EQ_BYTE(byte#16#03, dst[2]);
+
+	// Fact: Header 0x80 (128) is a no-op and produces no output bytes.
+		// Arrange
+	src[0] := byte#16#80;
+	src[1] := byte#16#00;
+	src[2] := byte#16#42;
+		// Act
+	nn := rle_decode(dat:=src, length:=3, dst:=dst);
+		// Assert
+	EXPECT_EQ_INT32(1, nn);
+	EXPECT_EQ_BYTE(byte#16#42, dst[0]);
+
+	// Fact: Decode reverses a round-trip encode of mixed data.
+		// Arrange: encode [AA AA AA 01 02] to get 6 compressed bytes, then decode
+	src[0] := byte#16#FE;  // run: 257-254=3 repeats
+	src[1] := byte#16#AA;
+	src[2] := byte#16#01;  // literal: 1+1=2 bytes
+	src[3] := byte#16#01;
+	src[4] := byte#16#02;
+		// Act
+	nn := rle_decode(dat:=src, length:=5, dst:=dst);
+		// Assert
+	EXPECT_EQ_INT32(5, nn);
+	EXPECT_EQ_BYTE(byte#16#AA, dst[0]);
+	EXPECT_EQ_BYTE(byte#16#AA, dst[1]);
+	EXPECT_EQ_BYTE(byte#16#AA, dst[2]);
+	EXPECT_EQ_BYTE(byte#16#01, dst[3]);
+	EXPECT_EQ_BYTE(byte#16#02, dst[4]);
+
+	// Fact: A run packet without a following byte returns an error.
+		// Arrange: header only, no value byte
+	src[0] := byte#16#FF;
+		// Act
+	rle_decode(dat:=src, length:=1, dst:=dst, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+
+	// Fact: A negative length returns an error.
+		// Act
+	rle_decode(dat:=src, length:=-1, dst:=dst, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	{end}
+END_TEST_S

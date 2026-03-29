@@ -1,0 +1,20 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/array/rotate.txt -I./src -o ./src/array/rotate.xml -t omron
+ *)
+{#ifndef __ARRAY_ROTATE_TXT__}
+{#define __ARRAY_ROTATE_TXT__}
+
+{#define ArrayRotateName lreal}
+{#define ArrayRotateElementType lreal}
+{#include "rotate_template.txt"}
+{#undef ArrayRotateName}
+{#undef ArrayRotateElementType}
+
+{#define ArrayRotateName dint}
+{#define ArrayRotateElementType dint}
+{#include "rotate_template.txt"}
+{#undef ArrayRotateName}
+{#undef ArrayRotateElementType}
+
+{#endif}

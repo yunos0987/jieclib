@@ -1,0 +1,207 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/encoding/test_base64url.txt -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/encoding/test_base64url.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+
+{#include <src/encoding/base64url.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_base64url_encode',
+		'test_base64url_decode'
+	)
+)
+{#endif}
+
+TEST_S(test_base64url_encode)
+	var
+		x_1: array[8] of byte := [byte#16#02, byte#16#03, byte#16#05, byte#16#07, byte#16#0B, byte#16#0D, byte#16#11, byte#16#17];
+		x_2: array[3] of byte := [byte#16#00, byte#16#01, byte#16#02];
+		x_3: array[3] of byte := [byte#16#FF, byte#16#EE, byte#16#DD];
+		x_4: array[4] of byte := [byte#16#10, byte#16#20, byte#16#30, byte#16#40];
+		x_5: array[3] of byte := [byte#16#AB, byte#16#CD, byte#16#EF];
+		x_6: array[4] of byte := [byte#16#DE, byte#16#AD, byte#16#BE, byte#16#EF];
+		x_7: array[5] of byte := [byte#16#12, byte#16#34, byte#16#56, byte#16#78, byte#16#9A];
+		x_8: array[1] of byte := [byte#16#00];
+		x_9: array[1] of byte := [byte#16#FF];
+		x_x: array[48] of byte := [byte#16#00, byte#16#10, byte#16#83, byte#16#10, byte#16#51, byte#16#87, byte#16#20, byte#16#92, byte#16#8b, byte#16#30, byte#16#d3, byte#16#8f, byte#16#41, byte#16#14, byte#16#93, byte#16#51, byte#16#55, byte#16#97, byte#16#61, byte#16#96, byte#16#9b, byte#16#71, byte#16#d7, byte#16#9f, byte#16#82, byte#16#18, byte#16#a3, byte#16#92, byte#16#59, byte#16#a7, byte#16#a2, byte#16#9a, byte#16#ab, byte#16#b2, byte#16#db, byte#16#af, byte#16#c3, byte#16#1c, byte#16#b3, byte#16#d3, byte#16#5d, byte#16#b7, byte#16#e3, byte#16#9e, byte#16#bb, byte#16#f3, byte#16#df, byte#16#bf];
+		x_n: array[8] of byte := [byte#16#02, byte#16#03, byte#16#05, byte#16#07, byte#16#0B, byte#16#0D, byte#16#11, byte#16#17];
+		ok: bool;
+	end
+	{st}
+	// Fact: base64url_encode produces a URL-safe string without padding.
+		// Act/Assert
+	EXPECT_EQ_STRING('AgMFBwsNERc', base64url_encode(dat:=x_1));
+
+	// Fact: 3 bytes encode to exactly 4 characters with no padding.
+		// Act/Assert
+	EXPECT_EQ_STRING('AAEC', base64url_encode(dat:=x_2));
+
+	// Fact: Characters '+' and '/' in standard Base64 are replaced with '-' and '_'.
+		// Act/Assert
+	EXPECT_EQ_STRING('_-7d', base64url_encode(dat:=x_3));
+
+	// Fact: 4 bytes encode to 6 characters with no '==' padding.
+		// Act/Assert
+	EXPECT_EQ_STRING('ECAwQA', base64url_encode(dat:=x_4));
+
+	// Fact: Input with no '+' or '/' produces the same result as standard Base64.
+		// Act/Assert
+	EXPECT_EQ_STRING('q83v', base64url_encode(dat:=x_5));
+
+	// Fact: 4 bytes containing 0xBE produces '-' instead of '+'.
+		// Act/Assert
+	EXPECT_EQ_STRING('3q2-7w', base64url_encode(dat:=x_6));
+
+	// Fact: 5 bytes encode to 7 characters with no '=' padding.
+		// Act/Assert
+	EXPECT_EQ_STRING('EjRWeJo', base64url_encode(dat:=x_7));
+
+	// Fact: A single 0x00 byte encodes to 'AA'.
+		// Act/Assert
+	EXPECT_EQ_STRING('AA', base64url_encode(dat:=x_8));
+
+	// Fact: A single 0xFF byte encodes to '_w' (vs '/w==' in standard Base64).
+		// Act/Assert
+	EXPECT_EQ_STRING('_w', base64url_encode(dat:=x_9));
+
+	// Fact: The last two characters of the full alphabet encode as '-' and '_'.
+		// Act/Assert
+	EXPECT_EQ_STRING('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_', base64url_encode(dat:=x_x));
+
+	// Fact: length=0 returns an empty string without error.
+		// Act/Assert
+	EXPECT_EQ_STRING('', base64url_encode(dat:=x_n, offset:=0, length:=0, eno=>ok));
+	EXPECT_TRUE(ok);
+
+	// Fact: A non-zero offset correctly skips leading bytes.
+		// Act/Assert
+	EXPECT_EQ_STRING('AwUHCw0RFw', base64url_encode(dat:=x_n, offset:=1, length:=-1, eno=>ok));
+	EXPECT_TRUE(ok);
+
+	// Fact: Encoding the last byte only produces a 2-character string.
+		// Act/Assert
+	EXPECT_EQ_STRING('Fw', base64url_encode(dat:=x_n, offset:=7, length:=-1, eno=>ok));
+	EXPECT_TRUE(ok);
+
+	// Fact: An offset beyond the array end returns an error.
+		// Act
+	base64url_encode(dat:=x_n, offset:=8, length:=-1, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+
+	// Fact: length=1 encodes a single byte to 2 characters.
+		// Act/Assert
+	EXPECT_EQ_STRING('Ag', base64url_encode(dat:=x_n, offset:=0, length:=1, eno=>ok));
+	EXPECT_TRUE(ok);
+
+	// Fact: length=2 encodes two bytes to 3 characters.
+		// Act/Assert
+	EXPECT_EQ_STRING('AgM', base64url_encode(dat:=x_n, offset:=0, length:=2, eno=>ok));
+	EXPECT_TRUE(ok);
+
+	// Fact: A length exceeding the array size returns an error.
+		// Act
+	base64url_encode(dat:=x_n, offset:=0, length:=9, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	{end}
+END_TEST_S
+
+TEST_S(test_base64url_decode)
+	var
+		ll: dint;
+		ok: bool;
+		x_4096: array[4096] of byte;
+	end
+	{st}
+	// Fact: base64url_decode correctly decodes an 8-byte sequence.
+		// Act
+	ll := base64url_decode(txt:='AgMFBwsNERc', dat:=x_4096);
+		// Assert
+	EXPECT_EQ_INT32(8, ll);
+	EXPECT_EQ_BYTE(byte#16#02, x_4096[0]);
+	EXPECT_EQ_BYTE(byte#16#03, x_4096[1]);
+	EXPECT_EQ_BYTE(byte#16#05, x_4096[2]);
+	EXPECT_EQ_BYTE(byte#16#07, x_4096[3]);
+	EXPECT_EQ_BYTE(byte#16#0b, x_4096[4]);
+	EXPECT_EQ_BYTE(byte#16#0d, x_4096[5]);
+	EXPECT_EQ_BYTE(byte#16#11, x_4096[6]);
+	EXPECT_EQ_BYTE(byte#16#17, x_4096[7]);
+
+	// Fact: '-' and '_' are correctly decoded to 62 and 63.
+		// Act
+	ll := base64url_decode(txt:='_-7d', dat:=x_4096);
+		// Assert
+	EXPECT_EQ_INT32(3, ll);
+	EXPECT_EQ_BYTE(byte#16#ff, x_4096[0]);
+	EXPECT_EQ_BYTE(byte#16#ee, x_4096[1]);
+	EXPECT_EQ_BYTE(byte#16#dd, x_4096[2]);
+
+	// Fact: A 6-character input decodes to 4 bytes.
+		// Act
+	ll := base64url_decode(txt:='3q2-7w', dat:=x_4096);
+		// Assert
+	EXPECT_EQ_INT32(4, ll);
+	EXPECT_EQ_BYTE(byte#16#de, x_4096[0]);
+	EXPECT_EQ_BYTE(byte#16#ad, x_4096[1]);
+	EXPECT_EQ_BYTE(byte#16#be, x_4096[2]);
+	EXPECT_EQ_BYTE(byte#16#ef, x_4096[3]);
+
+	// Fact: A 2-character input (no padding) decodes to 1 byte.
+		// Act
+	ll := base64url_decode(txt:='AA', dat:=x_4096);
+		// Assert
+	EXPECT_EQ_INT32(1, ll);
+	EXPECT_EQ_BYTE(byte#16#00, x_4096[0]);
+
+	// Fact: '_w' decodes to 0xFF.
+		// Act
+	ll := base64url_decode(txt:='_w', dat:=x_4096);
+		// Assert
+	EXPECT_EQ_INT32(1, ll);
+	EXPECT_EQ_BYTE(byte#16#ff, x_4096[0]);
+
+	// Fact: A 3-character input decodes to 2 bytes.
+		// Act
+	ll := base64url_decode(txt:='AAA', dat:=x_4096);
+		// Assert
+	EXPECT_EQ_INT32(2, ll);
+	EXPECT_EQ_BYTE(byte#16#00, x_4096[0]);
+	EXPECT_EQ_BYTE(byte#16#00, x_4096[1]);
+
+	// Fact: The full URL-safe alphabet round-trips correctly.
+		// Act
+	ll := base64url_decode(txt:='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_', dat:=x_4096);
+		// Assert
+	EXPECT_EQ_INT32(48, ll);
+	EXPECT_EQ_BYTE(byte#16#00, x_4096[0]);
+	EXPECT_EQ_BYTE(byte#16#10, x_4096[1]);
+	EXPECT_EQ_BYTE(byte#16#83, x_4096[2]);
+
+	// Fact: Standard Base64 '+' and '/' characters are rejected.
+		// Act
+	base64url_decode(txt:='3q2+7w', dat:=x_4096, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	base64url_decode(txt:='/w', dat:=x_4096, eno=>ok);
+	EXPECT_FALSE(ok);
+
+	// Fact: A single character (incomplete group) returns an error.
+		// Act
+	base64url_decode(txt:='A', dat:=x_4096, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+
+	// Fact: A non-zero offset writes decoded bytes at the correct position.
+		// Act
+	ll := base64url_decode(txt:='AAAA', dat:=x_4096, offset:=10);
+		// Assert
+	EXPECT_EQ_INT32(3, ll);
+	EXPECT_EQ_BYTE(byte#16#00, x_4096[10]);
+	EXPECT_EQ_BYTE(byte#16#00, x_4096[11]);
+	EXPECT_EQ_BYTE(byte#16#00, x_4096[12]);
+	{end}
+END_TEST_S

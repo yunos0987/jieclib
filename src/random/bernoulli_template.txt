@@ -1,0 +1,73 @@
+(*
+	================================================================================
+	Random Bernoulli template
+	================================================================================
+
+	This template generates a typed nextBernoulli function
+	from preprocessor macros.
+
+	Usage:
+	1. Define required macros.
+	2. Include this template once per generator type.
+
+	Required macros:
+	  - RandomGeneratorPrefix
+	    Prefix prepended to function names.
+	    Example: LCG  ->  LCG_nextBernoulli
+	  - RandomGeneratorType
+	    Type of the self parameter.
+	    Example: LCG_t
+
+	Generated API:
+	  - RandomGeneratorPrefix@@_nextBernoulli(self, prob) : bool
+
+	Example (LCG):
+	  {#define RandomGeneratorPrefix LCG}
+	  {#define RandomGeneratorType LCG_t}
+	  {#include "bernoulli_template.txt"}
+	  {#undef RandomGeneratorPrefix}
+	  {#undef RandomGeneratorType}
+	================================================================================
+*)
+
+{#ifndef RandomGeneratorPrefix}
+	{#error require RandomGeneratorPrefix macro.}
+{#endif}
+
+{#ifndef RandomGeneratorType}
+	{#error require RandomGeneratorType macro.}
+{#endif}
+
+{#define _RANDOM_NEXT_BERNOULLI_(P) P@@_nextBernoulli}
+{#define RANDOM_NEXT_BERNOULLI(P)   _RANDOM_NEXT_BERNOULLI_(P)}
+{#define Random_nextBernoulli        RANDOM_NEXT_BERNOULLI(RandomGeneratorPrefix)}
+
+{#define _RANDOM_NEXT_DOUBLE_(P) P@@_nextDouble}
+{#define RANDOM_NEXT_DOUBLE(P)   _RANDOM_NEXT_DOUBLE_(P)}
+{#define Random_nextDouble        RANDOM_NEXT_DOUBLE(RandomGeneratorPrefix)}
+
+(*{doc Returns true with probability prob (Bernoulli trial).
+@inout self The generator state.
+@input prob The probability of returning true (0.0 to 1.0).
+@return true with probability prob, false otherwise. }*)
+function Random_nextBernoulli: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The generator state.}*)
+		self: RandomGeneratorType;
+	end
+	var_input
+		(*{doc The probability of returning true (0.0 to 1.0).}*)
+		prob: lreal;
+	end
+	{st}
+	Random_nextBernoulli := Random_nextDouble(self) < prob;
+	{end}
+end
+
+{#undef _RANDOM_NEXT_BERNOULLI_}
+{#undef RANDOM_NEXT_BERNOULLI}
+{#undef Random_nextBernoulli}
+{#undef _RANDOM_NEXT_DOUBLE_}
+{#undef RANDOM_NEXT_DOUBLE}
+{#undef Random_nextDouble}

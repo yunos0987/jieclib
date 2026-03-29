@@ -1,0 +1,20 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/array/aggregate.txt -I./src -o ./src/array/aggregate.xml -t omron
+ *)
+{#ifndef __ARRAY_AGGREGATE_TXT__}
+{#define __ARRAY_AGGREGATE_TXT__}
+
+{#define ArrayAggregateName lreal}
+{#define ArrayAggregateElementType lreal}
+{#include "aggregate_template.txt"}
+{#undef ArrayAggregateName}
+{#undef ArrayAggregateElementType}
+
+{#define ArrayAggregateName dint}
+{#define ArrayAggregateElementType dint}
+{#include "aggregate_template.txt"}
+{#undef ArrayAggregateName}
+{#undef ArrayAggregateElementType}
+
+{#endif}

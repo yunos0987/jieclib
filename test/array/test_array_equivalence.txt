@@ -1,0 +1,105 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/array/test_array_equivalence.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/array/test_array_equivalence.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <array/array.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_array_equals',
+		'test_array_equals_offset'
+	)
+)
+{#endif}
+
+TEST_S(test_array_equals)
+	var
+		aa: array[0..3] of lreal := [1.0, 2.0, 3.0, 4.0];
+		bb: array[0..3] of lreal := [1.0, 2.0, 3.0, 4.0];
+		cc: array[0..3] of lreal := [1.0, 2.0, 0.0, 4.0];
+		pp: array[0..3] of dint  := [1, 2, 3, 4];
+		qq: array[0..3] of dint  := [1, 2, 3, 4];
+		rr: array[0..3] of dint  := [1, 2, 3, 9];
+		aa3: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		ok: bool;
+	end
+	{st}
+	// Fact: Two lreal arrays with equal elements compare as equal.
+		// Arrange
+		// Act
+	ok := Array_equals_lreal(self:=aa, other:=bb);
+		// Assert
+	EXPECT_TRUE(ok);
+
+	// Fact: Two lreal arrays differing in one element compare as not equal.
+		// Arrange
+		// Act
+	ok := Array_equals_lreal(self:=aa, other:=cc);
+		// Assert
+	EXPECT_FALSE(ok);
+
+	// Fact: Two dint arrays with equal elements compare as equal.
+		// Arrange
+		// Act
+	ok := Array_equals_dint(self:=pp, other:=qq);
+		// Assert
+	EXPECT_TRUE(ok);
+
+	// Fact: Two dint arrays differing in the last element compare as not equal.
+		// Arrange
+		// Act
+	ok := Array_equals_dint(self:=pp, other:=rr);
+		// Assert
+	EXPECT_FALSE(ok);
+
+	// Fact: Arrays of different lengths compare as not equal.
+		// Arrange
+		// Act
+	ok := Array_equals_lreal(self:=aa, other:=aa3);
+		// Assert
+	EXPECT_FALSE(ok);
+	{end}
+END_TEST_S
+
+TEST_S(test_array_equals_offset)
+	var
+		aa: array[5..8] of lreal := [1.0, 2.0, 3.0, 4.0];
+		bb: array[5..8] of lreal := [1.0, 2.0, 3.0, 4.0];
+		cc: array[5..8] of lreal := [1.0, 2.0, 0.0, 4.0];
+		pp: array[10..13] of dint := [1, 2, 3, 4];
+		qq: array[10..13] of dint := [1, 2, 3, 4];
+		rr: array[10..13] of dint := [1, 2, 3, 9];
+		ok: bool;
+	end
+	{st}
+	// Fact: Two offset lreal arrays with equal elements compare as equal.
+		// Arrange
+		// Act
+	ok := Array_equals_lreal(self:=aa, other:=bb);
+		// Assert
+	EXPECT_TRUE(ok);
+
+	// Fact: Two offset lreal arrays differing in one element compare as not equal.
+		// Arrange
+		// Act
+	ok := Array_equals_lreal(self:=aa, other:=cc);
+		// Assert
+	EXPECT_FALSE(ok);
+
+	// Fact: Two offset dint arrays with equal elements compare as equal.
+		// Arrange
+		// Act
+	ok := Array_equals_dint(self:=pp, other:=qq);
+		// Assert
+	EXPECT_TRUE(ok);
+
+	// Fact: Two offset dint arrays differing in the last element compare as not equal.
+		// Arrange
+		// Act
+	ok := Array_equals_dint(self:=pp, other:=rr);
+		// Assert
+	EXPECT_FALSE(ok);
+	{end}
+END_TEST_S

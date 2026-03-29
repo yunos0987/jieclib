@@ -1,0 +1,89 @@
+(*
+	================================================================================
+	Random Gaussian template
+	================================================================================
+
+	This template generates a typed nextGaussian function (Box-Muller transform)
+	from preprocessor macros.
+
+	Usage:
+	1. Define required macros.
+	2. Include this template once per generator type.
+
+	Required macros:
+	  - RandomGeneratorPrefix
+	    Prefix prepended to function names.
+	    Example: Xorshift32  ->  Xorshift32_nextGaussian
+	  - RandomGeneratorType
+	    Type of the self parameter.
+	    Example: Xorshift32_t
+
+	Generated API:
+	  - RandomGeneratorPrefix@@_nextGaussian(self, mean, sigma) : lreal
+
+	Example (Xorshift32):
+	  {#define RandomGeneratorPrefix Xorshift32}
+	  {#define RandomGeneratorType Xorshift32_t}
+	  {#include "gaussian_template.txt"}
+	  {#undef RandomGeneratorPrefix}
+	  {#undef RandomGeneratorType}
+	================================================================================
+*)
+
+{#ifndef RandomGeneratorPrefix}
+	{#error require RandomGeneratorPrefix macro.}
+{#endif}
+
+{#ifndef RandomGeneratorType}
+	{#error require RandomGeneratorType macro.}
+{#endif}
+
+{#define _RANDOM_NEXT_GAUSSIAN_(P) P@@_nextGaussian}
+{#define RANDOM_NEXT_GAUSSIAN(P)   _RANDOM_NEXT_GAUSSIAN_(P)}
+{#define Random_nextGaussian        RANDOM_NEXT_GAUSSIAN(RandomGeneratorPrefix)}
+
+{#define _RANDOM_NEXT_DOUBLE_(P) P@@_nextDouble}
+{#define RANDOM_NEXT_DOUBLE(P)   _RANDOM_NEXT_DOUBLE_(P)}
+{#define Random_nextDouble        RANDOM_NEXT_DOUBLE(RandomGeneratorPrefix)}
+
+(*{doc Generates a Gaussian (normal) distributed pseudo-random number using the Box-Muller transform.
+@inout self The generator state.
+@input mean The mean of the distribution. Default: 0.0.
+@input sigma The standard deviation of the distribution. Default: 1.0.
+@return A pseudo-random value from the Gaussian distribution.
+@error If sigma < 0. }*)
+function Random_nextGaussian: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The generator state.}*)
+		self: RandomGeneratorType;
+	end
+	var_input
+		(*{doc The mean of the distribution. Default: 0.0.}*)
+		mean: lreal := lreal#0.0;
+		(*{doc The standard deviation of the distribution. Default: 1.0.}*)
+		sigma: lreal := lreal#1.0;
+	end
+	var_temp
+		u1, u2: lreal;
+	end
+	{st}
+	if sigma < lreal#0.0 then
+		eno := false;
+	else
+		u1 := Random_nextDouble(self);
+		u2 := Random_nextDouble(self);
+		if u1 <= lreal#0.0 then
+			u1 := lreal#2.2204460492503e-16; // guard against log(0)
+		end_if;
+		Random_nextGaussian := SQRT(-lreal#2.0 * LN(u1)) * COS(lreal#2.0 * lreal#3.141592653589793 * u2) * sigma + mean;
+	end_if;
+	{end}
+end
+
+{#undef _RANDOM_NEXT_GAUSSIAN_}
+{#undef RANDOM_NEXT_GAUSSIAN}
+{#undef Random_nextGaussian}
+{#undef _RANDOM_NEXT_DOUBLE_}
+{#undef RANDOM_NEXT_DOUBLE}
+{#undef Random_nextDouble}

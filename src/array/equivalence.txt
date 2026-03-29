@@ -1,0 +1,20 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/array/equivalence.txt -I./src -o ./src/array/equivalence.xml -t omron
+ *)
+{#ifndef __ARRAY_EQUIVALENCE_TXT__}
+{#define __ARRAY_EQUIVALENCE_TXT__}
+
+{#define ArrayEqualsName lreal}
+{#define ArrayEqualsElementType lreal}
+{#include "equivalence_template.txt"}
+{#undef ArrayEqualsName}
+{#undef ArrayEqualsElementType}
+
+{#define ArrayEqualsName dint}
+{#define ArrayEqualsElementType dint}
+{#include "equivalence_template.txt"}
+{#undef ArrayEqualsName}
+{#undef ArrayEqualsElementType}
+
+{#endif}

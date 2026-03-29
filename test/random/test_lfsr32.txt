@@ -1,0 +1,126 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/random/test_lfsr32.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/random/test_lfsr32.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <random/lfsr32.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_LFSR32_init',
+		'test_LFSR32_nextBool',
+		'test_LFSR32_nextByte',
+		'test_LFSR32_nextUint32',
+		'test_LFSR32_nextIntInRange'
+	)
+)
+{#endif}
+
+TEST_S(test_LFSR32_init)
+	var
+		lfsr: LFSR32_t;
+		ok: bool;
+	end
+	{st}
+	// seed=0 must fail (LFSR halts at zero state)
+	LFSR32_init(self:=lfsr, seed:=dword#0, eno=>ok);
+	EXPECT_FALSE(ok);
+	// seed != 0 must succeed
+	LFSR32_init(self:=lfsr, seed:=dword#1, eno=>ok);
+	EXPECT_TRUE(ok);
+	{end}
+END_TEST_S
+
+TEST_S(test_LFSR32_nextBool)
+	var
+		lfsr: LFSR32_t;
+		b1: bool;
+	end
+	{st}
+	// seed=1: LSB=1 → first bit is true
+	LFSR32_init(self:=lfsr, seed:=dword#1);
+	EXPECT_EQ_BOOL(true, LFSR32_nextBool(lfsr));
+	// second bit: state=0xB4BCD35C, LSB=0 → false
+	EXPECT_EQ_BOOL(false, LFSR32_nextBool(lfsr));
+
+	// seed=0xB4BCD35C (default poly): LSB=0 → first bit is false
+	LFSR32_init(self:=lfsr, seed:=dword#16#B4BCD35C);
+	EXPECT_EQ_BOOL(false, LFSR32_nextBool(lfsr));
+
+	// reproducibility: same seed yields same sequence
+	LFSR32_init(self:=lfsr, seed:=dword#16#DEADBEEF);
+	b1 := LFSR32_nextBool(lfsr);
+	LFSR32_init(self:=lfsr, seed:=dword#16#DEADBEEF);
+	EXPECT_EQ_BOOL(b1, LFSR32_nextBool(lfsr));
+	{end}
+END_TEST_S
+
+TEST_S(test_LFSR32_nextByte)
+	var
+		lfsr: LFSR32_t;
+		bit_idx: dint;
+		expected: dword;
+	end
+	{st}
+	// seed=1, default poly=0xB4BCD35C:
+	// bits 0-7 = 1,0,0,1,1,1,1,1 → 0xF9 = 249
+	LFSR32_init(self:=lfsr, seed:=dword#1);
+	EXPECT_EQ_BYTE(byte#16#F9, LFSR32_nextByte(lfsr));
+
+	// nextByte must equal 8 consecutive nextBit calls assembled LSB-first
+	LFSR32_init(self:=lfsr, seed:=dword#16#CAFEBABE);
+	expected := dword#0;
+	for bit_idx := 0 to 7 by 1 do
+		if LFSR32_nextBool(lfsr) then
+			expected := expected or shl(dword#1, bit_idx);
+		end_if;
+	end_for;
+	LFSR32_init(self:=lfsr, seed:=dword#16#CAFEBABE);
+	EXPECT_EQ_BYTE(dword_to_byte(expected), LFSR32_nextByte(lfsr));
+	{end}
+END_TEST_S
+
+TEST_S(test_LFSR32_nextUint32)
+	var
+		lfsr: LFSR32_t;
+		bit_idx: dint;
+		expected: dword;
+	end
+	{st}
+	// nextUint32 must equal 32 consecutive nextBool calls assembled LSB-first
+	LFSR32_init(self:=lfsr, seed:=dword#16#CAFEBABE);
+	expected := dword#0;
+	for bit_idx := 0 to 31 by 1 do
+		if LFSR32_nextBool(lfsr) then
+			expected := expected or shl(dword#1, bit_idx);
+		end_if;
+	end_for;
+	LFSR32_init(self:=lfsr, seed:=dword#16#CAFEBABE);
+	EXPECT_EQ_UDINT(dword_to_udint(expected), LFSR32_nextUint32(lfsr));
+	{end}
+END_TEST_S
+
+TEST_S(test_LFSR32_nextIntInRange)
+	var
+		lfsr: LFSR32_t;
+		result: dint;
+		ok: bool;
+	end
+	{st}
+	// min > max → error
+	LFSR32_init(self:=lfsr, seed:=dword#1);
+	LFSR32_nextIntInRange(self:=lfsr, min_val:=10, max_val:=5, eno=>ok);
+	EXPECT_FALSE(ok);
+
+	// min == max → always returns min
+	LFSR32_init(self:=lfsr, seed:=dword#1);
+	EXPECT_EQ_DINT(dint#7, LFSR32_nextIntInRange(lfsr, 7, 7));
+
+	// result must be in [min_val, max_val]
+	LFSR32_init(self:=lfsr, seed:=dword#16#DEADBEEF);
+	result := LFSR32_nextIntInRange(lfsr, -10, 10);
+	EXPECT_GE_DINT(result, -10);
+	EXPECT_LE_DINT(result, 10);
+	{end}
+END_TEST_S

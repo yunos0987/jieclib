@@ -1,0 +1,466 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/compress/huffman.txt -I./src -o ./src/compress/huffman.xml -t omron
+ *)
+{#ifndef __COMPRESS_HUFFMAN_TXT__}
+{#define __COMPRESS_HUFFMAN_TXT__}
+
+{#include <sys.txt>}
+
+(*{doc Compress a byte array using dynamic Huffman coding.
+Output format:
+  Bytes 0-3   : original data length as DINT, big-endian
+  Bytes 4-259 : Huffman code length per symbol (0 = symbol not used), one byte per symbol
+  Bytes 260+  : bit-packed encoded data, MSB first, last byte zero-padded
+@in_out dat Source byte array.
+@input offset Start offset in dat.
+  Default value: 0
+@input length Number of bytes to encode. -1 means to the end of dat.
+  Default value: -1
+@in_out dst Destination byte array for compressed output.
+@input dst_offset Start offset in dst.
+  Default value: 0
+@return Number of bytes written to dst.
+@error If offset/length is out of dat bounds, dst is too small, or input is empty.}*)
+function huffman_encode: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		dat: array[*] of byte;
+		dst: array[*] of byte;
+	end
+	var_input
+		offset: dint := 0;
+		length: dint := -1;
+		dst_offset: dint := 0;
+	end
+	var_temp
+		// Frequency table for each of the 256 byte values
+		freq: array[0..255] of dint;
+		// Compact list of symbols with non-zero frequency
+		sym_list: array[0..255] of dint;
+		sym_count: dint;
+		// Huffman tree nodes: 0..(sym_count-1) = leaves, sym_count.. = internal
+		// Maximum nodes = 2*256 - 1 = 511
+		node_weight: array[0..510] of dint;
+		node_lchild: array[0..510] of dint;
+		node_rchild: array[0..510] of dint;
+		node_parent: array[0..510] of dint;
+		node_active: array[0..510] of bool;
+		node_count: dint;
+		// Code table
+		code_len:  array[0..255] of dint;
+		code_val:  array[0..255] of udint;
+		// Canonical code helpers
+		len_count: array[0..32] of dint;
+		len_first: array[0..32] of udint;
+		// Input/output bounds
+		i0_in, i1_in, i0_out, i1_out: dint;
+		in_start, in_end, out_idx: dint;
+		// Loop / work variables
+		ii, kk, mm: dint;
+		min1_idx, min2_idx: dint;
+		min1_wt,  min2_wt:  dint;
+		new_node: dint;
+		cur_node, depth: dint;
+		orig_len: dint;
+		// Bit output state
+		bit_buf: dword;
+		bit_cnt: dint;
+		cur_sym: dint;
+		cur_clen: dint;
+		cur_cval: udint;
+		tmp_dw: dword;
+	end
+	{st}
+	i0_in  := lower_bound(dat, 1);
+	i1_in  := upper_bound(dat, 1);
+	i0_out := lower_bound(dst, 1);
+	i1_out := upper_bound(dst, 1);
+
+	// Validate input
+	if offset < 0 then
+		eno := false;
+		return;
+	end_if;
+	in_start := i0_in + offset;
+	if length = -1 then
+		in_end := i1_in;
+	elsif length = 0 then
+		eno := false;
+		return;
+	else
+		in_end := in_start + length - 1;
+	end_if;
+	if (in_start < i0_in) or (in_end > i1_in) then
+		eno := false;
+		return;
+	end_if;
+
+	// Validate output (header needs 260 bytes minimum)
+	if (dst_offset < 0) or (i0_out + dst_offset + 259 > i1_out) then
+		eno := false;
+		return;
+	end_if;
+	out_idx := i0_out + dst_offset;
+
+	// Step 1: Count byte frequencies
+	for ii := 0 to 255 by 1 do
+		freq[ii] := 0;
+	end_for;
+	for ii := in_start to in_end by 1 do
+		cur_sym := byte_to_dint(dat[ii]);
+		freq[cur_sym] := freq[cur_sym] + 1;
+	end_for;
+
+	// Step 2: Build compact symbol list (symbols with freq > 0)
+	sym_count := 0;
+	for ii := 0 to 255 by 1 do
+		if freq[ii] > 0 then
+			sym_list[sym_count] := ii;
+			sym_count := sym_count + 1;
+		end_if;
+	end_for;
+
+	// Step 3: Initialize leaf nodes
+	for ii := 0 to sym_count - 1 by 1 do
+		node_weight[ii] := freq[sym_list[ii]];
+		node_lchild[ii] := -1;
+		node_rchild[ii] := -1;
+		node_parent[ii] := -1;
+		node_active[ii] := true;
+	end_for;
+	node_count := sym_count;
+
+	// Step 4: Build Huffman tree
+	// Special case: single symbol -> depth 1
+	if sym_count = 1 then
+		code_len[sym_list[0]] := 1;
+	else
+		// Merge nodes until one root remains (sym_count - 1 merges)
+		for mm := 0 to sym_count - 2 by 1 do
+			// Find two active nodes with smallest weight
+			min1_idx := -1;  min1_wt := 2147483647;
+			min2_idx := -1;  min2_wt := 2147483647;
+			for kk := 0 to node_count - 1 by 1 do
+				if node_active[kk] then
+					if node_weight[kk] < min1_wt then
+						min2_idx := min1_idx;  min2_wt := min1_wt;
+						min1_idx := kk;        min1_wt := node_weight[kk];
+					elsif node_weight[kk] < min2_wt then
+						min2_idx := kk;  min2_wt := node_weight[kk];
+					end_if;
+				end_if;
+			end_for;
+
+			// Create internal node
+			new_node := node_count;
+			node_count := node_count + 1;
+			node_weight[new_node] := min1_wt + min2_wt;
+			node_lchild[new_node] := min1_idx;
+			node_rchild[new_node] := min2_idx;
+			node_parent[new_node] := -1;
+			node_active[new_node] := true;
+
+			// Deactivate merged nodes
+			node_active[min1_idx] := false;
+			node_active[min2_idx] := false;
+			node_parent[min1_idx] := new_node;
+			node_parent[min2_idx] := new_node;
+		end_for;
+
+		// Step 5: Derive code lengths by walking each leaf to the root
+		for ii := 0 to sym_count - 1 by 1 do
+			depth := 0;
+			cur_node := ii;
+			while node_parent[cur_node] <> -1 do
+				depth := depth + 1;
+				cur_node := node_parent[cur_node];
+			end_while;
+			code_len[sym_list[ii]] := depth;
+		end_for;
+	end_if;
+
+	// Fill code_len = 0 for unused symbols
+	for ii := 0 to 255 by 1 do
+		if freq[ii] = 0 then
+			code_len[ii] := 0;
+		end_if;
+	end_for;
+
+	// Step 6: Compute canonical codes
+	// Count symbols at each length
+	for ii := 0 to 32 by 1 do
+		len_count[ii] := 0;
+	end_for;
+	for ii := 0 to 255 by 1 do
+		if code_len[ii] > 0 then
+			len_count[code_len[ii]] := len_count[code_len[ii]] + 1;
+		end_if;
+	end_for;
+	// Compute first canonical code per length
+	len_first[0] := udint#0;
+	for ii := 1 to 32 by 1 do
+		len_first[ii] := (len_first[ii - 1] + dint_to_udint(len_count[ii - 1])) * udint#2;
+	end_for;
+	// Assign codes in symbol order (canonical: same length sorted by symbol value)
+	for ii := 0 to 255 by 1 do
+		if code_len[ii] > 0 then
+			code_val[ii] := len_first[code_len[ii]];
+			len_first[code_len[ii]] := len_first[code_len[ii]] + udint#1;
+		else
+			code_val[ii] := udint#0;
+		end_if;
+	end_for;
+
+	// Step 7: Write output header
+	// Bytes 0-3: original length, big-endian
+	orig_len := in_end - in_start + 1;
+	dst[out_idx]     := dint_to_byte(orig_len / 16777216);
+	dst[out_idx + 1] := dint_to_byte((orig_len / 65536) mod 256);
+	dst[out_idx + 2] := dint_to_byte((orig_len / 256) mod 256);
+	dst[out_idx + 3] := dint_to_byte(orig_len mod 256);
+	out_idx := out_idx + 4;
+	// Bytes 4-259: code lengths
+	for ii := 0 to 255 by 1 do
+		dst[out_idx] := dint_to_byte(code_len[ii]);
+		out_idx := out_idx + 1;
+	end_for;
+
+	// Step 8: Encode data as bit stream (MSB first)
+	bit_buf := dword#0;
+	bit_cnt := 0;
+	for ii := in_start to in_end by 1 do
+		cur_sym  := byte_to_dint(dat[ii]);
+		cur_clen := code_len[cur_sym];
+		cur_cval := code_val[cur_sym];
+		// Align code to MSB of DWORD, then shift out bits one by one
+		tmp_dw := udint_to_dword(cur_cval);
+		for kk := 0 to 32 - cur_clen - 1 by 1 do
+			tmp_dw := shl(tmp_dw, 1);
+		end_for;
+		for kk := 0 to cur_clen - 1 by 1 do
+			if (tmp_dw and dword#16#80000000) <> dword#0 then
+				bit_buf := shl(bit_buf, 1) or dword#1;
+			else
+				bit_buf := shl(bit_buf, 1);
+			end_if;
+			tmp_dw  := shl(tmp_dw, 1);
+			bit_cnt := bit_cnt + 1;
+			if bit_cnt = 8 then
+				if out_idx > i1_out then
+					eno := false;
+					return;
+				end_if;
+				dst[out_idx] := dword_to_byte(bit_buf);
+				out_idx := out_idx + 1;
+				bit_cnt := 0;
+				bit_buf := dword#0;
+			end_if;
+		end_for;
+	end_for;
+
+	// Flush remaining bits (zero-padded)
+	if bit_cnt > 0 then
+		for kk := bit_cnt to 7 by 1 do
+			bit_buf := shl(bit_buf, 1);
+		end_for;
+		if out_idx > i1_out then
+			eno := false;
+			return;
+		end_if;
+		dst[out_idx] := dword_to_byte(bit_buf);
+		out_idx := out_idx + 1;
+	end_if;
+
+	huffman_encode := out_idx - (i0_out + dst_offset);
+	{end}
+end
+
+(*{doc Decompress a Huffman-encoded byte array produced by huffman_encode.
+@in_out dat Source byte array containing compressed data.
+@input offset Start offset in dat.
+  Default value: 0
+@input length Number of compressed bytes to read.
+@in_out dst Destination byte array for decompressed output.
+@input dst_offset Start offset in dst.
+  Default value: 0
+@return Number of bytes written to dst.
+@error If compressed data is malformed or dst is too small.}*)
+function huffman_decode: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		dat: array[*] of byte;
+		dst: array[*] of byte;
+	end
+	var_input
+		offset: dint := 0;
+		length: dint;
+		dst_offset: dint := 0;
+	end
+	var_temp
+		code_len:  array[0..255] of dint;
+		code_val:  array[0..255] of udint;
+		// Canonical decode helpers
+		len_count:     array[0..32] of dint;
+		len_first:     array[0..32] of udint;
+		len_sym_start: array[0..32] of dint;
+		// Sorted symbol list by (code_len, sym) for canonical lookup
+		sort_sym: array[0..255] of dint;
+		sort_pos: dint;
+		// Input/output bounds
+		i0_in, i1_in, i0_out, i1_out: dint;
+		in_idx, end_in, out_idx: dint;
+		// Work variables
+		ii, kk, ll: dint;
+		orig_len: dint;
+		decoded: dint;
+		max_clen: dint;
+		// Bit input state
+		cur_byt: byte;
+		bit_cnt: dint;
+		cur_code: udint;
+		found_sym: dint;
+		sym_offset: udint;
+		len_first_ii: udint;
+	end
+	{st}
+	i0_in  := lower_bound(dat, 1);
+	i1_in  := upper_bound(dat, 1);
+	i0_out := lower_bound(dst, 1);
+	i1_out := upper_bound(dst, 1);
+
+	if length < 0 then
+		eno := false;
+		return;
+	end_if;
+	// Minimum: 4 (length) + 256 (code_lens) = 260 header bytes
+	if (offset < 0) or (i0_in + offset + 259 > i1_in) then
+		eno := false;
+		return;
+	end_if;
+	if (i0_in + offset + length - 1 > i1_in) then
+		eno := false;
+		return;
+	end_if;
+	if (dst_offset < 0) or (i0_out + dst_offset > i1_out) then
+		eno := false;
+		return;
+	end_if;
+
+	in_idx  := i0_in  + offset;
+	end_in  := i0_in  + offset + length - 1;
+	out_idx := i0_out + dst_offset;
+
+	// Read original length (big-endian 4 bytes)
+	orig_len :=   byte_to_dint(dat[in_idx])     * 16777216
+	            + byte_to_dint(dat[in_idx + 1])  * 65536
+	            + byte_to_dint(dat[in_idx + 2])  * 256
+	            + byte_to_dint(dat[in_idx + 3]);
+	in_idx := in_idx + 4;
+
+	// Read code lengths
+	max_clen := 0;
+	for ii := 0 to 255 by 1 do
+		code_len[ii] := byte_to_dint(dat[in_idx]);
+		in_idx := in_idx + 1;
+		if code_len[ii] > max_clen then
+			max_clen := code_len[ii];
+		end_if;
+	end_for;
+
+	// Rebuild canonical codes
+	for ii := 0 to 32 by 1 do
+		len_count[ii] := 0;
+	end_for;
+	for ii := 0 to 255 by 1 do
+		if code_len[ii] > 0 then
+			len_count[code_len[ii]] := len_count[code_len[ii]] + 1;
+		end_if;
+	end_for;
+	len_first[0] := udint#0;
+	for ii := 1 to 32 by 1 do
+		len_first[ii] := (len_first[ii - 1] + dint_to_udint(len_count[ii - 1])) * udint#2;
+	end_for;
+
+	// Build sorted symbol table: symbols ordered by (code_len asc, sym asc)
+	sort_pos := 0;
+	len_sym_start[0] := 0;
+	for ll := 1 to max_clen by 1 do
+		len_sym_start[ll] := sort_pos;
+		for ii := 0 to 255 by 1 do
+			if code_len[ii] = ll then
+				sort_sym[sort_pos] := ii;
+				sort_pos := sort_pos + 1;
+			end_if;
+		end_for;
+	end_for;
+
+	// Assign canonical code_val per symbol (for verification, optional)
+	// We use len_first as a working copy reset here
+	len_first[0] := udint#0;
+	for ii := 1 to 32 by 1 do
+		len_first[ii] := (len_first[ii - 1] + dint_to_udint(len_count[ii - 1])) * udint#2;
+	end_for;
+
+	// Decode bit stream
+	cur_byt  := byte#0;
+	bit_cnt  := 0;
+	decoded  := 0;
+
+	while decoded < orig_len do
+		// Read bits one at a time, trying each code length (1..max_clen)
+		cur_code  := udint#0;
+		found_sym := -1;
+		ll        := 1;
+		while (ll <= max_clen) and (found_sym < 0) do
+			// Read one more bit from the stream
+			if bit_cnt = 0 then
+				if in_idx > end_in then
+					eno := false;
+					return;
+				end_if;
+				cur_byt := dat[in_idx];
+				in_idx  := in_idx + 1;
+				bit_cnt := 8;
+			end_if;
+			if (cur_byt and byte#16#80) <> byte#0 then
+				cur_code := cur_code * udint#2 + udint#1;
+			else
+				cur_code := cur_code * udint#2;
+			end_if;
+			cur_byt := dword_to_byte(shl(byte_to_dword(cur_byt), 1));
+			bit_cnt := bit_cnt - 1;
+
+			// Check if cur_code matches a canonical code of length ll
+			if len_count[ll] > 0 then
+				len_first_ii := len_first[ll];
+				if (cur_code >= len_first_ii) and (cur_code < len_first_ii + dint_to_udint(len_count[ll])) then
+					sym_offset := cur_code - len_first_ii;
+					found_sym  := sort_sym[len_sym_start[ll] + udint_to_dint(sym_offset)];
+				end_if;
+			end_if;
+
+			ll := ll + 1;
+		end_while;
+
+		if found_sym < 0 then
+			// No code matched: corrupted data
+			eno := false;
+			return;
+		end_if;
+
+		// Emit decoded symbol
+		if out_idx > i1_out then
+			eno := false;
+			return;
+		end_if;
+		dst[out_idx] := dint_to_byte(found_sym);
+		out_idx := out_idx + 1;
+		decoded := decoded + 1;
+	end_while;
+
+	huffman_decode := out_idx - (i0_out + dst_offset);
+	{end}
+end
+
+{#endif}

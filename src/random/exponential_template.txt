@@ -1,0 +1,85 @@
+(*
+	================================================================================
+	Random Exponential template
+	================================================================================
+
+	This template generates a typed nextExponential function
+	from preprocessor macros.
+
+	Usage:
+	1. Define required macros.
+	2. Include this template once per generator type.
+
+	Required macros:
+	  - RandomGeneratorPrefix
+	    Prefix prepended to function names.
+	    Example: Xorshift32  ->  Xorshift32_nextExponential
+	  - RandomGeneratorType
+	    Type of the self parameter.
+	    Example: Xorshift32_t
+
+	Generated API:
+	  - RandomGeneratorPrefix@@_nextExponential(self, lambda) : lreal
+
+	Example (Xorshift32):
+	  {#define RandomGeneratorPrefix Xorshift32}
+	  {#define RandomGeneratorType Xorshift32_t}
+	  {#include "exponential_template.txt"}
+	  {#undef RandomGeneratorPrefix}
+	  {#undef RandomGeneratorType}
+	================================================================================
+*)
+
+{#ifndef RandomGeneratorPrefix}
+	{#error require RandomGeneratorPrefix macro.}
+{#endif}
+
+{#ifndef RandomGeneratorType}
+	{#error require RandomGeneratorType macro.}
+{#endif}
+
+{#define _RANDOM_NEXT_EXPONENTIAL_(P) P@@_nextExponential}
+{#define RANDOM_NEXT_EXPONENTIAL(P)   _RANDOM_NEXT_EXPONENTIAL_(P)}
+{#define Random_nextExponential        RANDOM_NEXT_EXPONENTIAL(RandomGeneratorPrefix)}
+
+{#define _RANDOM_NEXT_DOUBLE_(P) P@@_nextDouble}
+{#define RANDOM_NEXT_DOUBLE(P)   _RANDOM_NEXT_DOUBLE_(P)}
+{#define Random_nextDouble        RANDOM_NEXT_DOUBLE(RandomGeneratorPrefix)}
+
+(*{doc Generates an exponentially distributed pseudo-random number.
+@inout self The generator state.
+@input lambda The rate parameter (lambda > 0).
+@return A pseudo-random value from the exponential distribution.
+@error If lambda <= 0. }*)
+function Random_nextExponential: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The generator state.}*)
+		self: RandomGeneratorType;
+	end
+	var_input
+		(*{doc The rate parameter (lambda > 0).}*)
+		lambda: lreal;
+	end
+	var_temp
+		rand_val: lreal;
+	end
+	{st}
+	if lambda <= lreal#0.0 then
+		eno := false;
+	else
+		rand_val := Random_nextDouble(self);
+		if rand_val <= lreal#0.0 then
+			rand_val := lreal#2.2204460492503e-16; // guard against log(0)
+		end_if;
+		Random_nextExponential := -LN(rand_val) / lambda;
+	end_if;
+	{end}
+end
+
+{#undef _RANDOM_NEXT_EXPONENTIAL_}
+{#undef RANDOM_NEXT_EXPONENTIAL}
+{#undef Random_nextExponential}
+{#undef _RANDOM_NEXT_DOUBLE_}
+{#undef RANDOM_NEXT_DOUBLE}
+{#undef Random_nextDouble}

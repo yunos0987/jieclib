@@ -1,0 +1,205 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/encoding/test_bcd.txt -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/encoding/test_bcd.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+
+{#include <src/encoding/bcd.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_bcd_encode',
+		'test_bcd_decode'
+	)
+)
+{#endif}
+
+TEST_S(test_bcd_encode)
+	var
+		dat: array[0..7] of byte;
+		ok: bool;
+	end
+	{st}
+	// Fact: bcd_encode stores each decimal digit in a nibble (upper=higher digit).
+		// Arrange/Act
+	ok := bcd_encode(val:=12, dat:=dat, digits:=2);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_EQ_BYTE(byte#16#12, dat[0]);
+
+	// Fact: val=99 with digits=2 fills both nibbles of a single byte.
+		// Act
+	ok := bcd_encode(val:=99, dat:=dat, digits:=2);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_EQ_BYTE(byte#16#99, dat[0]);
+
+	// Fact: val=0 with digits=2 encodes to a zero byte.
+		// Act
+	ok := bcd_encode(val:=0, dat:=dat, digits:=2);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_EQ_BYTE(byte#16#00, dat[0]);
+
+	// Fact: val=1234 with digits=4 occupies two bytes in big-endian order.
+		// Act
+	ok := bcd_encode(val:=1234, dat:=dat, digits:=4);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_EQ_BYTE(byte#16#12, dat[0]);
+	EXPECT_EQ_BYTE(byte#16#34, dat[1]);
+
+	// Fact: val=9999 with digits=4 fills all nibbles of two bytes.
+		// Act
+	ok := bcd_encode(val:=9999, dat:=dat, digits:=4);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_EQ_BYTE(byte#16#99, dat[0]);
+	EXPECT_EQ_BYTE(byte#16#99, dat[1]);
+
+	// Fact: An odd digit count pads the upper nibble of the first byte with zero.
+		// Act
+	ok := bcd_encode(val:=123, dat:=dat, digits:=3);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_EQ_BYTE(byte#16#01, dat[0]);
+	EXPECT_EQ_BYTE(byte#16#23, dat[1]);
+
+	// Fact: digits=1 encodes the single digit into the lower nibble.
+		// Act
+	ok := bcd_encode(val:=5, dat:=dat, digits:=1);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_EQ_BYTE(byte#16#05, dat[0]);
+
+	// Fact: A 6-digit value encodes into 3 bytes.
+		// Act
+	ok := bcd_encode(val:=123456, dat:=dat, digits:=6);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_EQ_BYTE(byte#16#12, dat[0]);
+	EXPECT_EQ_BYTE(byte#16#34, dat[1]);
+	EXPECT_EQ_BYTE(byte#16#56, dat[2]);
+
+	// Fact: A non-zero offset writes to the correct position in dat.
+		// Act
+	ok := bcd_encode(val:=42, dat:=dat, offset:=3, digits:=2);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_EQ_BYTE(byte#16#42, dat[3]);
+
+	// Fact: A negative val returns an error.
+		// Act
+	bcd_encode(val:=-1, dat:=dat, digits:=2, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+
+	// Fact: digits=0 returns an error.
+		// Act
+	bcd_encode(val:=0, dat:=dat, digits:=0, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+
+	// Fact: A value exceeding the digit capacity returns an error.
+		// Act
+	bcd_encode(val:=100, dat:=dat, digits:=2, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	bcd_encode(val:=10000, dat:=dat, digits:=4, eno=>ok);
+	EXPECT_FALSE(ok);
+
+	// Fact: An offset that would exceed the array bounds returns an error.
+		// Act
+	bcd_encode(val:=1234, dat:=dat, offset:=7, digits:=4, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	{end}
+END_TEST_S
+
+TEST_S(test_bcd_decode)
+	var
+		dat: array[0..7] of byte;
+		nn: dint;
+		ok: bool;
+	end
+	{st}
+	// Fact: bcd_decode converts each nibble pair back to its decimal value.
+		// Arrange
+	dat[0] := byte#16#12;
+		// Act
+	nn := bcd_decode(dat:=dat, length:=1);
+		// Assert
+	EXPECT_EQ_INT32(12, nn);
+
+	// Fact: A byte with value 0x99 decodes to 99.
+		// Arrange
+	dat[0] := byte#16#99;
+		// Act/Assert
+	EXPECT_EQ_INT32(99, bcd_decode(dat:=dat, length:=1));
+
+	// Fact: A zero byte decodes to 0.
+		// Arrange
+	dat[0] := byte#16#00;
+		// Act/Assert
+	EXPECT_EQ_INT32(0, bcd_decode(dat:=dat, length:=1));
+
+	// Fact: Two bytes decode to a 4-digit decimal value.
+		// Arrange
+	dat[0] := byte#16#12;
+	dat[1] := byte#16#34;
+		// Act
+	nn := bcd_decode(dat:=dat, length:=2);
+		// Assert
+	EXPECT_EQ_INT32(1234, nn);
+
+	// Fact: Three bytes decode to a 6-digit decimal value.
+		// Arrange
+	dat[0] := byte#16#12;
+	dat[1] := byte#16#34;
+	dat[2] := byte#16#56;
+		// Act
+	nn := bcd_decode(dat:=dat, length:=3);
+		// Assert
+	EXPECT_EQ_INT32(123456, nn);
+
+	// Fact: A non-zero offset reads from the correct position.
+		// Arrange
+	dat[2] := byte#16#42;
+		// Act/Assert
+	EXPECT_EQ_INT32(42, bcd_decode(dat:=dat, offset:=2, length:=1));
+
+	// Fact: length=0 returns 0 without error.
+		// Act
+	nn := bcd_decode(dat:=dat, length:=0, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_EQ_INT32(0, nn);
+
+	// Fact: A nibble value in 0xA-0xF is not valid BCD and returns an error.
+		// Arrange
+	dat[0] := byte#16#AB;
+		// Act
+	bcd_decode(dat:=dat, length:=1, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	dat[0] := byte#16#1A;
+	bcd_decode(dat:=dat, length:=1, eno=>ok);
+	EXPECT_FALSE(ok);
+	dat[0] := byte#16#F0;
+	bcd_decode(dat:=dat, length:=1, eno=>ok);
+	EXPECT_FALSE(ok);
+
+	// Fact: An offset that would exceed the array bounds returns an error.
+		// Act
+	bcd_decode(dat:=dat, offset:=7, length:=2, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+
+	// Fact: A negative length returns an error.
+		// Act
+	bcd_decode(dat:=dat, length:=-1, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	{end}
+END_TEST_S

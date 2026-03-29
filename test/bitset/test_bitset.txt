@@ -1,0 +1,337 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/bitset/test_bitset.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/bitset/test_bitset.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <bitset/bitset.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_bitset_set',
+		'test_bitset_clear',
+		'test_bitset_toggle',
+		'test_bitset_test',
+		'test_bitset_popcount',
+		'test_bitset_ffs',
+		'test_bitset_ffc',
+		'test_bitset_extract',
+		'test_bitset_insert'
+	)
+)
+{#endif}
+
+TEST_S(test_bitset_set)
+	var
+		vv: dword;
+		ok: bool;
+	end
+	{st}
+	// Fact: Setting a clear bit yields the mask for that bit.
+		// Arrange
+	vv := dword#16#00000000;
+		// Act/Assert
+	EXPECT_EQ_DWORD(dword#16#00000001, bitset_set(val:=vv, pos:=0));
+	EXPECT_EQ_DWORD(dword#16#00000002, bitset_set(val:=vv, pos:=1));
+	EXPECT_EQ_DWORD(dword#16#80000000, bitset_set(val:=vv, pos:=31));
+
+	// Fact: Setting an already-set bit is idempotent.
+		// Arrange
+	vv := dword#16#FFFFFFFF;
+		// Act/Assert
+	EXPECT_EQ_DWORD(dword#16#FFFFFFFF, bitset_set(val:=vv, pos:=15));
+
+	// Fact: Out-of-range position returns an error for set.
+		// Arrange
+	vv := dword#16#00000000;
+		// Act
+	bitset_set(val:=vv, pos:=32, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	{end}
+END_TEST_S
+
+TEST_S(test_bitset_clear)
+	var
+		vv: dword;
+		ok: bool;
+	end
+	{st}
+	// Fact: Clearing a set bit zeroes exactly that bit.
+		// Arrange
+	vv := dword#16#FFFFFFFF;
+		// Act/Assert
+	EXPECT_EQ_DWORD(dword#16#FFFFFFFE, bitset_clear(val:=vv, pos:=0));
+	EXPECT_EQ_DWORD(dword#16#7FFFFFFF, bitset_clear(val:=vv, pos:=31));
+
+	// Fact: Clearing an already-clear bit is idempotent.
+		// Arrange
+	vv := dword#16#00000000;
+		// Act/Assert
+	EXPECT_EQ_DWORD(dword#16#00000000, bitset_clear(val:=vv, pos:=7));
+
+	// Fact: Out-of-range position returns an error for clear.
+		// Arrange
+	vv := dword#16#00000000;
+		// Act
+	bitset_clear(val:=vv, pos:=-1, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	{end}
+END_TEST_S
+
+TEST_S(test_bitset_toggle)
+	var
+		vv: dword;
+		ok: bool;
+	end
+	{st}
+	// Fact: Toggling a clear bit sets it; toggling a set bit clears it.
+		// Arrange
+	vv := dword#16#00000000;
+		// Act/Assert
+	EXPECT_EQ_DWORD(dword#16#00000001, bitset_toggle(val:=vv, pos:=0));
+	EXPECT_EQ_DWORD(dword#16#FFFFFFFE, bitset_toggle(val:=dword#16#FFFFFFFF, pos:=0));
+
+	// Fact: Out-of-range position returns an error for toggle.
+		// Arrange
+	vv := dword#16#00000000;
+		// Act
+	bitset_toggle(val:=vv, pos:=32, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	{end}
+END_TEST_S
+
+TEST_S(test_bitset_test)
+	var
+		ok: bool;
+	end
+	{st}
+	// Fact: bitset_test returns true for a bit that is 1.
+		// Arrange
+		// Act
+	ok := bitset_test(val:=dword#16#00000001, pos:=0);
+		// Assert
+	EXPECT_TRUE(ok);
+
+	// Fact: bitset_test returns false for a bit that is 0.
+		// Arrange
+		// Act
+	ok := bitset_test(val:=dword#16#FFFFFFFE, pos:=0);
+		// Assert
+	EXPECT_FALSE(ok);
+
+	// Fact: bitset_test correctly reads the MSB (bit 31).
+		// Arrange: bit 31 of 0x80000000 is 1
+		// Act
+	ok := bitset_test(val:=dword#16#80000000, pos:=31);
+		// Assert
+	EXPECT_TRUE(ok);
+
+	// Fact: bitset_test correctly reads an interior bit.
+		// Arrange: bit 4 of 0x10 is 1
+		// Act
+	ok := bitset_test(val:=dword#16#00000010, pos:=4);
+		// Assert
+	EXPECT_TRUE(ok);
+
+	// Fact: bitset_test returns false when all bits except the tested one are set.
+		// Arrange
+		// Act
+	ok := bitset_test(val:=dword#16#FFFFFFFE, pos:=0);
+		// Assert
+	EXPECT_FALSE(ok);
+
+	// Fact: Out-of-range position returns an error.
+		// Arrange
+		// Act
+	bitset_test(val:=dword#16#FFFFFFFF, pos:=32, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	{end}
+END_TEST_S
+
+TEST_S(test_bitset_popcount)
+	var
+		nn: dint;
+	end
+	{st}
+	// Fact: All-zero bitset has population count 0.
+		// Arrange
+		// Act
+	nn := bitset_popcount(val:=dword#16#00000000);
+		// Assert
+	EXPECT_EQ_INT32(0, nn);
+
+	// Fact: All-ones bitset has population count 32.
+		// Arrange
+		// Act
+	nn := bitset_popcount(val:=dword#16#FFFFFFFF);
+		// Assert
+	EXPECT_EQ_INT32(32, nn);
+
+	// Fact: A bitset with one bit set has population count 1.
+		// Arrange
+		// Act
+	nn := bitset_popcount(val:=dword#16#00000001);
+		// Assert
+	EXPECT_EQ_INT32(1, nn);
+
+	// Fact: 0xAAAAAAAA (alternating 10) has population count 16.
+		// Arrange
+		// Act
+	nn := bitset_popcount(val:=dword#16#AAAAAAAA);
+		// Assert
+	EXPECT_EQ_INT32(16, nn);
+
+	// Fact: 0x0F0F0F0F has population count 16.
+		// Arrange
+		// Act
+	nn := bitset_popcount(val:=dword#16#0F0F0F0F);
+		// Assert
+	EXPECT_EQ_INT32(16, nn);
+
+	// Fact: 0x12345678 has population count 13.
+		// Arrange: 0001 0010 0011 0100 0101 0110 0111 1000 -> 1+1+2+1+2+2+3+1 = 13
+		// Act
+	nn := bitset_popcount(val:=dword#16#12345678);
+		// Assert
+	EXPECT_EQ_INT32(13, nn);
+	{end}
+END_TEST_S
+
+TEST_S(test_bitset_ffs)
+	var
+		nn: dint;
+	end
+	{st}
+	// Fact: bitset_ffs returns -1 for an all-zero bitset.
+		// Arrange
+		// Act
+	nn := bitset_ffs(val:=dword#16#00000000);
+		// Assert
+	EXPECT_EQ_INT32(-1, nn);
+
+	// Fact: bitset_ffs returns 0 when bit 0 is the only set bit.
+		// Arrange
+		// Act
+	nn := bitset_ffs(val:=dword#16#00000001);
+		// Assert
+	EXPECT_EQ_INT32(0, nn);
+
+	// Fact: bitset_ffs returns 31 for an MSB-only bitset.
+		// Arrange
+		// Act
+	nn := bitset_ffs(val:=dword#16#80000000);
+		// Assert
+	EXPECT_EQ_INT32(31, nn);
+
+	// Fact: bitset_ffs finds the lowest set bit when multiple bits are set.
+		// Arrange: 0x00000006 = bits 1 and 2 set
+		// Act
+	nn := bitset_ffs(val:=dword#16#00000006);
+		// Assert
+	EXPECT_EQ_INT32(1, nn);
+	{end}
+END_TEST_S
+
+TEST_S(test_bitset_ffc)
+	var
+		nn: dint;
+	end
+	{st}
+	// Fact: bitset_ffc returns -1 for an all-ones bitset.
+		// Arrange
+		// Act
+	nn := bitset_ffc(val:=dword#16#FFFFFFFF);
+		// Assert
+	EXPECT_EQ_INT32(-1, nn);
+
+	// Fact: bitset_ffc returns 0 when bit 0 is the only clear bit.
+		// Arrange
+		// Act
+	nn := bitset_ffc(val:=dword#16#FFFFFFFE);
+		// Assert
+	EXPECT_EQ_INT32(0, nn);
+
+	// Fact: bitset_ffc returns 31 when only bit 31 is clear.
+		// Arrange
+		// Act
+	nn := bitset_ffc(val:=dword#16#7FFFFFFF);
+		// Assert
+	EXPECT_EQ_INT32(31, nn);
+
+	// Fact: bitset_ffc returns 0 for an all-zero bitset.
+		// Arrange
+		// Act
+	nn := bitset_ffc(val:=dword#16#00000000);
+		// Assert
+	EXPECT_EQ_INT32(0, nn);
+	{end}
+END_TEST_S
+
+TEST_S(test_bitset_extract)
+	var
+		ok: bool;
+	end
+	{st}
+	// Fact: Extracting bits [0,3] from 0x000000FF yields 0x0000000F.
+		// Arrange
+		// Act/Assert
+	EXPECT_EQ_DWORD(dword#16#0000000F, bitset_extract(val:=dword#16#000000FF, pos:=0, width:=4));
+
+	// Fact: Extracting bits [4,7] from 0x000000FF yields 0x0000000F.
+		// Arrange
+		// Act/Assert
+	EXPECT_EQ_DWORD(dword#16#0000000F, bitset_extract(val:=dword#16#000000FF, pos:=4, width:=4));
+
+	// Fact: Extracting bits [4,7] from 0x000000A0 yields 0x0000000A.
+		// Arrange
+		// Act/Assert
+	EXPECT_EQ_DWORD(dword#16#0000000A, bitset_extract(val:=dword#16#000000A0, pos:=4, width:=4));
+
+	// Fact: Extracting all 32 bits returns the original value.
+		// Arrange
+		// Act/Assert
+	EXPECT_EQ_DWORD(dword#16#12345678, bitset_extract(val:=dword#16#12345678, pos:=0, width:=32));
+
+	// Fact: Extracting 1 bit at pos 31 returns 1 when that bit is set.
+		// Arrange
+		// Act/Assert
+	EXPECT_EQ_DWORD(dword#16#00000001, bitset_extract(val:=dword#16#80000000, pos:=31, width:=1));
+
+	// Fact: bitset_extract returns an error when pos + len > 32.
+		// Arrange
+		// Act
+	bitset_extract(val:=dword#16#FFFFFFFF, pos:=30, width:=3, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	{end}
+END_TEST_S
+
+TEST_S(test_bitset_insert)
+	var
+		vv: dword;
+		ok: bool;
+	end
+	{st}
+	// Fact: Inserting 0xA into bits [4,7] of 0x00000000 yields 0x000000A0.
+		// Arrange
+		// Act/Assert
+	EXPECT_EQ_DWORD(dword#16#000000A0, bitset_insert(val:=dword#16#00000000, pos:=4, width:=4, field:=dword#16#0000000A));
+
+	// Fact: Inserting overwrites only the target field; other bits are preserved.
+		// Arrange: val = 0xFF; bits[4..7] = 0101, bits[0..3] = 1111 -> 0x5F
+	vv := dword#16#000000FF;
+		// Act/Assert
+	EXPECT_EQ_DWORD(dword#16#0000005F, bitset_insert(val:=vv, pos:=4, width:=4, field:=dword#16#00000005));
+
+	// Fact: bitset_insert returns an error when len is 0.
+		// Arrange
+		// Act
+	bitset_insert(val:=dword#16#FFFFFFFF, pos:=0, width:=0, field:=dword#1, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	{end}
+END_TEST_S

@@ -1,0 +1,128 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/random/lfsr32.txt -I./src -o ./src/random/lfsr32.xml -t omron
+ *)
+{#ifndef __RANDOM_LFSR32_TXT__}
+{#define __RANDOM_LFSR32_TXT__}
+
+{#include <sys.txt>}
+{#include <sys_conv.txt>}
+
+(*{doc This file contains the implementation of the LFSR32 (Galois Linear Feedback Shift Register) algorithm.
+LFSR32 is a 32-bit maximal-length Galois LFSR suitable for PRBS test pattern generation,
+board testing (ICT/ATE), serial communication scrambling, and BIST applications.
+Period: 2^32 - 1 (covers all non-zero 32-bit states). }*)
+
+type
+	LFSR32_t: struct
+		state: dword;
+		poly: dword;
+	end
+end
+
+(*{doc Initializes the LFSR32 pseudorandom number generator.
+@inout self The LFSR32 generator state.
+@input seed The initial seed value. Must be non-zero.
+@input poly The tap polynomial. Defaults to 0xB4BCD35C (32-bit maximal-length polynomial).
+@error If seed is 0. }*)
+function LFSR32_init
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The LFSR32 generator state.}*)
+		self: LFSR32_t;
+	end
+	var_input
+		(*{doc The initial seed value. Must be non-zero.}*)
+		seed: dword;
+		(*{doc The tap polynomial. Defaults to 0xB4BCD35C (32-bit maximal-length polynomial).}*)
+		poly: dword := dword#16#B4BCD35C;
+	end
+	{st}
+	if seed = dword#0 then
+		eno := false;
+	else
+		self.state := seed;
+		self.poly := poly;
+	end_if;
+	{end}
+end
+
+(*{doc Advances the LFSR by one step and returns the output bit as a bool.
+@inout self The LFSR32 generator state.
+@return The output bit (LSB of the state before the shift). }*)
+function LFSR32_nextBool: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The LFSR32 generator state.}*)
+		self: LFSR32_t;
+	end
+	var_temp
+		lsb: bool;
+	end
+	{st}
+	lsb := (self.state and dword#1) <> dword#0;
+	if lsb then
+		self.state := shr(self.state, 1) xor self.poly;
+	else
+		self.state := shr(self.state, 1);
+	end_if;
+	LFSR32_nextBool := lsb;
+	{end}
+end
+
+(*{doc Advances the LFSR by 8 steps and returns 8 output bits assembled as a byte (LSB first).
+@inout self The LFSR32 generator state.
+@return A pseudo-random byte. }*)
+function LFSR32_nextByte: byte
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The LFSR32 generator state.}*)
+		self: LFSR32_t;
+	end
+	var_temp
+		bit_idx: dint;
+		result: dword;
+	end
+	{st}
+	result := dword#0;
+	for bit_idx := 0 to 7 by 1 do
+		if LFSR32_nextBool(self) then
+			result := result or shl(dword#1, bit_idx);
+		end_if;
+	end_for;
+	LFSR32_nextByte := dword_to_byte(result);
+	{end}
+end
+
+(*{doc Advances the LFSR by 32 steps and returns 32 output bits assembled as an unsigned 32-bit integer (LSB first).
+@inout self The LFSR32 generator state.
+@return An unsigned 32-bit pseudo-random integer. }*)
+function LFSR32_nextUint32: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The LFSR32 generator state.}*)
+		self: LFSR32_t;
+	end
+	var_temp
+		bit_idx: dint;
+		result: dword;
+	end
+	{st}
+	result := dword#0;
+	for bit_idx := 0 to 31 by 1 do
+		if LFSR32_nextBool(self) then
+			result := result or shl(dword#1, bit_idx);
+		end_if;
+	end_for;
+	LFSR32_nextUint32 := dword_to_udint(result);
+	{end}
+end
+{#define LFSR32_nextUDINT LFSR32_nextUint32} (* alias *)
+
+{#define RandomGeneratorPrefix LFSR32}
+{#define RandomGeneratorType LFSR32_t}
+{#include "int_in_range_template.txt"}
+{#undef RandomGeneratorPrefix}
+{#undef RandomGeneratorType}
+
+{#endif}

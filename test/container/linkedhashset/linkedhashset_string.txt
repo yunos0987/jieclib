@@ -1,0 +1,18 @@
+{#ifndef __TEST_CONTAINER_LINKEDHASHSET_STRING_TXT__}
+{#define __TEST_CONTAINER_LINKEDHASHSET_STRING_TXT__}
+
+{#include <string_lib/equivalence.txt>}
+
+{#define LinkedHashSetName string16}
+{#define LinkedHashSetCapacity 8}
+{#define LinkedHashSetElementType string[16 + 1]}
+{#define LinkedHashSetElementEqualsFunction String_equals}
+{#define LinkedHashSetElementHashFunction String_hash}
+{#include <container/linkedhashset/linkedhashset_template.txt>}
+{#undef LinkedHashSetName}
+{#undef LinkedHashSetCapacity}
+{#undef LinkedHashSetElementType}
+{#undef LinkedHashSetElementEqualsFunction}
+{#undef LinkedHashSetElementHashFunction}
+
+{#endif}

@@ -1,0 +1,227 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/array/test_array_aggregate.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/array/test_array_aggregate.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <array/array.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_array_min',
+		'test_array_max',
+		'test_array_min_index',
+		'test_array_max_index'
+	)
+)
+{#endif}
+
+TEST_S(test_array_min)
+	var
+		xx: array[0..4] of lreal := [3.0, 1.0, 4.0, 1.0, 5.0];
+		yy: array[0..4] of dint  := [3, 1, 4, 1, 5];
+		xx1: array[0..0] of lreal := [9.0];
+		yy5: array[0..4] of dint  := [7, 7, 7, 7, 7];
+		ox: array[10..14] of lreal;
+		oy: array[10..14] of dint;
+		rr: lreal;
+		ri: dint;
+	end
+	{st}
+	// Fact: Array_min_lreal returns the smallest element.
+		// Arrange
+		// Act
+	rr := Array_min_lreal(self:=xx);
+		// Assert
+	EXPECT_EQ_LREAL(1.0, rr);
+
+	// Fact: Array_min_dint returns the smallest element.
+		// Arrange
+		// Act
+	ri := Array_min_dint(self:=yy);
+		// Assert
+	EXPECT_EQ_INT32(1, ri);
+
+	// Fact: A single-element array returns that element as the minimum.
+		// Arrange
+		// Act/Assert
+	EXPECT_EQ_LREAL(9.0, Array_min_lreal(self:=xx1));
+
+	// Fact: All-identical elements return that value as the minimum.
+		// Arrange
+		// Act/Assert
+	EXPECT_EQ_INT32(7, Array_min_dint(self:=yy5));
+
+	// Fact: Array_min_lreal works correctly on an offset array.
+		// Arrange
+	ox[10] := 3.0; ox[11] := 1.0; ox[12] := 4.0; ox[13] := 1.0; ox[14] := 5.0;
+		// Act/Assert
+	EXPECT_EQ_LREAL(1.0, Array_min_lreal(self:=ox));
+
+	// Fact: Array_min_dint works correctly on an offset array.
+		// Arrange
+	oy[10] := 3; oy[11] := 1; oy[12] := 4; oy[13] := 1; oy[14] := 5;
+		// Act/Assert
+	EXPECT_EQ_INT32(1, Array_min_dint(self:=oy));
+	{end}
+END_TEST_S
+
+TEST_S(test_array_max)
+	var
+		xx: array[0..4] of lreal := [3.0, 1.0, 4.0, 1.0, 5.0];
+		yy: array[0..4] of dint  := [3, 1, 4, 1, 5];
+		xx1: array[0..0] of lreal := [9.0];
+		yy5: array[0..4] of dint  := [7, 7, 7, 7, 7];
+		ox: array[10..14] of lreal;
+		oy: array[10..14] of dint;
+		rr: lreal;
+		ri: dint;
+	end
+	{st}
+	// Fact: Array_max_lreal returns the largest element.
+		// Arrange
+		// Act
+	rr := Array_max_lreal(self:=xx);
+		// Assert
+	EXPECT_EQ_LREAL(5.0, rr);
+
+	// Fact: Array_max_dint returns the largest element.
+		// Arrange
+		// Act
+	ri := Array_max_dint(self:=yy);
+		// Assert
+	EXPECT_EQ_INT32(5, ri);
+
+	// Fact: A single-element array returns that element as the maximum.
+		// Arrange
+		// Act/Assert
+	EXPECT_EQ_LREAL(9.0, Array_max_lreal(self:=xx1));
+
+	// Fact: All-identical elements return that value as the maximum.
+		// Arrange
+		// Act/Assert
+	EXPECT_EQ_INT32(7, Array_max_dint(self:=yy5));
+
+	// Fact: Array_max_lreal works correctly on an offset array.
+		// Arrange
+	ox[10] := 3.0; ox[11] := 1.0; ox[12] := 4.0; ox[13] := 1.0; ox[14] := 5.0;
+		// Act/Assert
+	EXPECT_EQ_LREAL(5.0, Array_max_lreal(self:=ox));
+
+	// Fact: Array_max_dint works correctly on an offset array.
+		// Arrange
+	oy[10] := 3; oy[11] := 1; oy[12] := 4; oy[13] := 1; oy[14] := 5;
+		// Act/Assert
+	EXPECT_EQ_INT32(5, Array_max_dint(self:=oy));
+	{end}
+END_TEST_S
+
+TEST_S(test_array_min_index)
+	var
+		xx: array[0..4] of lreal := [3.0, 1.0, 4.0, 1.0, 5.0];
+		yy: array[0..4] of dint  := [3, 1, 4, 1, 5];
+		yy1: array[0..0] of dint  := [42];
+		ox: array[10..14] of lreal;
+		oy: array[10..14] of dint;
+		ri: dint;
+	end
+	{st}
+	// Fact: Array_min_index_lreal returns the index of the first minimum.
+		// Arrange
+		// Act
+	ri := Array_min_index_lreal(self:=xx);
+		// Assert
+	EXPECT_EQ_INT32(1, ri);
+
+	// Fact: Array_min_index_dint returns the index of the first minimum.
+		// Arrange
+		// Act
+	ri := Array_min_index_dint(self:=yy);
+		// Assert
+	EXPECT_EQ_INT32(1, ri);
+
+	// Fact: When the minimum appears multiple times, the first index is returned.
+		// Arrange: [1.0, 1.0, 4.0, 3.0, 5.0] -- min at indices 0 and 1
+	xx[0] := 1.0; xx[1] := 1.0; xx[2] := 4.0; xx[3] := 3.0; xx[4] := 5.0;
+		// Act
+	ri := Array_min_index_lreal(self:=xx);
+		// Assert
+	EXPECT_EQ_INT32(0, ri);
+
+	// Fact: A 1-element array returns index 0 for min_index.
+		// Arrange
+		// Act/Assert
+	EXPECT_EQ_INT32(0, Array_min_index_dint(self:=yy1));
+
+	// Fact: Array_min_index_lreal works correctly on an offset array.
+		// Arrange
+	ox[10] := 3.0; ox[11] := 1.0; ox[12] := 4.0; ox[13] := 1.0; ox[14] := 5.0;
+		// Act
+	ri := Array_min_index_lreal(self:=ox);
+		// Assert
+	EXPECT_EQ_INT32(11, ri);
+
+	// Fact: When the minimum appears multiple times on an offset array, the first index is returned.
+		// Arrange: [1, 1, 4, 3, 5] at [10..14] -- min 1 at indices 10 and 11
+	oy[10] := 1; oy[11] := 1; oy[12] := 4; oy[13] := 3; oy[14] := 5;
+		// Act
+	ri := Array_min_index_dint(self:=oy);
+		// Assert
+	EXPECT_EQ_INT32(10, ri);
+	{end}
+END_TEST_S
+
+TEST_S(test_array_max_index)
+	var
+		xx: array[0..4] of lreal := [3.0, 1.0, 4.0, 1.0, 5.0];
+		yy: array[0..4] of dint  := [3, 1, 4, 1, 5];
+		yy1: array[0..0] of dint  := [42];
+		ox: array[10..14] of lreal;
+		oy: array[10..14] of dint;
+		ri: dint;
+	end
+	{st}
+	// Fact: Array_max_index_lreal returns the index of the first maximum.
+		// Arrange
+		// Act
+	ri := Array_max_index_lreal(self:=xx);
+		// Assert
+	EXPECT_EQ_INT32(4, ri);
+
+	// Fact: Array_max_index_dint returns the index of the first maximum.
+		// Arrange
+		// Act
+	ri := Array_max_index_dint(self:=yy);
+		// Assert
+	EXPECT_EQ_INT32(4, ri);
+
+	// Fact: A 1-element array returns index 0 for max_index.
+		// Arrange
+		// Act/Assert
+	EXPECT_EQ_INT32(0, Array_max_index_dint(self:=yy1));
+
+	// Fact: When the maximum appears multiple times on an offset array, the first index is returned.
+		// Arrange: [5.0, 3.0, 1.0, 5.0, 4.0] at [10..14] -- max 5.0 at indices 10 and 13
+	ox[10] := 5.0; ox[11] := 3.0; ox[12] := 1.0; ox[13] := 5.0; ox[14] := 4.0;
+		// Act
+	ri := Array_max_index_lreal(self:=ox);
+		// Assert
+	EXPECT_EQ_INT32(10, ri);
+
+	// Fact: Array_max_index_lreal works correctly on an offset array.
+		// Arrange
+	ox[10] := 3.0; ox[11] := 1.0; ox[12] := 4.0; ox[13] := 1.0; ox[14] := 5.0;
+		// Act
+	ri := Array_max_index_lreal(self:=ox);
+		// Assert
+	EXPECT_EQ_INT32(14, ri);
+
+	// Fact: Array_max_index_dint works correctly on an offset array.
+		// Arrange
+	oy[10] := 3; oy[11] := 1; oy[12] := 4; oy[13] := 1; oy[14] := 5;
+		// Act
+	ri := Array_max_index_dint(self:=oy);
+		// Assert
+	EXPECT_EQ_INT32(14, ri);
+	{end}
+END_TEST_S

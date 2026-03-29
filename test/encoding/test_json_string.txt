@@ -1,0 +1,193 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/encoding/test_json_string.txt -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/encoding/test_json_string.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+
+{#include <src/encoding/json_string.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_json_escape',
+		'test_json_unescape'
+	)
+)
+{#endif}
+
+TEST_S(test_json_escape)
+	var
+		rr: STRING;
+		ok: bool;
+	end
+	{st}
+	// Fact: An empty string escapes to an empty string.
+		// Act/Assert
+	EXPECT_EQ_STRING('', json_escape(txt:=''));
+
+	// Fact: A plain ASCII string requires no escaping.
+		// Act/Assert
+	EXPECT_EQ_STRING('hello', json_escape(txt:='hello'));
+
+	// Fact: Double-quote characters are escaped as \".
+		// Act/Assert
+	EXPECT_EQ_STRING('\"hello\"', json_escape(txt:='"hello"'));
+
+	// Fact: Backslash characters are escaped as \\.
+		// Act/Assert
+	EXPECT_EQ_STRING('a\\b', json_escape(txt:='a\b'));
+
+	// Fact: Forward-slash characters are escaped as \/.
+		// Act/Assert
+	EXPECT_EQ_STRING('a\/b', json_escape(txt:='a/b'));
+
+	// Fact: Backspace (0x08) is escaped as \b.
+		// Act/Assert
+	EXPECT_EQ_STRING('\b', json_escape(txt:='$08'));
+
+	// Fact: Horizontal tab (0x09) is escaped as \t.
+		// Act/Assert
+	EXPECT_EQ_STRING('\t', json_escape(txt:='$09'));
+
+	// Fact: Line feed (0x0A) is escaped as \n.
+		// Act/Assert
+	EXPECT_EQ_STRING('\n', json_escape(txt:='$0A'));
+
+	// Fact: Vertical tab (0x0B) is escaped as \f.
+		// Act/Assert
+	EXPECT_EQ_STRING('\f', json_escape(txt:='$0B'));
+
+	// Fact: Carriage return (0x0D) is escaped as \r.
+		// Act/Assert
+	EXPECT_EQ_STRING('\r', json_escape(txt:='$0D'));
+
+	//// Fact: NUL (0x00) is escaped as \u0000.
+	//	// Act/Assert
+	//EXPECT_EQ_STRING('\u0000', json_escape(txt:='$00'));
+
+	// Fact: SOH (0x01) is escaped as \u0001.
+		// Act/Assert
+	EXPECT_EQ_STRING('\u0001', json_escape(txt:='$01'));
+
+	// Fact: BEL (0x07) is escaped as \u0007.
+		// Act/Assert
+	EXPECT_EQ_STRING('\u0007', json_escape(txt:='$07'));
+
+	// Fact: Form feed (0x0C) is escaped as \u000C.
+		// Act/Assert
+	EXPECT_EQ_STRING('\u000C', json_escape(txt:='$0C'));
+
+	// Fact: Unit separator (0x1F) is escaped as \u001F.
+		// Act/Assert
+	EXPECT_EQ_STRING('\u001F', json_escape(txt:='$1F'));
+
+	// Fact: A string combining quotes and newlines escapes each character correctly.
+		// Act/Assert
+	EXPECT_EQ_STRING('say \"hello\nworld\"', json_escape(txt:='say "hello$0Aworld"'));
+
+	// Fact: Backslash sequences in a path are each doubled.
+		// Act/Assert
+	EXPECT_EQ_STRING('path\\to\\file', json_escape(txt:='path\to\file'));
+
+	// Fact: A tab within a word is escaped as \t.
+		// Act/Assert
+	EXPECT_EQ_STRING('key\tvalue', json_escape(txt:='key$09value'));
+	{end}
+END_TEST_S
+
+TEST_S(test_json_unescape)
+	var
+		tt: STRING;
+		ok: bool;
+	end
+	{st}
+	// Fact: An empty string unescapes to an empty string.
+		// Act/Assert
+	EXPECT_EQ_STRING('', json_unescape(txt:=''));
+
+	// Fact: A plain string without escape sequences is returned unchanged.
+		// Act/Assert
+	EXPECT_EQ_STRING('hello', json_unescape(txt:='hello'));
+
+	// Fact: \" unescapes to a double-quote character.
+		// Act/Assert
+	EXPECT_EQ_STRING('"hello"', json_unescape(txt:='\"hello\"'));
+
+	// Fact: \\ unescapes to a single backslash.
+		// Act/Assert
+	EXPECT_EQ_STRING('a\b', json_unescape(txt:='a\\b'));
+
+	// Fact: \/ unescapes to a forward slash.
+		// Act/Assert
+	EXPECT_EQ_STRING('a/b', json_unescape(txt:='a\/b'));
+
+	// Fact: \b unescapes to backspace (0x08).
+		// Act/Assert
+	EXPECT_EQ_STRING('$08', json_unescape(txt:='\b'));
+
+	// Fact: \t unescapes to horizontal tab (0x09).
+		// Act/Assert
+	EXPECT_EQ_STRING('$09', json_unescape(txt:='\t'));
+
+	// Fact: \n unescapes to line feed (0x0A).
+		// Act/Assert
+	EXPECT_EQ_STRING('$0A', json_unescape(txt:='\n'));
+
+	// Fact: \f unescapes to vertical tab (0x0B).
+		// Act/Assert
+	EXPECT_EQ_STRING('$0B', json_unescape(txt:='\f'));
+
+	// Fact: \r unescapes to carriage return (0x0D).
+		// Act/Assert
+	EXPECT_EQ_STRING('$0D', json_unescape(txt:='\r'));
+
+	// Fact: \u0000 unescapes to NUL (0x00).
+		// Act/Assert
+	EXPECT_EQ_STRING('$00', json_unescape(txt:='\u0000'));
+
+	// Fact: \u0041 unescapes to 'A' (U+0041).
+		// Act/Assert
+	EXPECT_EQ_STRING('A', json_unescape(txt:='\u0041'));
+
+	// Fact: \u007F unescapes to DEL (0x7F).
+		// Act/Assert
+	EXPECT_EQ_STRING('$7F', json_unescape(txt:='\u007F'));
+
+	// Fact: Mixed escape sequences within a string are each resolved correctly.
+		// Act/Assert
+	EXPECT_EQ_STRING('say "hello$0Aworld"', json_unescape(txt:='say \"hello\nworld\"'));
+	EXPECT_EQ_STRING('path\to\file', json_unescape(txt:='path\\to\\file'));
+
+	// Fact: An unknown escape sequence returns an error.
+		// Act
+	json_unescape(txt:='\x', eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+
+	// Fact: A trailing backslash with no following character returns an error.
+		// Act
+	json_unescape(txt:='\', eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+
+	// Fact: \uXXXX with non-hex digits returns an error.
+		// Act
+	json_unescape(txt:='\uXXXX', eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+
+	// Fact: \u with fewer than 4 hex digits returns an error.
+		// Act
+	json_unescape(txt:='\u00', eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+
+	// Fact: \uXXXX values above U+007F return an error.
+		// Act
+	json_unescape(txt:='\u0080', eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	json_unescape(txt:='\uFFFF', eno=>ok);
+	EXPECT_FALSE(ok);
+	{end}
+END_TEST_S

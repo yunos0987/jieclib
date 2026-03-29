@@ -1,0 +1,169 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/compress/test_huffman.txt -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/compress/test_huffman.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+
+{#include <src/compress/huffman.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_huffman_encode',
+		'test_huffman_decode'
+	)
+)
+{#endif}
+
+TEST_S(test_huffman_encode)
+	var
+		src: array[0..255] of byte;
+		encoded: array[0..1023] of byte;
+		nn_enc: dint;
+		ok: bool;
+		ii: dint;
+	end
+	{st}
+	// Fact: Encoding a short ASCII string succeeds and writes the original length into the header.
+		// Arrange: "ABRACADABRA" = 11 bytes
+	src[0]  := byte#16#41; // A
+	src[1]  := byte#16#42; // B
+	src[2]  := byte#16#52; // R
+	src[3]  := byte#16#41; // A
+	src[4]  := byte#16#43; // C
+	src[5]  := byte#16#41; // A
+	src[6]  := byte#16#44; // D
+	src[7]  := byte#16#41; // A
+	src[8]  := byte#16#42; // B
+	src[9]  := byte#16#52; // R
+	src[10] := byte#16#41; // A
+		// Act
+	nn_enc := huffman_encode(dat:=src, dst:=encoded, offset:=0, length:=11);
+		// Assert: return value >= 260 (header) and header bytes 0-3 encode length=11 big-endian
+	EXPECT_TRUE(nn_enc >= 260);
+	EXPECT_EQ_BYTE(byte#16#00, encoded[0]);
+	EXPECT_EQ_BYTE(byte#16#00, encoded[1]);
+	EXPECT_EQ_BYTE(byte#16#00, encoded[2]);
+	EXPECT_EQ_BYTE(byte#16#0B, encoded[3]);
+
+	// Fact: Encoding all 256 distinct byte values succeeds and embeds length=256 in the header.
+		// Arrange
+	for ii := 0 to 255 by 1 do
+		src[ii] := dint_to_byte(ii);
+	end_for;
+		// Act
+	nn_enc := huffman_encode(dat:=src, dst:=encoded, offset:=0, length:=256);
+		// Assert: header bytes 0-3 = 0x00 0x00 0x01 0x00 (256 big-endian)
+	EXPECT_TRUE(nn_enc >= 260);
+	EXPECT_EQ_BYTE(byte#16#00, encoded[0]);
+	EXPECT_EQ_BYTE(byte#16#00, encoded[1]);
+	EXPECT_EQ_BYTE(byte#16#01, encoded[2]);
+	EXPECT_EQ_BYTE(byte#16#00, encoded[3]);
+
+	// Fact: An empty-length input returns an error.
+		// Arrange
+		// Act
+	huffman_encode(dat:=src, dst:=encoded, offset:=0, length:=0, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+
+	// Fact: An out-of-range offset returns an error.
+		// Arrange
+		// Act
+	huffman_encode(dat:=src, dst:=encoded, offset:=300, length:=1, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	{end}
+END_TEST_S
+
+TEST_S(test_huffman_decode)
+	var
+		src: array[0..255] of byte;
+		encoded: array[0..1023] of byte;
+		decoded: array[0..255] of byte;
+		nn_enc: dint;
+		nn_decoded: dint;
+		ii: dint;
+	end
+	{st}
+	// Fact: A round-trip of a short ASCII string returns the original bytes.
+		// Arrange: "ABRACADABRA" = [41 42 52 41 43 41 44 41 42 52 41]
+	src[0]  := byte#16#41; // A
+	src[1]  := byte#16#42; // B
+	src[2]  := byte#16#52; // R
+	src[3]  := byte#16#41; // A
+	src[4]  := byte#16#43; // C
+	src[5]  := byte#16#41; // A
+	src[6]  := byte#16#44; // D
+	src[7]  := byte#16#41; // A
+	src[8]  := byte#16#42; // B
+	src[9]  := byte#16#52; // R
+	src[10] := byte#16#41; // A
+	nn_enc := huffman_encode(dat:=src, dst:=encoded, offset:=0, length:=11);
+		// Act
+	nn_decoded := huffman_decode(dat:=encoded, dst:=decoded, offset:=0, length:=nn_enc);
+		// Assert
+	EXPECT_EQ_INT32(11, nn_decoded);
+	EXPECT_EQ_BYTE(byte#16#41, decoded[0]);
+	EXPECT_EQ_BYTE(byte#16#42, decoded[1]);
+	EXPECT_EQ_BYTE(byte#16#52, decoded[2]);
+	EXPECT_EQ_BYTE(byte#16#41, decoded[3]);
+	EXPECT_EQ_BYTE(byte#16#43, decoded[4]);
+	EXPECT_EQ_BYTE(byte#16#41, decoded[5]);
+	EXPECT_EQ_BYTE(byte#16#44, decoded[6]);
+	EXPECT_EQ_BYTE(byte#16#41, decoded[7]);
+	EXPECT_EQ_BYTE(byte#16#42, decoded[8]);
+	EXPECT_EQ_BYTE(byte#16#52, decoded[9]);
+	EXPECT_EQ_BYTE(byte#16#41, decoded[10]);
+
+	// Fact: A single unique byte value round-trips correctly.
+		// Arrange: 8 bytes all 0xAA
+	for ii := 0 to 7 by 1 do
+		src[ii] := byte#16#AA;
+	end_for;
+	nn_enc := huffman_encode(dat:=src, dst:=encoded, offset:=0, length:=8);
+		// Act
+	nn_decoded := huffman_decode(dat:=encoded, dst:=decoded, offset:=0, length:=nn_enc);
+		// Assert
+	EXPECT_EQ_INT32(8, nn_decoded);
+	for ii := 0 to 7 by 1 do
+		EXPECT_EQ_BYTE(byte#16#AA, decoded[ii]);
+	end_for;
+
+	// Fact: Two alternating byte values round-trip correctly.
+		// Arrange: [00 FF 00 FF 00 FF 00 FF]
+	for ii := 0 to 7 by 1 do
+		if (ii mod 2) = 0 then
+			src[ii] := byte#16#00;
+		else
+			src[ii] := byte#16#FF;
+		end_if;
+	end_for;
+	nn_enc := huffman_encode(dat:=src, dst:=encoded, offset:=0, length:=8);
+		// Act
+	nn_decoded := huffman_decode(dat:=encoded, dst:=decoded, offset:=0, length:=nn_enc);
+		// Assert
+	EXPECT_EQ_INT32(8, nn_decoded);
+	for ii := 0 to 7 by 1 do
+		if (ii mod 2) = 0 then
+			EXPECT_EQ_BYTE(byte#16#00, decoded[ii]);
+		else
+			EXPECT_EQ_BYTE(byte#16#FF, decoded[ii]);
+		end_if;
+	end_for;
+
+	// Fact: All 256 distinct byte values round-trip correctly.
+		// Arrange
+	for ii := 0 to 255 by 1 do
+		src[ii] := dint_to_byte(ii);
+	end_for;
+	nn_enc := huffman_encode(dat:=src, dst:=encoded, offset:=0, length:=256);
+		// Act
+	nn_decoded := huffman_decode(dat:=encoded, dst:=decoded, offset:=0, length:=nn_enc);
+		// Assert
+	EXPECT_EQ_INT32(256, nn_decoded);
+	for ii := 0 to 255 by 1 do
+		EXPECT_EQ_BYTE(dint_to_byte(ii), decoded[ii]);
+	end_for;
+	{end}
+END_TEST_S

@@ -1,0 +1,155 @@
+(*
+	================================================================================
+	Array copy template
+	================================================================================
+
+	This template generates typed Array_copy_x and Array_copy functions
+	from preprocessor macros.
+
+	Usage:
+	1. Define required macros.
+	2. Include this template once per generated type.
+
+	Required macros:
+	  - ArrayCopyName
+	    Suffix appended to function names.
+	    Example: lreal  ->  Array_copy_x_lreal, Array_copy_lreal
+	  - ArrayCopyElementType
+	    Element type of the arrays.
+	    Example: lreal, dint
+
+	Generated API:
+	  - Array_copy_x_@@ArrayCopyName@@(src, src_index, dst, dst_index, n) : dint
+	  - Array_copy_@@ArrayCopyName@@(src, dst) : dint
+	  - Convenience aliases:
+	      Array_copy_x -> Array_copy_x_@@ArrayCopyName@@
+	      Array_copy   -> Array_copy_@@ArrayCopyName@@
+
+	Example (lreal):
+	  {#define ArrayCopyName lreal}
+	  {#define ArrayCopyElementType lreal}
+	  {#include <array/copy_template.txt>}
+	================================================================================
+*)
+{#include <sys.txt>}
+
+{#ifndef ArrayCopyName}
+	{#error require ArrayCopyName macro.}
+{#endif}
+
+{#ifndef ArrayCopyElementType}
+	{#error require ArrayCopyElementType macro.}
+{#endif}
+
+{#define _ARRAY_COPY_X_(T) Array_copy_x_@@T}
+{#define ARRAY_COPY_X(T)   _ARRAY_COPY_X_(T)}
+{#define Array_copy_x      ARRAY_COPY_X(ArrayCopyName)}
+
+{#define _ARRAY_COPY_(T)   Array_copy_@@T}
+{#define ARRAY_COPY(T)     _ARRAY_COPY_(T)}
+{#define Array_copy        ARRAY_COPY(ArrayCopyName)}
+
+(*{doc Copy n elements from src starting at src_index into dst starting at dst_index.
+If n is -1, copy all remaining elements of src from src_index.
+@inout src Source array.
+@input src_index Starting index in src.
+@inout dst Destination array.
+@input dst_index Starting index in dst.
+@input n Number of elements to copy; -1 copies to end of src.
+@return Number of elements actually copied.
+@error If any index is out of bounds or n exceeds available space.}*)
+function Array_copy_x: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc Source array.}*)
+		src: array[*] of ArrayCopyElementType;
+	end
+	var_input
+		(*{doc Starting index in src.}*)
+		src_index: dint;
+	end
+	var_in_out
+		(*{doc Destination array.}*)
+		dst: array[*] of ArrayCopyElementType;
+	end
+	var_input
+		(*{doc Starting index in dst.}*)
+		dst_index: dint;
+		(*{doc Number of elements to copy; -1 copies to end of src.}*)
+		n: dint := -1;
+	end
+	var_temp
+		src_i_0, src_i_1: dint;
+		dst_i_0, dst_i_1: dint;
+		src_i, dst_i, actual_n: dint;
+	end
+	{st}
+	src_i_0 := lower_bound(src, 1);
+	if src_index < src_i_0 then
+		eno := false;
+		return;
+	end_if;
+	src_i_1 := upper_bound(src, 1);
+	if n > src_i_1 - src_index + 1 then
+		eno := false;
+		return;
+	end_if;
+
+	dst_i_0 := lower_bound(dst, 1);
+	if dst_index < dst_i_0 then
+		eno := false;
+		return;
+	end_if;
+	dst_i_1 := upper_bound(dst, 1);
+	if n > dst_i_1 - dst_index + 1 then
+		eno := false;
+		return;
+	end_if;
+
+	if n >= 0 then
+		actual_n := n;
+	else
+		actual_n := src_i_1 - src_index + 1;
+		if actual_n > dst_i_1 - dst_index + 1 then
+			eno := false;
+			return;
+		end_if;
+	end_if;
+
+	dst_i := dst_index;
+	for src_i := src_index to src_index + actual_n - 1 by 1 do
+		dst[dst_i] := src[src_i];
+		dst_i := dst_i + 1;
+	end_for;
+
+	Array_copy_x := actual_n;
+	{end}
+end
+
+(*{doc Copy all elements from src into dst, starting at each array s lower bound.
+@inout src Source array.
+@inout dst Destination array.
+@return Number of elements copied.
+@error If dst is smaller than src.}*)
+function Array_copy: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc Source array.}*)
+		src: array[*] of ArrayCopyElementType;
+		(*{doc Destination array.}*)
+		dst: array[*] of ArrayCopyElementType;
+	end
+	{st}
+	Array_copy := Array_copy_x(
+		src:=src, src_index:=lower_bound(src, 1),
+		dst:=dst, dst_index:=lower_bound(dst, 1),
+		n:=-1, eno=>eno);
+	{end}
+end
+
+{#undef _ARRAY_COPY_X_}
+{#undef ARRAY_COPY_X}
+{#undef Array_copy_x}
+{#undef _ARRAY_COPY_}
+{#undef ARRAY_COPY}
+{#undef Array_copy}

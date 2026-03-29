@@ -1,0 +1,26 @@
+{#ifndef __TEST_CONTAINER_ORDEREDSET_DINT_TXT__}
+{#define __TEST_CONTAINER_ORDEREDSET_DINT_TXT__}
+
+{#include <sys_conv.txt>}
+
+function Dint_hash_for_orderedset_test: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: dint;
+	end
+	{st}
+	Dint_hash_for_orderedset_test := dword_to_udint(dint_to_dword(self));
+	{end}
+end
+
+{#define OrderedSetName dint}
+{#define OrderedSetElementType dint}
+{#define OrderedSetElementHashFunction Dint_hash_for_orderedset_test}
+{#define OrderedSetCapacity 8}
+{#include <container/orderedset/orderedset_template.txt>}
+{#undef OrderedSetName}
+{#undef OrderedSetElementType}
+{#undef OrderedSetElementHashFunction}
+{#undef OrderedSetCapacity}
+
+{#endif}

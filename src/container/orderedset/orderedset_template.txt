@@ -1,0 +1,576 @@
+(*
+	================================================================================
+	OrderedSet Template Generator - OrderedMap-backed Insertion-Ordered Set
+	================================================================================
+
+	This template generates a typed OrderedSet from preprocessor macros.
+	The internal implementation is based on OrderedMap (element as key, bool as value).
+
+	Usage:
+	1. Define required macros.
+	2. Optionally define behavior macros.
+	3. Include this template once per generated type.
+
+	Required macros:
+	  - OrderedSetName
+	    Suffix used for generated types and functions.
+	  - OrderedSetElementType
+	    Element type stored in the set.
+	  - OrderedSetElementHashFunction
+	    Element hash function.
+	  - OrderedSetCapacity
+	    Number of table slots.
+
+	Optional macros:
+	  - OrderedSetMaxLoadPermille
+	    Maximum load factor in permille.
+	    Default: 800 (80%).
+	  - OrderedSetElementEqualsFunction
+	    Element equality function.
+	    Default: direct value comparison.
+
+	Generated APIs:
+	  - init, copy, add, add_all
+	  - remove, remove_all, contains, len
+	  - elements, equals, hash, empty, clear
+
+	Example (dint):
+	  {#define OrderedSetName dint}
+	  {#define OrderedSetCapacity 256}
+	  {#define OrderedSetElementType dint}
+	  {#define OrderedSetElementEqualsFunction Dint_equals}
+	  {#define OrderedSetElementHashFunction Dint_hash}
+	  {#include <container/orderedset/orderedset_template.txt>}
+
+	Example (string):
+	  {#define OrderedSetName str}
+	  {#define OrderedSetCapacity 256}
+	  {#define OrderedSetElementType string[128]}
+	  {#define OrderedSetElementEqualsFunction String_equals}
+	  {#define OrderedSetElementHashFunction String_hash}
+	  {#include <container/orderedset/orderedset_template.txt>}
+
+	Algorithm:
+	  OrderedMap-backed set preserving insertion order.
+	  equals and hash are insertion-order sensitive.
+	================================================================================
+*)
+{#include <sys.txt>}
+{#include <sys_conv.txt>}
+
+{#ifndef OrderedSetName}
+	{#error require OrderedSetName macro.}
+{#endif}
+
+{#ifndef OrderedSetElementType}
+	{#error require OrderedSetElementType macro.}
+{#endif}
+
+{#ifndef OrderedSetElementHashFunction}
+	{#error require OrderedSetElementHashFunction macro.}
+{#endif}
+
+{#ifndef OrderedSetCapacity}
+	{#error require OrderedSetCapacity macro.}
+{#endif}
+
+{#ifndef OrderedSetMaxLoadPermille}
+	{#define OrderedSetMaxLoadPermille 800}
+	{#define _ORDEREDSET_DEFAULT_MAX_LOAD_PERMILLE_DEFINED__}
+{#endif}
+
+{#ifdef OrderedSetElementEqualsFunction}
+	{#define _ORDEREDSET_ELEM_EQUALS_(A, B) OrderedSetElementEqualsFunction((A), (B))}
+{#else}
+	{#define _ORDEREDSET_ELEM_EQUALS_(A, B) ((A) = (B))}
+{#endif}
+
+{#define _ORDEREDSET_INNER_ORDEREDMAP_NAME_(T) OSIT@@T}
+{#define ORDEREDSET_INNER_ORDEREDMAP_NAME(T) _ORDEREDSET_INNER_ORDEREDMAP_NAME_(T)}
+{#define OrderedMapName ORDEREDSET_INNER_ORDEREDMAP_NAME(OrderedSetName)}
+{#define OrderedMapKeyType OrderedSetElementType}
+{#define OrderedMapValueType bool}
+{#define OrderedMapKeyEqualsFunction _ORDEREDSET_ELEM_EQUALS_}
+{#define OrderedMapKeyHashFunction OrderedSetElementHashFunction}
+{#define OrderedMapCapacity OrderedSetCapacity}
+{#define OrderedMapMaxLoadPermille OrderedSetMaxLoadPermille}
+{#include <container/orderedmap/orderedmap_template.txt>}
+{#undef _ORDEREDSET_INNER_ORDEREDMAP_NAME_}
+{#undef ORDEREDSET_INNER_ORDEREDMAP_NAME}
+{#undef OrderedMapName}
+{#undef OrderedMapKeyType}
+{#undef OrderedMapValueType}
+{#undef OrderedMapKeyEqualsFunction}
+{#undef OrderedMapKeyHashFunction}
+{#undef OrderedMapCapacity}
+{#undef OrderedMapMaxLoadPermille}
+
+{#define _ORDEREDSET_CORE_TYPE_(T) OrderedSet_@@T@@_t}
+{#define _ORDEREDSET_INIT_(T) OrderedSet_@@T@@_init}
+{#define _ORDEREDSET_COPY_(T) OrderedSet_@@T@@_copy}
+{#define _ORDEREDSET_ADD_(T) OrderedSet_@@T@@_add}
+{#define _ORDEREDSET_ADD_ALL_(T) OrderedSet_@@T@@_add_all}
+{#define _ORDEREDSET_REMOVE_(T) OrderedSet_@@T@@_remove}
+{#define _ORDEREDSET_REMOVE_ALL_(T) OrderedSet_@@T@@_remove_all}
+{#define _ORDEREDSET_CONTAINS_(T) OrderedSet_@@T@@_contains}
+{#define _ORDEREDSET_LEN_(T) OrderedSet_@@T@@_len}
+{#define _ORDEREDSET_ELEMENTS_(T) OrderedSet_@@T@@_elements}
+{#define _ORDEREDSET_EQUALS_(T) OrderedSet_@@T@@_equals}
+{#define _ORDEREDSET_HASH_(T) OrderedSet_@@T@@_hash}
+{#define _ORDEREDSET_EMPTY_(T) OrderedSet_@@T@@_empty}
+{#define _ORDEREDSET_CLEAR_(T) OrderedSet_@@T@@_clear}
+	// OSIT: OrderedSet Inner Type (OrderedMap_OSIT@@T@@_t) OrderedSet
+{#define _ORDEREDSET_BACKING_CORE_TYPE_(T) OrderedMap_OSIT@@T@@_t}
+{#define _ORDEREDSET_BACKING_INIT_(T) OrderedMap_OSIT@@T@@_init}
+{#define _ORDEREDSET_BACKING_COPY_(T) OrderedMap_OSIT@@T@@_copy}
+{#define _ORDEREDSET_BACKING_UPSERT_(T) OrderedMap_OSIT@@T@@_upsert}
+{#define _ORDEREDSET_BACKING_DELETE_(T) OrderedMap_OSIT@@T@@_delete}
+{#define _ORDEREDSET_BACKING_CONTAINS_(T) OrderedMap_OSIT@@T@@_contains}
+{#define _ORDEREDSET_BACKING_KEYS_(T) OrderedMap_OSIT@@T@@_keys}
+{#define _ORDEREDSET_BACKING_EMPTY_(T) OrderedMap_OSIT@@T@@_empty}
+{#define _ORDEREDSET_BACKING_CLEAR_(T) OrderedMap_OSIT@@T@@_clear}
+
+{#define ORDEREDSET_CORE_TYPE(T) _ORDEREDSET_CORE_TYPE_(T)}
+{#define ORDEREDSET_INIT(T) _ORDEREDSET_INIT_(T)}
+{#define ORDEREDSET_COPY(T) _ORDEREDSET_COPY_(T)}
+{#define ORDEREDSET_ADD(T) _ORDEREDSET_ADD_(T)}
+{#define ORDEREDSET_ADD_ALL(T) _ORDEREDSET_ADD_ALL_(T)}
+{#define ORDEREDSET_REMOVE(T) _ORDEREDSET_REMOVE_(T)}
+{#define ORDEREDSET_REMOVE_ALL(T) _ORDEREDSET_REMOVE_ALL_(T)}
+{#define ORDEREDSET_CONTAINS(T) _ORDEREDSET_CONTAINS_(T)}
+{#define ORDEREDSET_LEN(T) _ORDEREDSET_LEN_(T)}
+{#define ORDEREDSET_ELEMENTS(T) _ORDEREDSET_ELEMENTS_(T)}
+{#define ORDEREDSET_EQUALS(T) _ORDEREDSET_EQUALS_(T)}
+{#define ORDEREDSET_HASH(T) _ORDEREDSET_HASH_(T)}
+{#define ORDEREDSET_EMPTY(T) _ORDEREDSET_EMPTY_(T)}
+{#define ORDEREDSET_CLEAR(T) _ORDEREDSET_CLEAR_(T)}
+
+{#define ORDEREDSET_BACKING_CORE_TYPE(T) _ORDEREDSET_BACKING_CORE_TYPE_(T)}
+{#define ORDEREDSET_BACKING_INIT(T) _ORDEREDSET_BACKING_INIT_(T)}
+{#define ORDEREDSET_BACKING_COPY(T) _ORDEREDSET_BACKING_COPY_(T)}
+{#define ORDEREDSET_BACKING_UPSERT(T) _ORDEREDSET_BACKING_UPSERT_(T)}
+{#define ORDEREDSET_BACKING_DELETE(T) _ORDEREDSET_BACKING_DELETE_(T)}
+{#define ORDEREDSET_BACKING_CONTAINS(T) _ORDEREDSET_BACKING_CONTAINS_(T)}
+{#define ORDEREDSET_BACKING_KEYS(T) _ORDEREDSET_BACKING_KEYS_(T)}
+{#define ORDEREDSET_BACKING_EMPTY(T) _ORDEREDSET_BACKING_EMPTY_(T)}
+{#define ORDEREDSET_BACKING_CLEAR(T) _ORDEREDSET_BACKING_CLEAR_(T)}
+
+{#define OrderedSetCoreType ORDEREDSET_CORE_TYPE(OrderedSetName)}
+{#define OrderedSetBackingCoreType ORDEREDSET_BACKING_CORE_TYPE(OrderedSetName)}
+{#define OrderedSet_init ORDEREDSET_INIT(OrderedSetName)}
+{#define OrderedSet_copy ORDEREDSET_COPY(OrderedSetName)}
+{#define OrderedSet_add ORDEREDSET_ADD(OrderedSetName)}
+{#define OrderedSet_add_all ORDEREDSET_ADD_ALL(OrderedSetName)}
+{#define OrderedSet_remove ORDEREDSET_REMOVE(OrderedSetName)}
+{#define OrderedSet_remove_all ORDEREDSET_REMOVE_ALL(OrderedSetName)}
+{#define OrderedSet_contains ORDEREDSET_CONTAINS(OrderedSetName)}
+{#define OrderedSet_len ORDEREDSET_LEN(OrderedSetName)}
+{#define OrderedSet_elements ORDEREDSET_ELEMENTS(OrderedSetName)}
+{#define OrderedSet_equals ORDEREDSET_EQUALS(OrderedSetName)}
+{#define OrderedSet_hash ORDEREDSET_HASH(OrderedSetName)}
+{#define OrderedSet_empty ORDEREDSET_EMPTY(OrderedSetName)}
+{#define OrderedSet_clear ORDEREDSET_CLEAR(OrderedSetName)}
+
+{#define OrderedSet_backing_init ORDEREDSET_BACKING_INIT(OrderedSetName)}
+{#define OrderedSet_backing_copy ORDEREDSET_BACKING_COPY(OrderedSetName)}
+{#define OrderedSet_backing_upsert ORDEREDSET_BACKING_UPSERT(OrderedSetName)}
+{#define OrderedSet_backing_delete ORDEREDSET_BACKING_DELETE(OrderedSetName)}
+{#define OrderedSet_backing_contains ORDEREDSET_BACKING_CONTAINS(OrderedSetName)}
+{#define OrderedSet_backing_keys ORDEREDSET_BACKING_KEYS(OrderedSetName)}
+{#define OrderedSet_backing_empty ORDEREDSET_BACKING_EMPTY(OrderedSetName)}
+{#define OrderedSet_backing_clear ORDEREDSET_BACKING_CLEAR(OrderedSetName)}
+
+type
+	(* OrderedSet runtime state. *)
+	OrderedSetCoreType: struct
+		(* Backing OrderedMap for element storage and insertion-order tracking. *)
+		backing: OrderedSetBackingCoreType;
+	end
+end
+
+(*{doc Initialize the container.
+Reset backing state.
+@inout self Target OrderedSet. }*)
+function OrderedSet_init
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedSetCoreType;
+	end
+	{st}
+	OrderedSet_backing_init(self:=self.backing);
+	{end}
+end
+
+(*{doc Copy container state.
+Copy all backing storage state.
+@inout self Source OrderedSet.
+@inout dest Destination OrderedSet.
+@return true on success.
+@error Propagates ENO from backing OrderedMap operations. }*)
+function OrderedSet_copy: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedSetCoreType;
+		dest: OrderedSetCoreType;
+	end
+	{st}
+	OrderedSet_copy := OrderedSet_backing_copy(self:=self.backing, dest:=dest.backing, eno=>eno);
+	{end}
+end
+
+(*{doc Add one element.
+Insert the element if not already present; preserve insertion order.
+@inout self Target OrderedSet.
+@input element Element to add.
+@output added true when newly added, false when already present.
+@return true on success, false on insert failure.
+@error ENO is set to false on internal error. }*)
+function OrderedSet_add: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedSetCoreType;
+	end
+	var_input
+		element: OrderedSetElementType;
+	end
+	var_output
+		added: bool;
+	end
+	var_temp
+		replaced: bool;
+	end
+	{st}
+	OrderedSet_add := OrderedSet_backing_upsert(self:=self.backing, key:=element, value:=true, replaced=>replaced, eno=>eno);
+	if not eno then
+		return;
+	end_if;
+	added := not replaced;
+	{end}
+end
+
+(*{doc Add all elements from an input array.
+Process input array in index order and count new insertions.
+@inout self Target OrderedSet.
+@inout elements Input elements.
+@output added_count Number of newly added elements.
+@return true on success, false if an insert fails.
+@error ENO is propagated from backing OrderedMap. }*)
+function OrderedSet_add_all: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedSetCoreType;
+	end
+	var_in_out
+		elements: array[*] of OrderedSetElementType;
+	end
+	var_output
+		added_count: dint;
+	end
+	var_temp
+		idx: dint;
+		idx_begin, idx_end: dint;
+		replaced: bool;
+		succeeded: bool;
+	end
+	{st}
+	idx_begin := lower_bound(elements, 1);
+	idx_end := upper_bound(elements, 1);
+	added_count := 0;
+
+	for idx := idx_begin to idx_end by 1 do
+		succeeded := OrderedSet_backing_upsert(self:=self.backing, key:=elements[idx], value:=true, replaced=>replaced, eno=>eno);
+		if not eno then
+			return;
+		end_if;
+		if not succeeded then
+			OrderedSet_add_all := false;
+			return;
+		end_if;
+		if not replaced then
+			added_count := added_count + 1;
+		end_if;
+	end_for;
+
+	OrderedSet_add_all := true;
+	{end}
+end
+
+(*{doc Remove one element.
+Delete the element if present.
+@inout self Target OrderedSet.
+@input element Element to remove.
+@return true when removed, false when not found. }*)
+function OrderedSet_remove: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedSetCoreType;
+	end
+	var_input
+		element: OrderedSetElementType;
+	end
+	{st}
+	OrderedSet_remove := OrderedSet_backing_delete(self:=self.backing, key:=element, eno=>eno);
+	{end}
+end
+
+(*{doc Remove all matching elements from an input array.
+Process input array in index order and count successful deletions.
+@inout self Target OrderedSet.
+@inout elements Input elements.
+@output removed_count Number of removed elements.
+@return true on success.
+@error Propagates ENO from backing OrderedMap operations. }*)
+function OrderedSet_remove_all: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedSetCoreType;
+	end
+	var_in_out
+		elements: array[*] of OrderedSetElementType;
+	end
+	var_output
+		removed_count: dint;
+	end
+	var_temp
+		idx: dint;
+		idx_begin, idx_end: dint;
+		removed: bool;
+	end
+	{st}
+	idx_begin := lower_bound(elements, 1);
+	idx_end := upper_bound(elements, 1);
+	removed_count := 0;
+
+	for idx := idx_begin to idx_end by 1 do
+		removed := OrderedSet_backing_delete(self:=self.backing, key:=elements[idx], eno=>eno);
+		if not eno then
+			return;
+		end_if;
+		if removed then
+			removed_count := removed_count + 1;
+		end_if;
+	end_for;
+
+	OrderedSet_remove_all := true;
+	{end}
+end
+
+(*{doc Return true if the target element exists.
+Check membership using backing OrderedMap lookup.
+@inout self Target OrderedSet.
+@input element Target element.
+@return true when found, otherwise false.
+@error ENO is set to false on internal error. }*)
+function OrderedSet_contains: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedSetCoreType;
+	end
+	var_input
+		element: OrderedSetElementType;
+	end
+	{st}
+	OrderedSet_contains := OrderedSet_backing_contains(self:=self.backing, key:=element, eno=>eno);
+	{end}
+end
+
+(*{doc Return the number of stored elements.
+Expose current insertion-order list length.
+@inout self Target OrderedSet.
+@return Element count. }*)
+function OrderedSet_len: dint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedSetCoreType;
+	end
+	{st}
+	OrderedSet_len := self.backing.order_count;
+	{end}
+end
+
+(*{doc Copy elements into an output array in insertion order.
+Export elements from oldest to newest insertion.
+@inout self Target OrderedSet.
+@inout elements Output array.
+@output written Number of copied elements.
+@return true on success.
+@error ENO is set to false when output capacity is insufficient. }*)
+function OrderedSet_elements: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedSetCoreType;
+	end
+	var_in_out
+		elements: array[*] of OrderedSetElementType;
+	end
+	var_output
+		written: dint;
+	end
+	{st}
+	OrderedSet_elements := OrderedSet_backing_keys(self:=self.backing, keys:=elements, written=>written, eno=>eno);
+	{end}
+end
+
+(*{doc Compare two OrderedSets for equality.
+Require same insertion order and same elements.
+@inout self First OrderedSet.
+@inout other Second OrderedSet.
+@return true when both contain equal elements in equal insertion order.
+@error ENO is set to false on internal error. }*)
+function OrderedSet_equals: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedSetCoreType;
+		other: OrderedSetCoreType;
+	end
+	var_temp
+		idx: dint;
+	end
+	{st}
+	if self.backing.order_count <> other.backing.order_count then
+		OrderedSet_equals := false;
+		return;
+	end_if;
+
+	for idx := 0 to self.backing.order_count - 1 by 1 do
+		if not _ORDEREDSET_ELEM_EQUALS_(self.backing.order_keys[idx], other.backing.order_keys[idx]) then
+			OrderedSet_equals := false;
+			return;
+		end_if;
+	end_for;
+
+	OrderedSet_equals := true;
+	{end}
+end
+
+(*{doc Compute a hash value from all elements in insertion order.
+Accumulate element hashes with sequence sensitivity.
+@inout self Target OrderedSet.
+@return Hash value. }*)
+function OrderedSet_hash: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedSetCoreType;
+	end
+	var_temp
+		acc: udint;
+		idx: dint;
+		elem_hash: udint;
+	end
+	{st}
+	acc := udint#2166136261;
+	for idx := 0 to self.backing.order_count - 1 by 1 do
+		elem_hash := OrderedSetElementHashFunction(self.backing.order_keys[idx]);
+		acc := dword_to_udint(udint_to_dword(acc) xor udint_to_dword(elem_hash * udint#16777619)) * udint#16777619 + dint_to_udint(idx + 1);
+	end_for;
+	OrderedSet_hash := acc + dint_to_udint(self.backing.order_count);
+	{end}
+end
+
+(*{doc Return true when the container is empty.
+Check whether insertion-order list length is zero.
+@inout self Target OrderedSet.
+@return true if length is 0, otherwise false. }*)
+function OrderedSet_empty: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedSetCoreType;
+	end
+	{st}
+	OrderedSet_empty := self.backing.order_count = 0;
+	{end}
+end
+
+(*{doc Clear all elements.
+Reset backing structure to empty state.
+@inout self Target OrderedSet.
+@return true on success.
+@error Propagates ENO from backing OrderedMap operations. }*)
+function OrderedSet_clear: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: OrderedSetCoreType;
+	end
+	{st}
+	OrderedSet_clear := OrderedSet_backing_clear(self:=self.backing, eno=>eno);
+	{end}
+end
+
+{#undef OrderedSetCoreType}
+{#undef OrderedSetBackingCoreType}
+{#undef OrderedSet_init}
+{#undef OrderedSet_copy}
+{#undef OrderedSet_add}
+{#undef OrderedSet_add_all}
+{#undef OrderedSet_remove}
+{#undef OrderedSet_remove_all}
+{#undef OrderedSet_contains}
+{#undef OrderedSet_len}
+{#undef OrderedSet_elements}
+{#undef OrderedSet_equals}
+{#undef OrderedSet_hash}
+{#undef OrderedSet_empty}
+{#undef OrderedSet_clear}
+{#undef OrderedSet_backing_init}
+{#undef OrderedSet_backing_copy}
+{#undef OrderedSet_backing_upsert}
+{#undef OrderedSet_backing_delete}
+{#undef OrderedSet_backing_contains}
+{#undef OrderedSet_backing_keys}
+{#undef OrderedSet_backing_empty}
+{#undef OrderedSet_backing_clear}
+
+{#undef ORDEREDSET_CORE_TYPE}
+{#undef ORDEREDSET_INIT}
+{#undef ORDEREDSET_COPY}
+{#undef ORDEREDSET_ADD}
+{#undef ORDEREDSET_ADD_ALL}
+{#undef ORDEREDSET_REMOVE}
+{#undef ORDEREDSET_REMOVE_ALL}
+{#undef ORDEREDSET_CONTAINS}
+{#undef ORDEREDSET_LEN}
+{#undef ORDEREDSET_ELEMENTS}
+{#undef ORDEREDSET_EQUALS}
+{#undef ORDEREDSET_HASH}
+{#undef ORDEREDSET_EMPTY}
+{#undef ORDEREDSET_CLEAR}
+{#undef ORDEREDSET_BACKING_CORE_TYPE}
+{#undef ORDEREDSET_BACKING_INIT}
+{#undef ORDEREDSET_BACKING_COPY}
+{#undef ORDEREDSET_BACKING_UPSERT}
+{#undef ORDEREDSET_BACKING_DELETE}
+{#undef ORDEREDSET_BACKING_CONTAINS}
+{#undef ORDEREDSET_BACKING_KEYS}
+{#undef ORDEREDSET_BACKING_EMPTY}
+{#undef ORDEREDSET_BACKING_CLEAR}
+
+{#undef _ORDEREDSET_CORE_TYPE_}
+{#undef _ORDEREDSET_INIT_}
+{#undef _ORDEREDSET_COPY_}
+{#undef _ORDEREDSET_ADD_}
+{#undef _ORDEREDSET_ADD_ALL_}
+{#undef _ORDEREDSET_REMOVE_}
+{#undef _ORDEREDSET_REMOVE_ALL_}
+{#undef _ORDEREDSET_CONTAINS_}
+{#undef _ORDEREDSET_LEN_}
+{#undef _ORDEREDSET_ELEMENTS_}
+{#undef _ORDEREDSET_EQUALS_}
+{#undef _ORDEREDSET_HASH_}
+{#undef _ORDEREDSET_EMPTY_}
+{#undef _ORDEREDSET_CLEAR_}
+{#undef _ORDEREDSET_BACKING_CORE_TYPE_}
+{#undef _ORDEREDSET_BACKING_INIT_}
+{#undef _ORDEREDSET_BACKING_COPY_}
+{#undef _ORDEREDSET_BACKING_UPSERT_}
+{#undef _ORDEREDSET_BACKING_DELETE_}
+{#undef _ORDEREDSET_BACKING_CONTAINS_}
+{#undef _ORDEREDSET_BACKING_KEYS_}
+{#undef _ORDEREDSET_BACKING_EMPTY_}
+{#undef _ORDEREDSET_BACKING_CLEAR_}
+
+{#ifdef _ORDEREDSET_DEFAULT_MAX_LOAD_PERMILLE_DEFINED__}
+	{#undef OrderedSetMaxLoadPermille}
+	{#undef _ORDEREDSET_DEFAULT_MAX_LOAD_PERMILLE_DEFINED__}
+{#endif}
+
+{#undef _ORDEREDSET_ELEM_EQUALS_}

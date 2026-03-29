@@ -1,0 +1,88 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/array/test_array_fill.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/array/test_array_fill.xml -t omron
+ *)
+{#include <jiecunit.txt>}
+{#include <array/array.txt>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_array_fill',
+		'test_array_fill_offset'
+	)
+)
+{#endif}
+
+TEST_S(test_array_fill)
+	var
+		xx: array[0..4] of lreal := [0.0, 0.0, 0.0, 0.0, 0.0];
+		yy: array[0..4] of dint  := [0, 0, 0, 0, 0];
+		zz: array[0..0] of dint  := [0];
+	end
+	{st}
+	// Fact: Filling an lreal array sets every element to the given value.
+		// Arrange/Act
+	Array_fill_lreal(self:=xx, value:=3.0);
+		// Assert
+	EXPECT_EQ_LREAL(3.0, xx[0]);
+	EXPECT_EQ_LREAL(3.0, xx[1]);
+	EXPECT_EQ_LREAL(3.0, xx[2]);
+	EXPECT_EQ_LREAL(3.0, xx[3]);
+	EXPECT_EQ_LREAL(3.0, xx[4]);
+
+	// Fact: Filling a dint array sets every element to the given value.
+		// Arrange/Act
+	Array_fill_dint(self:=yy, value:=42);
+		// Assert
+	EXPECT_EQ_INT32(42, yy[0]);
+	EXPECT_EQ_INT32(42, yy[1]);
+	EXPECT_EQ_INT32(42, yy[2]);
+	EXPECT_EQ_INT32(42, yy[3]);
+	EXPECT_EQ_INT32(42, yy[4]);
+
+	// Fact: Filling with 0.0 clears every lreal element.
+		// Arrange/Act
+	Array_fill_lreal(self:=xx, value:=0.0);
+		// Assert
+	EXPECT_EQ_LREAL(0.0, xx[0]);
+	EXPECT_EQ_LREAL(0.0, xx[1]);
+	EXPECT_EQ_LREAL(0.0, xx[2]);
+	EXPECT_EQ_LREAL(0.0, xx[3]);
+	EXPECT_EQ_LREAL(0.0, xx[4]);
+
+	// Fact: Filling a 1-element array sets that single element.
+		// Arrange/Act
+	Array_fill_dint(self:=zz, value:=99);
+		// Assert
+	EXPECT_EQ_INT32(99, zz[0]);
+	{end}
+END_TEST_S
+
+TEST_S(test_array_fill_offset)
+	var
+		xx: array[5..9] of lreal := [0.0, 0.0, 0.0, 0.0, 0.0];
+		yy: array[10..14] of dint := [0, 0, 0, 0, 0];
+	end
+	{st}
+	// Fact: Filling an offset lreal array sets every element to the given value.
+		// Arrange/Act
+	Array_fill_lreal(self:=xx, value:=7.0);
+		// Assert
+	EXPECT_EQ_LREAL(7.0, xx[5]);
+	EXPECT_EQ_LREAL(7.0, xx[6]);
+	EXPECT_EQ_LREAL(7.0, xx[7]);
+	EXPECT_EQ_LREAL(7.0, xx[8]);
+	EXPECT_EQ_LREAL(7.0, xx[9]);
+
+	// Fact: Filling an offset dint array sets every element to the given value.
+		// Arrange/Act
+	Array_fill_dint(self:=yy, value:=13);
+		// Assert
+	EXPECT_EQ_INT32(13, yy[10]);
+	EXPECT_EQ_INT32(13, yy[11]);
+	EXPECT_EQ_INT32(13, yy[12]);
+	EXPECT_EQ_INT32(13, yy[13]);
+	EXPECT_EQ_INT32(13, yy[14]);
+	{end}
+END_TEST_S
