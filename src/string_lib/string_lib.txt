@@ -387,32 +387,24 @@ function String_lastIndexOf: dint
 		segment: STRING;
 	end
 	{st}
-	// empty needle: 既定は末尾、position指定時はその値
 	l := len(self);
 	m := len(searchString);
-	if m = 0 then
-		if position = __DINT_MAX__ then
-			String_lastIndexOf := l;
-		else
-			String_lastIndexOf := position;
+	if m <> 0 then
+		start_pos := min(position, l - m);
+		if start_pos >= 0 then
+			// right to left search
+			for i := start_pos to 0 by -1 do
+				segment := mid(self, dint_to_uint(m), dint_to_uint(i + 1));
+				if segment = searchString then
+					String_lastIndexOf := i;
+					return;
+				end_if;
+			end_for;
 		end_if;
-		return;
-	end_if;
-	// 探索開始位置を決定（末尾側から）
-	start_pos := min(position, l - m);
-	if start_pos < 0 then
 		String_lastIndexOf := -1;
-		return;
+	else
+		String_lastIndexOf := min(position, l);
 	end_if;
-	// 右から左へ走査
-	for i := start_pos to 0 by -1 do
-		segment := mid(self, dint_to_uint(m), dint_to_uint(i + 1));
-		if segment = searchString then
-			String_lastIndexOf := i;
-			return;
-		end_if;
-	end_for;
-	String_lastIndexOf := -1;
 	{end}
 end
 
