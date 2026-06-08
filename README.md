@@ -666,7 +666,7 @@ $ git submodule update --remote
 
 ```
 $ cd jieclib
-$ jiecc ./test/string_lib/test_string_lib.txt -I./src -I./vendor/jiecunit -o ./test/string_lib/test_string_lib.xml -t omron
+$ jiecc ./test/string_lib/test_string_lib.txt -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/string_lib/test_string_lib.xml -t omron
 ```
 
 `./test/string_lib/test_string_lib.xml` が生成されます。
