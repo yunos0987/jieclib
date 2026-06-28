@@ -1,0 +1,35 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/hash/test_hash.iec -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/hash/test_hash.xml -t omron
+ *)
+{#if _JIECC and (_JIECC_VER < 514)}
+	{#error This test requires Jiecc 5.14 or later.}
+{#endif}
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 210)}
+	{#error This test requires JiecUnit 2.10 or later.}
+{#endif}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		'test_CRC32_string',
+		'test_CRC32_bytes',
+		'test_MD5_string',
+		'test_MD5_bytes',
+		'test_SHA1_string',
+		'test_SHA1_bytes',
+		'test_SHA256_string',
+		'test_SHA256_bytes',
+		'test_SHA512_string',
+		'test_SHA512_bytes'
+	)
+)
+{#undef _TEST_}
+{#endif}
+
+{#include "test_crc32.iec"}
+{#include "test_md5.iec"}
+{#include "test_sha1.iec"}
+{#include "test_sha256.iec"}
+{#include "test_sha512.iec"}

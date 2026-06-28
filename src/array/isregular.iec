@@ -1,0 +1,20 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/array/isregular.iec -I./src -o ./src/array/isregular.xml -t omron
+ *)
+{#ifndef __ARRAY_ISREGULAR_IEC__}
+{#define __ARRAY_ISREGULAR_IEC__}
+
+{#define ArrayIsRegularName lreal}
+{#define ArrayIsRegularElementType lreal}
+{#include "isregular_template.iec"}
+{#undef ArrayIsRegularName}
+{#undef ArrayIsRegularElementType}
+
+{#define ArrayIsRegularName dint}
+{#define ArrayIsRegularElementType dint}
+{#include "isregular_template.iec"}
+{#undef ArrayIsRegularName}
+{#undef ArrayIsRegularElementType}
+
+{#endif}

@@ -1,0 +1,20 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/vector/vector.iec -I./src -o ./src/vector/vector.xml -t omron
+ *)
+{#ifndef __VECTOR_VECTOR_IEC__}
+{#define __VECTOR_VECTOR_IEC__}
+
+{#if _JIECC and (_JIECC_VER < 514)}
+	{#error This library requires Jiecc 5.14 or later.}
+{#endif}
+
+{#include <sys.iec>}
+
+{#include "constructors.iec"}
+{#include "arithmetic.iec"}
+{#include "norms.iec"}
+{#include "dot.iec"}
+{#include "utils.iec"}
+
+{#endif}

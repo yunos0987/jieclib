@@ -1,0 +1,22 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/array/sort.iec -I./src -o ./src/array/sort.xml -t omron
+ * or
+ * $ jiecc ./src/array/sort.iec -I./src -o ./src/array/sort.xml -t keyence
+ *)
+{#ifndef __ARRAY_SORT_IEC__}
+{#define __ARRAY_SORT_IEC__}
+
+{#define ArraySortName lreal}
+{#define ArraySortElementType lreal}
+{#include "sort_template.iec"}
+{#undef ArraySortName}
+{#undef ArraySortElementType}
+
+{#define ArraySortName dint}
+{#define ArraySortElementType dint}
+{#include "sort_template.iec"}
+{#undef ArraySortName}
+{#undef ArraySortElementType}
+
+{#endif}

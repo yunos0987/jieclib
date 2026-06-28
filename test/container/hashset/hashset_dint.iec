@@ -1,0 +1,26 @@
+{#ifndef __TEST_CONTAINER_HASHSET_DINT_IEC__}
+{#define __TEST_CONTAINER_HASHSET_DINT_IEC__}
+
+{#include <sys_conv.iec>}
+
+function Dint_hash_for_hashset_test: udint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		self: dint;
+	end
+	{st}
+	Dint_hash_for_hashset_test := dword_to_udint(dint_to_dword(self));
+	{end}
+end
+
+{#define HashSetName dint}
+{#define HashSetElementType dint}
+{#define HashSetElementHashFunction Dint_hash_for_hashset_test}
+{#define HashSetCapacity 8}
+{#include <container/hashset/hashset_template.iec>}
+{#undef HashSetName}
+{#undef HashSetElementType}
+{#undef HashSetElementHashFunction}
+{#undef HashSetCapacity}
+
+{#endif}
