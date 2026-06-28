@@ -1,0 +1,20 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/array/copy.iec -I./src -o ./src/array/copy.xml -t omron
+ *)
+{#ifndef __ARRAY_COPY_IEC__}
+{#define __ARRAY_COPY_IEC__}
+
+{#define ArrayCopyName lreal}
+{#define ArrayCopyElementType lreal}
+{#include "copy_template.iec"}
+{#undef ArrayCopyName}
+{#undef ArrayCopyElementType}
+
+{#define ArrayCopyName dint}
+{#define ArrayCopyElementType dint}
+{#include "copy_template.iec"}
+{#undef ArrayCopyName}
+{#undef ArrayCopyElementType}
+
+{#endif}

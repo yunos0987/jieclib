@@ -1,0 +1,18 @@
+{#ifndef __TEST_CONTAINER_HASHSET_STRING_IEC__}
+{#define __TEST_CONTAINER_HASHSET_STRING_IEC__}
+
+{#include <string_lib/equivalence.iec>}
+
+{#define HashSetName string16}
+{#define HashSetCapacity 8}
+{#define HashSetElementType string[16 + 1]}
+{#define HashSetElementEqualsFunction String_equals}
+{#define HashSetElementHashFunction String_hash}
+{#include <container/hashset/hashset_template.iec>}
+{#undef HashSetName}
+{#undef HashSetCapacity}
+{#undef HashSetElementType}
+{#undef HashSetElementEqualsFunction}
+{#undef HashSetElementHashFunction}
+
+{#endif}

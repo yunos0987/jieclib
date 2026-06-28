@@ -1,0 +1,18 @@
+{#ifndef __TEST_CONTAINER_ORDEREDSET_STRING_IEC__}
+{#define __TEST_CONTAINER_ORDEREDSET_STRING_IEC__}
+
+{#include <string_lib/equivalence.iec>}
+
+{#define OrderedSetName string16}
+{#define OrderedSetCapacity 8}
+{#define OrderedSetElementType string[16 + 1]}
+{#define OrderedSetElementEqualsFunction String_equals}
+{#define OrderedSetElementHashFunction String_hash}
+{#include <container/orderedset/orderedset_template.iec>}
+{#undef OrderedSetName}
+{#undef OrderedSetCapacity}
+{#undef OrderedSetElementType}
+{#undef OrderedSetElementEqualsFunction}
+{#undef OrderedSetElementHashFunction}
+
+{#endif}

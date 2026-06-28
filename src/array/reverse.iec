@@ -1,0 +1,20 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/array/reverse.iec -I./src -o ./src/array/reverse.xml -t omron
+ *)
+{#ifndef __ARRAY_REVERSE_IEC__}
+{#define __ARRAY_REVERSE_IEC__}
+
+{#define ArrayReverseName lreal}
+{#define ArrayReverseElementType lreal}
+{#include "reverse_template.iec"}
+{#undef ArrayReverseName}
+{#undef ArrayReverseElementType}
+
+{#define ArrayReverseName dint}
+{#define ArrayReverseElementType dint}
+{#include "reverse_template.iec"}
+{#undef ArrayReverseName}
+{#undef ArrayReverseElementType}
+
+{#endif}
