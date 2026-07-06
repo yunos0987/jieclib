@@ -8,6 +8,7 @@
 {#define __STRING_LIB_EQUIVALENCE_CASEINSENSITIVE_IEC__}
 
 {#include <sys.iec>}
+{#include <string_lib/equivalence.iec>}
 
 {#define CHAR_MAX_BYTE 4}
 {#define STRING string[STRING_MAX_SIZE]}
