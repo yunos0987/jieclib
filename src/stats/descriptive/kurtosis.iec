@@ -47,11 +47,6 @@ function Stats_kurtosis: lreal
 		actual_n := n;
 	end_if;
 
-	if actual_n < 4 then
-		eno := false;
-		return;
-	end_if;
-
 	nf := dint_to_lreal(actual_n);
 
 	if bias then
@@ -65,6 +60,12 @@ function Stats_kurtosis: lreal
 			kurt := kurt + 3.0;
 		end_if;
 	else
+		// Unbiased estimator requires n >= 4 to avoid division by (n-2)(n-3)
+		if actual_n < 4 then
+			eno := false;
+			return;
+		end_if;
+
 		// Unbiased estimator: G2 = 1/(n-2)/(n-3) * ((n^2-1)*m4/m2^2 - 3*(n-1)^2)
 		mean_val := Stats_mean(data:=data, n:=actual_n);
 		sum2 := 0.0;
@@ -98,4 +99,3 @@ function Stats_kurtosis: lreal
 end
 
 {#endif}
-
