@@ -16,6 +16,8 @@
 
 {#if _OMRON}
 {#include "isregular.iec"}
+{#elif _JIECC}
+{#include "isregular.iec"}
 {#else}
 {#warning Array_isRegular_xxx functions are not supported on Keyence and Mitsubishi PLCs.}
 {#define Array_isRegular2d_x_lreal(self) 0}
