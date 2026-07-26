@@ -8,7 +8,7 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_stats_kurtosis'
+		test_stats_kurtosis
 	)
 )
 {#endif}

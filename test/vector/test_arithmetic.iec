@@ -8,15 +8,15 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_vector_add',
-		'test_vector_sub',
-		'test_vector_scale',
-		'test_vector_dot',
-		'test_vector_negate',
-		'test_vector_elementwise_mul',
-		'test_vector_elementwise_div',
-		'test_vector_linear_combination',
-		'test_vector_equal'
+		test_vector_add,
+		test_vector_sub,
+		test_vector_scale,
+		test_vector_dot,
+		test_vector_negate,
+		test_vector_elementwise_mul,
+		test_vector_elementwise_div,
+		test_vector_linear_combination,
+		test_vector_equal
 	)
 )
 {#endif}

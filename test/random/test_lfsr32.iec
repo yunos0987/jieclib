@@ -8,11 +8,11 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_LFSR32_init',
-		'test_LFSR32_nextBool',
-		'test_LFSR32_nextByte',
-		'test_LFSR32_nextUint32',
-		'test_LFSR32_nextIntInRange'
+		test_LFSR32_init,
+		test_LFSR32_nextBool,
+		test_LFSR32_nextByte,
+		test_LFSR32_nextUint32,
+		test_LFSR32_nextIntInRange
 	)
 )
 {#endif}

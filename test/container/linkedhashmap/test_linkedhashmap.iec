@@ -15,21 +15,21 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_linkedhashmap_dint_init',
-		'test_linkedhashmap_dint_upsert',
-		'test_linkedhashmap_dint_lookup',
-		'test_linkedhashmap_dint_contains',
-		'test_linkedhashmap_dint_len',
-		'test_linkedhashmap_dint_keys',
-		'test_linkedhashmap_dint_values',
-		'test_linkedhashmap_dint_items',
-		'test_linkedhashmap_dint_delete',
-		'test_linkedhashmap_dint_copy',
-		'test_linkedhashmap_dint_equals',
-		'test_linkedhashmap_dint_hash',
-		'test_linkedhashmap_dint_empty',
-		'test_linkedhashmap_dint_clear',
-		'test_linkedhashmap_string_caseinsensitive_usecase'
+		test_linkedhashmap_dint_init,
+		test_linkedhashmap_dint_upsert,
+		test_linkedhashmap_dint_lookup,
+		test_linkedhashmap_dint_contains,
+		test_linkedhashmap_dint_len,
+		test_linkedhashmap_dint_keys,
+		test_linkedhashmap_dint_values,
+		test_linkedhashmap_dint_items,
+		test_linkedhashmap_dint_delete,
+		test_linkedhashmap_dint_copy,
+		test_linkedhashmap_dint_equals,
+		test_linkedhashmap_dint_hash,
+		test_linkedhashmap_dint_empty,
+		test_linkedhashmap_dint_clear,
+		test_linkedhashmap_string_caseinsensitive_usecase
 	)
 )
 

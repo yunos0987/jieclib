@@ -11,7 +11,7 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_atan2'
+		test_atan2
 	)
 )
 

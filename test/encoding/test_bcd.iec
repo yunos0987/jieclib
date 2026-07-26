@@ -9,8 +9,8 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_bcd_encode',
-		'test_bcd_decode'
+		test_bcd_encode,
+		test_bcd_decode
 	)
 )
 {#endif}

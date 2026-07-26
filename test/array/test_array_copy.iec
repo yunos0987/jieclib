@@ -8,12 +8,12 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_array_copy',
-		'test_array_copy_offset',
-		'test_array_copy_x_index_0',
-		'test_array_copy_x_partial',
-		'test_array_copy_dint',
-		'test_array_copy_x_error'
+		test_array_copy,
+		test_array_copy_offset,
+		test_array_copy_x_index_0,
+		test_array_copy_x_partial,
+		test_array_copy_dint,
+		test_array_copy_x_error
 	)
 )
 {#endif}

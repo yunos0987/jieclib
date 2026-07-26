@@ -10,8 +10,8 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_MD5_string',
-		'test_MD5_bytes'
+		test_MD5_string,
+		test_MD5_bytes
 	)
 )
 {#endif}

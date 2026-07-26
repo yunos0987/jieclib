@@ -8,9 +8,9 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_stats_standardized_moment',
-		'test_stats_skewness_from_moments',
-		'test_stats_kurtosis_from_moments'
+		test_stats_standardized_moment,
+		test_stats_skewness_from_moments,
+		test_stats_kurtosis_from_moments
 	)
 )
 {#endif}

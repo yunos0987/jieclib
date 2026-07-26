@@ -14,17 +14,17 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_stack_dint_init',
-		'test_stack_dint_push',
-		'test_stack_dint_pop',
-		'test_stack_dint_peek',
-		'test_stack_dint_len',
-		'test_stack_dint_empty',
-		'test_stack_dint_clear',
-		'test_stack_dint_copy',
-		'test_stack_dint_equals',
-		'test_stack_dint_hash',
-		'test_stack_dint_overflow_usecase'
+		test_stack_dint_init,
+		test_stack_dint_push,
+		test_stack_dint_pop,
+		test_stack_dint_peek,
+		test_stack_dint_len,
+		test_stack_dint_empty,
+		test_stack_dint_clear,
+		test_stack_dint_copy,
+		test_stack_dint_equals,
+		test_stack_dint_hash,
+		test_stack_dint_overflow_usecase
 	)
 )
 

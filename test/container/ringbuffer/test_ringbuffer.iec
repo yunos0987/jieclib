@@ -14,9 +14,9 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_ringbuffer_init',
-		'test_ringbuffer_enqueue',
-		'test_ringbuffer_dequeue'
+		test_ringbuffer_init,
+		test_ringbuffer_enqueue,
+		test_ringbuffer_dequeue
 	)
 )
 

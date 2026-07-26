@@ -8,8 +8,8 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_stats_mean_absolute_deviation',
-		'test_stats_median_absolute_deviation'
+		test_stats_mean_absolute_deviation,
+		test_stats_median_absolute_deviation
 	)
 )
 {#endif}

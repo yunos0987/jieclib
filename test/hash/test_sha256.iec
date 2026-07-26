@@ -10,8 +10,8 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_SHA256_string',
-		'test_SHA256_bytes'
+		test_SHA256_string,
+		test_SHA256_bytes
 	)
 )
 {#endif}

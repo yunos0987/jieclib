@@ -8,11 +8,11 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_stats_sums_sum',
-		'test_stats_sums_sum_of_squares',
-		'test_stats_sums_sum_of_products',
-		'test_stats_sums_cumsum',
-		'test_stats_sums_fsum'
+		test_stats_sums_sum,
+		test_stats_sums_sum_of_squares,
+		test_stats_sums_sum_of_products,
+		test_stats_sums_cumsum,
+		test_stats_sums_fsum
 	)
 )
 {#endif}

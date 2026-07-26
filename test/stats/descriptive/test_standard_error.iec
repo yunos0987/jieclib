@@ -8,11 +8,11 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_stats_standard_error_mean',
-		'test_stats_standard_error_proportion',
-		'test_stats_standard_error_difference_of_means',
-		'test_stats_standard_error_difference',
-		'test_stats_standard_error_regression'
+		test_stats_standard_error_mean,
+		test_stats_standard_error_proportion,
+		test_stats_standard_error_difference_of_means,
+		test_stats_standard_error_difference,
+		test_stats_standard_error_regression
 	)
 )
 {#endif}

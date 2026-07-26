@@ -8,9 +8,9 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_array_rotate_lreal',
-		'test_array_rotate_dint',
-		'test_array_rotate_offset'
+		test_array_rotate_lreal,
+		test_array_rotate_dint,
+		test_array_rotate_offset
 	)
 )
 {#endif}

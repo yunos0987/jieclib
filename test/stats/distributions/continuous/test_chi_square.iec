@@ -8,11 +8,11 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_stats_chi_square_pdf',
-		'test_stats_chi_square_cdf',
-		'test_stats_chi_square_ppf',
-		'test_stats_chi_square_mean',
-		'test_stats_chi_square_variance'
+		test_stats_chi_square_pdf,
+		test_stats_chi_square_cdf,
+		test_stats_chi_square_ppf,
+		test_stats_chi_square_mean,
+		test_stats_chi_square_variance
 	)
 )
 {#endif}

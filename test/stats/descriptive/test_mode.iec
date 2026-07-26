@@ -8,7 +8,7 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_stats_mode'
+		test_stats_mode
 	)
 )
 {#endif}

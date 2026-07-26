@@ -8,9 +8,9 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_vector_utils_is_regular',
-		'test_vector_utils_is_zero',
-		'test_vector_utils_normalize'
+		test_vector_utils_is_regular,
+		test_vector_utils_is_zero,
+		test_vector_utils_normalize
 	)
 )
 {#endif}

@@ -8,15 +8,15 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_stats_erf',
-		'test_stats_erfc',
-		'test_stats_gamma',
-		'test_stats_lgamma',
-		'test_stats_beta',
-		'test_stats_beta_incomplete',
-		'test_stats_beta_continued_fraction',
-		'test_stats_gammainc',
-		'test_stats_gammaincc'
+		test_stats_erf,
+		test_stats_erfc,
+		test_stats_gamma,
+		test_stats_lgamma,
+		test_stats_beta,
+		test_stats_beta_incomplete,
+		test_stats_beta_continued_fraction,
+		test_stats_gammainc,
+		test_stats_gammaincc
 	)
 )
 {#endif}

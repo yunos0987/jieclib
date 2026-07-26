@@ -10,17 +10,17 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_xorshift32_nextUint32',
-		'test_xorshift32_nextBool',
-		'test_xorshift32_nextUint64',
-		'test_xorshift32_nextFloat',
-		'test_xorshift32_nextDouble',
-		'test_xorshift32_nextIntInRange',
-		'test_xorshift32_nextRealInRange',
-		'test_xorshift32_nextBernoulli',
-		'test_xorshift32_nextGaussian',
-		'test_xorshift32_nextExponential',
-		'test_xorshift32_nextPoisson'
+		test_xorshift32_nextUint32,
+		test_xorshift32_nextBool,
+		test_xorshift32_nextUint64,
+		test_xorshift32_nextFloat,
+		test_xorshift32_nextDouble,
+		test_xorshift32_nextIntInRange,
+		test_xorshift32_nextRealInRange,
+		test_xorshift32_nextBernoulli,
+		test_xorshift32_nextGaussian,
+		test_xorshift32_nextExponential,
+		test_xorshift32_nextPoisson
 	)
 )
 {#endif}

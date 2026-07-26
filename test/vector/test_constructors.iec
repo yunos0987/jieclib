@@ -8,9 +8,9 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_vector_zeros',
-		'test_vector_ones',
-		'test_vector_from_iterable'
+		test_vector_zeros,
+		test_vector_ones,
+		test_vector_from_iterable
 	)
 )
 {#endif}

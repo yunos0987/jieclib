@@ -8,13 +8,13 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_stats_ci_mean_known_variance',
-		'test_stats_ci_mean_unknown_variance',
-		'test_stats_ci_proportion',
-		'test_stats_ci_different_levels',
-		'test_stats_ci_mean_t',
-		'test_stats_ci_variance_chi_square',
-		'test_stats_ci_variance'
+		test_stats_ci_mean_known_variance,
+		test_stats_ci_mean_unknown_variance,
+		test_stats_ci_proportion,
+		test_stats_ci_different_levels,
+		test_stats_ci_mean_t,
+		test_stats_ci_variance_chi_square,
+		test_stats_ci_variance
 	)
 )
 {#endif}

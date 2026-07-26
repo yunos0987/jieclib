@@ -16,21 +16,21 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_orderedset_dint_init',
-		'test_orderedset_dint_add',
-		'test_orderedset_dint_add_all',
-		'test_orderedset_dint_remove',
-		'test_orderedset_dint_remove_all',
-		'test_orderedset_dint_contains',
-		'test_orderedset_dint_len',
-		'test_orderedset_dint_elements',
-		'test_orderedset_dint_copy',
-		'test_orderedset_dint_equals',
-		'test_orderedset_dint_hash',
-		'test_orderedset_dint_empty',
-		'test_orderedset_dint_clear',
-		'test_orderedset_dint_collision_usecase',
-		'test_orderedset_string_usecase'
+		test_orderedset_dint_init,
+		test_orderedset_dint_add,
+		test_orderedset_dint_add_all,
+		test_orderedset_dint_remove,
+		test_orderedset_dint_remove_all,
+		test_orderedset_dint_contains,
+		test_orderedset_dint_len,
+		test_orderedset_dint_elements,
+		test_orderedset_dint_copy,
+		test_orderedset_dint_equals,
+		test_orderedset_dint_hash,
+		test_orderedset_dint_empty,
+		test_orderedset_dint_clear,
+		test_orderedset_dint_collision_usecase,
+		test_orderedset_string_usecase
 	)
 )
 

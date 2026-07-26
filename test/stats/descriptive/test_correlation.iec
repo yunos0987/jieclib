@@ -8,8 +8,8 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_stats_pearson',
-		'test_stats_spearman'
+		test_stats_pearson,
+		test_stats_spearman
 	)
 )
 {#endif}

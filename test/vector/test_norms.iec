@@ -8,15 +8,15 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_vector_norm_l1',
-		'test_vector_norm_l2',
-		'test_vector_norm_linf',
-		'test_vector_norm_lp',
-		'test_vector_normalize_l2',
-		'test_vector_distance_l1',
-		'test_vector_distance_l2',
-		'test_vector_distance_linf',
-		'test_vector_is_unit'
+		test_vector_norm_l1,
+		test_vector_norm_l2,
+		test_vector_norm_linf,
+		test_vector_norm_lp,
+		test_vector_normalize_l2,
+		test_vector_distance_l1,
+		test_vector_distance_l2,
+		test_vector_distance_linf,
+		test_vector_is_unit
 	)
 )
 {#endif}

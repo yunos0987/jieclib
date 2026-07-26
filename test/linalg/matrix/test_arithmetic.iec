@@ -8,12 +8,12 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_matrix_add',
-		'test_matrix_sub',
-		'test_matrix_scale',
-		'test_matrix_multiply',
-		'test_matrix_transpose',
-		'test_matrix_vector_multiply'
+		test_matrix_add,
+		test_matrix_sub,
+		test_matrix_scale,
+		test_matrix_multiply,
+		test_matrix_transpose,
+		test_matrix_vector_multiply
 	)
 )
 {#endif}

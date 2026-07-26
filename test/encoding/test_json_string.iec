@@ -9,8 +9,8 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_json_escape',
-		'test_json_unescape'
+		test_json_escape,
+		test_json_unescape
 	)
 )
 {#endif}

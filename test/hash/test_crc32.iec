@@ -10,8 +10,8 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_CRC32_string',
-		'test_CRC32_bytes'
+		test_CRC32_string,
+		test_CRC32_bytes
 	)
 )
 {#endif}

@@ -15,25 +15,25 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_linkedlist_dint_init',
-		'test_linkedlist_dint_append',
-		'test_linkedlist_dint_appendleft',
-		'test_linkedlist_dint_pop',
-		'test_linkedlist_dint_popleft',
-		'test_linkedlist_dint_insert',
-		'test_linkedlist_dint_get',
-		'test_linkedlist_dint_set',
-		'test_linkedlist_dint_remove',
-		'test_linkedlist_dint_contains',
-		'test_linkedlist_dint_index',
-		'test_linkedlist_dint_values',
-		'test_linkedlist_dint_len',
-		'test_linkedlist_dint_empty',
-		'test_linkedlist_dint_clear',
-		'test_linkedlist_dint_copy',
-		'test_linkedlist_dint_equals',
-		'test_linkedlist_dint_hash',
-		'test_linkedlist_string_caseinsensitive_usecase'
+		test_linkedlist_dint_init,
+		test_linkedlist_dint_append,
+		test_linkedlist_dint_appendleft,
+		test_linkedlist_dint_pop,
+		test_linkedlist_dint_popleft,
+		test_linkedlist_dint_insert,
+		test_linkedlist_dint_get,
+		test_linkedlist_dint_set,
+		test_linkedlist_dint_remove,
+		test_linkedlist_dint_contains,
+		test_linkedlist_dint_index,
+		test_linkedlist_dint_values,
+		test_linkedlist_dint_len,
+		test_linkedlist_dint_empty,
+		test_linkedlist_dint_clear,
+		test_linkedlist_dint_copy,
+		test_linkedlist_dint_equals,
+		test_linkedlist_dint_hash,
+		test_linkedlist_string_caseinsensitive_usecase
 	)
 )
 

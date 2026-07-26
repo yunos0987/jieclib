@@ -8,8 +8,8 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_stats_chi_square_gof',
-		'test_stats_chi_square_independence'
+		test_stats_chi_square_gof,
+		test_stats_chi_square_independence
 	)
 )
 {#endif}

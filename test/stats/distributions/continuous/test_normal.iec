@@ -8,11 +8,11 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_stats_normal_pdf',
-		'test_stats_normal_cdf',
-		'test_stats_normal_ppf',
-		'test_stats_normal_mean',
-		'test_stats_normal_variance'
+		test_stats_normal_pdf,
+		test_stats_normal_cdf,
+		test_stats_normal_ppf,
+		test_stats_normal_mean,
+		test_stats_normal_variance
 	)
 )
 {#endif}

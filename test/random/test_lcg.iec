@@ -10,13 +10,13 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_LCG_nextUint32',
-		'test_LCG_nextBool',
-		'test_LCG_nextFloat',
-		'test_LCG_nextDouble',
-		'test_LCG_nextIntInRange',
-		'test_LCG_nextRealInRange',
-		'test_LCG_nextBernoulli'
+		test_LCG_nextUint32,
+		test_LCG_nextBool,
+		test_LCG_nextFloat,
+		test_LCG_nextDouble,
+		test_LCG_nextIntInRange,
+		test_LCG_nextRealInRange,
+		test_LCG_nextBernoulli
 	)
 )
 {#endif}

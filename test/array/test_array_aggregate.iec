@@ -8,10 +8,10 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_array_min',
-		'test_array_max',
-		'test_array_min_index',
-		'test_array_max_index'
+		test_array_min,
+		test_array_max,
+		test_array_min_index,
+		test_array_max_index
 	)
 )
 {#endif}

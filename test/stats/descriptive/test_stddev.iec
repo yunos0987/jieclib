@@ -8,9 +8,9 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_stats_stddev',
-		'test_stats_population_stddev',
-		'test_stats_sample_stddev'
+		test_stats_stddev,
+		test_stats_population_stddev,
+		test_stats_sample_stddev
 	)
 )
 {#endif}

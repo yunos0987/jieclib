@@ -8,12 +8,12 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_stats_mean',
-		'test_stats_weighted_mean',
-		'test_stats_mean_axis',
-		'test_stats_mean_kahan',
-		'test_stats_trimmed_mean',
-		'test_stats_winsorized_mean'
+		test_stats_mean,
+		test_stats_weighted_mean,
+		test_stats_mean_axis,
+		test_stats_mean_kahan,
+		test_stats_trimmed_mean,
+		test_stats_winsorized_mean
 	)
 )
 {#endif}

@@ -8,9 +8,9 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_stats_arithmetic_mean',
-		'test_stats_weighted_arithmetic_mean',
-		'test_stats_moving_average'
+		test_stats_arithmetic_mean,
+		test_stats_weighted_arithmetic_mean,
+		test_stats_moving_average
 	)
 )
 {#endif}

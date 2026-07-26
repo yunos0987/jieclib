@@ -16,22 +16,22 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_linkedhashset_dint_init',
-		'test_linkedhashset_dint_add',
-		'test_linkedhashset_dint_add_all',
-		'test_linkedhashset_dint_remove',
-		'test_linkedhashset_dint_remove_all',
-		'test_linkedhashset_dint_contains',
-		'test_linkedhashset_dint_len',
-		'test_linkedhashset_dint_elements',
-		'test_linkedhashset_dint_copy',
-		'test_linkedhashset_dint_equals',
-		'test_linkedhashset_dint_hash',
-		'test_linkedhashset_dint_empty',
-		'test_linkedhashset_dint_clear',
-		'test_linkedhashset_dint_collision_usecase',
-		'test_linkedhashset_dint_access_order_usecase',
-		'test_linkedhashset_string_usecase'
+		test_linkedhashset_dint_init,
+		test_linkedhashset_dint_add,
+		test_linkedhashset_dint_add_all,
+		test_linkedhashset_dint_remove,
+		test_linkedhashset_dint_remove_all,
+		test_linkedhashset_dint_contains,
+		test_linkedhashset_dint_len,
+		test_linkedhashset_dint_elements,
+		test_linkedhashset_dint_copy,
+		test_linkedhashset_dint_equals,
+		test_linkedhashset_dint_hash,
+		test_linkedhashset_dint_empty,
+		test_linkedhashset_dint_clear,
+		test_linkedhashset_dint_collision_usecase,
+		test_linkedhashset_dint_access_order_usecase,
+		test_linkedhashset_string_usecase
 	)
 )
 

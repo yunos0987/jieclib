@@ -8,10 +8,10 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_stats_poisson_pmf',
-		'test_stats_poisson_cdf',
-		'test_stats_poisson_mean',
-		'test_stats_poisson_variance'
+		test_stats_poisson_pmf,
+		test_stats_poisson_cdf,
+		test_stats_poisson_mean,
+		test_stats_poisson_variance
 	)
 )
 {#endif}

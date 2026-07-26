@@ -15,22 +15,22 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_arraylist_dint_init',
-		'test_arraylist_dint_append',
-		'test_arraylist_dint_insert',
-		'test_arraylist_dint_get',
-		'test_arraylist_dint_set',
-		'test_arraylist_dint_remove',
-		'test_arraylist_dint_contains',
-		'test_arraylist_dint_index',
-		'test_arraylist_dint_values',
-		'test_arraylist_dint_len',
-		'test_arraylist_dint_empty',
-		'test_arraylist_dint_clear',
-		'test_arraylist_dint_copy',
-		'test_arraylist_dint_equals',
-		'test_arraylist_dint_hash',
-		'test_arraylist_string_caseinsensitive_usecase'
+		test_arraylist_dint_init,
+		test_arraylist_dint_append,
+		test_arraylist_dint_insert,
+		test_arraylist_dint_get,
+		test_arraylist_dint_set,
+		test_arraylist_dint_remove,
+		test_arraylist_dint_contains,
+		test_arraylist_dint_index,
+		test_arraylist_dint_values,
+		test_arraylist_dint_len,
+		test_arraylist_dint_empty,
+		test_arraylist_dint_clear,
+		test_arraylist_dint_copy,
+		test_arraylist_dint_equals,
+		test_arraylist_dint_hash,
+		test_arraylist_string_caseinsensitive_usecase
 	)
 )
 

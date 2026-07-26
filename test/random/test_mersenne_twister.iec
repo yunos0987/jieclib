@@ -10,17 +10,17 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_MersenneTwister_nextUint32',
-		'test_MersenneTwister_nextBool',
-		'test_MersenneTwister_nextUint64',
-		'test_MersenneTwister_nextFloat',
-		'test_MersenneTwister_nextDouble',
-		'test_MersenneTwister_nextIntInRange',
-		'test_MersenneTwister_nextRealInRange',
-		'test_MersenneTwister_nextBernoulli',
-		'test_MersenneTwister_nextGaussian',
-		'test_MersenneTwister_nextExponential',
-		'test_MersenneTwister_nextPoisson'
+		test_MersenneTwister_nextUint32,
+		test_MersenneTwister_nextBool,
+		test_MersenneTwister_nextUint64,
+		test_MersenneTwister_nextFloat,
+		test_MersenneTwister_nextDouble,
+		test_MersenneTwister_nextIntInRange,
+		test_MersenneTwister_nextRealInRange,
+		test_MersenneTwister_nextBernoulli,
+		test_MersenneTwister_nextGaussian,
+		test_MersenneTwister_nextExponential,
+		test_MersenneTwister_nextPoisson
 	)
 )
 {#endif}

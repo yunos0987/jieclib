@@ -11,12 +11,12 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_udint_to_string',
-		'test_dint_to_string',
-		'test_lreal_to_string',
-		'test_bool_to_string',
-		'test_time_to_string_sec',
-		'test_jiec_concat'
+		test_udint_to_string,
+		test_dint_to_string,
+		test_lreal_to_string,
+		test_bool_to_string,
+		test_time_to_string_sec,
+		test_jiec_concat
 	)
 )
 {#undef _TEST_}

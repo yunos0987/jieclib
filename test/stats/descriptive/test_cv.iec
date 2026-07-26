@@ -8,8 +8,8 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_stats_coefficient_of_variation',
-		'test_stats_relative_stddev'
+		test_stats_coefficient_of_variation,
+		test_stats_relative_stddev
 	)
 )
 {#endif}

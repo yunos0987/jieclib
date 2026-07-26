@@ -8,15 +8,15 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_bitset_set',
-		'test_bitset_clear',
-		'test_bitset_toggle',
-		'test_bitset_test',
-		'test_bitset_popcount',
-		'test_bitset_ffs',
-		'test_bitset_ffc',
-		'test_bitset_extract',
-		'test_bitset_insert'
+		test_bitset_set,
+		test_bitset_clear,
+		test_bitset_toggle,
+		test_bitset_test,
+		test_bitset_popcount,
+		test_bitset_ffs,
+		test_bitset_ffc,
+		test_bitset_extract,
+		test_bitset_insert
 	)
 )
 {#endif}

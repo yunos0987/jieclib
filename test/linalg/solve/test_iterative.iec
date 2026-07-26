@@ -8,7 +8,7 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_matrix_solve_iterative'
+		test_matrix_solve_iterative
 	)
 )
 {#endif}

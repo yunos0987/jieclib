@@ -9,8 +9,8 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_huffman_encode',
-		'test_huffman_decode'
+		test_huffman_encode,
+		test_huffman_decode
 	)
 )
 {#endif}

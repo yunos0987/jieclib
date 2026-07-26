@@ -8,14 +8,14 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_stats_sum',
-		'test_stats_sum_kahan',
-		'test_stats_sum_and_count',
-		'test_stats_sum_acc',
-		'test_stats_kahan_sum_acc',
-		'test_stats_mean_acc',
-		'test_stats_welford_update',
-		'test_stats_welford_finalize'
+		test_stats_sum,
+		test_stats_sum_kahan,
+		test_stats_sum_and_count,
+		test_stats_sum_acc,
+		test_stats_kahan_sum_acc,
+		test_stats_mean_acc,
+		test_stats_welford_update,
+		test_stats_welford_finalize
 	)
 )
 {#endif}

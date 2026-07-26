@@ -8,11 +8,11 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_stats_binomial_pmf',
-		'test_stats_binomial_cdf',
-		'test_stats_binomial_mean',
-		'test_stats_binomial_variance',
-		'test_stats_binomial_coefficient'
+		test_stats_binomial_pmf,
+		test_stats_binomial_cdf,
+		test_stats_binomial_mean,
+		test_stats_binomial_variance,
+		test_stats_binomial_coefficient
 	)
 )
 {#endif}

@@ -8,8 +8,8 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_matrix_translation_2d',
-		'test_matrix_translation_3d'
+		test_matrix_translation_2d,
+		test_matrix_translation_3d
 	)
 )
 {#endif}

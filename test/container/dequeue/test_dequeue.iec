@@ -15,22 +15,22 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_dequeue_init',
-		'test_dequeue_copy',
-		'test_dequeue_empty',
-		'test_dequeue_len',
-		'test_dequeue_clear',
-		'test_dequeue_append',
-		'test_dequeue_appendleft',
-		'test_dequeue_pop',
-		'test_dequeue_popleft',
-		'test_dequeue_first',
-		'test_dequeue_last',
-		'test_dequeue_contains',
-		'test_dequeue_elements',
-		'test_dequeue_equals',
-		'test_dequeue_hash',
-		'test_dequeue_string_caseinsensitive_usecase'
+		test_dequeue_init,
+		test_dequeue_copy,
+		test_dequeue_empty,
+		test_dequeue_len,
+		test_dequeue_clear,
+		test_dequeue_append,
+		test_dequeue_appendleft,
+		test_dequeue_pop,
+		test_dequeue_popleft,
+		test_dequeue_first,
+		test_dequeue_last,
+		test_dequeue_contains,
+		test_dequeue_elements,
+		test_dequeue_equals,
+		test_dequeue_hash,
+		test_dequeue_string_caseinsensitive_usecase
 	)
 )
 

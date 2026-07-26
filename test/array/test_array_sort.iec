@@ -8,15 +8,15 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_array_bubblesort',
-		'test_array_bubblesort_offset',
-		'test_array_bubblesort_n',
-		'test_array_mergesort',
-		'test_array_mergesort_offset',
-		'test_array_mergesort_n',
-		'test_array_quicksort',
-		'test_array_quicksort_offset',
-		'test_array_quicksort_n'
+		test_array_bubblesort,
+		test_array_bubblesort_offset,
+		test_array_bubblesort_n,
+		test_array_mergesort,
+		test_array_mergesort_offset,
+		test_array_mergesort_n,
+		test_array_quicksort,
+		test_array_quicksort_offset,
+		test_array_quicksort_n
 	)
 )
 

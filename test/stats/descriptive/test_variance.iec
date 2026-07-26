@@ -8,12 +8,12 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_stats_variance',
-		'test_stats_sample_variance',
-		'test_stats_variance_ddof',
-		'test_stats_weighted_variance',
-		'test_stats_variance_two_pass',
-		'test_stats_variance_welford'
+		test_stats_variance,
+		test_stats_sample_variance,
+		test_stats_variance_ddof,
+		test_stats_weighted_variance,
+		test_stats_variance_two_pass,
+		test_stats_variance_welford
 	)
 )
 {#endif}

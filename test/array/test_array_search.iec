@@ -8,10 +8,10 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_array_index_of',
-		'test_array_last_index_of',
-		'test_array_contains',
-		'test_array_search_empty'
+		test_array_index_of,
+		test_array_last_index_of,
+		test_array_contains,
+		test_array_search_empty
 	)
 )
 {#endif}

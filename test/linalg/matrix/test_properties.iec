@@ -8,13 +8,13 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		'test_matrix_determinant',
-		'test_matrix_trace',
-		'test_matrix_norm_frobenius',
-		'test_matrix_norm_spectral',
-		'test_matrix_rank',
-		'test_matrix_norm_l1',
-		'test_matrix_norm_linf'
+		test_matrix_determinant,
+		test_matrix_trace,
+		test_matrix_norm_frobenius,
+		test_matrix_norm_spectral,
+		test_matrix_rank,
+		test_matrix_norm_l1,
+		test_matrix_norm_linf
 	)
 )
 {#endif}
