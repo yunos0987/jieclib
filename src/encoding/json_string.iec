@@ -7,7 +7,8 @@
 
 {#include <sys.iec>}
 {#include <string_lib/string_lib.iec>}
-{#include <encoding/hex.iec>}
+
+{#include "hex.iec"}
 
 {#define STRING string[STRING_MAX_SIZE]}
 

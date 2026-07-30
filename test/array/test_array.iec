@@ -3,7 +3,9 @@
  * $ jiecc ./test/array/test_array.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/array/test_array.xml -t omron
  *)
 {#include <jiecunit.iec>}
-{#include <array/array.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
 
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
@@ -193,11 +195,11 @@ TEST_S(test_array_isRegular)
 	{end}
 END_TEST_S
 
+{#include "test_array_aggregate.iec"}
+{#include "test_array_copy.iec"}
+{#include "test_array_equivalence.iec"}
 {#include "test_array_fill.iec"}
 {#include "test_array_reverse.iec"}
 {#include "test_array_rotate.iec"}
-{#include "test_array_equivalence.iec"}
-{#include "test_array_aggregate.iec"}
 {#include "test_array_search.iec"}
-{#include "test_array_copy.iec"}
 {#include "test_array_sort.iec"}

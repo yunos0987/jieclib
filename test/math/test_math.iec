@@ -1,6 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
- * $ jiecc ./test/compress/test_compress.iec -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/compress/test_compress.xml -t omron
+ * $ jiecc ./test/math/test_math.iec -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/math/test_math.xml -t omron
  *)
 {#if _JIECC and (_JIECC_VER < 514)}
 	{#error This test requires Jiecc 5.14 or later.}
@@ -13,14 +13,12 @@
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
-		test_rle_encode,
-		test_rle_decode,
-		test_huffman_encode,
-		test_huffman_decode
+		test_atan2,
+		test_floor
 	)
 )
 {#undef _TEST_}
 {#endif}
 
-{#include "test_rle.iec"}
-{#include "test_huffman.iec"}
+{#include "test_atan2.iec"}
+{#include "test_floor.iec"}

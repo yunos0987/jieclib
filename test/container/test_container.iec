@@ -7,10 +7,9 @@
 {#if _JIECC and (_JIECC_VER < 514)}
 	{#error This test requires Jiecc 5.14 or later.}
 {#endif}
-
 {#include <jiecunit.iec>}
-{#if _JIECUNIT_VER < 302}
-	{#error "JiecUnit version 3.2 or higher is required to compile this test."}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
 {#endif}
 
 {#ifdef _TEST_}
@@ -192,9 +191,9 @@ DEFINE_CONFIGURATION(
 {#include "hashmap/test_hashmap.iec"}
 {#include "hashset/test_hashset.iec"}
 {#include "linkedhashmap/test_linkedhashmap.iec"}
+{#include "linkedhashset/test_linkedhashset.iec"}
 {#include "linkedlist/test_linkedlist.iec"}
 {#include "orderedmap/test_orderedmap.iec"}
 {#include "orderedset/test_orderedset.iec"}
-{#include "linkedhashset/test_linkedhashset.iec"}
-{#include "stack/test_stack.iec"}
 {#include "ringbuffer/test_ringbuffer.iec"}
+{#include "stack/test_stack.iec"}

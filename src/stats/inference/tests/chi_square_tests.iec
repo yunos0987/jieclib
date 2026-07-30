@@ -7,7 +7,8 @@
 
 {#include <sys.iec>}
 {#include <array/array.iec>}
-{#include <stats/inference/tests/test_core.iec>}
+
+{#include "test_core.iec"}
 
 (*{doc カイ二乗適合度検定 H0: 観測度数が期待数に従う
 chi_sq = sum((observed_i - expected_i)^2 / expected_i)

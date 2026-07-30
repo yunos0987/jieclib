@@ -6,13 +6,25 @@
 	{#error This test requires Jiecc 5.14 or later.}
 {#endif}
 {#include <jiecunit.iec>}
-{#if _JIECUNIT and (_JIECUNIT_VER < 210)}
-	{#error This test requires JiecUnit 2.10 or later.}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
 {#endif}
 
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
+		test_LCG_nextUint32,
+		test_LCG_nextBool,
+		test_LCG_nextFloat,
+		test_LCG_nextDouble,
+		test_LCG_nextIntInRange,
+		test_LCG_nextRealInRange,
+		test_LCG_nextBernoulli,
+		test_LFSR32_init,
+		test_LFSR32_nextBool,
+		test_LFSR32_nextByte,
+		test_LFSR32_nextUint32,
+		test_LFSR32_nextIntInRange,
 		test_MersenneTwister_nextUint32,
 		test_MersenneTwister_nextBool,
 		test_MersenneTwister_nextUint64,
@@ -34,25 +46,13 @@ DEFINE_CONFIGURATION(
 		test_xorshift32_nextBernoulli,
 		test_xorshift32_nextGaussian,
 		test_xorshift32_nextExponential,
-		test_xorshift32_nextPoisson,
-		test_LFSR32_init,
-		test_LFSR32_nextBool,
-		test_LFSR32_nextByte,
-		test_LFSR32_nextUint32,
-		test_LFSR32_nextIntInRange,
-		test_LCG_nextUint32,
-		test_LCG_nextBool,
-		test_LCG_nextFloat,
-		test_LCG_nextDouble,
-		test_LCG_nextIntInRange,
-		test_LCG_nextRealInRange,
-		test_LCG_nextBernoulli
+		test_xorshift32_nextPoisson
 	)
 )
 {#undef _TEST_}
 {#endif}
 
+{#include "test_lcg.iec"}
+{#include "test_lfsr32.iec"}
 {#include "test_mersenne_twister.iec"}
 {#include "test_xorshift32.iec"}
-{#include "test_lfsr32.iec"}
-{#include "test_lcg.iec"}

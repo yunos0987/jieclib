@@ -8,9 +8,10 @@
 {#include <sys.iec>}
 {#include <array/array.iec>}
 {#include <array/copy.iec>}
-{#include <stats/descriptive/mean.iec>}
-{#include <stats/descriptive/median.iec>}
 {#include <stats/sequences/sort_select.iec>}
+
+{#include "mean.iec"}
+{#include "median.iec"}
 
 (*{doc 平均絶対偏差: (1/n) * sum(|x - mean(x)|)
 @inout data サンプルデータを含む配列。

@@ -5,6 +5,10 @@
  * $ jiecc ./test/string_lib/test_string_lib.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/string_lib/test_string_lib.xml -t keyence
  *)
 {#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
 {#include <string_lib/string_lib.iec>}
 
 {#ifdef _TEST_}

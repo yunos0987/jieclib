@@ -7,7 +7,8 @@
 
 {#include <sys.iec>}
 {#include <stats/sequences/rank.iec>}
-{#include <stats/inference/tests/test_core.iec>}
+
+{#include "test_core.iec"}
 
 (*{doc Mann-Whitney U 検定（Wilcoxon rank-sum test）。H0: 2 群の分布が同じ。
 正規近似を使用。連続補正なし。タイ補正なし。

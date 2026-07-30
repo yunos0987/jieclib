@@ -5,8 +5,8 @@
  * $ jiecc ./test/container/orderedset/test_orderedset.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/container/orderedset/test_orderedset.xml -t keyence
  *)
 {#include <jiecunit.iec>}
-{#if _JIECUNIT_VER < 302}
-	{#error "JiecUnit version 3.2 or higher is required to compile this test."}
+{#if _JIECUNIT_VER < 402}
+	{#error "This test requires JiecUnit 4.2 or later."}
 {#endif}
 
 {#include "orderedset_dint.iec"}

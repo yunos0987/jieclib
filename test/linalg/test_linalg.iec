@@ -6,10 +6,9 @@
 	{#error This test requires Jiecc 5.14 or later.}
 {#endif}
 {#include <jiecunit.iec>}
-{#if _JIECUNIT and (_JIECUNIT_VER < 210)}
-	{#error This test requires JiecUnit 2.10 or later.}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
 {#endif}
-{#include <linalg/linalg.iec>}
 
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
@@ -48,20 +47,18 @@ DEFINE_CONFIGURATION(
 {#undef _TEST_}
 {#endif}
 
-{#include "matrix/test_arithmetic.iec"}
-{#include "matrix/test_inverse.iec"}
-{#include "matrix/test_properties.iec"}
 {#include "decomposition/test_cholesky.iec"}
 {#include "decomposition/test_lu.iec"}
 {#include "decomposition/test_qr.iec"}
 {#include "decomposition/test_svd.iec"}
 {#include "eigenvalue/test_eigenvalue.iec"}
 {#include "eigenvalue/test_eigenvector.iec"}
+{#include "matrix/test_arithmetic.iec"}
+{#include "matrix/test_inverse.iec"}
+{#include "matrix/test_properties.iec"}
 {#include "solve/test_gaussian.iec"}
 {#include "solve/test_iterative.iec"}
 {#include "solve/test_least_squares.iec"}
 {#include "transform/test_rotation.iec"}
 {#include "transform/test_scaling.iec"}
 {#include "transform/test_translation.iec"}
-
-{#undef _TEST_}

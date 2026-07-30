@@ -3,8 +3,11 @@
  * $ jiecc ./test/encoding/test_json_string.iec -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/encoding/test_json_string.xml -t omron
  *)
 {#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
 
-{#include <src/encoding/json_string.iec>}
+{#include <encoding/json_string.iec>}
 
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
