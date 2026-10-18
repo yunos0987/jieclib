@@ -82,50 +82,6 @@ function private_MD5_hexword_le: string[8 + 1]
 	{end}
 end
 
-(*{doc 文字列のMD5ダイジェスト（32文字16進小文字）を得る。
-@input txt 入力文字列（ASCII想定）。
-@in_out work 入力文字列を展開する作業用バイト配列。
-	必要要素数はlen(txt) + 72以上。
-@return MD5ハッシュ文字列。
-@error ASCIIコード取得に失敗した場合、またはwork容量不足の場合。}*)
-function MD5_string: string[32 + 1]
-	_PROLOGUE_OF_FUNCTION_()
-	var_input
-		txt: STRING;
-	end
-	var_in_out
-		work: array[*] of byte;
-	end
-	var_temp
-		w0, w1: dint;
-		input_len: dint;
-		i: dint;
-		code: dint;
-	end
-	{st}
-	w0 := lower_bound(work, 1);
-	w1 := upper_bound(work, 1);
-	input_len := uint_to_dint(len(txt));
-	if (input_len + 72) > (w1 - w0 + 1) then
-		eno := false;
-		return;
-	end_if;
-
-	for i := 0 to input_len - 1 by 1 do
-		code := String_asciiCharCodeAt(txt, i);
-		if (code < 0) or (code > 127) then
-			eno := false;
-			return;
-		end_if;
-		work[w0 + i] := dint_to_byte(code);
-	end_for;
-	MD5_string := MD5_bytes(dat:=work, offset:=0, length:=input_len, work:=work, eno=>eno);
-	if not eno then
-		return;
-	end_if;
-	{end}
-end
-
 (*{doc バイト配列のMD5ダイジェスト（32文字16進小文字）を得る。
 @in_out dat 入力バイト配列。
 @input offset datの開始オフセット。
@@ -297,6 +253,50 @@ function MD5_bytes: string[32 + 1]
 	end_for;
 
 	MD5_bytes := jiec_concat(private_MD5_hexword_le(dword_to_udint(h0)), private_MD5_hexword_le(dword_to_udint(h1)), private_MD5_hexword_le(dword_to_udint(h2)), private_MD5_hexword_le(dword_to_udint(h3)));
+	{end}
+end
+
+(*{doc 文字列のMD5ダイジェスト（32文字16進小文字）を得る。
+@input txt 入力文字列（ASCII想定）。
+@in_out work 入力文字列を展開する作業用バイト配列。
+	必要要素数はlen(txt) + 72以上。
+@return MD5ハッシュ文字列。
+@error ASCIIコード取得に失敗した場合、またはwork容量不足の場合。}*)
+function MD5_string: string[32 + 1]
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		txt: STRING;
+	end
+	var_in_out
+		work: array[*] of byte;
+	end
+	var_temp
+		w0, w1: dint;
+		input_len: dint;
+		i: dint;
+		code: dint;
+	end
+	{st}
+	w0 := lower_bound(work, 1);
+	w1 := upper_bound(work, 1);
+	input_len := uint_to_dint(len(txt));
+	if (input_len + 72) > (w1 - w0 + 1) then
+		eno := false;
+		return;
+	end_if;
+
+	for i := 0 to input_len - 1 by 1 do
+		code := String_asciiCharCodeAt(txt, i);
+		if (code < 0) or (code > 127) then
+			eno := false;
+			return;
+		end_if;
+		work[w0 + i] := dint_to_byte(code);
+	end_for;
+	MD5_string := MD5_bytes(dat:=work, offset:=0, length:=input_len, work:=work, eno=>eno);
+	if not eno then
+		return;
+	end_if;
 	{end}
 end
 

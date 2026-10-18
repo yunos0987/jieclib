@@ -3,6 +3,7 @@
  * $ jiecc ./test/array/test_array.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/array/test_array.xml -t omron
  *)
 {#include <jiecunit.iec>}
+{#include <array/array.iec>}
 {#if _JIECUNIT and (_JIECUNIT_VER < 402)}
 	{#error This test requires JiecUnit 4.2 or later.}
 {#endif}

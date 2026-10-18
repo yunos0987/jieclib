@@ -9,50 +9,6 @@
 {#include <array/array.iec>}
 {#include <stats/sequences/accumulate.iec>}
 
-(*{doc 母分散 (ddof=0) を計算
-@inout data サンプルデータを含む配列。
-  正規配列（次元の始点が0で要素数1以上）でなければいけない。
-@input n 先頭n個を使用する。
-  デフォルト値: -1
-@return 計算結果。
-@error 入力値が不正な場合。}*)
-function Stats_variance: lreal
-	_PROLOGUE_OF_FUNCTION_()
-	var_in_out
-		(*{doc サンプルデータを含む配列。}*)
-		data: array[*] of lreal;
-	end
-	var_input
-		(*{doc 先頭n個を使用する。}*)
-		n: dint := -1;
-	end
-	{st}
-	Stats_variance := Stats_variance_ddof(data:=data, n:=n, ddof:=0, eno=>eno);
-	{end}
-end
-
-(*{doc 標本分散 (ddof=1) を計算
-@inout data サンプルデータを含む配列。
-  正規配列（次元の始点が0で要素数1以上）でなければいけない。
-@input n 先頭n個を使用する。
-  デフォルト値: -1
-@return 計算結果。
-@error 入力値が不正な場合。}*)
-function Stats_sample_variance: lreal
-	_PROLOGUE_OF_FUNCTION_()
-	var_in_out
-		(*{doc サンプルデータを含む配列。}*)
-		data: array[*] of lreal;
-	end
-	var_input
-		(*{doc 先頭n個を使用する。}*)
-		n: dint := -1;
-	end
-	{st}
-	Stats_sample_variance := Stats_variance_ddof(data:=data, n:=n, ddof:=1, eno=>eno);
-	{end}
-end
-
 (*{doc 一般分散 (ddof 指定) を計算
 @inout data サンプルデータを含む配列。
   正規配列（次元の始点が0で要素数1以上）でなければいけない。
@@ -109,6 +65,50 @@ function Stats_variance_ddof: lreal
 		acc := acc + diff * diff;
 	end_for;
 	Stats_variance_ddof := acc / dint_to_lreal(den);
+	{end}
+end
+
+(*{doc 母分散 (ddof=0) を計算
+@inout data サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@input n 先頭n個を使用する。
+  デフォルト値: -1
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_variance: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
+		data: array[*] of lreal;
+	end
+	var_input
+		(*{doc 先頭n個を使用する。}*)
+		n: dint := -1;
+	end
+	{st}
+	Stats_variance := Stats_variance_ddof(data:=data, n:=n, ddof:=0, eno=>eno);
+	{end}
+end
+
+(*{doc 標本分散 (ddof=1) を計算
+@inout data サンプルデータを含む配列。
+  正規配列（次元の始点が0で要素数1以上）でなければいけない。
+@input n 先頭n個を使用する。
+  デフォルト値: -1
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_sample_variance: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc サンプルデータを含む配列。}*)
+		data: array[*] of lreal;
+	end
+	var_input
+		(*{doc 先頭n個を使用する。}*)
+		n: dint := -1;
+	end
+	{st}
+	Stats_sample_variance := Stats_variance_ddof(data:=data, n:=n, ddof:=1, eno=>eno);
 	{end}
 end
 

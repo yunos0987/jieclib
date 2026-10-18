@@ -264,45 +264,6 @@ function LinkedHashMap_init
 	{end}
 end
 
-(*{doc Copy container state.
-Rebuild destination by ordered upsert from source.
-@inout self Source LinkedHashMap.
-@inout dest Destination LinkedHashMap.
-@return true on success.
-@error ENO is set to false on internal error. }*)
-function LinkedHashMap_copy: bool
-	_PROLOGUE_OF_FUNCTION_()
-	var_in_out
-		self: LinkedHashMapCoreType;
-		dest: LinkedHashMapCoreType;
-	end
-	var_temp
-		cur: dint;
-		replaced: bool;
-	end
-	{st}
-	LinkedHashMap_init(dest);
-
-	cur := self.head_idx;
-	while cur >= 0 do
-		if (cur >= LinkedHashMapCapacity) or (not self.nodes[cur].used) then
-			eno := false;
-			return;
-		end_if;
-		if not LinkedHashMap_upsert(self:=dest, key:=self.nodes[cur].key, value:=self.nodes[cur].value, replaced=>replaced, eno=>eno) then
-			if not eno then
-				return;
-			end_if;
-			LinkedHashMap_copy := false;
-			return;
-		end_if;
-		cur := self.nodes[cur].next;
-	end_while;
-
-	LinkedHashMap_copy := true;
-	{end}
-end
-
 (*{doc Insert or update a key/value pair.
 Insert new node in linked order or update existing node value.
 @inout self Target LinkedHashMap.
@@ -427,6 +388,45 @@ function LinkedHashMap_upsert: bool
 	self.count := self.count + 1;
 	replaced := false;
 	LinkedHashMap_upsert := true;
+	{end}
+end
+
+(*{doc Copy container state.
+Rebuild destination by ordered upsert from source.
+@inout self Source LinkedHashMap.
+@inout dest Destination LinkedHashMap.
+@return true on success.
+@error ENO is set to false on internal error. }*)
+function LinkedHashMap_copy: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		self: LinkedHashMapCoreType;
+		dest: LinkedHashMapCoreType;
+	end
+	var_temp
+		cur: dint;
+		replaced: bool;
+	end
+	{st}
+	LinkedHashMap_init(dest);
+
+	cur := self.head_idx;
+	while cur >= 0 do
+		if (cur >= LinkedHashMapCapacity) or (not self.nodes[cur].used) then
+			eno := false;
+			return;
+		end_if;
+		if not LinkedHashMap_upsert(self:=dest, key:=self.nodes[cur].key, value:=self.nodes[cur].value, replaced=>replaced, eno=>eno) then
+			if not eno then
+				return;
+			end_if;
+			LinkedHashMap_copy := false;
+			return;
+		end_if;
+		cur := self.nodes[cur].next;
+	end_while;
+
+	LinkedHashMap_copy := true;
 	{end}
 end
 

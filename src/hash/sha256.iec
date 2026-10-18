@@ -85,53 +85,6 @@ function private_SHA256_hexword_be: string[8 + 1]
 	{end}
 end
 
-(*{doc 文字列のSHA-256ダイジェスト（64文字16進小文字）を得る。
-@input txt 入力文字列（ASCII想定）。
-@in_out work 入力文字列を展開する作業用バイト配列。
-	必要要素数はlen(txt) + 72以上。
-@return SHA-256ハッシュ文字列。
-@error ASCIIコード取得に失敗した場合、またはwork容量不足の場合。}*)
-function SHA256_string: string[64 + 1]
-	_PROLOGUE_OF_FUNCTION_()
-	var_input
-		(*{doc 入力文字列（ASCII想定）。}*)
-		txt: STRING;
-	end
-	var_in_out
-		(*{doc 作業用バイト配列。必要要素数はlen(txt) + 72以上。}*)
-		work: array[*] of byte;
-	end
-	var_temp
-		w0, w1: dint;
-		input_len: dint;
-		i: dint;
-		code: dint;
-	end
-	{st}
-	w0 := lower_bound(work, 1);
-	w1 := upper_bound(work, 1);
-	input_len := uint_to_dint(len(txt));
-	if (input_len + 72) > (w1 - w0 + 1) then
-		eno := false;
-		return;
-	end_if;
-
-	for i := 0 to input_len - 1 by 1 do
-		code := String_asciiCharCodeAt(txt, i);
-		if (code < 0) or (code > 127) then
-			eno := false;
-			return;
-		end_if;
-		work[w0 + i] := dint_to_byte(code);
-	end_for;
-
-	SHA256_string := SHA256_bytes(dat:=work, offset:=0, length:=input_len, work:=work, eno=>eno);
-	if not eno then
-		return;
-	end_if;
-	{end}
-end
-
 (*{doc バイト配列のSHA-256ダイジェスト（64文字16進小文字）を得る。
 @in_out dat 入力バイト配列。
 @input offset datの開始オフセット。
@@ -323,6 +276,53 @@ function SHA256_bytes: string[64 + 1]
 		private_SHA256_hexword_be(h6),
 		private_SHA256_hexword_be(h7)
 	);
+	{end}
+end
+
+(*{doc 文字列のSHA-256ダイジェスト（64文字16進小文字）を得る。
+@input txt 入力文字列（ASCII想定）。
+@in_out work 入力文字列を展開する作業用バイト配列。
+	必要要素数はlen(txt) + 72以上。
+@return SHA-256ハッシュ文字列。
+@error ASCIIコード取得に失敗した場合、またはwork容量不足の場合。}*)
+function SHA256_string: string[64 + 1]
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 入力文字列（ASCII想定）。}*)
+		txt: STRING;
+	end
+	var_in_out
+		(*{doc 作業用バイト配列。必要要素数はlen(txt) + 72以上。}*)
+		work: array[*] of byte;
+	end
+	var_temp
+		w0, w1: dint;
+		input_len: dint;
+		i: dint;
+		code: dint;
+	end
+	{st}
+	w0 := lower_bound(work, 1);
+	w1 := upper_bound(work, 1);
+	input_len := uint_to_dint(len(txt));
+	if (input_len + 72) > (w1 - w0 + 1) then
+		eno := false;
+		return;
+	end_if;
+
+	for i := 0 to input_len - 1 by 1 do
+		code := String_asciiCharCodeAt(txt, i);
+		if (code < 0) or (code > 127) then
+			eno := false;
+			return;
+		end_if;
+		work[w0 + i] := dint_to_byte(code);
+	end_for;
+
+	SHA256_string := SHA256_bytes(dat:=work, offset:=0, length:=input_len, work:=work, eno=>eno);
+	if not eno then
+		return;
+	end_if;
 	{end}
 end
 
