@@ -3,6 +3,10 @@
  * $ jiecc ./test/stats/inference/tests/test_nonparametric_tests.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/stats/inference/tests/test_nonparametric_tests.xml -t omron
  *)
 {#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
 {#include <stats/inference/tests/nonparametric_tests.iec>}
 
 {#ifdef _TEST_}
@@ -54,7 +58,7 @@ TEST_S(test_stats_mann_whitney_u)
 		mw_rank_sort_work: array[0..999] of lreal;
 		mw_rank_idx_work: array[0..999] of dint;
 		stat_tol: lreal := 1.0e-6;
-		pvalue_tol: lreal := 1.0e-4; // CODING_RULES: 統計p値の検証はabs_error=1.0e-4
+		pvalue_tol: lreal := 1.0e-4; // CONTRIBUTING: 統計p値の検証はabs_error=1.0e-4
 	end
 	{st}
 		// Case 1: Different groups - p値は小さいはず
@@ -243,7 +247,7 @@ TEST_S(test_stats_wilcoxon_signed_rank)
 		wsr_rank_sort_work: array[0..999] of lreal;
 		wsr_rank_idx_work: array[0..999] of dint;
 		stat_tol: lreal := 1.0e-6;
-		pvalue_tol: lreal := 1.0e-4; // CODING_RULES: 統計p値の検証はabs_error=1.0e-4
+		pvalue_tol: lreal := 1.0e-4; // CONTRIBUTING: 統計p値の検証はabs_error=1.0e-4
 		result_eno: bool;
 	end
 	{st}

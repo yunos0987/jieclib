@@ -3,8 +3,11 @@
  * $ jiecc ./test/compress/test_huffman.iec -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/compress/test_huffman.xml -t omron
  *)
 {#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
 
-{#include <src/compress/huffman.iec>}
+{#include <compress/huffman.iec>}
 
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(

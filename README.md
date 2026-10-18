@@ -37,6 +37,7 @@ JiecLibは、<a href="https://www.graviness.com/iec_61131-3/">IEC 61131-3 ST言�
 
 * [Jiecc 5.14以降](https://www.graviness.com/iec_61131-3/jiecc.html#Header.Jiecc%E3%81%AE%E3%83%80%E3%82%A6%E3%83%B3%E3%83%AD%E3%83%BC%E3%83%89%E3%81%A8%E5%AE%9F%E8%A1%8C%E6%96%B9%E6%B3%95)
   * IEC 61131-3テキストをIEC 61131-10 XMLに変換するコマンドラインの無料ソフトウェアです。
+  * JiecLibのテスト（`test/`。JiecUnit v5.0.0を使います）を実行するには、Jiecc 8.0.0以降が必要です。
 * [Sysmac Studio](https://www.fa.omron.co.jp/products/family/3077/download/software.html)
   * 同梱のシミュレータでテスト可能です。必要に応じてPLC本体も入手してください。
 
@@ -661,6 +662,17 @@ $ git submodule update --remote
 ### JiecLibのテスト方法
 
 単体テストに [JiecUnit](https://github.com/yunos0987/jiecunit) を使用します。テストコードは [jieclib/test](./test) ディレクトリに含まれます。
+
+すべてのライブラリとテストのコンパイル、および jier（`jiecc --run`）によるテストの実行は、次のコマンドで一度に行えます。Python 3 が必要です。最後に `All checks passed.` と表示されれば成功です。
+
+```
+$ cd jieclib
+$ python scripts/run_tests.py
+```
+
+jiecc は、`--jiecc PATH`、環境変数 `JIECC`、`PATH` 上の `jiecc` の順に探します。オプションの詳細、コーディング規約、貢献の流れは [CONTRIBUTING.md](./CONTRIBUTING.md) を参照してください。
+
+PLCメーカーのツールでテストを実行する場合は、次の手順に従います。
 
 1. 次のコマンドを実行します。事前に [jiecc.exe](https://www.graviness.com/iec_61131-3/jiecc.html#Header.Jiecc%E3%81%AE%E3%83%80%E3%82%A6%E3%83%B3%E3%83%AD%E3%83%BC%E3%83%89%E3%81%A8%E5%AE%9F%E8%A1%8C%E6%96%B9%E6%B3%95) を jieclib ディレクトリ直下におくか、jiecc があるディレクトリへパスを通しておいてください。
 

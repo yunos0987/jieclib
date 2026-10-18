@@ -6,16 +6,9 @@
 	{#error This test requires Jiecc 5.14 or later.}
 {#endif}
 {#include <jiecunit.iec>}
-{#if _JIECUNIT and (_JIECUNIT_VER < 210)}
-	{#error This test requires JiecUnit 2.10 or later.}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
 {#endif}
-
-{#include <src/encoding/base64.iec>}
-{#include <src/encoding/base64url.iec>}
-{#include <src/encoding/hex.iec>}
-{#include <src/encoding/percent.iec>}
-{#include <src/encoding/json_string.iec>}
-{#include <src/encoding/bcd.iec>}
 
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(

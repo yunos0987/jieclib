@@ -9,7 +9,8 @@
 {#include <array/sort.iec>}
 {#include <stats/descriptive/skewness.iec>}
 {#include <stats/descriptive/kurtosis.iec>}
-{#include <stats/inference/tests/test_core.iec>}
+
+{#include "test_core.iec"}
 
 (*{doc Jarque-Bera 正規性検定。H0: データは正規分布に従う
 JB = n/6 * (S^2 + K^2/4)。S=skewness, K=kurtosis。

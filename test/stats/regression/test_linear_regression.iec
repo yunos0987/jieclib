@@ -3,6 +3,10 @@
  * $ jiecc ./test/stats/regression/test_linear_regression.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/stats/regression/test_linear_regression.xml -t omron
  *)
 {#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
 {#include <stats/regression/linear_regression.iec>}
 
 {#ifdef _TEST_}

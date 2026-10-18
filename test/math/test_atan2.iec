@@ -6,6 +6,10 @@
  * $ jiecc ./test/math/test_atan2.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/math/test_atan2.xml -t keyence
  *)
 {#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
 {#include <math/atan2.iec>}
 
 {#ifdef _TEST_}

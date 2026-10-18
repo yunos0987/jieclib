@@ -3,8 +3,11 @@
  * $ jiecc ./test/encoding/test_base64url.iec -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/encoding/test_base64url.xml -t omron
  *)
 {#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
 
-{#include <src/encoding/base64url.iec>}
+{#include <encoding/base64url.iec>}
 
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(

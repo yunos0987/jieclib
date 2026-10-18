@@ -190,6 +190,9 @@ function Console_print: bool
 		txt: string[STRING_MAX_SIZE];
 	end
 	{st}
+{#if _JIER}
+	PRINT(txt);
+{#endif}
 	self.rows[self.row_index] := jiec_concat(self.rows[self.row_index], txt);
 	{end}
 end
@@ -207,6 +210,9 @@ function Console_puts: dint
 		line: string[STRING_MAX_SIZE];
 	end
 	{st}
+{#if _JIER}
+	PUTS(line);
+{#endif}
 	self.rows[self.row_index] := line;
 	self.row_index := (self.row_index + 1) mod CONSOLE_MAX_ROWS;
 	Console_puts := self.row_index;

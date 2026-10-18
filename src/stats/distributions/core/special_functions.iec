@@ -356,61 +356,6 @@ function Stats_beta: lreal
 	{end}
 end
 
-(*{doc 正規化不完全ベータ関数 Beta_incomplete(x, a, b)
-x の範囲は 0 <= x <= 1、a > 0、b > 0
-@input x 入力値。
-@input a 入力値。
-@input b 入力値。
-@return 計算結果。
-@error 入力値が不正な場合。}*)
-function Stats_beta_incomplete: lreal
-	_PROLOGUE_OF_FUNCTION_()
-	var_input
-		(*{doc 入力値 (0 <= x <= 1)。}*)
-		x: lreal;
-		(*{doc パラメータ a。}*)
-		a: lreal;
-		(*{doc パラメータ b。}*)
-		b: lreal;
-	end
-	var_temp
-		bt, result: lreal;
-		qab, qap, qam, c, d, h, m2: lreal;
-		aa: lreal;
-		m: dint;
-	end
-	{st}
-		if x < 0.0 or x > 1.0 or a <= 0.0 or b <= 0.0 then
-			eno := false;
-			Stats_beta_incomplete := 0.0;
-			return;
-		end_if;
-
-		// 特殊ケース
-		if x = 0.0 then
-			Stats_beta_incomplete := 0.0;
-			return;
-		end_if;
-		if x = 1.0 then
-			Stats_beta_incomplete := 1.0;
-			return;
-		end_if;
-
-		// 前因子を計算
-		bt := exp(Stats_lgamma(x:=a + b) - Stats_lgamma(x:=a) - Stats_lgamma(x:=b) + a * ln(x) + b * ln(1.0 - x));
-
-		if x < (a + 1.0) / (a + b + 2.0) then
-			// 直接計算
-			result := bt * Stats_beta_continued_fraction(x:=x, a:=a, b:=b) / a;
-			Stats_beta_incomplete := result;
-		else
-			// 補完を使用
-			result := 1.0 - bt * Stats_beta_continued_fraction(x:=1.0 - x, a:=b, b:=a) / b;
-			Stats_beta_incomplete := result;
-		end_if;
-	{end}
-end
-
 (*{doc ベータ関数の連分率展開による計算補助関数
 @input x 入力値。
 @input a 入力値。
@@ -468,6 +413,61 @@ function Stats_beta_continued_fraction: lreal
 		end_for;
 
 		Stats_beta_continued_fraction := h;
+	{end}
+end
+
+(*{doc 正規化不完全ベータ関数 Beta_incomplete(x, a, b)
+x の範囲は 0 <= x <= 1、a > 0、b > 0
+@input x 入力値。
+@input a 入力値。
+@input b 入力値。
+@return 計算結果。
+@error 入力値が不正な場合。}*)
+function Stats_beta_incomplete: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc 入力値 (0 <= x <= 1)。}*)
+		x: lreal;
+		(*{doc パラメータ a。}*)
+		a: lreal;
+		(*{doc パラメータ b。}*)
+		b: lreal;
+	end
+	var_temp
+		bt, result: lreal;
+		qab, qap, qam, c, d, h, m2: lreal;
+		aa: lreal;
+		m: dint;
+	end
+	{st}
+		if x < 0.0 or x > 1.0 or a <= 0.0 or b <= 0.0 then
+			eno := false;
+			Stats_beta_incomplete := 0.0;
+			return;
+		end_if;
+
+		// 特殊ケース
+		if x = 0.0 then
+			Stats_beta_incomplete := 0.0;
+			return;
+		end_if;
+		if x = 1.0 then
+			Stats_beta_incomplete := 1.0;
+			return;
+		end_if;
+
+		// 前因子を計算
+		bt := exp(Stats_lgamma(x:=a + b) - Stats_lgamma(x:=a) - Stats_lgamma(x:=b) + a * ln(x) + b * ln(1.0 - x));
+
+		if x < (a + 1.0) / (a + b + 2.0) then
+			// 直接計算
+			result := bt * Stats_beta_continued_fraction(x:=x, a:=a, b:=b) / a;
+			Stats_beta_incomplete := result;
+		else
+			// 補完を使用
+			result := 1.0 - bt * Stats_beta_continued_fraction(x:=1.0 - x, a:=b, b:=a) / b;
+			Stats_beta_incomplete := result;
+		end_if;
 	{end}
 end
 

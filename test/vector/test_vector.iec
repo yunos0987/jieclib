@@ -6,10 +6,9 @@
 	{#error This test requires Jiecc 5.14 or later.}
 {#endif}
 {#include <jiecunit.iec>}
-{#if _JIECUNIT and (_JIECUNIT_VER < 210)}
-	{#error This test requires JiecUnit 2.10 or later.}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
 {#endif}
-{#include <vector/vector.iec>}
 
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(
@@ -56,5 +55,3 @@ DEFINE_CONFIGURATION(
 {#include "test_dot.iec"}
 {#include "test_norms.iec"}
 {#include "test_utils.iec"}
-
-{#undef _TEST_}

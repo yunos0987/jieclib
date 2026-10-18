@@ -7,7 +7,8 @@
 
 {#include <sys.iec>}
 {#include <stats/distributions/core/special_functions.iec>}
-{#include <stats/distributions/continuous/normal.iec>}
+
+{#include "normal.iec"}
 
 (*{doc Student t 分布の確率密度関数。f = 自由度。
 f(t) = Gamma((df+1)/2) / (sqrt(pi*df)*Gamma(df/2)) * (1 + t^2/df)^(-(df+1)/2)

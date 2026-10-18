@@ -1,9 +1,3 @@
-(*
- * $ cd <JiecLib Project Root>
- * $ jiecc ./test/container/dequeue/dequeue_int.iec -I./src -I./vendor/jiecunit -o ./test/container/dequeue/dequeue_int.xml -t omron
- * or
- * $ jiecc ./test/container/dequeue/dequeue_int.iec -I./src -I./vendor/jiecunit -o ./test/container/dequeue/dequeue_int.xml -t keyence
- *)
 {#ifndef __TEST_CONTAINER_DEQUEUE_INT_IEC__}
 {#define __TEST_CONTAINER_DEQUEUE_INT_IEC__}
 

@@ -3,6 +3,10 @@
  * $ jiecc ./test/stats/inference/estimation/test_confidence_intervals.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/stats/inference/estimation/test_confidence_intervals.xml -t omron
  *)
 {#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
 {#include <stats/inference/estimation/confidence_intervals.iec>}
 
 {#ifdef _TEST_}

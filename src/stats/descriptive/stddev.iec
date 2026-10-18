@@ -7,7 +7,8 @@
 
 {#include <sys.iec>}
 {#include <array/array.iec>}
-{#include <stats/descriptive/variance.iec>}
+
+{#include "variance.iec"}
 
 (*{doc 自由度調整可能な標準偏差を計算
 @inout data サンプルデータを含む配列。

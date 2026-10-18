@@ -8,7 +8,8 @@
 {#include <sys.iec>}
 {#include <math/floor.iec>}
 {#include <array/array.iec>}
-{#include <stats/descriptive/mean.iec>}
+
+{#include "mean.iec"}
 
 (*{doc 算術平均を得る。
 @inout data サンプルデータを含む配列。

@@ -3,9 +3,12 @@
  * $ jiecc ./test/hash/test_sha1.iec -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/hash/test_sha1.xml -t omron
  *)
 {#include <jiecunit.iec>}
-{#include <test/hash/helper_random.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
 
 {#include <hash/sha1.iec>}
+{#include "helper_random.iec"}
 
 {#ifdef _TEST_}
 DEFINE_CONFIGURATION(

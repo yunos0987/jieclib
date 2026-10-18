@@ -6,10 +6,11 @@
 {#define __STATS_DESCRIPTIVE_CORRELATION_IEC__}
 
 {#include <sys.iec>}
-{#include <stats/descriptive/covariance.iec>}
-{#include <stats/descriptive/variance.iec>}
-{#include <stats/descriptive/stddev.iec>}
 {#include <stats/sequences/rank.iec>}
+
+{#include "covariance.iec"}
+{#include "variance.iec"}
+{#include "stddev.iec"}
 
 (*{doc Pearson相関係数（線形相関）を得る。
 r = cov(x, y) / (std(x) * std(y))

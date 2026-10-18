@@ -1,0 +1,24 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/math/test_math.iec -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/math/test_math.xml -t omron
+ *)
+{#if _JIECC and (_JIECC_VER < 514)}
+	{#error This test requires Jiecc 5.14 or later.}
+{#endif}
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_atan2,
+		test_floor
+	)
+)
+{#undef _TEST_}
+{#endif}
+
+{#include "test_atan2.iec"}
+{#include "test_floor.iec"}

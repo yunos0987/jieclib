@@ -3,6 +3,10 @@
  * $ jiecc ./test/bitset/test_bitset.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/bitset/test_bitset.xml -t omron
  *)
 {#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
 {#include <bitset/bitset.iec>}
 
 {#ifdef _TEST_}

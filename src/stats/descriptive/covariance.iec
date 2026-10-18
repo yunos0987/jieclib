@@ -6,7 +6,8 @@
 {#define __STATS_DESCRIPTIVE_COVARIANCE_IEC__}
 
 {#include <sys.iec>}
-{#include <stats/descriptive/mean.iec>}
+
+{#include "mean.iec"}
 
 (*{doc 共分散（ddof = 自由度調整）
 cov(x, y) = sum((x_i - mean_x) * (y_i - mean_y)) / (n - ddof)

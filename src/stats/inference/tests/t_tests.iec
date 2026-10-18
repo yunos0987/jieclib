@@ -9,7 +9,8 @@
 {#include <stats/descriptive/mean.iec>}
 {#include <stats/descriptive/variance.iec>}
 {#include <stats/descriptive/stddev.iec>}
-{#include <stats/inference/tests/test_core.iec>}
+
+{#include "test_core.iec"}
 
 (*{doc 1 サンプル t 検定。H0: mu = mu0
 @inout data サンプルデータを含む配列。

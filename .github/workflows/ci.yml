@@ -1,0 +1,118 @@
+name: CI
+
+on:
+  # develop is tested through pull requests, so one push does not start two runs.
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      # The vendor/jiecunit submodule is not checked out here, so its files
+      # are not checked by this job.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Tracked text files must be UTF-8 without BOM and use LF line endings.
+      # Binary files (images) are detected by a NUL byte and skipped. Other
+      # files must decode as strict UTF-8 (e.g. a Shift_JIS file is an error).
+      - name: Check encoding and line endings
+        shell: python
+        run: |
+          import os
+          import subprocess
+          import sys
+
+          names = subprocess.check_output(["git", "ls-files", "-z"]).decode("utf-8").split("\0")
+          bad = []
+          for name in filter(None, names):
+              if not os.path.isfile(name):
+                  continue
+              with open(name, "rb") as f:
+                  data = f.read()
+              if b"\0" in data:
+                  continue
+              try:
+                  data.decode("utf-8")
+              except UnicodeDecodeError as e:
+                  bad.append(name + ": not valid UTF-8 (" + str(e) + ")")
+              if data.startswith(b"\xef\xbb\xbf"):
+                  bad.append(name + ": has a UTF-8 BOM")
+              if b"\r" in data:
+                  bad.append(name + ": contains CR (must be LF only)")
+          for line in bad:
+              print("error: " + line)
+          sys.exit(1 if bad else 0)
+
+  # Compiles every library entry file in src/ and every test file in test/
+  # for the targets named in their header comments. A failure fails CI.
+  compile:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.x"
+
+      - uses: ./.github/actions/setup-jiecc
+
+      # A Python step runs the same way on Windows and Linux, and its exit
+      # code is the exit code of run_tests.py.
+      - name: Compile sources and tests
+        shell: python
+        run: |
+          import os
+          import subprocess
+          import sys
+
+          sys.exit(subprocess.call([sys.executable, "scripts/run_tests.py", "--compile-only",
+                                    "--jiecc", os.environ["JIECC_EXE"]]))
+
+  # Runs the tests with the jier interpreter (jiecc --run). Many tests do not
+  # run under jier yet, so this job is informational: continue-on-error keeps
+  # a failure from failing CI. It becomes required once Jiecc and JiecLib
+  # support running all tests with jier.
+  run:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    continue-on-error: true
+    # Informational and capped: 300 s per test file (--timeout) and 120 min per job.
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.x"
+
+      - uses: ./.github/actions/setup-jiecc
+
+      - name: Run tests with jier
+        shell: python
+        run: |
+          import os
+          import subprocess
+          import sys
+
+          sys.exit(subprocess.call([sys.executable, "scripts/run_tests.py", "--run-only",
+                                    "--timeout", "300",
+                                    "--jiecc", os.environ["JIECC_EXE"]]))

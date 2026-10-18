@@ -6,7 +6,8 @@
 {#define __STATS_DESCRIPTIVE_STANDARD_ERROR_IEC__}
 
 {#include <sys.iec>}
-{#include <stats/descriptive/variance.iec>}
+
+{#include "variance.iec"}
 
 (*{doc 平均値の標準誤差
 SE = std / sqrt(n)

@@ -3,6 +3,10 @@
  * $ jiecc ./test/stats/descriptive/test_geometric_mean.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/stats/descriptive/test_geometric_mean.xml -t omron
  *)
 {#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
 {#include <stats/descriptive/geometric_mean.iec>}
 
 {#ifdef _TEST_}

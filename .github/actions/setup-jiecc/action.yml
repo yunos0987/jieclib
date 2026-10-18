@@ -1,0 +1,62 @@
+name: Set up Jiecc
+description: >-
+  Download the latest Jiecc for the runner OS (jiecc.zip on Windows,
+  jiecc.tgz on Linux), export the path of the jiecc executable as JIECC_EXE
+  and show its version.
+
+runs:
+  using: composite
+  steps:
+    # The latest builds of Jiecc are published only as unversioned URLs, so
+    # the Jiecc version used by CI follows the latest release.
+    # Any failure to download or extract stops the job (no fallback).
+    - name: Download Jiecc (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = 'Stop'
+        $zip = Join-Path $env:RUNNER_TEMP 'jiecc.zip'
+        $dir = Join-Path $env:RUNNER_TEMP 'jiecc'
+        Invoke-WebRequest -Uri 'https://www.graviness.com/iec_61131-3/jiecc.zip' -OutFile $zip
+        Expand-Archive -LiteralPath $zip -DestinationPath $dir -Force
+        $exe = Get-ChildItem -LiteralPath $dir -Recurse -Filter 'jiecc.exe' | Select-Object -First 1
+        if (-not $exe) { throw 'jiecc.exe was not found in the downloaded archive.' }
+        "JIECC_EXE=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+    - name: Download Jiecc (Linux)
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        set -euo pipefail
+        tgz="$RUNNER_TEMP/jiecc.tgz"
+        dir="$RUNNER_TEMP/jiecc"
+        curl -fsSL -o "$tgz" 'https://www.graviness.com/iec_61131-3/jiecc.tgz'
+        mkdir -p "$dir"
+        tar -xzf "$tgz" -C "$dir"
+        exe="$(find "$dir" -type f -name jiecc | head -n 1)"
+        if [ -z "$exe" ]; then
+          echo 'error: jiecc was not found in the downloaded archive.' >&2
+          exit 1
+        fi
+        if [ ! -x "$exe" ]; then
+          echo "error: $exe is not executable." >&2
+          exit 1
+        fi
+        echo "JIECC_EXE=$exe" >> "$GITHUB_ENV"
+
+    - name: Reject unsupported runner OS
+      if: runner.os != 'Windows' && runner.os != 'Linux'
+      shell: bash
+      run: |
+        echo "error: unsupported runner OS: $RUNNER_OS" >&2
+        exit 1
+
+    # A Python step works on both OSes; it fails when jiecc --version fails.
+    - name: Show Jiecc version
+      shell: python
+      run: |
+        import os
+        import subprocess
+        import sys
+
+        sys.exit(subprocess.call([os.environ["JIECC_EXE"], "--version"]))

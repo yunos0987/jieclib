@@ -6,6 +6,10 @@
  * $ jiecc ./test/math/test_floor.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/math/test_floor.xml -t keyence
  *)
 {#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
 {#include <math/floor.iec>}
 
 {#ifdef _TEST_}

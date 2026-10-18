@@ -6,8 +6,9 @@
 {#define __STATS_DESCRIPTIVE_CV_IEC__}
 
 {#include <sys.iec>}
-{#include <stats/descriptive/mean.iec>}
-{#include <stats/descriptive/variance.iec>}
+
+{#include "mean.iec"}
+{#include "variance.iec"}
 
 (*{doc 変動係数。Coefficient of variation。
 CV = std / mean。平均に対する標準偏差の比率。
