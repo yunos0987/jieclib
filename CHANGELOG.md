@@ -26,7 +26,7 @@
   - AI エージェント向けのルールを `AGENTS.md` にまとめました。`CLAUDE.md` は `AGENTS.md` を読み込むだけになりました。
   - `CHANGELOG.md` と `SECURITY.md` を追加しました。
 - `scripts/run_tests.py` を追加しました。`src/` のライブラリと `test/` のテストを、各ファイルの先頭コメントに書かれたターゲットでコンパイルし、jier（`jiecc --run`）でテストを実行して合否を判定します。
-- GitHub Actions の CI（`.github/workflows/ci.yml`）を追加しました。`main` と `develop` への push と Pull Request で、次を行います。
+- GitHub Actions の CI（`.github/workflows/ci.yml`）を追加しました。`main` への push と、`main`・`develop` を宛先とする Pull Request（および手動実行）で、次を行います。
   - 追跡しているテキストファイルが UTF-8 BOM なし・LF であることの確認。
   - Windows と Linux のそれぞれで最新の Jiecc（Windows は https://www.graviness.com/iec_61131-3/jiecc.zip 、Linux は https://www.graviness.com/iec_61131-3/jiecc.tgz ）を取得し、すべてのライブラリとテストをコンパイル。
   - jier によるテストの実行。現在は、失敗しても CI を失敗にしません。

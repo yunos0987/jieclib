@@ -1,8 +1,9 @@
 name: CI
 
 on:
+  # develop is tested through pull requests, so one push does not start two runs.
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
     branches: [main, develop]
   workflow_dispatch:
