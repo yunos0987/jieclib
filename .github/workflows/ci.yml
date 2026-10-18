@@ -19,7 +19,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # Tracked text files must be UTF-8 without BOM and use LF line endings.
-      # Binary files (images) are detected by a NUL byte and skipped.
+      # Binary files (images) are detected by a NUL byte and skipped. Other
+      # files must decode as strict UTF-8 (e.g. a Shift_JIS file is an error).
       - name: Check encoding and line endings
         shell: python
         run: |
@@ -36,6 +37,10 @@ jobs:
                   data = f.read()
               if b"\0" in data:
                   continue
+              try:
+                  data.decode("utf-8")
+              except UnicodeDecodeError as e:
+                  bad.append(name + ": not valid UTF-8 (" + str(e) + ")")
               if data.startswith(b"\xef\xbb\xbf"):
                   bad.append(name + ": has a UTF-8 BOM")
               if b"\r" in data:

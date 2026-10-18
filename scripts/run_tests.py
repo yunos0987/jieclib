@@ -51,7 +51,7 @@ _RE_FAILED_LINE = re.compile(r'\[ FAILED \]')
 _RE_ERROR_LINE = re.compile(r'\[  ERROR \]')
 # jiecc can print an "error: " line while still exiting 0, so the output text
 # is scanned regardless of the process exit code.
-_RE_ERROR_TEXT = re.compile(r'(?m)^\S.*: error: | error: ')
+_RE_ERROR_TEXT = re.compile(r'(?m)(?:^|\s)error: ')
 _RE_WARNING_TEXT = re.compile(r'(?i)\bwarning\b')
 _RE_FAULT_TEXT = re.compile(r'InterpreterFault')
 _RE_JIECC_LINE = re.compile(r'\$\s*jiecc\b')
