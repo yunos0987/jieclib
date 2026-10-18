@@ -256,9 +256,9 @@ end
 - タグを使用してリリースバージョンを管理する（例：v1.0.0）。
 - `.gitignore`ファイルを適切に設定し、生成ファイル（*.xml、__pycache__など）をリポジトリに含めない。
 
-JiecLib には `VERSION` ファイルやバージョンを表すマクロはありません。バージョンは Git のタグ（`vX.Y.Z`）だけで識別します。
+JiecLib のバージョンは、リポジトリルートの `VERSION` ファイルに `MAJOR.MINOR.PATCH`（例: `3.4.0`）の 1 行で記録します。バージョンを表すマクロはありません。Git のタグ（`vX.Y.Z`）は、`VERSION` と同じ番号を `main` のコミットに付けたものです。
 
-リリースの際は、[CHANGELOG.md](CHANGELOG.md) の `Unreleased` の見出しをバージョン番号と日付に置き換えてから、`main` のコミットにタグを付けます。
+`VERSION` は、リリース専用のコミット（メッセージは `release vX.Y.Z`）でだけ更新します。機能追加・修正のコミットでは更新しません。同じコミットで、[CHANGELOG.md](CHANGELOG.md) の変更中の節の見出しを `[X.Y.Z] - 日付` に置き換えます。`develop` を `main` にマージした後、`main` のコミットにタグを付けます。
 
 ```
 $ git tag vX.Y.Z

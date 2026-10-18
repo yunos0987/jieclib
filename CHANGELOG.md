@@ -1,8 +1,8 @@
 # 変更履歴 / Changelog
 
-このファイルは、次のリリース以降の変更を記録します。それ以前の変更は、Git のタグ（`v1.2.0` 〜 `v3.2.0`）と GitHub のリリース・Pull Request（https://github.com/yunos0987/jieclib）を参照してください。
+このファイルは、3.4.0 以降の変更を記録します。それ以前の変更は、Git のタグ（`v1.2.0` 〜 `v3.2.0`）と GitHub のリリース・Pull Request（https://github.com/yunos0987/jieclib）を参照してください。
 
-## Unreleased
+## [3.4.0] - 2026-10-18
 
 ### 修正 / Fixed
 
@@ -19,6 +19,7 @@
 
 ### その他 / Other
 
+- `VERSION` ファイルを追加しました。JiecLib のバージョン（`MAJOR.MINOR.PATCH`）を 1 行で記録します。リリースのコミット（`release vX.Y.Z`）でだけ更新します。
 - サブモジュール `vendor/jiecunit` を JiecUnit v4.2.0 から v5.0.0 に更新しました。v4.2.0 では jier の実行が `JiecTest_currentCycle` の `UNDEFINED_SYMBOL` で止まります。JiecUnit v5.0.0 のテストには Jiecc 8.0.0 以降が必要なため、README.md の必要環境に追記しました。
 - 貢献者向けの文書を整理しました。
   - `CODING_RULES.md` の内容を、新しく追加した `CONTRIBUTING.md` に移し、`CODING_RULES.md` を削除しました。あわせて、規約中のコード例などの明らかな誤記を直しました。

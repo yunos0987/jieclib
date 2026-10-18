@@ -9,6 +9,10 @@ JiecLib は、IEC 61131-3 ST 言語のライブラリです。コーディング
 - IEC 61131-3 のキーワードはすべて小文字とする（例: `if` / `var` / `and`）。
 - コーディング規約（命名規則・インデント・テストの書き方など）は [CONTRIBUTING.md](CONTRIBUTING.md#コーディング規約) に従う。
 
+## バージョン
+
+- `VERSION` は、リリース時に `release vX.Y.Z` という独立したコミットで更新する。機能追加・修正のコミットでは更新しない。手順は [CONTRIBUTING.md](CONTRIBUTING.md#バージョン管理) を参照する。
+
 ## テスト
 
 - 変更後は、リポジトリルートで `python scripts/run_tests.py` を実行し、`All checks passed.` と表示されることを確認する。`src/` のライブラリと `test/` のテストを、各ファイルの先頭コメントに書かれたターゲットでコンパイルし、jier（`jiecc --run`）でテストを実行する。
