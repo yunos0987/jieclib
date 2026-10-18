@@ -59,7 +59,7 @@ TEST_S(test_stats_chi_square_gof)
 		result_11: Stats_TestResult;
 		result_12: Stats_TestResult;
 		stat_tol: lreal := 1.0e-6;
-		pvalue_tol: lreal := 1.0e-4; // CODING_RULES: 統計p値の検証はabs_error=1.0e-4
+		pvalue_tol: lreal := 1.0e-4; // CONTRIBUTING: 統計p値の検証はabs_error=1.0e-4
 	end
 	{st}
 	// Perfect fit (observed == expected)
@@ -152,7 +152,7 @@ TEST_S(test_stats_chi_square_independence)
 		table_case12_2x2_skew: array[0..1, 0..1] of lreal := [40.0, 10.0, 5.0, 45.0];
 		result1, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11, result12: Stats_TestResult;
 		stat_tol: lreal := 1.0e-6;
-		pvalue_tol: lreal := 1.0e-4; // CODING_RULES: 統計p値の検証はabs_error=1.0e-4
+		pvalue_tol: lreal := 1.0e-4; // CONTRIBUTING: 統計p値の検証はabs_error=1.0e-4
 		row_totals_work: array[0..15] of lreal;
 		col_totals_work: array[0..15] of lreal;
 	end
