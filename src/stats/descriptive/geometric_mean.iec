@@ -30,7 +30,6 @@ function Stats_geometric_mean: lreal
 		actual_n, i: dint;
 		s: lreal;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(data);
 	if (actual_n = 0) or (n > actual_n) then
 		eno := false;
@@ -50,7 +49,6 @@ function Stats_geometric_mean: lreal
 	end_for;
 
 	Stats_geometric_mean := exp(s / dint_to_lreal(actual_n));
-	{end}
 end
 
 {#endif}

@@ -80,12 +80,10 @@ function RingBuffer_init
 		buf_size: dint;
 		overwrite: bool;
 	end
-	{st}
 	self.w_idx := 0;
 	self.r_idx := 0;
 	self.buf_size := buf_size;
 	self.overwrite := overwrite;
-	{end}
 end
 
 (*{doc Enqueue one element.
@@ -104,7 +102,6 @@ function RingBuffer_enqueue: bool
 	var_input
 		item: RingBufferItemType;
 	end
-	{st}
 	if self.w_idx - self.r_idx = self.buf_size then
 		if self.overwrite then
 			self.r_idx := self.r_idx + 1; // dequeue -> enqueue
@@ -118,7 +115,6 @@ function RingBuffer_enqueue: bool
 	self.w_idx := self.w_idx + 1;
 
 	RingBuffer_enqueue := true;
-	{end}
 end
 
 (*{doc Dequeue one element.
@@ -137,7 +133,6 @@ function RingBuffer_dequeue: bool
 	var_output
 		item: RingBufferItemType;
 	end
-	{st}
 	if self.w_idx = self.r_idx then
 		RingBuffer_dequeue := false;
 		return;
@@ -147,5 +142,4 @@ function RingBuffer_dequeue: bool
 	self.r_idx := self.r_idx + 1;
 
 	RingBuffer_dequeue := true;
-	{end}
 end

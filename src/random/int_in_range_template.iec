@@ -67,14 +67,12 @@ function Random_nextIntInRange: dint
 	var_temp
 		range: udint;
 	end
-	{st}
 	if min_val > max_val then
 		eno := false;
 	else
 		range := dint_to_udint(max_val - min_val) + udint#1;
 		Random_nextIntInRange := min_val + dword_to_dint(udint_to_dword(Random_nextUint32(self) mod range));
 	end_if;
-	{end}
 end
 
 {#undef _RANDOM_NEXT_INT_IN_RANGE_}

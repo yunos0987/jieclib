@@ -45,7 +45,6 @@ TEST_S(test_orderedset_dint_init)
 		elements: array[0..7] of dint;
 		written: dint;
 	end
-	{st}
 
 	// Fact: init sets len to 0 and contains returns false.
 		// Arrange
@@ -72,7 +71,6 @@ TEST_S(test_orderedset_dint_init)
 	EXPECT_FALSE(OrderedSet_dint_contains(os3, 10));
 	ASSERT_TRUE(OrderedSet_dint_elements(os3, elements, written));
 	EXPECT_EQ_INT32(0, written);
-	{end}
 END_TEST_S
 
 TEST_S(test_orderedset_dint_add)
@@ -84,7 +82,6 @@ TEST_S(test_orderedset_dint_add)
 		added: bool;
 		idx: dint;
 	end
-	{st}
 
 	// Fact: add returns added=true for new element and increments len.
 		// Arrange
@@ -127,7 +124,6 @@ TEST_S(test_orderedset_dint_add)
 	EXPECT_FALSE(OrderedSet_dint_add(os4, 999, added));
 	EXPECT_EQ_INT32(6, OrderedSet_dint_len(os4));
 	EXPECT_FALSE(OrderedSet_dint_contains(os4, 999));
-	{end}
 END_TEST_S
 
 TEST_S(test_orderedset_dint_add_all)
@@ -138,7 +134,6 @@ TEST_S(test_orderedset_dint_add_all)
 		input2: array[0..6] of dint;
 		added_count: dint;
 	end
-	{st}
 
 	// Fact: add_all inserts unique elements and deduplicates.
 		// Arrange
@@ -172,7 +167,6 @@ TEST_S(test_orderedset_dint_add_all)
 	EXPECT_FALSE(OrderedSet_dint_add_all(os2, input2, added_count));
 	EXPECT_EQ_INT32(6, OrderedSet_dint_len(os2));
 	EXPECT_FALSE(OrderedSet_dint_contains(os2, 7));
-	{end}
 END_TEST_S
 
 TEST_S(test_orderedset_dint_remove)
@@ -182,7 +176,6 @@ TEST_S(test_orderedset_dint_remove)
 		os3: OrderedSet_dint_t;
 		added: bool;
 	end
-	{st}
 
 	// Fact: remove deletes existing element.
 		// Arrange
@@ -214,7 +207,6 @@ TEST_S(test_orderedset_dint_remove)
 		// Assert
 	EXPECT_FALSE(OrderedSet_dint_remove(os3, 999));
 	EXPECT_EQ_INT32(1, OrderedSet_dint_len(os3));
-	{end}
 END_TEST_S
 
 TEST_S(test_orderedset_dint_remove_all)
@@ -226,7 +218,6 @@ TEST_S(test_orderedset_dint_remove_all)
 		removed_count: dint;
 		added: bool;
 	end
-	{st}
 
 	// Fact: remove_all removes matching elements and returns correct count.
 		// Arrange
@@ -260,7 +251,6 @@ TEST_S(test_orderedset_dint_remove_all)
 		// Assert
 	EXPECT_EQ_INT32(0, removed_count);
 	EXPECT_EQ_INT32(1, OrderedSet_dint_len(os2));
-	{end}
 END_TEST_S
 
 TEST_S(test_orderedset_dint_contains)
@@ -270,7 +260,6 @@ TEST_S(test_orderedset_dint_contains)
 		os3: OrderedSet_dint_t;
 		added: bool;
 	end
-	{st}
 
 	// Fact: contains returns false on empty set.
 		// Arrange
@@ -297,7 +286,6 @@ TEST_S(test_orderedset_dint_contains)
 	ASSERT_TRUE(OrderedSet_dint_add(os3, 2, added));
 		// Assert
 	EXPECT_FALSE(OrderedSet_dint_contains(os3, 999));
-	{end}
 END_TEST_S
 
 TEST_S(test_orderedset_dint_len)
@@ -309,7 +297,6 @@ TEST_S(test_orderedset_dint_len)
 		os5: OrderedSet_dint_t;
 		added: bool;
 	end
-	{st}
 
 	// Fact: len is 0 after init.
 		// Arrange
@@ -352,7 +339,6 @@ TEST_S(test_orderedset_dint_len)
 	ASSERT_TRUE(OrderedSet_dint_remove(os5, 1));
 		// Assert
 	EXPECT_EQ_INT32(1, OrderedSet_dint_len(os5));
-	{end}
 END_TEST_S
 
 TEST_S(test_orderedset_dint_elements)
@@ -364,7 +350,6 @@ TEST_S(test_orderedset_dint_elements)
 		written: dint;
 		added: bool;
 	end
-	{st}
 
 	// Fact: elements returns empty array for empty set.
 		// Arrange
@@ -400,7 +385,6 @@ TEST_S(test_orderedset_dint_elements)
 	EXPECT_EQ_INT32(2, written);
 	EXPECT_EQ_INT32(1, elements[0]);
 	EXPECT_EQ_INT32(2, elements[1]);
-	{end}
 END_TEST_S
 
 TEST_S(test_orderedset_dint_copy)
@@ -415,7 +399,6 @@ TEST_S(test_orderedset_dint_copy)
 		written: dint;
 		added: bool;
 	end
-	{st}
 
 	// Fact: copy duplicates all elements in insertion order.
 		// Arrange
@@ -459,7 +442,6 @@ TEST_S(test_orderedset_dint_copy)
 	ASSERT_TRUE(OrderedSet_dint_copy(os_src_empty, os_dst_empty));
 		// Assert
 	EXPECT_TRUE(OrderedSet_dint_empty(os_dst_empty));
-	{end}
 END_TEST_S
 
 TEST_S(test_orderedset_dint_equals)
@@ -473,7 +455,6 @@ TEST_S(test_orderedset_dint_equals)
 		os_empty2: OrderedSet_dint_t;
 		added: bool;
 	end
-	{st}
 
 	// Fact: equals returns true for same elements in same insertion order.
 		// Arrange
@@ -521,7 +502,6 @@ TEST_S(test_orderedset_dint_equals)
 	OrderedSet_dint_init(os_empty2);
 		// Assert
 	EXPECT_TRUE(OrderedSet_dint_equals(os_empty1, os_empty2));
-	{end}
 END_TEST_S
 
 TEST_S(test_orderedset_dint_hash)
@@ -540,7 +520,6 @@ TEST_S(test_orderedset_dint_hash)
 		hash_a: udint;
 		hash_b: udint;
 	end
-	{st}
 
 	// Fact: hash values match for sets with same elements in same order.
 		// Arrange
@@ -614,7 +593,6 @@ TEST_S(test_orderedset_dint_hash)
 	hash_b := OrderedSet_dint_hash(os_empty2);
 		// Assert
 	EXPECT_EQ_UDINT(hash_a, hash_b);
-	{end}
 END_TEST_S
 
 TEST_S(test_orderedset_dint_empty)
@@ -624,7 +602,6 @@ TEST_S(test_orderedset_dint_empty)
 		os3: OrderedSet_dint_t;
 		added: bool;
 	end
-	{st}
 
 	// Fact: empty is true immediately after init.
 		// Arrange
@@ -646,7 +623,6 @@ TEST_S(test_orderedset_dint_empty)
 	ASSERT_TRUE(OrderedSet_dint_remove(os3, 1));
 		// Assert
 	EXPECT_TRUE(OrderedSet_dint_empty(os3));
-	{end}
 END_TEST_S
 
 TEST_S(test_orderedset_dint_clear)
@@ -658,7 +634,6 @@ TEST_S(test_orderedset_dint_clear)
 		written: dint;
 		added: bool;
 	end
-	{st}
 
 	// Fact: clear removes all elements.
 		// Arrange
@@ -696,7 +671,6 @@ TEST_S(test_orderedset_dint_clear)
 		// Assert
 	EXPECT_TRUE(OrderedSet_dint_contains(os_reuse, 9));
 	EXPECT_FALSE(OrderedSet_dint_contains(os_reuse, 1));
-	{end}
 END_TEST_S
 
 TEST_S(test_orderedset_dint_collision_usecase)
@@ -710,7 +684,6 @@ TEST_S(test_orderedset_dint_collision_usecase)
 		added: bool;
 		idx: dint;
 	end
-	{st}
 
 	// Fact: collision usecase validates add/contains/elements/remove flows.
 		// Arrange
@@ -762,7 +735,6 @@ TEST_S(test_orderedset_dint_collision_usecase)
 	EXPECT_TRUE(OrderedSet_dint_collision_contains(os3, 11));
 	EXPECT_TRUE(OrderedSet_dint_collision_contains(os3, 13));
 	EXPECT_EQ_INT32(2, OrderedSet_dint_collision_len(os3));
-	{end}
 END_TEST_S
 
 TEST_S(test_orderedset_string_usecase)
@@ -775,7 +747,6 @@ TEST_S(test_orderedset_string_usecase)
 		written: dint;
 		added: bool;
 	end
-	{st}
 
 	// Fact: string set validates add, duplicate handling, and remove.
 		// Arrange
@@ -829,5 +800,4 @@ TEST_S(test_orderedset_string_usecase)
 	ASSERT_TRUE(OrderedSet_string16_add(os_eq, 'gamma', added));
 		// Assert
 	EXPECT_FALSE(OrderedSet_string16_equals(os_order2, os_eq));
-	{end}
 END_TEST_S

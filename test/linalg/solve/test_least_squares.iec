@@ -55,7 +55,6 @@ TEST_S(test_matrix_solve_least_squares)
 		b11: array[0..3] of lreal := [10.0, 20.0, 30.0, 40.0];
 		x11: array[0..3] of lreal;
 	end
-	{st}
 	Matrix_solve_least_squares(a:=a1, b:=b1, x:=x1);
 	EXPECT_NEAR(0.0, x1[0], EPS);
 	EXPECT_NEAR(1.0, x1[1], EPS);
@@ -93,7 +92,6 @@ TEST_S(test_matrix_solve_least_squares)
 	EXPECT_NEAR(3.0, x11[1], 1e-6);
 	EXPECT_NEAR(2.0, x11[2], 1e-6);
 	EXPECT_NEAR(1.0, x11[3], 1e-6);
-	{end}
 END_TEST_S
 
 {#undef EPS}

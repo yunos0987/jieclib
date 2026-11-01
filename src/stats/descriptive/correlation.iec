@@ -38,7 +38,6 @@ function Stats_pearson: lreal
 		actual_nx, actual_ny, actual_n: dint;
 		cov_val, std_x, std_y: lreal;
 	end
-	{st}
 	actual_nx := Array_isRegular_lreal(x);
 	actual_ny := Array_isRegular_lreal(y);
 	if (actual_nx = 0) or (actual_ny = 0) or (n > actual_nx) or (n > actual_ny) then
@@ -65,7 +64,6 @@ function Stats_pearson: lreal
 	end_if;
 
 	Stats_pearson := cov_val / (std_x * std_y);
-	{end}
 end
 
 (*{doc Spearman順位相関係数を得る。
@@ -117,7 +115,6 @@ function Stats_spearman: lreal
 		cov_val, std_rx, std_ry: lreal;
 		sum_prod, sum_sq_rx, sum_sq_ry: lreal;
 	end
-	{st}
 	actual_nx := Array_isRegular_lreal(x);
 	actual_ny := Array_isRegular_lreal(y);
 	if (actual_nx = 0) or (actual_ny = 0) or (n > actual_nx) or (n > actual_ny) then
@@ -178,7 +175,6 @@ function Stats_spearman: lreal
 	else
 		Stats_spearman := sum_prod / sqrt(sum_sq_rx * sum_sq_ry);
 	end_if;
-	{end}
 end
 
 {#endif}

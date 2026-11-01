@@ -64,13 +64,11 @@ function Random_nextRealInRange: lreal
 		(*{doc The maximum value (exclusive).}*)
 		max_val: lreal;
 	end
-	{st}
 	if min_val >= max_val then
 		eno := false;
 	else
 		Random_nextRealInRange := min_val + Random_nextDouble(self) * (max_val - min_val);
 	end_if;
-	{end}
 end
 
 {#undef _RANDOM_NEXT_REAL_IN_RANGE_}

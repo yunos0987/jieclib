@@ -33,7 +33,6 @@ TEST_S(test_stats_arithmetic_mean)
 		result: lreal;
 		result_eno: bool;
 	end
-	{st}
 		result := Stats_arithmetic_mean(data:=x_basic);
 		EXPECT_NEAR(3.0, result, EPS);
 
@@ -51,7 +50,6 @@ TEST_S(test_stats_arithmetic_mean)
 
 		result := Stats_arithmetic_mean(data:=x_large);
 		EXPECT_NEAR(2500.0, result, EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_weighted_arithmetic_mean)
@@ -66,7 +64,6 @@ TEST_S(test_stats_weighted_arithmetic_mean)
 		weights4: array[0..2] of lreal := [2.0, 3.0, 5.0];
 		result, regular_mean: lreal;
 	end
-	{st}
 		result := Stats_weighted_arithmetic_mean(data:=data1, weights:=weights1);
 		EXPECT_NEAR(3.0, result, EPS);
 
@@ -79,7 +76,6 @@ TEST_S(test_stats_weighted_arithmetic_mean)
 
 		result := Stats_weighted_arithmetic_mean(data:=data4, weights:=weights4);
 		EXPECT_NEAR(23.0, result, EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_moving_average)
@@ -93,7 +89,6 @@ TEST_S(test_stats_moving_average)
 		data4: array[0..5] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
 		result4: array[0..2] of lreal;
 	end
-	{st}
 		Stats_moving_average(data:=data1, window:=3, result:=result1);
 		EXPECT_NEAR(2.0, result1[0], EPS);
 		EXPECT_NEAR(3.0, result1[1], EPS);
@@ -116,7 +111,6 @@ TEST_S(test_stats_moving_average)
 		EXPECT_NEAR(1.5, result4[0], EPS);
 		EXPECT_NEAR(2.5, result4[1], EPS);
 		EXPECT_NEAR(3.5, result4[2], EPS);
-	{end}
 END_TEST_S
 
 {#undef EPS}

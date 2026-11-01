@@ -194,7 +194,6 @@ function HashMap_private_static_robinhood_probedist: dint
 		ideal_idx: dint;
 		capacity: dint;
 	end
-	{st}
 	if (capacity <= 0) or (idx < 0) or (idx >= capacity) or (ideal_idx < 0) or (ideal_idx >= capacity) then
 		eno := false;
 		return;
@@ -205,7 +204,6 @@ function HashMap_private_static_robinhood_probedist: dint
 	else
 		HashMap_private_static_robinhood_probedist := idx + capacity - ideal_idx;
 	end_if;
-	{end}
 end
 
 (*{doc Find key slot by Robin Hood probing.
@@ -238,7 +236,6 @@ function HashMap_private_static_robinhood_find: bool
 		entry_probe: dint;
 		is_eq: bool;
 	end
-	{st}
 	start_idx := _HASHMAP_IDEAL_INDEX(key_hash);
 
 	for probe := 0 to HashMapCapacity - 1 by 1 do
@@ -277,7 +274,6 @@ function HashMap_private_static_robinhood_find: bool
 	slot := -1;
 	did_find := false;
 	HashMap_private_static_robinhood_find := true;
-	{end}
 end
 
 (*{doc Initialize the container.
@@ -289,7 +285,6 @@ function HashMap_init
 	var_temp
 		idx: dint;
 	end
-	{st}
 	self.count := 0;
 
 	for idx := 0 to HashMapCapacity - 1 by 1 do
@@ -297,7 +292,6 @@ function HashMap_init
 		// note: hash key
 	end_for;
 
-	{end}
 end
 
 (*{doc Copy container state.
@@ -314,14 +308,12 @@ function HashMap_copy: bool
 	var_temp
 		idx: dint;
 	end
-	{st}
 	dest.count := self.count;
 	for idx := 0 to HashMapCapacity - 1 by 1 do
 		dest.entries[idx] := self.entries[idx];
 	end_for;
 
 	HashMap_copy := true;
-	{end}
 end
 
 (*{doc Insert or update a key/value pair.
@@ -360,7 +352,6 @@ function HashMap_upsert: bool
 		tmp_value: HashMapValueType;
 		scan_idx: dint;
 	end
-	{st}
 
 	key_hash := HashMapKeyHashFunction(key);
 	HashMap_private_static_robinhood_find(table:=self.entries, key:=key, key_hash:=key_hash, slot=>slot, did_find=>did_find, eno=>eno);
@@ -428,7 +419,6 @@ function HashMap_upsert: bool
 
 	replaced := false;
 	HashMap_upsert := false;
-	{end}
 end
 
 (*{doc Lookup a value by key.
@@ -451,7 +441,6 @@ function HashMap_lookup
 		slot: dint;
 		did_find: bool;
 	end
-	{st}
 	key_hash := HashMapKeyHashFunction(key);
 
 	HashMap_private_static_robinhood_find(table:=self.entries, key:=key, key_hash:=key_hash, slot=>slot, did_find=>did_find, eno=>eno);
@@ -464,7 +453,6 @@ function HashMap_lookup
 	end_if;
 
 	value := self.entries[slot].value;
-	{end}
 end
 
 (*{doc Delete a key/value pair.
@@ -487,7 +475,6 @@ function HashMap_delete: bool
 		next_ideal: dint;
 		next_probe: dint;
 	end
-	{st}
 	key_hash := HashMapKeyHashFunction(key);
 	HashMap_private_static_robinhood_find(table:=self.entries, key:=key, key_hash:=key_hash, slot=>slot, did_find=>did_find, eno=>eno);
 	if not eno then
@@ -520,7 +507,6 @@ function HashMap_delete: bool
 	self.count := self.count - 1;
 
 	HashMap_delete := true;
-	{end}
 end
 
 (*{doc Return true if the target key exists.
@@ -540,7 +526,6 @@ function HashMap_contains: bool
 		slot: dint;
 		did_find: bool;
 	end
-	{st}
 	key_hash := HashMapKeyHashFunction(key);
 	HashMap_private_static_robinhood_find(table:=self.entries, key:=key, key_hash:=key_hash, slot=>slot, did_find=>did_find, eno=>eno);
 	if not eno then
@@ -548,7 +533,6 @@ function HashMap_contains: bool
 	end_if;
 
 	HashMap_contains := did_find;
-	{end}
 end
 
 (*{doc Return the number of stored entries.
@@ -558,9 +542,7 @@ Expose current element count.
 function HashMap_len: dint
 	_PROLOGUE_OF_FUNCTION_()
 	var_in_out self: HashMapCoreType; end
-	{st}
 	HashMap_len := self.count;
-	{end}
 end
 
 (*{doc Copy all keys into an output array.
@@ -584,7 +566,6 @@ function HashMap_keys: bool
 		out_idx: dint;
 		out_hi: dint;
 	end
-	{st}
 	out_idx := lower_bound(keys, 1);
 	out_hi := upper_bound(keys, 1);
 	written := 0;
@@ -602,7 +583,6 @@ function HashMap_keys: bool
 	end_for;
 
 	HashMap_keys := true;
-	{end}
 end
 
 (*{doc Copy all values into an output array.
@@ -626,7 +606,6 @@ function HashMap_values: bool
 		out_idx: dint;
 		out_hi: dint;
 	end
-	{st}
 	out_idx := lower_bound(values, 1);
 	out_hi := upper_bound(values, 1);
 	written := 0;
@@ -644,7 +623,6 @@ function HashMap_values: bool
 	end_for;
 
 	HashMap_values := true;
-	{end}
 end
 
 (*{doc Copy all key/value items into an output array.
@@ -668,7 +646,6 @@ function HashMap_items: bool
 		out_idx: dint;
 		out_hi: dint;
 	end
-	{st}
 	out_idx := lower_bound(items, 1);
 	out_hi := upper_bound(items, 1);
 	written := 0;
@@ -687,7 +664,6 @@ function HashMap_items: bool
 	end_for;
 
 	HashMap_items := true;
-	{end}
 end
 
 (*{doc Compare two HashMaps for equality.
@@ -710,7 +686,6 @@ function HashMap_equals: bool
 		v_self: HashMapValueType;
 		v_other: HashMapValueType;
 	end
-	{st}
 	count_self := HashMap_len(self:=self);
 	count_other := HashMap_len(self:=other);
 
@@ -741,7 +716,6 @@ function HashMap_equals: bool
 	end_for;
 
 	HashMap_equals := true;
-	{end}
 end
 
 {#ifdef HashMapValueHashFunction}
@@ -763,7 +737,6 @@ function HashMap_hash: udint
 		acc1, acc2: udint;
 		cnt: dint;
 	end
-	{st}
 	acc1 := udint#2166136261;
 	acc2 := udint#0;
 
@@ -786,7 +759,6 @@ function HashMap_hash: udint
 	cnt := HashMap_len(self:=self);
 
 	HashMap_hash := acc1 * udint#2246822519 + acc2 + dint_to_udint(cnt);
-	{end}
 end
 {#endif}
 
@@ -797,9 +769,7 @@ Check whether count is zero.
 function HashMap_empty: bool
 	_PROLOGUE_OF_FUNCTION_()
 	var_in_out self: HashMapCoreType; end
-	{st}
 	HashMap_empty := self.count = 0;
-	{end}
 end
 
 (*{doc Clear all entries.
@@ -812,7 +782,6 @@ function HashMap_clear: bool
 	var_temp
 		idx: dint;
 	end
-	{st}
 	for idx := 0 to HashMapCapacity - 1 by 1 do
 		self.entries[idx].state := HASHMAP_SLOT_EMPTY;
 		// note: hash key
@@ -820,7 +789,6 @@ function HashMap_clear: bool
 	self.count := 0;
 
 	HashMap_clear := true;
-	{end}
 end
 
 {#ifdef _HASHMAP_DEFAULT_MAX_LOAD_PERMILLE_DEFINED__}

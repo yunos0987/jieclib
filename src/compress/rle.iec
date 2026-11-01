@@ -43,7 +43,6 @@ function rle_encode: dint
 		more_lit: bool;
 		kk: dint;
 	end
-	{st}
 	i0_in  := lower_bound(dat, 1);
 	i1_in  := upper_bound(dat, 1);
 	i0_out := lower_bound(dst, 1);
@@ -124,7 +123,6 @@ function rle_encode: dint
 	end_while;
 
 	rle_encode := out_idx - (i0_out + dst_offset);
-	{end}
 end
 
 (*{doc Decompress a PackBits run-length encoded byte array.
@@ -157,7 +155,6 @@ function rle_decode: dint
 		lit_cnt: dint;
 		kk: dint;
 	end
-	{st}
 	i0_in  := lower_bound(dat, 1);
 	i1_in  := upper_bound(dat, 1);
 	i0_out := lower_bound(dst, 1);
@@ -225,7 +222,6 @@ function rle_decode: dint
 	end_while;
 
 	rle_decode := out_idx - (i0_out + dst_offset);
-	{end}
 end
 
 {#endif}

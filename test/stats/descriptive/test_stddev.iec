@@ -27,14 +27,12 @@ TEST_S(test_stats_stddev)
 		x_ddof1: array[0..3] of lreal := [1.5, -2.5, 3.0, -1.0];
 		x_ddof_small: array[0..2] of lreal := [2.0, 4.0, 6.0];
 	end
-	{st}
 		EXPECT_NEAR(3.16227766016838, Stats_stddev(data:=x_ddof0, ddof:=0), EPS);
 		EXPECT_NEAR(3.53553390593274, Stats_stddev(data:=x_ddof0, ddof:=1), EPS);
 		EXPECT_NEAR(2.13600093632938, Stats_stddev(data:=x_ddof1, ddof:=0), EPS);
 		EXPECT_NEAR(2.46644143115812, Stats_stddev(data:=x_ddof1, ddof:=1), EPS);
 		EXPECT_NEAR(1.63299316185545, Stats_stddev(data:=x_ddof_small, ddof:=0), 1.0e-6);
 		EXPECT_NEAR(2.0, Stats_stddev(data:=x_ddof_small, ddof:=1), 1.0e-6);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_population_stddev)
@@ -52,7 +50,6 @@ TEST_S(test_stats_population_stddev)
 		x_11: array[0..6] of lreal := [5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0];
 		x_12: array[0..4] of lreal := [10.0, 10.1, 9.9, 10.05, 9.95];
 	end
-	{st}
 		EXPECT_NEAR(3.16227766016838, Stats_population_stddev(data:=x_1), EPS);
 		EXPECT_NEAR(2.13600093632938, Stats_population_stddev(data:=x_2), EPS);
 		EXPECT_NEAR(0.0, Stats_population_stddev(data:=x_3), EPS);
@@ -65,7 +62,6 @@ TEST_S(test_stats_population_stddev)
 		EXPECT_NEAR(17.0782512765993, Stats_population_stddev(data:=x_10), EPS);
 		EXPECT_NEAR(0.0, Stats_population_stddev(data:=x_11), EPS);
 		EXPECT_NEAR(0.0707106781186548, Stats_population_stddev(data:=x_12), EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_sample_stddev)
@@ -86,7 +82,6 @@ TEST_S(test_stats_sample_stddev)
 		result: lreal;
 		result_eno: bool;
 	end
-	{st}
 	result := Stats_sample_stddev(x_1, -1);
 	EXPECT_NEAR(3.53553390593274, result, EPS);
 	result := Stats_sample_stddev(x_2, -1);
@@ -111,7 +106,6 @@ TEST_S(test_stats_sample_stddev)
 	EXPECT_NEAR(0.0, result, EPS);
 	result := Stats_sample_stddev(x_12, -1);
 	EXPECT_NEAR(0.0790569415042095, result, EPS);
-	{end}
 END_TEST_S
 
 {#undef EPS}

@@ -35,13 +35,11 @@ function Stats_stddev: lreal
 		(*{doc 分散。}*)
 		v: lreal;
 	end
-	{st}
 	v := Stats_variance_ddof(data:=data, n:=n, ddof:=ddof, eno=>eno);
 	if not eno then
 		return;
 	end_if;
 	Stats_stddev := sqrt(v);
-	{end}
 end
 
 (*{doc 母標準偏差を計算 (ddof=0)
@@ -61,9 +59,7 @@ function Stats_population_stddev: lreal
 		(*{doc 先頭n個を使用する。}*)
 		n: dint := -1;
 	end
-	{st}
 	Stats_population_stddev := Stats_stddev(data:=data, n:=n, ddof:=0, eno=>eno);
-	{end}
 end
 
 (*{doc 標本標準偏差を計算 (ddof=1)
@@ -83,9 +79,7 @@ function Stats_sample_stddev: lreal
 		(*{doc 先頭n個を使用する。}*)
 		n: dint := -1;
 	end
-	{st}
 	Stats_sample_stddev := Stats_stddev(data:=data, n:=n, ddof:=1, eno=>eno);
-	{end}
 end
 
 {#endif}

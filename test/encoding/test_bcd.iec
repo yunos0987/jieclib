@@ -23,7 +23,6 @@ TEST_S(test_bcd_encode)
 		dat: array[0..7] of byte;
 		ok: bool;
 	end
-	{st}
 	// Fact: bcd_encode stores each decimal digit in a nibble (upper=higher digit).
 		// Arrange/Act
 	ok := bcd_encode(val:=12, dat:=dat, digits:=2);
@@ -117,7 +116,6 @@ TEST_S(test_bcd_encode)
 	bcd_encode(val:=1234, dat:=dat, offset:=7, digits:=4, eno=>ok);
 		// Assert
 	EXPECT_FALSE(ok);
-	{end}
 END_TEST_S
 
 TEST_S(test_bcd_decode)
@@ -126,7 +124,6 @@ TEST_S(test_bcd_decode)
 		nn: dint;
 		ok: bool;
 	end
-	{st}
 	// Fact: bcd_decode converts each nibble pair back to its decimal value.
 		// Arrange
 	dat[0] := byte#16#12;
@@ -204,5 +201,4 @@ TEST_S(test_bcd_decode)
 	bcd_decode(dat:=dat, length:=-1, eno=>ok);
 		// Assert
 	EXPECT_FALSE(ok);
-	{end}
 END_TEST_S

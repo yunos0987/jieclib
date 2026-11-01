@@ -1,6 +1,10 @@
 {#ifndef __SYS_IEC__}
 {#define __SYS_IEC__}
 
+{#if _JIECC and (_JIECC_FULL_VER < 90200)}
+{#error JiecLib requires Jiecc 9.2.0 or later.}
+{#endif}
+
 // note: This program does not fully support Mitsubishi, especially the handling of VAR_IN_OUT parameters in functions.
 
 {#include "sys_config.iec"}
@@ -170,12 +174,10 @@ function Console_initialize: bool
 	var_temp
 		row_index: dint;
 	end
-	{st}
 	for row_index := 0 to CONSOLE_MAX_ROWS - 1 do
 		self.rows[row_index] := '';
 	end_for;
 	self.row_index := 0;
-	{end}
 end
 
 (*{doc Append text to the current row without advancing to the next row.
@@ -189,12 +191,10 @@ function Console_print: bool
 		(*{doc The text to append to the current row.}*)
 		txt: string[STRING_MAX_SIZE];
 	end
-	{st}
 {#if _JIER}
 	PRINT(txt);
 {#endif}
 	self.rows[self.row_index] := jiec_concat(self.rows[self.row_index], txt);
-	{end}
 end
 
 (*{doc Print a line to the console and advance to the next row.
@@ -209,14 +209,12 @@ function Console_puts: dint
 		(*{doc The line to print.}*)
 		line: string[STRING_MAX_SIZE];
 	end
-	{st}
 {#if _JIER}
 	PUTS(line);
 {#endif}
 	self.rows[self.row_index] := line;
 	self.row_index := (self.row_index + 1) mod CONSOLE_MAX_ROWS;
 	Console_puts := self.row_index;
-	{end}
 end
 
 {#endif}

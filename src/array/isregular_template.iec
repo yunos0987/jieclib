@@ -75,7 +75,6 @@ function Array_isRegular2d_x: dint
 	var_temp
 		lb, ub: dint;
 	end
-	{st}
 	if (dim = 1) or (dim = 2) then
 		lb := lower_bound(self, dim);
 		ub := upper_bound(self, dim);
@@ -85,7 +84,6 @@ function Array_isRegular2d_x: dint
 		end_if;
 	end_if;
 	Array_isRegular2d_x := 0;
-	{end}
 end
 
 (*{doc Return the total element count of a 2-D array if both dimensions are regular, or 0.
@@ -101,11 +99,9 @@ function Array_isRegular2d: dint
 	var_temp
 		n1, n2: dint;
 	end
-	{st}
 	n1 := Array_isRegular2d_x(self:=self, dim:=1);
 	n2 := Array_isRegular2d_x(self:=self, dim:=2);
 	Array_isRegular2d := n1 * n2;
-	{end}
 end
 
 (*{doc Return the element count of a 1-D array if it is regular, or 0.
@@ -121,7 +117,6 @@ function Array_isRegular: dint
 	var_temp
 		lb, ub: dint;
 	end
-	{st}
 	lb := lower_bound(self, 1);
 	ub := upper_bound(self, 1);
 	if lb = 0 then
@@ -129,7 +124,6 @@ function Array_isRegular: dint
 	else
 		Array_isRegular := 0;
 	end_if;
-	{end}
 end
 
 {#undef _ARRAY_IS_REGULAR2D_X_}

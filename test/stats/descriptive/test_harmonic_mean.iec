@@ -28,7 +28,6 @@ TEST_S(test_stats_harmonic_mean)
 	var x_add1: array[0..3] of lreal := [4.0, 8.0, 16.0, 32.0]; end
 	var x_add2: array[0..2] of lreal := [10.0, 20.0, 30.0]; end
 	var result: lreal; end
-	{st}
 		// Harmonic mean = 3/(1/1 + 1/2 + 1/4) = 3/1.75 = 1.714...
 		result := Stats_harmonic_mean(data:=x_basic);
 		EXPECT_NEAR(1.7142857142, result, 0.001);
@@ -56,7 +55,6 @@ TEST_S(test_stats_harmonic_mean)
 		// Python: scipy.stats.hmean([10,20,30]) ≈ 16.364
 		result := Stats_harmonic_mean(data:=x_add2);
 		EXPECT_NEAR(16.364, result, 0.01);
-	{end}
 END_TEST_S
 
 {#undef EPS}

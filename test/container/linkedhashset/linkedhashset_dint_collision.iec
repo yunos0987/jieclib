@@ -10,9 +10,7 @@ function Dint_collision_equals_for_linkedhashset_test: bool
 		lhs: dint;
 		rhs: dint;
 	end
-	{st}
 	Dint_collision_equals_for_linkedhashset_test := lhs = rhs;
-	{end}
 end
 
 function Dint_collision_hash_for_linkedhashset_test: udint
@@ -20,9 +18,7 @@ function Dint_collision_hash_for_linkedhashset_test: udint
 	var_input
 		self: dint;
 	end
-	{st}
 	Dint_collision_hash_for_linkedhashset_test := udint#1;
-	{end}
 end
 
 {#define LinkedHashSetName dint_collision}

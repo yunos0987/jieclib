@@ -46,7 +46,6 @@ function Matrix_svd_decompose
 		max_val, tmp, sum_val: lreal;
 		tmp_s: lreal;
 	end
-	{st}
 	a_size := Array_isRegular2d_lreal(a);
 	u_size := Array_isRegular2d_lreal(u);
 	v_size := Array_isRegular2d_lreal(v);
@@ -193,7 +192,6 @@ function Matrix_svd_decompose
 			end_for;
 		end_if;
 	end_for;
-	{end}
 end
 
 {#endif}

@@ -57,7 +57,6 @@ TEST_S(test_matrix_add)
 		b10: array[0..1, 0..1] of lreal := [5e-5, 6e-5, 7e-5, 8e-5];
 		r10: array[0..1, 0..1] of lreal;
 	end
-	{st}
 	Matrix_add(a:=a1, b:=b1, result:=r1);
 	EXPECT_NEAR(6.0, r1[0, 0], EPS);
 	EXPECT_NEAR(8.0, r1[0, 1], EPS);
@@ -100,7 +99,6 @@ TEST_S(test_matrix_add)
 	EXPECT_NEAR(8e-5, r10[0, 1], 1e-15);
 	EXPECT_NEAR(1e-4, r10[1, 0], 1e-15);
 	EXPECT_NEAR(1.2e-4, r10[1, 1], 1e-15);
-	{end}
 END_TEST_S
 
 TEST_S(test_matrix_sub)
@@ -136,7 +134,6 @@ TEST_S(test_matrix_sub)
 		b10: array[0..1, 0..1] of lreal := [5e-4, 1e-3, 1.5e-3, 2e-3];
 		r10: array[0..1, 0..1] of lreal;
 	end
-	{st}
 	Matrix_sub(a:=a1, b:=b1, result:=r1);
 	EXPECT_NEAR(4.0, r1[0, 0], EPS);
 	EXPECT_NEAR(4.0, r1[0, 1], EPS);
@@ -183,7 +180,6 @@ TEST_S(test_matrix_sub)
 	EXPECT_NEAR(1e-3, r10[0, 1], 1e-15);
 	EXPECT_NEAR(1.5e-3, r10[1, 0], 1e-15);
 	EXPECT_NEAR(2e-3, r10[1, 1], 1e-15);
-	{end}
 END_TEST_S
 
 TEST_S(test_matrix_scale)
@@ -219,7 +215,6 @@ TEST_S(test_matrix_scale)
 		s10: lreal := 1e5;
 		r10: array[0..0, 0..1] of lreal;
 	end
-	{st}
 	Matrix_scale(a:=a1, scalar:=s1, result:=r1);
 	EXPECT_NEAR(2.0, r1[0, 0], EPS);
 	EXPECT_NEAR(4.0, r1[0, 1], EPS);
@@ -263,7 +258,6 @@ TEST_S(test_matrix_scale)
 	Matrix_scale(a:=a10, scalar:=s10, result:=r10);
 	EXPECT_NEAR(1.0, r10[0, 0], EPS);
 	EXPECT_NEAR(2.0, r10[0, 1], EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_matrix_multiply)
@@ -299,7 +293,6 @@ TEST_S(test_matrix_multiply)
 		b10: array[0..1, 0..1] of lreal := [1.0, 0.0, 0.0, 1.0];
 		r10: array[0..1, 0..1] of lreal;
 	end
-	{st}
 	Matrix_multiply(a:=a1, b:=b1, result:=r1);
 	EXPECT_NEAR(19.0, r1[0, 0], EPS);
 	EXPECT_NEAR(22.0, r1[0, 1], EPS);
@@ -343,7 +336,6 @@ TEST_S(test_matrix_multiply)
 	EXPECT_NEAR(-1.0, r10[0, 1], EPS);
 	EXPECT_NEAR(1.0, r10[1, 0], EPS);
 	EXPECT_NEAR(3.0, r10[1, 1], EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_matrix_transpose)
@@ -369,7 +361,6 @@ TEST_S(test_matrix_transpose)
 		a10: array[0..0, 0..2] of lreal := [1e-5, 2e-5, 3e-5];
 		r10: array[0..2, 0..0] of lreal;
 	end
-	{st}
 	Matrix_transpose(a:=a1, result:=r1);
 	EXPECT_NEAR(1.0, r1[0, 0], EPS);
 	EXPECT_NEAR(3.0, r1[0, 1], EPS);
@@ -419,7 +410,6 @@ TEST_S(test_matrix_transpose)
 	EXPECT_NEAR(1e-5, r10[0, 0], 1e-15);
 	EXPECT_NEAR(2e-5, r10[1, 0], 1e-15);
 	EXPECT_NEAR(3e-5, r10[2, 0], 1e-15);
-	{end}
 END_TEST_S
 
 TEST_S(test_matrix_vector_multiply)
@@ -455,7 +445,6 @@ TEST_S(test_matrix_vector_multiply)
 		v10: array[0..1] of lreal := [1.0, 0.0];
 		r10: array[0..1] of lreal;
 	end
-	{st}
 	Matrix_vector_multiply(a:=a1, v:=v1, result:=r1);
 	EXPECT_NEAR(17.0, r1[0], EPS);
 	EXPECT_NEAR(39.0, r1[1], EPS);
@@ -486,7 +475,6 @@ TEST_S(test_matrix_vector_multiply)
 	Matrix_vector_multiply(a:=a10, v:=v10, result:=r10);
 	EXPECT_NEAR(1.0, r10[0], EPS);
 	EXPECT_NEAR(1.0, r10[1], EPS);
-	{end}
 END_TEST_S
 
 {#undef EPS}

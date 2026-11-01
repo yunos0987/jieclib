@@ -41,7 +41,6 @@ TEST_S(test_stats_coefficient_of_variation)
 		result_sample, result_pop: lreal;
 		result_eno: bool;
 	end
-	{st}
 		// CV = stddev/mean = sqrt(2.5)/3 ≈ 0.5270
 		result_sample := Stats_coefficient_of_variation(data:=x_simple, ddof:=1);
 		EXPECT_NEAR(0.5270462767, result_sample, 1.0e-7);
@@ -108,7 +107,6 @@ TEST_S(test_stats_coefficient_of_variation)
 		// Near-zero mean - should handle gracefully
 		result_sample := Stats_coefficient_of_variation(data:=x_near_zero, ddof:=1, eno=>result_eno);
 		EXPECT_FALSE(result_eno);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_relative_stddev)
@@ -129,7 +127,6 @@ TEST_S(test_stats_relative_stddev)
 		x_ddof_test: array[0..3] of lreal := [5.0, 10.0, 15.0, 20.0];
 		result, result_ddof0, result_ddof1: lreal;
 	end
-	{st}
 		// RSD for base sequence - mean=30, stddev≈15.811, RSD≈52.7%
 		result := Stats_relative_stddev(data:=x_base, ddof:=1);
 		EXPECT_NEAR(52.704628, result, 0.01);
@@ -189,7 +186,6 @@ TEST_S(test_stats_relative_stddev)
 		EXPECT_GT_LREAL(result_ddof1, result_ddof0);
 		EXPECT_NEAR(51.639778, result_ddof1, 0.01);
 		EXPECT_NEAR(44.721360, result_ddof0, 0.01);
-	{end}
 END_TEST_S
 
 {#undef EPS}

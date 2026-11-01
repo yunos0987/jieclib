@@ -59,7 +59,6 @@ TEST_S(test_vector_add)
 		a10: array[0..3] of lreal := [2.0, -4.0, 6.0, -8.0];
 		b10: array[0..3] of lreal := [-2.0, 4.0, -6.0, 8.0];
 		r10: array[0..3] of lreal;	end
-	{st}
 	Vector_add(a:=a1, b:=b1, result:=r1);
 	EXPECT_NEAR(5.0, r1[0], EPS);
 	EXPECT_NEAR(7.0, r1[1], EPS);
@@ -98,7 +97,6 @@ TEST_S(test_vector_add)
 	EXPECT_NEAR(0.0, r10[1], EPS);
 	EXPECT_NEAR(0.0, r10[2], EPS);
 	EXPECT_NEAR(0.0, r10[3], EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_vector_sub)
@@ -133,7 +131,6 @@ TEST_S(test_vector_sub)
 		a10: array[0..3] of lreal := [2.0, -4.0, 6.0, -8.0];
 		b10: array[0..3] of lreal := [-2.0, 4.0, -6.0, 8.0];
 		r10: array[0..3] of lreal;	end
-	{st}
 	Vector_sub(a:=a1, b:=b1, result:=r1);
 	EXPECT_NEAR(4.0, r1[0], EPS);
 	EXPECT_NEAR(5.0, r1[1], EPS);
@@ -172,7 +169,6 @@ TEST_S(test_vector_sub)
 	EXPECT_NEAR(-8.0, r10[1], EPS);
 	EXPECT_NEAR(12.0, r10[2], EPS);
 	EXPECT_NEAR(-16.0, r10[3], EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_vector_scale)
@@ -197,7 +193,6 @@ TEST_S(test_vector_scale)
 		r9: array[0..3] of lreal;
 		a10: array[0..3] of lreal := [2.0, -4.0, 6.0, -8.0];
 		r10: array[0..3] of lreal;	end
-	{st}
 	Vector_scale(a:=a1, scalar:=2.0, result:=r1);
 	EXPECT_NEAR(2.0, r1[0], EPS);
 	EXPECT_NEAR(4.0, r1[1], EPS);
@@ -236,7 +231,6 @@ TEST_S(test_vector_scale)
 	EXPECT_NEAR(1.0, r10[1], EPS);
 	EXPECT_NEAR(-1.5, r10[2], EPS);
 	EXPECT_NEAR(2.0, r10[3], EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_vector_dot)
@@ -263,7 +257,6 @@ TEST_S(test_vector_dot)
 		b10: array[0..3] of lreal := [-2.0, 4.0, -6.0, 8.0];
 		result: lreal;
 	end
-	{st}
 	result := Vector_dot(a:=a1, b:=b1);
 	EXPECT_NEAR(32.0, result, EPS);
 	result := Vector_dot(a:=a2, b:=b2);
@@ -284,7 +277,6 @@ TEST_S(test_vector_dot)
 	EXPECT_NEAR(34.0, result, EPS);
 	result := Vector_dot(a:=a10, b:=b10);
 	EXPECT_NEAR(-120.0, result, EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_vector_negate)
@@ -309,7 +301,6 @@ TEST_S(test_vector_negate)
 		r9: array[0..3] of lreal;
 		a10: array[0..3] of lreal := [2.0, -4.0, 6.0, -8.0];
 		r10: array[0..3] of lreal;	end
-	{st}
 	Vector_negate(a:=a1, result:=r1);
 	EXPECT_NEAR(-1.0, r1[0], EPS);
 	EXPECT_NEAR(-2.0, r1[1], EPS);
@@ -348,7 +339,6 @@ TEST_S(test_vector_negate)
 	EXPECT_NEAR(4.0, r10[1], EPS);
 	EXPECT_NEAR(-6.0, r10[2], EPS);
 	EXPECT_NEAR(8.0, r10[3], EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_vector_elementwise_mul)
@@ -383,7 +373,6 @@ TEST_S(test_vector_elementwise_mul)
 		a10: array[0..3] of lreal := [2.0, -4.0, 6.0, -8.0];
 		b10: array[0..3] of lreal := [-2.0, 4.0, -6.0, 8.0];
 		r10: array[0..3] of lreal;	end
-	{st}
 	Vector_elementwise_mul(a:=a1, b:=b1, result:=r1);
 	EXPECT_NEAR(4.0, r1[0], EPS);
 	EXPECT_NEAR(10.0, r1[1], EPS);
@@ -422,7 +411,6 @@ TEST_S(test_vector_elementwise_mul)
 	EXPECT_NEAR(-16.0, r10[1], EPS);
 	EXPECT_NEAR(-36.0, r10[2], EPS);
 	EXPECT_NEAR(-64.0, r10[3], EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_vector_elementwise_div)
@@ -457,7 +445,6 @@ TEST_S(test_vector_elementwise_div)
 		a10: array[0..3] of lreal := [2.0, -4.0, 6.0, -8.0];
 		b10: array[0..3] of lreal := [2.0, -2.0, 3.0, -4.0];
 		r10: array[0..3] of lreal;	end
-	{st}
 	Vector_elementwise_div(a:=a1, b:=b1, result:=r1);
 	EXPECT_NEAR(4.0, r1[0], EPS);
 	EXPECT_NEAR(5.0, r1[1], EPS);
@@ -496,7 +483,6 @@ TEST_S(test_vector_elementwise_div)
 	EXPECT_NEAR(2.0, r10[1], EPS);
 	EXPECT_NEAR(2.0, r10[2], EPS);
 	EXPECT_NEAR(2.0, r10[3], EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_vector_linear_combination)
@@ -531,7 +517,6 @@ TEST_S(test_vector_linear_combination)
 		v10: array[0..1, 0..2] of lreal := [-5.0, 0.0, 5.0, 5.0, 0.0, -5.0];
 		c10: array[0..1] of lreal := [0.5, 0.5];
 		r10: array[0..2] of lreal;	end
-	{st}
 	Vector_linear_combination(vectors:=v1, coefficients:=c1, result:=r1);
 	EXPECT_NEAR(5.0, r1[0], EPS);
 	EXPECT_NEAR(7.0, r1[1], EPS);
@@ -572,7 +557,6 @@ TEST_S(test_vector_linear_combination)
 	EXPECT_NEAR(0.0, r10[0], EPS);
 	EXPECT_NEAR(0.0, r10[1], EPS);
 	EXPECT_NEAR(0.0, r10[2], EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_vector_equal)
@@ -599,7 +583,6 @@ TEST_S(test_vector_equal)
 		b10: array[0..2] of lreal := [1.0, 2.0, 4.0];
 		result: bool;
 	end
-	{st}
 	result := Vector_equal(a:=a1, b:=b1);
 	EXPECT_TRUE(result);
 	result := Vector_equal(a:=a2, b:=b2);
@@ -620,7 +603,6 @@ TEST_S(test_vector_equal)
 	EXPECT_TRUE(result);
 	result := Vector_equal(a:=a10, b:=b10);
 	EXPECT_FALSE(result);
-	{end}
 END_TEST_S
 
 {#undef EPS}

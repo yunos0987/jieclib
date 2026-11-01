@@ -47,14 +47,11 @@ DEFINE_CONFIGURATION(
 {#endif}
 
 TEST_S(test_String_length)
-	{st}
 	EXPECT_EQ_INT32(5, String_length('hello'));
 	EXPECT_EQ_INT32(0, String_length(''));
-	{end}
 END_TEST_S
 
 TEST_S(test_String_at)
-	{st}
 	//
 	EXPECT_EQ_STRING('', String_at('aAb', -5));
 	EXPECT_EQ_STRING('', String_at('aAb', -4));
@@ -70,11 +67,9 @@ TEST_S(test_String_at)
 	EXPECT_EQ_STRING('', String_at('', -1));
 	EXPECT_EQ_STRING('', String_at('', 0));
 	EXPECT_EQ_STRING('', String_at('', 1));
-	{end}
 END_TEST_S
 
 TEST_S(test_String_charAt)
-	{st}
 	//
 	EXPECT_EQ_STRING('', String_charAt('aAb', -1));
 	EXPECT_EQ_STRING('a', String_charAt('aAb', 0));
@@ -93,26 +88,20 @@ TEST_S(test_String_charAt)
 	//EXPECT_EQ_STRING('⬅', String_charAt('⬅➡', 0));
 	//EXPECT_EQ_STRING('➡', String_charAt('⬅➡', 1));
 	//EXPECT_EQ_STRING('', String_charAt('⬅➡', 2));
-	{end}
 END_TEST_S
 
 TEST_S(test_String_empty)
-	{st}
 	EXPECT_EQ_BOOL(false, String_empty('hello'));
 	EXPECT_EQ_BOOL(true, String_empty(''));
-	{end}
 END_TEST_S
 
 TEST_S(test_String_concat)
-	{st}
 	EXPECT_EQ_STRING('abcdefghijklmnopqrstuvwxyz', String_concat('a', 'bc', 'def', 'ghij', 'klmn', 'opqrs', 'tuvwxyz'));
 	EXPECT_EQ_STRING('ab', String_concat('a', 'b'));
 	EXPECT_EQ_STRING('a', String_concat('a'));
-	{end}
 END_TEST_S
 
 TEST_S(test_String_asciiCharCodeAt)
-	{st}
 	//
 	EXPECT_EQ_INT32(-1, String_asciiCharCodeAt('aAb', -1));
 	EXPECT_EQ_INT32(16#61, String_asciiCharCodeAt('aAb', 0));
@@ -137,11 +126,9 @@ TEST_S(test_String_asciiCharCodeAt)
 	// note:
 	//EXPECT_EQ_INT32(16#e29c8aefb88f, String_asciiCharCodeAt('✊️', 0));
 	//EXPECT_EQ_INT32(-1, String_asciiCharCodeAt('✊️', 1));
-	{end}
 END_TEST_S
 
 TEST_S(test_String_fromAsciiCharCode)
-	{st}
 	EXPECT_EQ_STRING('$00', String_fromAsciiCharCode(16#00));
 	EXPECT_EQ_STRING('$01', String_fromAsciiCharCode(16#01));
 	EXPECT_EQ_STRING('$02', String_fromAsciiCharCode(16#02));
@@ -273,11 +260,9 @@ TEST_S(test_String_fromAsciiCharCode)
 	//
 	EXPECT_EQ_STRING('ab', String_fromAsciiCharCode(16#61, 16#62));
 	EXPECT_EQ_STRING('abcdefg', String_fromAsciiCharCode(16#61, 16#62, 16#63, 16#64, 16#65, 16#66, 16#67));
-	{end}
 END_TEST_S
 
 TEST_S(test_String_lower_upper)
-	{st}
 	//
 	EXPECT_EQ_STRING('0', String_lower('0'));
 	EXPECT_EQ_STRING('a', String_lower('a'));
@@ -342,7 +327,6 @@ TEST_S(test_String_lower_upper)
 		'$50$51$52$53$54$55$56$57$58$59$5A$5B$5C$5D$5E$5F'
 		'$60$61$62$63$64$65$66$67$68$69$6A$6B$6C$6D$6E$6F'
 		'$70$71$72$73$74$75$76$77$78$79$7A$7B$7C$7D$7E$7F'));
-	{end}
 END_TEST_S
 
 TEST_S(test_String_equals)
@@ -351,7 +335,6 @@ TEST_S(test_String_equals)
 		s2: STRING;
 		r: bool;
 	end
-	{st}
 	s1 := '';
 	s2 := '';
 	r := String_equals(s1, s2);
@@ -374,7 +357,6 @@ TEST_S(test_String_equals)
 	EXPECT_EQ_BOOL(false, r);
 	r := String_equals(s2, s1);
 	EXPECT_EQ_BOOL(false, r);
-	{end}
 END_TEST_S
 
 TEST_S(test_String_equalsAsciiIgnoreCase)
@@ -383,7 +365,6 @@ TEST_S(test_String_equalsAsciiIgnoreCase)
 		s2: STRING;
 		r: bool;
 	end
-	{st}
 	s1 := '';
 	s2 := '';
 	r := String_equalsAsciiIgnoreCase(s1, s2);
@@ -416,32 +397,26 @@ TEST_S(test_String_equalsAsciiIgnoreCase)
 	s2 := 'abc$7E';
 	r := String_equalsAsciiIgnoreCase(s1, s2);
 	EXPECT_EQ_BOOL(false, r);
-	{end}
 END_TEST_S
 
 TEST_S(test_String_hash)
-	{st}
 	EXPECT_EQ_UDINT(udint#2166136261, String_hash(''));
 	EXPECT_EQ_UDINT(udint#3826002220, String_hash('a'));
 	EXPECT_EQ_UDINT(udint#3289118412, String_hash('A'));
 	EXPECT_EQ_UDINT(udint#1335831723, String_hash('hello'));
 	EXPECT_EQ_UDINT(udint#3214735720, String_hash('foobar'));
-	{end}
 END_TEST_S
 
 TEST_S(test_String_hashAsciiIgnoreCase)
-	{st}
 	EXPECT_EQ_UDINT(udint#2166136261, String_hashAsciiIgnoreCase(''));
 	EXPECT_EQ_UDINT(udint#3826002220, String_hashAsciiIgnoreCase('a'));
 	EXPECT_EQ_UDINT(udint#3826002220, String_hashAsciiIgnoreCase('A'));
 	EXPECT_EQ_UDINT(udint#1335831723, String_hashAsciiIgnoreCase('hello'));
 	EXPECT_EQ_UDINT(udint#1335831723, String_hashAsciiIgnoreCase('Hello'));
 	EXPECT_EQ_UDINT(udint#3214735720, String_hashAsciiIgnoreCase('foobar'));
-	{end}
 END_TEST_S
 
 TEST_S(test_String_remove)
-	{st}
 	//
 	EXPECT_EQ_STRING('adad', String_remove('abcdabcd', 'bc', -1));
 	EXPECT_EQ_STRING('abcdabcd', String_remove('abcdabcd', 'bc', 0));
@@ -464,21 +439,17 @@ TEST_S(test_String_remove)
 	EXPECT_EQ_STRING('ab', String_remove('abaabb', 'ab', -1));
 	//
 	EXPECT_EQ_STRING('Abcd', String_remove('Abcd', 'a', -1));
-	{end}
 END_TEST_S
 
 TEST_S(test_String_reverse)
-	{st}
 	EXPECT_EQ_STRING('DCBAdcba', String_reverse('abcdABCD'));
 	EXPECT_EQ_STRING('', String_reverse(''));
 	EXPECT_EQ_STRING('a', String_reverse('a'));
 	// note:
 	//EXPECT_EQ_STRING('➡⬅', String_reverse('⬅➡'));
-	{end}
 END_TEST_S
 
 TEST_S(test_String_startswith)
-	{st}
 	EXPECT_EQ_BOOL(true, String_startswith('abcdabCD', 'a'));
 	EXPECT_EQ_BOOL(true, String_startswith('abcdabCD', 'ab'));
 	EXPECT_EQ_BOOL(true, String_startswith('abcdabCD', 'abcdabCD'));
@@ -495,11 +466,9 @@ TEST_S(test_String_startswith)
 	//
 	//EXPECT_EQ_BOOL(true, String_startswith('⬅', '⬅⬅➡➡'));
 	//EXPECT_EQ_BOOL(false, String_startswith('➡', '⬅⬅➡➡'));
-	{end}
 END_TEST_S
 
 TEST_S(test_String_endswith)
-	{st}
 	EXPECT_EQ_BOOL(false, String_endswith('abcdabCD', 'a'));
 	EXPECT_EQ_BOOL(false, String_endswith('abcdabCD', 'ab'));
 	EXPECT_EQ_BOOL(true, String_endswith('abcdabCD', 'abcdabCD'));
@@ -516,11 +485,9 @@ TEST_S(test_String_endswith)
 	//
 	//EXPECT_EQ_BOOL(false, String_endswith('⬅', '⬅⬅➡➡'));
 	//EXPECT_EQ_BOOL(true, String_endswith('➡', '⬅⬅➡➡'));
-	{end}
 END_TEST_S
 
 TEST_S(test_String_indexOf)
-	{st}
 	// 0
 	EXPECT_EQ_INT32(0, String_indexOf('hello', '', 0));
 	//
@@ -743,11 +710,9 @@ TEST_S(test_String_indexOf)
 	//
 	EXPECT_EQ_INT32(5, String_indexOf('', '', 5));
 	EXPECT_EQ_INT32(-1, String_indexOf('', 'a', 5));
-	{end}
 END_TEST_S
 
 TEST_S(test_String_lastIndexOf)
-	{st}
 	// 9
 	EXPECT_EQ_INT32(5, String_lastIndexOf(self:='hello', searchString:=''));
 	//
@@ -859,11 +824,9 @@ TEST_S(test_String_lastIndexOf)
 	//
 	EXPECT_EQ_INT32(0, String_lastIndexOf(self:='', searchString:='', position:=2));
 	EXPECT_EQ_INT32(-1, String_lastIndexOf(self:='', searchString:='a', position:=2));
-	{end}
 END_TEST_S
 
 TEST_S(test_String_includes)
-	{st}
 	// 0
 	EXPECT_EQ_BOOL(true, String_includes('hello', '', 0));
 	//
@@ -1086,7 +1049,6 @@ TEST_S(test_String_includes)
 	//
 	EXPECT_EQ_BOOL(true, String_includes('', '', 5));
 	EXPECT_EQ_BOOL(false, String_includes('', 'a', 5));
-	{end}
 END_TEST_S
 
 TEST_S(test_String_split)
@@ -1094,7 +1056,6 @@ TEST_S(test_String_split)
 		outputs: array[0..3] of STRING;
 		l: dint;
 	end_var
-	{st}
 	l := String_split('abcd,xyz,kl', ',', outputs);
 	EXPECT_EQ_INT32(3, l);
 	EXPECT_EQ_STRING('abcd', outputs[0]);
@@ -1165,11 +1126,9 @@ TEST_S(test_String_split)
 	EXPECT_EQ_STRING('b', outputs[1]);
 	EXPECT_EQ_STRING('c', outputs[2]);
 	EXPECT_EQ_STRING('d', outputs[3]);
-	{end}
 END_TEST_S
 
 TEST_S(test_String_substring)
-	{st}
 	EXPECT_EQ_STRING('h', String_substring('hello', 0, 1));
 	EXPECT_EQ_STRING('h', String_substring('hello', 1, 0));
 	EXPECT_EQ_STRING('hell', String_substring('hello', 0, 4));
@@ -1188,11 +1147,9 @@ TEST_S(test_String_substring)
 	//
 	EXPECT_EQ_STRING('', String_substring('', 0, 1));
 	EXPECT_EQ_STRING('', String_substring('', 0, 0));
-	{end}
 END_TEST_S
 
 TEST_S(test_String_trim)
-	{st}
 	EXPECT_EQ_STRING('abc', String_trim('abc'));
 	EXPECT_EQ_STRING('abc', String_ltrim('abc'));
 	EXPECT_EQ_STRING('abc', String_rtrim('abc'));
@@ -1240,7 +1197,6 @@ TEST_S(test_String_trim)
 	EXPECT_EQ_STRING('', String_trim('  '));
 	EXPECT_EQ_STRING('', String_ltrim('  '));
 	EXPECT_EQ_STRING('', String_rtrim('  '));
-	{end}
 END_TEST_S
 
 TEST_S(test_String_join)
@@ -1249,7 +1205,6 @@ TEST_S(test_String_join)
 		e: array[2] of STRING := ['', ''];
 		a: array[1] of STRING := ['xyz'];
 	end_var
-	{st}
 	EXPECT_EQ_STRING('time,type,data', String_join(',', v));
 	EXPECT_EQ_STRING('time + type + data', String_join(' + ', v));
 	//
@@ -1257,11 +1212,9 @@ TEST_S(test_String_join)
 	//
 	EXPECT_EQ_STRING('xyz', String_join(',', a));
 	EXPECT_EQ_STRING('xyz', String_join('', a));
-	{end}
 END_TEST_S
 
 TEST_S(test_String_substitute)
-	{st}
 	//
 	EXPECT_EQ_STRING('adad', String_substitute(self:='abcdabcd', old:='bc', new:=''));
 	EXPECT_EQ_STRING('a*da*d', String_substitute(self:='abcdabcd', old:='bc', new:='*'));
@@ -1277,11 +1230,9 @@ TEST_S(test_String_substitute)
 	EXPECT_EQ_STRING('abcdabcd', String_substitute(self:='abcdabcd', old:='A', new:='*', count:=-1));
 	//
 	EXPECT_EQ_STRING('abcdabcd', String_substitute(self:='abcdabcd', old:='', new:='*', count:=-1));
-	{end}
 END_TEST_S
 
 TEST_S(test_String_repeat)
-	{st}
 	//
 	EXPECT_EQ_STRING('', String_repeat(self:='abc', count:=0));
 	EXPECT_EQ_STRING('abc', String_repeat(self:='abc', count:=1));
@@ -1294,11 +1245,9 @@ TEST_S(test_String_repeat)
 	EXPECT_EQ_STRING('', String_repeat(self:='', count:=5));
 	//
 	EXPECT_EQ_STRING('', String_repeat(self:='abc', count:=-1));
-	{end}
 END_TEST_S
 
 TEST_S(test_String_padStart)
-	{st}
 	//
 	EXPECT_EQ_STRING('hello', String_padStart(self:='hello', targetLength:=5));
 	EXPECT_EQ_STRING(' hello', String_padStart(self:='hello', targetLength:=6));
@@ -1318,11 +1267,9 @@ TEST_S(test_String_padStart)
 	EXPECT_EQ_STRING('hello', String_padStart(self:='hello', targetLength:=3));
 	//
 	EXPECT_EQ_STRING('hello', String_padStart(self:='hello', targetLength:=10, padString:=''));
-	{end}
 END_TEST_S
 
 TEST_S(test_String_padEnd)
-	{st}
 	//
 	EXPECT_EQ_STRING('hello', String_padEnd(self:='hello', targetLength:=5));
 	EXPECT_EQ_STRING('hello ', String_padEnd(self:='hello', targetLength:=6));
@@ -1342,5 +1289,4 @@ TEST_S(test_String_padEnd)
 	EXPECT_EQ_STRING('hello', String_padEnd(self:='hello', targetLength:=3));
 	//
 	EXPECT_EQ_STRING('hello', String_padEnd(self:='hello', targetLength:=10, padString:=''));
-	{end}
 END_TEST_S

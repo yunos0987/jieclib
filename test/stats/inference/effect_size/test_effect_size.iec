@@ -45,7 +45,6 @@ TEST_S(test_stats_hedges_g)
 		//
 		result: lreal;
 	end
-	{st}
 	// Case 1: Identical groups - should handle zero variance
 	result := Stats_hedges_g(x:=group1_c1, y:=group2_c1);
 	// Note: May return 0 or error depending on implementation
@@ -86,7 +85,6 @@ TEST_S(test_stats_hedges_g)
 	// Case 10: Asymmetric distributions, negative effect
 	result := Stats_hedges_g(x:=group1_c10, y:=group2_c10);
 	EXPECT_TRUE(result < 0.0 and result > -1.0);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_cohens_d)
@@ -114,7 +112,6 @@ TEST_S(test_stats_cohens_d)
 		//
 		result: lreal;
 	end
-	{st}
 	// Case 1: Basic - mean1=3.0, mean2=5.0, Cohen's d ≈ -1.265 (negative)
 	result := Stats_cohens_d(x:=group1_c1, y:=group2_c1);
 	EXPECT_NEAR(result, -1.264911064, EPS);
@@ -155,7 +152,6 @@ TEST_S(test_stats_cohens_d)
 	// Case 10: Tiny negative effect
 	result := Stats_cohens_d(x:=group1_c10, y:=group2_c10);
 	EXPECT_TRUE(result <= 0.0 and result > -1.0);
-	{end}
 END_TEST_S
 
 {#undef EPS}

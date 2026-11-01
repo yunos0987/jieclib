@@ -33,7 +33,6 @@ TEST_S(test_base64url_encode)
 		x_n: array[8] of byte := [byte#16#02, byte#16#03, byte#16#05, byte#16#07, byte#16#0B, byte#16#0D, byte#16#11, byte#16#17];
 		ok: bool;
 	end
-	{st}
 	// Fact: base64url_encode produces a URL-safe string without padding.
 		// Act/Assert
 	EXPECT_EQ_STRING('AgMFBwsNERc', base64url_encode(dat:=x_1));
@@ -110,7 +109,6 @@ TEST_S(test_base64url_encode)
 	base64url_encode(dat:=x_n, offset:=0, length:=9, eno=>ok);
 		// Assert
 	EXPECT_FALSE(ok);
-	{end}
 END_TEST_S
 
 TEST_S(test_base64url_decode)
@@ -119,7 +117,6 @@ TEST_S(test_base64url_decode)
 		ok: bool;
 		x_4096: array[4096] of byte;
 	end
-	{st}
 	// Fact: base64url_decode correctly decodes an 8-byte sequence.
 		// Act
 	ll := base64url_decode(txt:='AgMFBwsNERc', dat:=x_4096);
@@ -206,5 +203,4 @@ TEST_S(test_base64url_decode)
 	EXPECT_EQ_BYTE(byte#16#00, x_4096[10]);
 	EXPECT_EQ_BYTE(byte#16#00, x_4096[11]);
 	EXPECT_EQ_BYTE(byte#16#00, x_4096[12]);
-	{end}
 END_TEST_S

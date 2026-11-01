@@ -45,7 +45,6 @@ TEST_S(test_hashset_dint_init)
 		hs3: HashSet_dint_t;
 		added: bool;
 	end
-	{st}
 
 	// Fact: init sets len to 0 and contains returns false.
 		// Arrange
@@ -69,7 +68,6 @@ TEST_S(test_hashset_dint_init)
 	HashSet_dint_init(hs3);
 		// Assert
 	EXPECT_TRUE(HashSet_dint_empty(hs3));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashset_dint_copy)
@@ -80,7 +78,6 @@ TEST_S(test_hashset_dint_copy)
 		hs_dst_empty: HashSet_dint_t;
 		added: bool;
 	end
-	{st}
 
 	// Fact: copy duplicates all elements.
 		// Arrange
@@ -109,7 +106,6 @@ TEST_S(test_hashset_dint_copy)
 	ASSERT_TRUE(HashSet_dint_copy(hs_src_empty, hs_dst_empty));
 		// Assert
 	EXPECT_TRUE(HashSet_dint_empty(hs_dst_empty));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashset_dint_add)
@@ -121,7 +117,6 @@ TEST_S(test_hashset_dint_add)
 		added: bool;
 		idx: dint;
 	end
-	{st}
 
 	// Fact: add handles new, duplicate, and capacity-limit cases.
 		// Arrange
@@ -159,7 +154,6 @@ TEST_S(test_hashset_dint_add)
 		// Assert
 	EXPECT_EQ_INT32(6, HashSet_dint_len(hs4));
 	EXPECT_FALSE(HashSet_dint_contains(hs4, 999));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashset_dint_add_all)
@@ -170,7 +164,6 @@ TEST_S(test_hashset_dint_add_all)
 		input2: array[0..6] of dint;
 		added_count: dint;
 	end
-	{st}
 
 	// Fact: add_all inserts unique elements and deduplicates.
 		// Arrange
@@ -207,7 +200,6 @@ TEST_S(test_hashset_dint_add_all)
 		// Assert
 	EXPECT_EQ_INT32(6, HashSet_dint_len(hs2));
 	EXPECT_FALSE(HashSet_dint_contains(hs2, 7));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashset_dint_remove_all)
@@ -219,7 +211,6 @@ TEST_S(test_hashset_dint_remove_all)
 		removed_count: dint;
 		added: bool;
 	end
-	{st}
 
 	// Fact: remove_all removes matching elements.
 		// Arrange
@@ -255,7 +246,6 @@ TEST_S(test_hashset_dint_remove_all)
 		// Assert
 	EXPECT_EQ_INT32(0, removed_count);
 	EXPECT_EQ_INT32(1, HashSet_dint_len(hs2));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashset_dint_contains)
@@ -264,7 +254,6 @@ TEST_S(test_hashset_dint_contains)
 		hs2: HashSet_dint_t;
 		added: bool;
 	end
-	{st}
 
 	// Fact: contains returns false on empty set.
 		// Arrange
@@ -287,7 +276,6 @@ TEST_S(test_hashset_dint_contains)
 	// Fact: contains returns false for non-member.
 		// Assert
 	EXPECT_FALSE(HashSet_dint_contains(hs2, 999));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashset_dint_remove)
@@ -296,7 +284,6 @@ TEST_S(test_hashset_dint_remove)
 		hs2: HashSet_dint_t;
 		added: bool;
 	end
-	{st}
 
 	// Fact: remove deletes existing element.
 		// Arrange
@@ -320,7 +307,6 @@ TEST_S(test_hashset_dint_remove)
 	// Fact: remove does not affect other elements.
 		// Assert
 	EXPECT_EQ_INT32(2, HashSet_dint_len(hs2));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashset_dint_len)
@@ -332,7 +318,6 @@ TEST_S(test_hashset_dint_len)
 		hs5: HashSet_dint_t;
 		added: bool;
 	end
-	{st}
 
 	// Fact: len tracks additions correctly.
 		// Arrange
@@ -365,7 +350,6 @@ TEST_S(test_hashset_dint_len)
 	ASSERT_TRUE(HashSet_dint_remove(hs5, 1));
 		// Assert
 	EXPECT_EQ_INT32(1, HashSet_dint_len(hs5));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashset_dint_equals)
@@ -376,7 +360,6 @@ TEST_S(test_hashset_dint_equals)
 		hs4: HashSet_dint_t;
 		added: bool;
 	end
-	{st}
 
 	// Fact: equals returns true for same elements regardless of order.
 		// Arrange
@@ -406,7 +389,6 @@ TEST_S(test_hashset_dint_equals)
 	// Fact: equals returns false for different elements.
 		// Assert
 	EXPECT_FALSE(HashSet_dint_equals(hs1, hs4));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashset_dint_elements)
@@ -423,7 +405,6 @@ TEST_S(test_hashset_dint_elements)
 		found_30: bool;
 		found_40: bool;
 	end
-	{st}
 
 	// Fact: elements returns empty array for empty set.
 		// Arrange
@@ -473,7 +454,6 @@ TEST_S(test_hashset_dint_elements)
 		end_if;
 	end_if;
 	EXPECT_TRUE(found_40);
-	{end}
 END_TEST_S
 
 TEST_S(test_hashset_dint_hash)
@@ -488,7 +468,6 @@ TEST_S(test_hashset_dint_hash)
 		hash_a: udint;
 		hash_b: udint;
 	end
-	{st}
 
 	// Fact: hash values match for equivalent sets.
 		// Arrange
@@ -530,7 +509,6 @@ TEST_S(test_hashset_dint_hash)
 	hash_b := HashSet_dint_hash(hs6);
 		// Assert
 	EXPECT_EQ_UDINT(hash_a, hash_b);
-	{end}
 END_TEST_S
 
 TEST_S(test_hashset_dint_empty)
@@ -540,7 +518,6 @@ TEST_S(test_hashset_dint_empty)
 		hs3: HashSet_dint_t;
 		added: bool;
 	end
-	{st}
 
 	// Fact: empty is true immediately after init.
 		// Arrange
@@ -562,7 +539,6 @@ TEST_S(test_hashset_dint_empty)
 	ASSERT_TRUE(HashSet_dint_remove(hs3, 1));
 		// Assert
 	EXPECT_TRUE(HashSet_dint_empty(hs3));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashset_dint_clear)
@@ -572,7 +548,6 @@ TEST_S(test_hashset_dint_clear)
 		hs_reuse: HashSet_dint_t;
 		added: bool;
 	end
-	{st}
 
 	// Fact: clear removes all elements.
 		// Arrange
@@ -607,7 +582,6 @@ TEST_S(test_hashset_dint_clear)
 	ASSERT_TRUE(HashSet_dint_add(hs_reuse, 9, added));
 		// Assert
 	EXPECT_TRUE(HashSet_dint_contains(hs_reuse, 9));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashset_dint_collision_usecase)
@@ -618,7 +592,6 @@ TEST_S(test_hashset_dint_collision_usecase)
 		added: bool;
 		idx: dint;
 	end
-	{st}
 
 	// Fact: collision usecase validates add/contains/remove flows.
 		// Arrange
@@ -646,7 +619,6 @@ TEST_S(test_hashset_dint_collision_usecase)
 	EXPECT_TRUE(HashSet_dint_collision_contains(hs3, 11));
 	EXPECT_TRUE(HashSet_dint_collision_contains(hs3, 13));
 	EXPECT_EQ_INT32(2, HashSet_dint_collision_len(hs3));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashset_string_usecase)
@@ -656,7 +628,6 @@ TEST_S(test_hashset_string_usecase)
 		hs_remove: HashSet_string16_t;
 		added: bool;
 	end
-	{st}
 
 	// Fact: string set validates add, duplicate handling, and remove.
 		// Arrange
@@ -680,7 +651,6 @@ TEST_S(test_hashset_string_usecase)
 	EXPECT_FALSE(HashSet_string16_contains(hs_remove, 'alpha'));
 	EXPECT_TRUE(HashSet_string16_contains(hs_remove, 'beta'));
 	EXPECT_EQ_INT32(1, HashSet_string16_len(hs_remove));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashset_record_usecase)
@@ -699,7 +669,6 @@ TEST_S(test_hashset_record_usecase)
 		hash2: udint;
 		hash3: udint;
 	end
-	{st}
 
 	// Fact: record set validates deduplication, clear, equals, and hash.
 		// Arrange
@@ -769,5 +738,4 @@ TEST_S(test_hashset_record_usecase)
 		// Assert
 	EXPECT_EQ_UDINT(hash1, hash2);
 	EXPECT_NE_UDINT(hash2, hash3);
-	{end}
 END_TEST_S

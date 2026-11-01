@@ -27,7 +27,6 @@ TEST_S(test_atan2)
 	var
 		result: lreal;
 	end
-	{st}
 	// 第1象限 (x > 0, y > 0)
 	result := Math_atan2(y:=1.0000000000, x:=1.0000000000);
 	EXPECT_NEAR(0.7853981634, result, EPS);
@@ -181,7 +180,6 @@ TEST_S(test_atan2)
 	EXPECT_NEAR(1.5697963271, result, EPS);
 	result := Math_atan2(y:=50.0000000000, x:=50.0000000000);
 	EXPECT_NEAR(0.7853981634, result, EPS);
-	{end}
 END_TEST_S
 
 {#undef EPS}

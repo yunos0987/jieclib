@@ -196,9 +196,7 @@ function OrderedSet_init
 	var_in_out
 		self: OrderedSetCoreType;
 	end
-	{st}
 	OrderedSet_backing_init(self:=self.backing);
-	{end}
 end
 
 (*{doc Copy container state.
@@ -213,9 +211,7 @@ function OrderedSet_copy: bool
 		self: OrderedSetCoreType;
 		dest: OrderedSetCoreType;
 	end
-	{st}
 	OrderedSet_copy := OrderedSet_backing_copy(self:=self.backing, dest:=dest.backing, eno=>eno);
-	{end}
 end
 
 (*{doc Add one element.
@@ -239,13 +235,11 @@ function OrderedSet_add: bool
 	var_temp
 		replaced: bool;
 	end
-	{st}
 	OrderedSet_add := OrderedSet_backing_upsert(self:=self.backing, key:=element, value:=true, replaced=>replaced, eno=>eno);
 	if not eno then
 		return;
 	end_if;
 	added := not replaced;
-	{end}
 end
 
 (*{doc Add all elements from an input array.
@@ -272,7 +266,6 @@ function OrderedSet_add_all: bool
 		replaced: bool;
 		succeeded: bool;
 	end
-	{st}
 	idx_begin := lower_bound(elements, 1);
 	idx_end := upper_bound(elements, 1);
 	added_count := 0;
@@ -292,7 +285,6 @@ function OrderedSet_add_all: bool
 	end_for;
 
 	OrderedSet_add_all := true;
-	{end}
 end
 
 (*{doc Remove one element.
@@ -308,9 +300,7 @@ function OrderedSet_remove: bool
 	var_input
 		element: OrderedSetElementType;
 	end
-	{st}
 	OrderedSet_remove := OrderedSet_backing_delete(self:=self.backing, key:=element, eno=>eno);
-	{end}
 end
 
 (*{doc Remove all matching elements from an input array.
@@ -336,7 +326,6 @@ function OrderedSet_remove_all: bool
 		idx_begin, idx_end: dint;
 		removed: bool;
 	end
-	{st}
 	idx_begin := lower_bound(elements, 1);
 	idx_end := upper_bound(elements, 1);
 	removed_count := 0;
@@ -352,7 +341,6 @@ function OrderedSet_remove_all: bool
 	end_for;
 
 	OrderedSet_remove_all := true;
-	{end}
 end
 
 (*{doc Return true if the target element exists.
@@ -369,9 +357,7 @@ function OrderedSet_contains: bool
 	var_input
 		element: OrderedSetElementType;
 	end
-	{st}
 	OrderedSet_contains := OrderedSet_backing_contains(self:=self.backing, key:=element, eno=>eno);
-	{end}
 end
 
 (*{doc Return the number of stored elements.
@@ -383,9 +369,7 @@ function OrderedSet_len: dint
 	var_in_out
 		self: OrderedSetCoreType;
 	end
-	{st}
 	OrderedSet_len := self.backing.order_count;
-	{end}
 end
 
 (*{doc Copy elements into an output array in insertion order.
@@ -406,9 +390,7 @@ function OrderedSet_elements: bool
 	var_output
 		written: dint;
 	end
-	{st}
 	OrderedSet_elements := OrderedSet_backing_keys(self:=self.backing, keys:=elements, written=>written, eno=>eno);
-	{end}
 end
 
 (*{doc Compare two OrderedSets for equality.
@@ -426,7 +408,6 @@ function OrderedSet_equals: bool
 	var_temp
 		idx: dint;
 	end
-	{st}
 	if self.backing.order_count <> other.backing.order_count then
 		OrderedSet_equals := false;
 		return;
@@ -440,7 +421,6 @@ function OrderedSet_equals: bool
 	end_for;
 
 	OrderedSet_equals := true;
-	{end}
 end
 
 (*{doc Compute a hash value from all elements in insertion order.
@@ -457,14 +437,12 @@ function OrderedSet_hash: udint
 		idx: dint;
 		elem_hash: udint;
 	end
-	{st}
 	acc := udint#2166136261;
 	for idx := 0 to self.backing.order_count - 1 by 1 do
 		elem_hash := OrderedSetElementHashFunction(self.backing.order_keys[idx]);
 		acc := dword_to_udint(udint_to_dword(acc) xor udint_to_dword(elem_hash * udint#16777619)) * udint#16777619 + dint_to_udint(idx + 1);
 	end_for;
 	OrderedSet_hash := acc + dint_to_udint(self.backing.order_count);
-	{end}
 end
 
 (*{doc Return true when the container is empty.
@@ -476,9 +454,7 @@ function OrderedSet_empty: bool
 	var_in_out
 		self: OrderedSetCoreType;
 	end
-	{st}
 	OrderedSet_empty := self.backing.order_count = 0;
-	{end}
 end
 
 (*{doc Clear all elements.
@@ -491,9 +467,7 @@ function OrderedSet_clear: bool
 	var_in_out
 		self: OrderedSetCoreType;
 	end
-	{st}
 	OrderedSet_clear := OrderedSet_backing_clear(self:=self.backing, eno=>eno);
-	{end}
 end
 
 {#undef OrderedSetCoreType}

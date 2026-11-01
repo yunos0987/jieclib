@@ -23,7 +23,6 @@ TEST_S(test_percentencode)
 		r: STRING;
 		o: bool;
 	end
-	{st}
 	r := percentencode(txt:='');
 	EXPECT_EQ_STRING('', r);
 	r := percentencode(txt:='abcXYZ012');
@@ -52,7 +51,6 @@ TEST_S(test_percentencode)
 	// multi-byte (UTF-8 bytes)
 	percentencode(txt:='$E3$81$82', eno=>o);
 	EXPECT_FALSE(o);
-	{end}
 END_TEST_S
 
 TEST_S(test_percentdecode)
@@ -60,7 +58,6 @@ TEST_S(test_percentdecode)
 		t: STRING;
 		o: bool;
 	end
-	{st}
 	t := percentdecode(txt:='', eno=>o);
 	EXPECT_TRUE(o);
 	EXPECT_EQ_STRING('', t);
@@ -105,5 +102,4 @@ TEST_S(test_percentdecode)
 	EXPECT_FALSE(o);
 	percentdecode(txt:='ok%2Fng%', eno=>o);
 	EXPECT_FALSE(o);
-	{end}
 END_TEST_S

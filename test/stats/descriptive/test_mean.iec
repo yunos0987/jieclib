@@ -41,7 +41,6 @@ TEST_S(test_stats_mean)
 		//
 		result: lreal;
 	end
-	{st}
 	result := Stats_mean(x_basic, -1);
 	EXPECT_NEAR(4.0, result, EPS);
 	result := Stats_mean(x_mixed, -1);
@@ -66,7 +65,6 @@ TEST_S(test_stats_mean)
 	EXPECT_NEAR(9.625, result, EPS);
 	result := Stats_mean(x_fractional, -1);
 	EXPECT_NEAR(3.3, result, EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_weighted_mean)
@@ -84,7 +82,6 @@ TEST_S(test_stats_weighted_mean)
 		//
 		result: lreal;
 	end
-	{st}
 	result := Stats_weighted_mean(x_data1, -1, w_weight1);
 	EXPECT_NEAR(2.333333, result, 1.0e-6);
 	result := Stats_weighted_mean(x_data2, -1, w_weight2);
@@ -95,7 +92,6 @@ TEST_S(test_stats_weighted_mean)
 	EXPECT_NEAR(300.0, result, EPS);
 	result := Stats_weighted_mean(x_data_add2, -1, w_weight_add2);
 	EXPECT_NEAR(8.5, result, EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_mean_axis)
@@ -110,7 +106,6 @@ TEST_S(test_stats_mean_axis)
 		result_1row: array[0..0] of lreal;
 		result_5col: array[0..4] of lreal;
 	end
-	{st}
 	Stats_mean_axis(data:=x_2x3, axis:=1, result:=result_col);
 	EXPECT_NEAR(2.5, result_col[0], EPS);
 	EXPECT_NEAR(3.5, result_col[1], EPS);
@@ -134,7 +129,6 @@ TEST_S(test_stats_mean_axis)
 	EXPECT_NEAR(10.0, result_5col[4], EPS);
 	Stats_mean_axis(data:=x_1x5, axis:=2, result:=result_1row);
 	EXPECT_NEAR(6.0, result_1row[0], EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_mean_kahan)
@@ -151,7 +145,6 @@ TEST_S(test_stats_mean_kahan)
 		x_kahan_fractional: array[0..3] of lreal := [0.001, 0.002, 0.003, 0.004];
 		result: lreal;
 	end
-	{st}
 	result := Stats_mean_kahan(x_kahan_basic, -1);
 	EXPECT_NEAR(4.0, result, EPS);
 	result := Stats_mean_kahan(x_kahan_mixed, -1);
@@ -172,7 +165,6 @@ TEST_S(test_stats_mean_kahan)
 	EXPECT_NEAR(0.0, result, EPS);
 	result := Stats_mean_kahan(x_kahan_fractional, -1);
 	EXPECT_NEAR(0.0025, result, 1.0e-6);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_trimmed_mean)
@@ -202,7 +194,6 @@ TEST_S(test_stats_trimmed_mean)
 		work_two: array[0..1] of lreal;
 		result: lreal;
 	end
-	{st}
 		// Basic case: no trimming
 		result := Stats_trimmed_mean(data:=x_trim_basic, work:=work_basic, proportion:=0.0);
 		EXPECT_NEAR(5.5, result, EPS);
@@ -254,7 +245,6 @@ TEST_S(test_stats_trimmed_mean)
 		// Edge case: two values, no trimming possible
 		result := Stats_trimmed_mean(data:=x_trim_two, work:=work_two, proportion:=0.1);
 		EXPECT_NEAR(15.0, result, EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_winsorized_mean)
@@ -286,7 +276,6 @@ TEST_S(test_stats_winsorized_mean)
 		work_mixed_range: array[0..11] of lreal;
 		result: lreal;
 	end
-	{st}
 		// Basic case: no winsorizing
 		result := Stats_winsorized_mean(data:=x_winsor_symmetric, work:=work_symmetric, proportion:=0.0);
 		EXPECT_NEAR(5.5, result, EPS);
@@ -347,7 +336,6 @@ TEST_S(test_stats_winsorized_mean)
 		// High winsorizing: 40%
 		result := Stats_winsorized_mean(data:=x_winsor_extreme, work:=work_extreme, proportion:=0.4);
 		EXPECT_NEAR(4.0, result, EPS);
-	{end}
 END_TEST_S
 
 {#undef EPS}

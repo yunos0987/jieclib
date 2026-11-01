@@ -128,9 +128,7 @@ function Stack_init
 	var_in_out
 		self: StackCoreType;
 	end
-	{st}
 	self.top := 0;
-	{end}
 end
 
 (*{doc Copy stack state.
@@ -147,13 +145,11 @@ function Stack_copy: bool
 	var_temp
 		idx: dint;
 	end
-	{st}
 	dest.top := self.top;
 	for idx := 0 to self.top - 1 by 1 do
 		dest.data[idx] := self.data[idx];
 	end_for;
 	Stack_copy := true;
-	{end}
 end
 
 (*{doc Push one element onto the top of the stack.
@@ -169,7 +165,6 @@ function Stack_push: bool
 	var_input
 		element: StackElementType;
 	end
-	{st}
 	if self.top >= StackCapacity then
 		eno := false;
 		return;
@@ -177,7 +172,6 @@ function Stack_push: bool
 	self.data[self.top] := element;
 	self.top := self.top + 1;
 	Stack_push := true;
-	{end}
 end
 
 (*{doc Pop the top element from the stack.
@@ -194,7 +188,6 @@ function Stack_pop: bool
 	var_in_out
 		value: StackElementType;
 	end
-	{st}
 	if self.top <= 0 then
 		eno := false;
 		return;
@@ -202,7 +195,6 @@ function Stack_pop: bool
 	self.top := self.top - 1;
 	value := self.data[self.top];
 	Stack_pop := true;
-	{end}
 end
 
 (*{doc Peek at the top element without removing it.
@@ -219,14 +211,12 @@ function Stack_peek: bool
 	var_in_out
 		value: StackElementType;
 	end
-	{st}
 	if self.top <= 0 then
 		eno := false;
 		return;
 	end_if;
 	value := self.data[self.top - 1];
 	Stack_peek := true;
-	{end}
 end
 
 (*{doc Return the number of elements currently on the stack.
@@ -237,9 +227,7 @@ function Stack_len: dint
 	var_in_out
 		self: StackCoreType;
 	end
-	{st}
 	Stack_len := self.top;
-	{end}
 end
 
 (*{doc Return true when the stack is empty.
@@ -250,9 +238,7 @@ function Stack_empty: bool
 	var_in_out
 		self: StackCoreType;
 	end
-	{st}
 	Stack_empty := self.top = 0;
-	{end}
 end
 
 (*{doc Clear all elements.
@@ -264,10 +250,8 @@ function Stack_clear: bool
 	var_in_out
 		self: StackCoreType;
 	end
-	{st}
 	self.top := 0;
 	Stack_clear := true;
-	{end}
 end
 
 (*{doc Compare two stacks for equality.
@@ -284,7 +268,6 @@ function Stack_equals: bool
 	var_temp
 		idx: dint;
 	end
-	{st}
 	if self.top <> other.top then
 		Stack_equals := false;
 		return;
@@ -298,7 +281,6 @@ function Stack_equals: bool
 	end_for;
 
 	Stack_equals := true;
-	{end}
 end
 
 {#ifdef StackElementHashFunction}
@@ -316,14 +298,12 @@ function Stack_hash: udint
 		idx: dint;
 		elem_hash: udint;
 	end
-	{st}
 	acc := udint#2166136261;
 	for idx := 0 to self.top - 1 by 1 do
 		elem_hash := StackElementHashFunction(self.data[idx]);
 		acc := dword_to_udint(udint_to_dword(acc) xor udint_to_dword(elem_hash * udint#16777619)) * udint#16777619 + dint_to_udint(idx + 1);
 	end_for;
 	Stack_hash := acc + dint_to_udint(self.top);
-	{end}
 end
 {#endif}
 

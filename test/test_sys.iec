@@ -28,7 +28,6 @@ DEFINE_CONFIGURATION(
 {#include "test_sys_conv.iec"}
 
 TEST_S(test_jiec_concat)
-	{st}
 	// 0~16
 	EXPECT_EQ_STRING('', jiec_concat());
 	EXPECT_EQ_STRING('ab', jiec_concat('ab'));
@@ -49,5 +48,4 @@ TEST_S(test_jiec_concat)
 	EXPECT_EQ_STRING('abcdefghijklmnopqrstuvwxyzABCDEF', jiec_concat('ab', 'cd', 'ef', 'gh', 'ij', 'kl', 'mn', 'op', 'qr', 'st', 'uv', 'wx', 'yz', 'AB', 'CD', 'EF'));
 	//
 	EXPECT_EQ_STRING('', jiec_concat(''));
-	{end}
 END_TEST_S

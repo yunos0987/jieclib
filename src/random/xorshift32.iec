@@ -33,9 +33,7 @@ function Xorshift32_init
 		(*{doc The initial seed value. It must be a 32-bit bits value and non-zero.}*)
 		seed: dword;
 	end
-	{st}
 	self.state := seed;
-	{end}
 end
 
 (*{doc Generates a pseudo-random number.
@@ -55,14 +53,12 @@ function Xorshift32_next: dword
 	var_temp
 		xs: dword;
 	end
-	{st}
 	xs := self.state;
 	xs := xs xor shl(xs, 13);
 	xs := xs xor shr(xs, 17);
 	xs := xs xor shl(xs, 5);
 	self.state := xs;
 	Xorshift32_next := shr(xs, 32 - bits);
-	{end}
 end
 
 (*{doc Generates a uniformly distributed boolean pseudo-random number.
@@ -74,9 +70,7 @@ function Xorshift32_nextBool: bool
 		(*{doc The Xorshift32 generator state.}*)
 		self: Xorshift32_t;
 	end
-	{st}
 	Xorshift32_nextBool := Xorshift32_next(self, 1) = dword#1;
-	{end}
 end
 
 (*{doc Generates a uniformly distributed unsigned 32-bit integer pseudo-random number.
@@ -88,9 +82,7 @@ function Xorshift32_nextUint32: udint
 		(*{doc The Xorshift32 generator state.}*)
 		self: Xorshift32_t;
 	end
-	{st}
 	Xorshift32_nextUint32 := dword_to_udint(Xorshift32_next(self, 32));
-	{end}
 end
 {#define Xorshift32_nextUDINT Xorshift32_nextUint32} (* alias *)
 
@@ -107,11 +99,9 @@ function Xorshift32_nextUint64: ulint
 	var_temp
 		hb, lb: lword;
 	end
-	{st}
 	hb := Xorshift32_next(self, 32);
 	lb := Xorshift32_next(self, 32);
 	Xorshift32_nextUint64 := lword_to_ulint(shl(hb, 32) or lb);
-	{end}
 end
 {#define Xorshift32_nextULINT Xorshift32_nextUint64} (* alias *)
 {#endif}
@@ -125,10 +115,8 @@ function Xorshift32_nextFloat: real
 		(*{doc The Xorshift32 generator state.}*)
 		self: Xorshift32_t;
 	end
-	{st}
 	Xorshift32_nextFloat := lreal_to_real(
 		udint_to_lreal(dword_to_udint(Xorshift32_next(self, 32))) / lreal#4294967296.0); // 2^32
-	{end}
 end
 {#define Xorshift32_nextREAL Xorshift32_nextFloat} (* alias *)
 
@@ -144,11 +132,9 @@ function Xorshift32_nextDouble: lreal
 	var_temp
 		av, bv: lreal;
 	end
-	{st}
 	av := udint_to_lreal(dword_to_udint(Xorshift32_next(self, 32 - 5)));
 	bv := udint_to_lreal(dword_to_udint(Xorshift32_next(self, 32 - 6)));
 	Xorshift32_nextDouble := (av * lreal#67108864.0 + bv) / lreal#9007199254740992.0;
-	{end}
 end
 {#define Xorshift32_nextLREAL Xorshift32_nextDouble} (* alias *)
 

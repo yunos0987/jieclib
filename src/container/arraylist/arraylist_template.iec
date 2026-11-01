@@ -137,10 +137,8 @@ function ArrayList_init
 	var_in_out
 		self: ArrayListCoreType;
 	end
-	{st}
 	self.count := 0;
 	self.capacity := ArrayListCapacity;
-	{end}
 end
 
 (*{doc Return the number of stored elements.
@@ -152,9 +150,7 @@ function ArrayList_len: dint
 	var_in_out
 		self: ArrayListCoreType;
 	end
-	{st}
 	ArrayList_len := self.count;
-	{end}
 end
 
 (*{doc Return whether the ArrayList is empty.
@@ -166,9 +162,7 @@ function ArrayList_empty: bool
 	var_in_out
 		self: ArrayListCoreType;
 	end
-	{st}
 	ArrayList_empty := self.count = 0;
-	{end}
 end
 
 (*{doc Clear all elements.
@@ -180,10 +174,8 @@ function ArrayList_clear: bool
 	var_in_out
 		self: ArrayListCoreType;
 	end
-	{st}
 	self.count := 0;
 	ArrayList_clear := true;
-	{end}
 end
 
 (*{doc Append one element at the end.
@@ -199,7 +191,6 @@ function ArrayList_append: bool
 	var_input
 		item: ArrayListItemType;
 	end
-	{st}
 	if self.count >= self.capacity then
 		ArrayList_append := false;
 		return;
@@ -208,7 +199,6 @@ function ArrayList_append: bool
 	self.data[self.count] := item;
 	self.count := self.count + 1;
 	ArrayList_append := true;
-	{end}
 end
 
 (*{doc Insert one element at the specified index.
@@ -229,7 +219,6 @@ function ArrayList_insert: bool
 	var_temp
 		idx: dint;
 	end
-	{st}
 	if (index < 0) or (index > self.count) then
 		ArrayList_insert := false;
 		return;
@@ -245,7 +234,6 @@ function ArrayList_insert: bool
 	self.data[index] := item;
 	self.count := self.count + 1;
 	ArrayList_insert := true;
-	{end}
 end
 
 (*{doc Update one element at the specified index.
@@ -263,7 +251,6 @@ function ArrayList_set: bool
 		index: dint;
 		item: ArrayListItemType;
 	end
-	{st}
 	if (index < 0) or (index >= self.count) then
 		ArrayList_set := false;
 		return;
@@ -271,7 +258,6 @@ function ArrayList_set: bool
 
 	self.data[index] := item;
 	ArrayList_set := true;
-	{end}
 end
 
 (*{doc Remove one element by index.
@@ -294,7 +280,6 @@ function ArrayList_remove: bool
 	var_temp
 		idx: dint;
 	end
-	{st}
 	if (index < 0) or (index >= self.count) then
 		ArrayList_remove := false;
 		return;
@@ -306,7 +291,6 @@ function ArrayList_remove: bool
 	end_for;
 	self.count := self.count - 1;
 	ArrayList_remove := true;
-	{end}
 end
 
 (*{doc Get one element by index.
@@ -326,14 +310,12 @@ function ArrayList_get
 	var_in_out
 		item: ArrayListItemType;
 	end
-	{st}
 	if (index < 0) or (index >= self.count) then
 		eno := false;
 		return;
 	end_if;
 
 	item := self.data[index];
-	{end}
 end
 
 (*{doc Check whether a target element exists.
@@ -352,7 +334,6 @@ function ArrayList_contains: bool
 	var_temp
 		idx: dint;
 	end
-	{st}
 	for idx := 0 to self.count - 1 by 1 do
 		if _ARRAYLIST_ELEM_EQUALS_(self.data[idx], item) then
 			ArrayList_contains := true;
@@ -361,7 +342,6 @@ function ArrayList_contains: bool
 	end_for;
 
 	ArrayList_contains := false;
-	{end}
 end
 
 (*{doc Return the index of the first matching element.
@@ -380,7 +360,6 @@ function ArrayList_index: dint
 	var_temp
 		idx: dint;
 	end
-	{st}
 	for idx := 0 to self.count - 1 by 1 do
 		if _ARRAYLIST_ELEM_EQUALS_(self.data[idx], item) then
 			ArrayList_index := idx;
@@ -389,7 +368,6 @@ function ArrayList_index: dint
 	end_for;
 
 	ArrayList_index := -1;
-	{end}
 end
 
 (*{doc Copy elements to an output array in list order.
@@ -415,7 +393,6 @@ function ArrayList_values: bool
 		out_idx: dint;
 		out_hi: dint;
 	end
-	{st}
 	out_idx := lower_bound(values, 1);
 	out_hi := upper_bound(values, 1);
 	written := 0;
@@ -431,7 +408,6 @@ function ArrayList_values: bool
 	end_for;
 
 	ArrayList_values := true;
-	{end}
 end
 
 (*{doc Copy ArrayList state.
@@ -448,7 +424,6 @@ function ArrayList_copy: bool
 	var_temp
 		idx: dint;
 	end
-	{st}
 	if dest.capacity < self.count then
 		ArrayList_copy := false;
 		return;
@@ -461,7 +436,6 @@ function ArrayList_copy: bool
 	end_for;
 
 	ArrayList_copy := true;
-	{end}
 end
 
 (*{doc Compare two ArrayLists for equality.
@@ -478,7 +452,6 @@ function ArrayList_equals: bool
 	var_temp
 		idx: dint;
 	end
-	{st}
 	if self.count <> other.count then
 		ArrayList_equals := false;
 		return;
@@ -492,7 +465,6 @@ function ArrayList_equals: bool
 	end_for;
 
 	ArrayList_equals := true;
-	{end}
 end
 
 {#ifdef ArrayListElementHashFunction}
@@ -510,7 +482,6 @@ function ArrayList_hash: udint
 		item_hash: udint;
 		acc: udint;
 	end
-	{st}
 	acc := udint#2166136261;
 	for idx := 0 to self.count - 1 by 1 do
 		item_hash := ArrayListElementHashFunction(self.data[idx]);
@@ -518,7 +489,6 @@ function ArrayList_hash: udint
 	end_for;
 
 	ArrayList_hash := acc + dint_to_udint(self.count);
-	{end}
 end
 {#endif}
 

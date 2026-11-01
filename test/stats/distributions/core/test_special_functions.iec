@@ -27,7 +27,6 @@ DEFINE_CONFIGURATION(
 
 TEST_S(test_stats_erf)
 	var result: lreal; end
-	{st}
 		// erf(0) = 0
 		result := Stats_erf(x:=0.0);
 		EXPECT_NEAR(0.000000000000, result, 1e-6);
@@ -83,14 +82,12 @@ TEST_S(test_stats_erf)
 		// erf(-3.0) = -erf(3.0) ≈ -0.999977909503001
 		result := Stats_erf(x:=-3.0);
 		EXPECT_NEAR(-0.999977909503001, result, 1e-6);
-	{end}
 END_TEST_S
 
 
 
 TEST_S(test_stats_gammainc)
 	var result, p, q, s, p1, p2: lreal; end
-	{st}
 		// P(0.5, z) = erf(sqrt(z))
 		result := Stats_gammainc(a:=0.5, z:=0.25, gln:=Stats_lgamma(x:=0.5));
 		EXPECT_NEAR(0.520499877813047, result, 1e-6);
@@ -148,12 +145,10 @@ TEST_S(test_stats_gammainc)
 		p1 := Stats_gammainc(a:=2.0, z:=0.5, gln:=Stats_lgamma(x:=2.0));
 		p2 := Stats_gammainc(a:=2.0, z:=1.0, gln:=Stats_lgamma(x:=2.0));
 		EXPECT_TRUE(p2 > p1);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_gammaincc)
 	var result, q, p, s, p1, p2, q1, q2: lreal; end
-	{st}
 		// Q = 1 - P when z < a+1, use P=gammainc then Q=1-P
 		// a=0.5: all z < 1.5, so use gammainc
 		p := Stats_gammainc(a:=0.5, z:=0.25, gln:=Stats_lgamma(x:=0.5));
@@ -221,12 +216,10 @@ TEST_S(test_stats_gammaincc)
 		p2 := Stats_gammainc(a:=2.0, z:=1.0, gln:=Stats_lgamma(x:=2.0));
 		q2 := 1.0 - p2;
 		EXPECT_TRUE(q2 < q1);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_erfc)
 	var result: lreal; end
-	{st}
 		// erfc(0) = 1.0
 		result := Stats_erfc(x:=0.0);
 		EXPECT_NEAR(1.0, result, 1e-6);
@@ -278,12 +271,10 @@ TEST_S(test_stats_erfc)
 		// erfc(-2.0) = 1 + erf(2.0) ≈ 1.995322265018953
 		result := Stats_erfc(x:=-2.0);
 		EXPECT_NEAR(1.995322265018953, result, 1e-6);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_gamma)
 	var result: lreal; end
-	{st}
 		// Gamma(0.1) ≈ 9.513507698668732
 		result := Stats_gamma(x:=0.1);
 		EXPECT_NEAR(9.513507698668732, result, 1e-5);
@@ -339,12 +330,10 @@ TEST_S(test_stats_gamma)
 		// Gamma(10.0) = 9! = 362880
 		result := Stats_gamma(x:=10.0);
 		EXPECT_NEAR(362880.0, result, 1000.0);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_lgamma)
 	var result: lreal; end
-	{st}
 		// lgamma(0.1) ≈ 2.252712651734206
 		result := Stats_lgamma(x:=0.1);
 		EXPECT_NEAR(2.252712651734206, result, 1e-6);
@@ -392,12 +381,10 @@ TEST_S(test_stats_lgamma)
 		// lgamma(50.0) ≈ 144.565743946344867
 		result := Stats_lgamma(x:=50.0);
 		EXPECT_NEAR(144.565743946344867, result, 1e-5);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_beta)
 	var result: lreal; end
-	{st}
 		// Beta(1, 1) = 1
 		result := Stats_beta(a:=1.0, b:=1.0);
 		EXPECT_NEAR(1.0, result, 1e-6);
@@ -453,12 +440,10 @@ TEST_S(test_stats_beta)
 		// Beta(0.5, 2) ≈ 1.333333333333333
 		result := Stats_beta(a:=0.5, b:=2.0);
 		EXPECT_NEAR(1.333333333333333, result, 1e-6);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_beta_incomplete)
 	var result: lreal; end
-	{st}
 		// Regularized incomplete Beta values (SciPy compatible)
 		result := Stats_beta_incomplete(a:=0.5, b:=2.0, x:=0.5);
 		EXPECT_NEAR(0.883883476483184, result, 1e-6);
@@ -495,12 +480,10 @@ TEST_S(test_stats_beta_incomplete)
 
 		result := Stats_beta_incomplete(a:=0.7, b:=3.3, x:=0.9);
 		EXPECT_NEAR(0.999732028236898, result, 1e-6);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_beta_continued_fraction)
 	var result: lreal; end
-	{st}
 		// Continued fraction helper h values (betacf)
 		result := Stats_beta_continued_fraction(a:=0.5, b:=2.0, x:=0.5);
 		EXPECT_NEAR(3.333333333333334, result, 1e-6);
@@ -537,5 +520,4 @@ TEST_S(test_stats_beta_continued_fraction)
 
 		result := Stats_beta_continued_fraction(a:=0.7, b:=3.3, x:=0.9);
 		EXPECT_NEAR(872.660482645349475, result, 1e-6);
-	{end}
 END_TEST_S

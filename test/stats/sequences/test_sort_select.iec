@@ -49,7 +49,6 @@ TEST_S(test_stats_sorted_copy)
 		data_identical: array[0..3] of lreal := [7.0, 7.0, 7.0, 7.0];
 		result_identical: array[0..3] of lreal;
 	end
-	{st}
 		// Unsorted mixed data
 		Stats_sorted_copy(data:=data_unsorted, sorted:=result_unsorted);
 		EXPECT_NEAR(1.0, result_unsorted[0], EPS);
@@ -116,7 +115,6 @@ TEST_S(test_stats_sorted_copy)
 		EXPECT_NEAR(7.0, result_identical[1], EPS);
 		EXPECT_NEAR(7.0, result_identical[2], EPS);
 		EXPECT_NEAR(7.0, result_identical[3], EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_select_kth)
@@ -142,7 +140,6 @@ TEST_S(test_stats_select_kth)
 		data_identical: array[0..3] of lreal := [7.0, 7.0, 7.0, 7.0];
 		work_identical: array[0..3] of lreal;
 	end
-	{st}
 		// Unsorted mixed data - various k values
 		EXPECT_NEAR(1.0, Stats_select_kth(data:=data_unsorted, work:=work_unsorted, k:=0), EPS);
 		EXPECT_NEAR(2.0, Stats_select_kth(data:=data_unsorted, work:=work_unsorted, k:=1), EPS);
@@ -188,7 +185,6 @@ TEST_S(test_stats_select_kth)
 		EXPECT_NEAR(7.0, Stats_select_kth(data:=data_identical, work:=work_identical, k:=1), EPS);
 		EXPECT_NEAR(7.0, Stats_select_kth(data:=data_identical, work:=work_identical, k:=2), EPS);
 		EXPECT_NEAR(7.0, Stats_select_kth(data:=data_identical, work:=work_identical, k:=3), EPS);
-	{end}
 END_TEST_S
 
 {#undef EPS}

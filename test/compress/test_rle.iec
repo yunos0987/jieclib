@@ -25,7 +25,6 @@ TEST_S(test_rle_encode)
 		nn: dint;
 		ok: bool;
 	end
-	{st}
 	// Fact: A run of identical bytes produces a 2-byte run packet.
 		// Arrange
 	src[0] := byte#16#AA;
@@ -103,7 +102,6 @@ TEST_S(test_rle_encode)
 	rle_encode(dat:=src, dst:=dst, offset:=300, length:=1, eno=>ok);
 		// Assert
 	EXPECT_FALSE(ok);
-	{end}
 END_TEST_S
 
 TEST_S(test_rle_decode)
@@ -113,7 +111,6 @@ TEST_S(test_rle_decode)
 		nn: dint;
 		ok: bool;
 	end
-	{st}
 	// Fact: A run packet decodes to repeated bytes.
 		// Arrange: header=0xFD (run 4), value=0xAA
 	src[0] := byte#16#FD;
@@ -182,5 +179,4 @@ TEST_S(test_rle_decode)
 	rle_decode(dat:=src, length:=-1, dst:=dst, eno=>ok);
 		// Assert
 	EXPECT_FALSE(ok);
-	{end}
 END_TEST_S

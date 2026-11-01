@@ -37,7 +37,6 @@ TEST_S(test_stats_central_moment)
 		bimodal: array[0..1] of lreal := [10.0, 20.0];
 		result: lreal;
 	end
-	{st}
 		// ========== k=2: Second central moment (variance-related) ==========
 
 		result := Stats_central_moment(data:=uniform, k:=2);
@@ -149,7 +148,6 @@ TEST_S(test_stats_central_moment)
 
 		result := Stats_central_moment(data:=monotonic_descending, k:=3);
 		EXPECT_NEAR(0.0, result, 1.0);
-	{end}
 END_TEST_S
 
 {#undef EPS}

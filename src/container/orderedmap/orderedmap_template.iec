@@ -232,11 +232,9 @@ function OrderedMap_init
 	var_in_out
 		self: OrderedMapCoreType;
 	end
-	{st}
 	OrderedMap_backing_init(self:=self.map);
 
 	self.order_count := 0;
-	{end}
 end
 
 (*{doc Copy container state.
@@ -254,7 +252,6 @@ function OrderedMap_copy: bool
 	var_temp
 		idx: dint;
 	end
-	{st}
 	if not OrderedMap_backing_copy(self:=self.map, dest:=dest.map) then
 		OrderedMap_copy := false;
 		return;
@@ -266,7 +263,6 @@ function OrderedMap_copy: bool
 	end_for;
 
 	OrderedMap_copy := true;
-	{end}
 end
 
 (*{doc Insert or update a key/value pair.
@@ -289,7 +285,6 @@ function OrderedMap_upsert: bool
 	var_output
 		replaced: bool;
 	end
-	{st}
 	if not OrderedMap_backing_upsert(self:=self.map, key:=key, value:=value, replaced=>replaced, eno=>eno) then
 		if not eno then
 			return;
@@ -308,7 +303,6 @@ function OrderedMap_upsert: bool
 	end_if;
 
 	OrderedMap_upsert := true;
-	{end}
 end
 
 (*{doc Lookup a value by key.
@@ -328,9 +322,7 @@ function OrderedMap_lookup
 	var_in_out
 		value: OrderedMapValueType;
 	end
-	{st}
 	OrderedMap_backing_lookup(self:=self.map, key:=key, value:=value, eno=>eno);
-	{end}
 end
 
 (*{doc Delete a key/value pair.
@@ -351,7 +343,6 @@ function OrderedMap_delete: bool
 		found_idx: dint;
 		idx: dint;
 	end
-	{st}
 	if not OrderedMap_backing_delete(self:=self.map, key:=key, eno=>eno) then
 		if not eno then
 			return;
@@ -378,7 +369,6 @@ function OrderedMap_delete: bool
 	self.order_count := self.order_count - 1;
 
 	OrderedMap_delete := true;
-	{end}
 end
 
 (*{doc Return true if the target key exists.
@@ -395,9 +385,7 @@ function OrderedMap_contains: bool
 	var_input
 		key: OrderedMapKeyType;
 	end
-	{st}
 	OrderedMap_contains := OrderedMap_backing_contains(self:=self.map, key:=key, eno=>eno);
-	{end}
 end
 
 (*{doc Return the number of stored entries.
@@ -409,9 +397,7 @@ function OrderedMap_len: dint
 	var_in_out
 		self: OrderedMapCoreType;
 	end
-	{st}
 	OrderedMap_len := self.order_count;
-	{end}
 end
 
 (*{doc Copy keys into an output array in insertion order.
@@ -437,7 +423,6 @@ function OrderedMap_keys: bool
 		out_hi: dint;
 		idx: dint;
 	end
-	{st}
 	out_idx := lower_bound(keys, 1);
 	out_hi := upper_bound(keys, 1);
 	written := 0;
@@ -453,7 +438,6 @@ function OrderedMap_keys: bool
 	end_for;
 
 	OrderedMap_keys := true;
-	{end}
 end
 
 (*{doc Copy values into an output array in insertion order.
@@ -480,7 +464,6 @@ function OrderedMap_values: bool
 		idx: dint;
 		value: OrderedMapValueType;
 	end
-	{st}
 	out_idx := lower_bound(values, 1);
 	out_hi := upper_bound(values, 1);
 	written := 0;
@@ -500,7 +483,6 @@ function OrderedMap_values: bool
 	end_for;
 
 	OrderedMap_values := true;
-	{end}
 end
 
 (*{doc Copy key/value items into an output array in insertion order.
@@ -527,7 +509,6 @@ function OrderedMap_items: bool
 		idx: dint;
 		value: OrderedMapValueType;
 	end
-	{st}
 	out_idx := lower_bound(items, 1);
 	out_hi := upper_bound(items, 1);
 	written := 0;
@@ -548,7 +529,6 @@ function OrderedMap_items: bool
 	end_for;
 
 	OrderedMap_items := true;
-	{end}
 end
 
 (*{doc Compare two OrderedMaps for equality.
@@ -568,7 +548,6 @@ function OrderedMap_equals: bool
 		v_self: OrderedMapValueType;
 		v_other: OrderedMapValueType;
 	end
-	{st}
 	if self.order_count <> other.order_count then
 		OrderedMap_equals := false;
 		return;
@@ -596,7 +575,6 @@ function OrderedMap_equals: bool
 	end_for;
 
 	OrderedMap_equals := true;
-	{end}
 end
 
 {#ifdef OrderedMapValueHashFunction}
@@ -615,7 +593,6 @@ function OrderedMap_hash: udint
 		key_hash, value_hash: udint;
 		value: OrderedMapValueType;
 	end
-	{st}
 	acc := udint#2166136261;
 	for idx := 0 to self.order_count - 1 by 1 do
 		key_hash := OrderedMapKeyHashFunction(self.order_keys[idx]);
@@ -627,7 +604,6 @@ function OrderedMap_hash: udint
 		acc := dword_to_udint(udint_to_dword(acc) xor udint_to_dword(key_hash + value_hash * udint#16777619)) * udint#16777619 + dint_to_udint(idx + 1);
 	end_for;
 	OrderedMap_hash := acc + dint_to_udint(self.order_count);
-	{end}
 end
 {#endif}
 
@@ -640,9 +616,7 @@ function OrderedMap_empty: bool
 	var_in_out
 		self: OrderedMapCoreType;
 	end
-	{st}
 	OrderedMap_empty := self.order_count = 0;
-	{end}
 end
 
 (*{doc Clear all entries.
@@ -655,7 +629,6 @@ function OrderedMap_clear: bool
 	var_in_out
 		self: OrderedMapCoreType;
 	end
-	{st}
 	if not OrderedMap_backing_clear(self:=self.map, eno=>eno) then
 		if not eno then
 			return;
@@ -665,7 +638,6 @@ function OrderedMap_clear: bool
 	end_if;
 	self.order_count := 0;
 	OrderedMap_clear := true;
-	{end}
 end
 
 {#undef OrderedMapCoreType}

@@ -47,7 +47,6 @@ TEST_S(test_stats_jarque_bera)
 		result: Stats_TestResult;
 		result_eno: bool;
 	end
-	{st}
 		// Edge case: n < 4 should return default values
 		Stats_jarque_bera(data:=x_min_n3, result:=result, eno=>result_eno);
 		EXPECT_FALSE(result_eno);
@@ -106,7 +105,6 @@ TEST_S(test_stats_jarque_bera)
 		// Constant values (zero variance) - NaN case
 		Stats_jarque_bera(data:=x_constant_low, result:=result, eno=>result_eno);
 		EXPECT_FALSE(result_eno);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_shapiro_wilk)
@@ -179,7 +177,6 @@ TEST_S(test_stats_shapiro_wilk)
 		W_EPS: lreal constant := 1.0e-5;
 		PVALUE_EPS: lreal constant := 1.0e-5;
 	end
-	{st}
 		// n < 3 -> eno=false
 		Stats_shapiro_wilk(data:=x_min_n2, result:=result, work1:=work1, work2:=work2, work3:=work3, eno=>result_eno);
 		EXPECT_FALSE(result_eno);
@@ -268,7 +265,6 @@ TEST_S(test_stats_shapiro_wilk)
 		Stats_shapiro_wilk(data:=x_mixed_n30, result:=result, work1:=work1, work2:=work2, work3:=work3);
 		EXPECT_NEAR(0.8357086182, result.statistic, W_EPS);
 		EXPECT_NEAR(0.0003157910, result.pvalue, PVALUE_EPS);
-	{end}
 END_TEST_S
 
 {#undef EPS}

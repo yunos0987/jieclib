@@ -38,7 +38,6 @@ function base64encode: STRING
 		startindex, endindex: dint;
 		b1, b2, b3: byte;
 	end
-	{st}
 	base64encode := '';
 	if length = 0 then // ok
 		return;
@@ -99,7 +98,6 @@ function base64encode: STRING
 			b3 and byte#16#3f
 		)]);
 	end_while;
-	{end}
 end
 
 (*{doc Base64文字列をデコードし、バイト配列へ格納する。
@@ -134,7 +132,6 @@ function base64decode: dint
 		o: dint;
 		i0, i1, i: dint;
 	end
-	{st}
 	l := len(txt);
 	p := 0;
 	o := offset;
@@ -193,7 +190,6 @@ function base64decode: dint
 		o := o + 1;
 	end_while;
 	base64decode := o - offset;
-	{end}
 end
 
 {#endif}

@@ -34,9 +34,7 @@ function LCG_init
 		(*{doc The initial seed value.}*)
 		seed: udint;
 	end
-	{st}
 	self.state := seed;
-	{end}
 end
 
 (*{doc Generates an unsigned 32-bit pseudo-random number.
@@ -48,10 +46,8 @@ function LCG_nextUint32: udint
 		(*{doc The LCG generator state.}*)
 		self: LCG_t;
 	end
-	{st}
 	self.state := udint#1664525 * self.state + udint#1013904223;
 	LCG_nextUint32 := self.state;
-	{end}
 end
 {#define LCG_nextUDINT LCG_nextUint32} (* alias *)
 
@@ -64,9 +60,7 @@ function LCG_nextBool: bool
 		(*{doc The LCG generator state.}*)
 		self: LCG_t;
 	end
-	{st}
 	LCG_nextBool := shr(udint_to_dword(LCG_nextUint32(self)), 31) = dword#1;
-	{end}
 end
 
 (*{doc Generates a 32-bit floating-point pseudo-random number with uniform distribution in the range 0.0 to 1.0.
@@ -78,10 +72,8 @@ function LCG_nextFloat: real
 		(*{doc The LCG generator state.}*)
 		self: LCG_t;
 	end
-	{st}
 	LCG_nextFloat := lreal_to_real(
 		udint_to_lreal(LCG_nextUint32(self)) / lreal#4294967296.0); // 2^32
-	{end}
 end
 {#define LCG_nextREAL LCG_nextFloat} (* alias *)
 
@@ -97,11 +89,9 @@ function LCG_nextDouble: lreal
 	var_temp
 		av, bv: lreal;
 	end
-	{st}
 	av := udint_to_lreal(dword_to_udint(shr(udint_to_dword(LCG_nextUint32(self)), 5)));  // upper 27 bits
 	bv := udint_to_lreal(dword_to_udint(shr(udint_to_dword(LCG_nextUint32(self)), 6)));  // upper 26 bits
 	LCG_nextDouble := (av * lreal#67108864.0 + bv) / lreal#9007199254740992.0;
-	{end}
 end
 {#define LCG_nextLREAL LCG_nextDouble} (* alias *)
 

@@ -21,7 +21,6 @@ function Stats_exponential_pdf: lreal
 		(*{doc レート。}*)
 		lambda: lreal;
 	end
-	{st}
 		if lambda <= 0.0 then
 			eno := false;
 			Stats_exponential_pdf := 0.0;
@@ -33,7 +32,6 @@ function Stats_exponential_pdf: lreal
 		else
 			Stats_exponential_pdf := lambda * exp(-lambda * x);
 		end_if;
-	{end}
 end
 
 (*{doc 指数分布の累積分布関数
@@ -50,7 +48,6 @@ function Stats_exponential_cdf: lreal
 		(*{doc レート。}*)
 		lambda: lreal;
 	end
-	{st}
 		if lambda <= 0.0 then
 			eno := false;
 			Stats_exponential_cdf := 0.0;
@@ -62,7 +59,6 @@ function Stats_exponential_cdf: lreal
 		else
 			Stats_exponential_cdf := 1.0 - exp(-lambda * x);
 		end_if;
-	{end}
 end
 
 (*{doc 指数分布の分位関数。Q(p) = -ln(1 - p) / lambda
@@ -78,7 +74,6 @@ function Stats_exponential_ppf: lreal
 		(*{doc レート。}*)
 		lambda: lreal;
 	end
-	{st}
 		if p < 0.0 or p > 1.0 or lambda <= 0.0 then
 			eno := false;
 			Stats_exponential_ppf := 0.0;
@@ -92,7 +87,6 @@ function Stats_exponential_ppf: lreal
 		else
 			Stats_exponential_ppf := -ln(1.0 - p) / lambda;
 		end_if;
-	{end}
 end
 
 (*{doc 指数分布の平均 = 1 / lambda
@@ -105,14 +99,12 @@ function Stats_exponential_mean: lreal
 		(*{doc レート。}*)
 		lambda: lreal;
 	end
-	{st}
 		if lambda <= 0.0 then
 			eno := false;
 			Stats_exponential_mean := 0.0;
 			return;
 		end_if;
 		Stats_exponential_mean := 1.0 / lambda;
-	{end}
 end
 
 (*{doc 指数分布の分散 = 1 / lambda^2
@@ -125,14 +117,12 @@ function Stats_exponential_variance: lreal
 		(*{doc レート。}*)
 		lambda: lreal;
 	end
-	{st}
 		if lambda <= 0.0 then
 			eno := false;
 			Stats_exponential_variance := 0.0;
 			return;
 		end_if;
 		Stats_exponential_variance := 1.0 / (lambda * lambda);
-	{end}
 end
 
 {#endif}

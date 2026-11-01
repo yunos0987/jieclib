@@ -32,7 +32,6 @@ function Stats_skewness: lreal
 		actual_n: dint;
 		skew, adj: lreal;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(data);
 	if (actual_n = 0) or (n > actual_n) then
 		eno := false;
@@ -58,7 +57,6 @@ function Stats_skewness: lreal
 		adj := sqrt(dint_to_lreal(actual_n * (actual_n - 1))) / dint_to_lreal(actual_n - 2);
 		Stats_skewness := skew * adj;
 	end_if;
-	{end}
 end
 
 {#endif}

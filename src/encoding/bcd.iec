@@ -37,7 +37,6 @@ function bcd_encode: bool
 		hi_nibble, lo_nibble: dint;
 		jj: dint;
 	end
-	{st}
 	bcd_encode := false;
 	if (val < 0) or (digits <= 0) then
 		eno := false;
@@ -67,7 +66,6 @@ function bcd_encode: bool
 		return;
 	end_if;
 	bcd_encode := true;
-	{end}
 end
 
 (*{doc Decode a Packed BCD byte array into a DINT value.
@@ -93,7 +91,6 @@ function bcd_decode: dint
 		hi, lo: dint;
 		result: dint;
 	end
-	{st}
 	if length < 0 then
 		eno := false;
 		return;
@@ -116,7 +113,6 @@ function bcd_decode: dint
 		result := result * 100 + hi * 10 + lo;
 	end_for;
 	bcd_decode := result;
-	{end}
 end
 
 {#endif}

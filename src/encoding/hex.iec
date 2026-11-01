@@ -24,7 +24,6 @@ function hex_nibble: dint
 	var_input
 		code: dint;
 	end
-	{st}
 	if (code >= CODE_0) and (code <= CODE_9) then
 		hex_nibble := code - CODE_0;
 		return;
@@ -38,7 +37,6 @@ function hex_nibble: dint
 		return;
 	end_if;
 	hex_nibble := -1;
-	{end}
 end
 
 (*{doc バイト配列を16進文字列へエンコードする。
@@ -69,7 +67,6 @@ function hexencode: STRING
 		hi, lo: dint;
 		out: STRING;
 	end
-	{st}
 	out := '';
 	i0 := lower_bound(dat, 1);
 	i1 := upper_bound(dat, 1);
@@ -93,7 +90,6 @@ function hexencode: STRING
 	end_for;
 
 	hexencode := out;
-	{end}
 end
 
 (*{doc 16進文字列をデコードし、バイト配列へ格納する。
@@ -122,7 +118,6 @@ function hexdecode: dint
 		h1, h2: dint;
 		c1, c2: dint;
 	end
-	{st}
 	l := uint_to_dint(len(txt));
 	if (l mod 2) <> 0 then
 		eno := false;
@@ -154,7 +149,6 @@ function hexdecode: dint
 	end_while;
 
 	hexdecode := need_count;
-	{end}
 end
 
 {#undef CODE_0}

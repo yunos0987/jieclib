@@ -24,7 +24,6 @@ TEST_S(test_array_fill)
 		yy: array[0..4] of dint  := [0, 0, 0, 0, 0];
 		zz: array[0..0] of dint  := [0];
 	end
-	{st}
 	// Fact: Filling an lreal array sets every element to the given value.
 		// Arrange/Act
 	Array_fill_lreal(self:=xx, value:=3.0);
@@ -60,7 +59,6 @@ TEST_S(test_array_fill)
 	Array_fill_dint(self:=zz, value:=99);
 		// Assert
 	EXPECT_EQ_INT32(99, zz[0]);
-	{end}
 END_TEST_S
 
 TEST_S(test_array_fill_offset)
@@ -68,7 +66,6 @@ TEST_S(test_array_fill_offset)
 		xx: array[5..9] of lreal := [0.0, 0.0, 0.0, 0.0, 0.0];
 		yy: array[10..14] of dint := [0, 0, 0, 0, 0];
 	end
-	{st}
 	// Fact: Filling an offset lreal array sets every element to the given value.
 		// Arrange/Act
 	Array_fill_lreal(self:=xx, value:=7.0);
@@ -88,5 +85,4 @@ TEST_S(test_array_fill_offset)
 	EXPECT_EQ_INT32(13, yy[12]);
 	EXPECT_EQ_INT32(13, yy[13]);
 	EXPECT_EQ_INT32(13, yy[14]);
-	{end}
 END_TEST_S

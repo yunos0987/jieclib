@@ -57,7 +57,6 @@ TEST_S(test_hashmap_dint_init)
 		value: dint;
 		replaced: bool;
 	end
-	{st}
 
 	// Fact: init sets len to 0 and contains returns false for any key.
 		// Arrange
@@ -86,7 +85,6 @@ TEST_S(test_hashmap_dint_init)
 	ASSERT_TRUE(HashMap_dint_keys(map3, keys, written));
 		// Assert
 	EXPECT_EQ_INT32(0, written);
-	{end}
 END_TEST_S
 
 TEST_S(test_hashmap_dint_upsert)
@@ -100,7 +98,6 @@ TEST_S(test_hashmap_dint_upsert)
 		value: dint;
 		replaced: bool;
 	end
-	{st}
 
 	// Fact: upsert handles insert, update, case-sensitivity, and capacity limit.
 		// Arrange
@@ -156,7 +153,6 @@ TEST_S(test_hashmap_dint_upsert)
 		// Assert
 	EXPECT_EQ_INT32(6, HashMap_dint_len(map_capacity));
 	EXPECT_FALSE(HashMap_dint_contains(map_capacity, 'c7'));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashmap_dint_copy)
@@ -169,7 +165,6 @@ TEST_S(test_hashmap_dint_copy)
 		value: dint;
 		replaced: bool;
 	end
-	{st}
 
 	// Fact: copy duplicates all key-value pairs.
 		// Arrange
@@ -212,7 +207,6 @@ TEST_S(test_hashmap_dint_copy)
 	ASSERT_TRUE(HashMap_dint_copy(map_src_empty, map_dst_empty));
 		// Assert
 	EXPECT_EQ_INT32(0, HashMap_dint_len(map_dst_empty));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashmap_dint_contains)
@@ -222,7 +216,6 @@ TEST_S(test_hashmap_dint_contains)
 		map_notempty: HashMap_dint_t;
 		replaced: bool;
 	end
-	{st}
 
 	// Fact: contains returns false on empty map.
 		// Arrange
@@ -242,7 +235,6 @@ TEST_S(test_hashmap_dint_contains)
 		// Assert
 	EXPECT_FALSE(HashMap_dint_contains(map_notempty, 'X'));
 	EXPECT_FALSE(HashMap_dint_contains(map_notempty, 'y'));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashmap_dint_delete)
@@ -253,7 +245,6 @@ TEST_S(test_hashmap_dint_delete)
 		map_case_sensitive: HashMap_dint_t;
 		replaced: bool;
 	end
-	{st}
 
 	// Fact: delete removes existing keys and leaves state stable on misses.
 		// Arrange
@@ -287,7 +278,6 @@ TEST_S(test_hashmap_dint_delete)
 	EXPECT_FALSE(HashMap_dint_delete(map_case_sensitive, 'x'));
 		// Assert
 	EXPECT_EQ_INT32(1, HashMap_dint_len(map_case_sensitive));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashmap_dint_len)
@@ -298,7 +288,6 @@ TEST_S(test_hashmap_dint_len)
 		map_upsert_twice: HashMap_dint_t;
 		replaced: bool;
 	end
-	{st}
 
 	// Fact: len tracks insertions and updates correctly.
 		// Arrange
@@ -313,7 +302,6 @@ TEST_S(test_hashmap_dint_len)
 	ASSERT_TRUE(HashMap_dint_upsert(map_upsert_twice, 'k1', 2, replaced));
 	ASSERT_TRUE(HashMap_dint_upsert(map_upsert_twice, 'k1', 3, replaced));
 	EXPECT_EQ_INT32(1, HashMap_dint_len(map_upsert_twice));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashmap_dint_equals)
@@ -325,7 +313,6 @@ TEST_S(test_hashmap_dint_equals)
 		map4: HashMap_dint_t;
 		replaced: bool;
 	end
-	{st}
 
 	// Fact: equals returns true for same key-value pairs regardless of insertion order.
 		// Arrange
@@ -351,7 +338,6 @@ TEST_S(test_hashmap_dint_equals)
 	// Fact: equals returns false for different key count.
 		// Assert
 	EXPECT_FALSE(HashMap_dint_equals(map1, map4));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashmap_dint_keys)
@@ -369,7 +355,6 @@ TEST_S(test_hashmap_dint_keys)
 		found_k3: bool;
 		found_k4: bool;
 	end
-	{st}
 
 	// Fact: keys returns empty array for empty map.
 		// Arrange
@@ -422,7 +407,6 @@ TEST_S(test_hashmap_dint_keys)
 		end_if;
 	end_if;
 	EXPECT_TRUE(found_k4);
-	{end}
 END_TEST_S
 
 TEST_S(test_hashmap_dint_values)
@@ -440,7 +424,6 @@ TEST_S(test_hashmap_dint_values)
 		found_2: bool;
 		found_3: bool;
 	end
-	{st}
 
 	// Fact: values returns empty array for empty map.
 		// Arrange
@@ -483,7 +466,6 @@ TEST_S(test_hashmap_dint_values)
 	ASSERT_TRUE(HashMap_dint_upsert(map_smallbuf, 'y', 20, replaced));
 		// Act / Assert
 	EXPECT_FALSE(HashMap_dint_values(map_smallbuf, small_values, written));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashmap_dint_items)
@@ -501,7 +483,6 @@ TEST_S(test_hashmap_dint_items)
 		found_k2: bool;
 		found_k3: bool;
 	end
-	{st}
 
 	// Fact: items returns empty array for empty map.
 		// Arrange
@@ -544,7 +525,6 @@ TEST_S(test_hashmap_dint_items)
 	ASSERT_TRUE(HashMap_dint_upsert(map_smallbuf, 'y', 20, replaced));
 		// Act / Assert
 	EXPECT_FALSE(HashMap_dint_items(map_smallbuf, small_items, written));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashmap_dint_hash)
@@ -560,7 +540,6 @@ TEST_S(test_hashmap_dint_hash)
 		hash_a: udint;
 		hash_b: udint;
 	end
-	{st}
 
 	// Fact: hash values match for equivalent maps.
 		// Arrange
@@ -598,7 +577,6 @@ TEST_S(test_hashmap_dint_hash)
 	hash_b := HashMap_dint_hash(map6);
 		// Assert
 	EXPECT_EQ_UDINT(hash_a, hash_b);
-	{end}
 END_TEST_S
 
 TEST_S(test_hashmap_dint_empty)
@@ -609,7 +587,6 @@ TEST_S(test_hashmap_dint_empty)
 		map_after_remove: HashMap_dint_t;
 		replaced: bool;
 	end
-	{st}
 
 	// Fact: empty is true immediately after init.
 		// Arrange
@@ -631,7 +608,6 @@ TEST_S(test_hashmap_dint_empty)
 	ASSERT_TRUE(HashMap_dint_delete(map_after_remove, 'k1'));
 		// Assert
 	EXPECT_TRUE(HashMap_dint_empty(map_after_remove));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashmap_dint_clear)
@@ -643,7 +619,6 @@ TEST_S(test_hashmap_dint_clear)
 		value: dint;
 		replaced: bool;
 	end
-	{st}
 
 	// Fact: clear on empty map keeps len=0.
 		// Arrange
@@ -671,7 +646,6 @@ TEST_S(test_hashmap_dint_clear)
 	ASSERT_TRUE(HashMap_dint_upsert(map_reuse, 'r2', 2, replaced));
 		// Assert
 	EXPECT_TRUE(HashMap_dint_contains(map_reuse, 'r2'));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashmap_dint_usecase)
@@ -681,7 +655,6 @@ TEST_S(test_hashmap_dint_usecase)
 		value: dint;
 		replaced: bool;
 	end
-	{st}
 
 	// Fact: upsert inserts new key and lookup retrieves it.
 		// Arrange
@@ -722,7 +695,6 @@ TEST_S(test_hashmap_dint_usecase)
 	HashMap_dint_lookup(self:=map, key:='k1', value:=value, eno=>result_eno);
 		// Assert
 	EXPECT_FALSE(result_eno);
-	{end}
 END_TEST_S
 
 TEST_S(test_hashmap_record_usecase)
@@ -742,7 +714,6 @@ TEST_S(test_hashmap_record_usecase)
 		hash2: udint;
 		hash3: udint;
 	end
-	{st}
 
 	// Fact: record hashmap validates upsert/lookup/delete and equals/hash.
 		// Arrange
@@ -813,7 +784,6 @@ TEST_S(test_hashmap_record_usecase)
 	ASSERT_TRUE(HashMap_record_delete(map_remove, 'user-A'));
 		// Assert
 	EXPECT_FALSE(HashMap_record_contains(map_remove, 'user-A'));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashmap_case_insensitive)
@@ -824,7 +794,6 @@ TEST_S(test_hashmap_case_insensitive)
 		value: dint;
 		replaced: bool;
 	end
-	{st}
 
 	// Fact: case-insensitive key behavior works for contains and lookup.
 		// Arrange
@@ -864,7 +833,6 @@ TEST_S(test_hashmap_case_insensitive)
 	HashMap_dint_ci_lookup(self:=map_get, key:='KeyY', value:=value, eno=>result_eno);
 		// Assert
 	EXPECT_FALSE(result_eno);
-	{end}
 END_TEST_S
 
 TEST_S(test_hashmap_case_insensitive_copy)
@@ -877,7 +845,6 @@ TEST_S(test_hashmap_case_insensitive_copy)
 		value: dint;
 		replaced: bool;
 	end
-	{st}
 
 	// Fact: copy duplicates all key-value pairs with case-insensitive keys.
 		// Arrange
@@ -926,7 +893,6 @@ TEST_S(test_hashmap_case_insensitive_copy)
 	ASSERT_TRUE(HashMap_dint_ci_copy(map_src_empty, map_dst_empty));
 		// Assert
 	EXPECT_EQ_INT32(0, HashMap_dint_ci_len(map_dst_empty));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashmap_case_insensitive_equals)
@@ -938,7 +904,6 @@ TEST_S(test_hashmap_case_insensitive_equals)
 		map4: HashMap_dint_ci_t;
 		replaced: bool;
 	end
-	{st}
 
 	// Fact: equals matches case-insensitively for keys.
 		// Arrange
@@ -964,7 +929,6 @@ TEST_S(test_hashmap_case_insensitive_equals)
 	// Fact: equals returns false for different key count.
 		// Assert
 	EXPECT_FALSE(HashMap_dint_ci_equals(map1, map4));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashmap_case_insensitive_hash)
@@ -980,7 +944,6 @@ TEST_S(test_hashmap_case_insensitive_hash)
 		hash_a: udint;
 		hash_b: udint;
 	end
-	{st}
 
 	// Fact: hash values match for case-insensitively equivalent maps.
 		// Arrange
@@ -1018,7 +981,6 @@ TEST_S(test_hashmap_case_insensitive_hash)
 	hash_b := HashMap_dint_ci_hash(map6);
 		// Assert
 	EXPECT_EQ_UDINT(hash_a, hash_b);
-	{end}
 END_TEST_S
 
 TEST_S(test_hashmap_dint_collision_upsert)
@@ -1030,7 +992,6 @@ TEST_S(test_hashmap_dint_collision_upsert)
 		replaced: bool;
 		value: dint;
 	end
-	{st}
 
 	// Fact: collision-heavy upsert keeps correctness for insert/update/full cases.
 		// Arrange
@@ -1105,7 +1066,6 @@ TEST_S(test_hashmap_dint_collision_upsert)
 		// Assert
 	EXPECT_EQ_INT32(6, HashMap_dint_collision_len(map3));
 	EXPECT_FALSE(HashMap_dint_collision_contains(map3, 'k7'));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashmap_dint_collision_lookup)
@@ -1115,7 +1075,6 @@ TEST_S(test_hashmap_dint_collision_lookup)
 		value: dint;
 		replaced: bool;
 	end
-	{st}
 
 	// Fact: lookup remains correct under forced hash collisions.
 		// Arrange
@@ -1141,7 +1100,6 @@ TEST_S(test_hashmap_dint_collision_lookup)
 	HashMap_dint_collision_lookup(self:=map, key:='', value:=value, eno=>result_eno);
 		// Assert
 	EXPECT_FALSE(result_eno);
-	{end}
 END_TEST_S
 
 TEST_S(test_hashmap_dint_collision_delete)
@@ -1152,7 +1110,6 @@ TEST_S(test_hashmap_dint_collision_delete)
 		value: dint;
 		replaced: bool;
 	end
-	{st}
 
 	// Fact: delete behavior is correct under forced hash collisions.
 		// Arrange
@@ -1186,7 +1143,6 @@ TEST_S(test_hashmap_dint_collision_delete)
 	EXPECT_FALSE(HashMap_dint_collision_contains(map_remove_all, 'b'));
 	EXPECT_FALSE(HashMap_dint_collision_contains(map_remove_all, 'c'));
 	EXPECT_EQ_INT32(0, HashMap_dint_collision_len(map_remove_all));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashmap_dint_collision_contains)
@@ -1195,7 +1151,6 @@ TEST_S(test_hashmap_dint_collision_contains)
 		map: HashMap_dint_collision_t;
 		replaced: bool;
 	end
-	{st}
 
 	// Fact: contains reports membership correctly under collisions.
 		// Arrange
@@ -1208,7 +1163,6 @@ TEST_S(test_hashmap_dint_collision_contains)
 	EXPECT_TRUE(HashMap_dint_collision_contains(map, 'b'));
 	EXPECT_TRUE(HashMap_dint_collision_contains(map, 'c'));
 	EXPECT_FALSE(HashMap_dint_collision_contains(map, 'z'));
-	{end}
 END_TEST_S
 
 TEST_S(test_hashmap_dint_collision_len)
@@ -1217,7 +1171,6 @@ TEST_S(test_hashmap_dint_collision_len)
 		map: HashMap_dint_collision_t;
 		replaced: bool;
 	end
-	{st}
 
 	// Fact: len increments correctly after insert under collisions.
 		// Arrange
@@ -1250,5 +1203,4 @@ TEST_S(test_hashmap_dint_collision_len)
 	EXPECT_FALSE(HashMap_dint_collision_delete(map, 'missing'));
 		// Assert
 	EXPECT_EQ_INT32(2, HashMap_dint_collision_len(map));
-	{end}
 END_TEST_S

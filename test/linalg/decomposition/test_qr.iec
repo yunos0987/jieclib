@@ -58,7 +58,6 @@ TEST_S(test_matrix_qr_decompose)
 		q12: array[0..3, 0..3] of lreal;
 		r12: array[0..3, 0..3] of lreal;
 	end
-	{st}
 	Matrix_qr_decompose(a:=a1, q:=q1, r:=r1);
 	EXPECT_NEAR(1.0, q1[0, 0], EPS);
 	EXPECT_NEAR(1.0, r1[0, 0], EPS);
@@ -85,7 +84,6 @@ TEST_S(test_matrix_qr_decompose)
 	EXPECT_NEAR(5.47722558, r11[0, 0], 1.0e-7);
 	Matrix_qr_decompose(a:=a12, q:=q12, r:=r12);
 	EXPECT_NEAR(4.58257570, r12[0, 0], 1.0e-7);
-	{end}
 END_TEST_S
 
 {#undef EPS}

@@ -42,7 +42,6 @@ TEST_S(test_stats_sums_sum)
 		x_sum_ascending: array[0..7] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
 		result: lreal;
 	end
-	{st}
 		result := Stats_sums_sum(data:=x_basic);
 		EXPECT_NEAR(505.0, result, 0.001);
 		result := Stats_sums_sum(data:=x_neg);
@@ -81,7 +80,6 @@ TEST_S(test_stats_sums_sum)
 		// Ascending sequence
 		result := Stats_sums_sum(data:=x_sum_ascending);
 		EXPECT_NEAR(36.0, result, EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_sums_sum_of_squares)
@@ -101,7 +99,6 @@ TEST_S(test_stats_sums_sum_of_squares)
 		x_sq_two: array[0..1] of lreal := [6.0, 8.0];
 		result: lreal;
 	end
-	{st}
 		result := Stats_sums_sum_of_squares(data:=x_sq_basic);
 		EXPECT_NEAR(55.0, result, 0.001);
 		result := Stats_sums_sum_of_squares(data:=x_sq_ones);
@@ -142,7 +139,6 @@ TEST_S(test_stats_sums_sum_of_squares)
 		// Two elements: 36 + 64 = 100
 		result := Stats_sums_sum_of_squares(data:=x_sq_two);
 		EXPECT_NEAR(100.0, result, EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_sums_sum_of_products)
@@ -170,7 +166,6 @@ TEST_S(test_stats_sums_sum_of_products)
 		y_prod_large: array[0..2] of lreal := [10.0, 20.0, 30.0];
 		result: lreal;
 	end
-	{st}
 		result := Stats_sums_sum_of_products(x:=x_prod1, y:=y_prod1);
 		EXPECT_NEAR(110.0, result, 0.001);
 		result := Stats_sums_sum_of_products(x:=x1_prod, y:=y1_prod);
@@ -205,7 +200,6 @@ TEST_S(test_stats_sums_sum_of_products)
 		// Large values: 100*10 + 200*20 + 300*30 = 1000 + 4000 + 9000 = 14000
 		result := Stats_sums_sum_of_products(x:=x_prod_large, y:=y_prod_large);
 		EXPECT_NEAR(14000.0, result, EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_sums_cumsum)
@@ -237,7 +231,6 @@ TEST_S(test_stats_sums_cumsum)
 		result_cum_long: array[0..9] of lreal;
 		i: dint;
 	end
-	{st}
 		Stats_sums_cumsum(data:=x_cumsum1, result:=result_cum1);
 		EXPECT_NEAR(1.0, result_cum1[0], 0.001);
 		EXPECT_NEAR(3.0, result_cum1[1], 0.001);
@@ -327,7 +320,6 @@ TEST_S(test_stats_sums_cumsum)
 		for i := 0 to 9 do
 			EXPECT_NEAR(dint_to_lreal(i + 1), result_cum_long[i], EPS);
 		end_for;
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_sums_fsum)
@@ -347,7 +339,6 @@ TEST_S(test_stats_sums_fsum)
 		x_fsum_alternating: array[0..5] of lreal := [1.0e8, -1.0e8, 1.0, 1.0e8, -1.0e8, 1.0];
 		result: lreal;
 	end
-	{st}
 		result := Stats_sums_fsum(data:=x_fsum1);
 		EXPECT_NEAR(result, 15.0, EPS);
 		result := Stats_sums_fsum(data:=x_fsum_prec);
@@ -388,7 +379,6 @@ TEST_S(test_stats_sums_fsum)
 		// Large alternating with small residual
 		result := Stats_sums_fsum(data:=x_fsum_alternating);
 		EXPECT_NEAR(2.0, result, EPS);
-	{end}
 END_TEST_S
 
 {#undef EPS}

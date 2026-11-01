@@ -34,7 +34,6 @@ function Matrix_cholesky_decompose
 		l_rows, l_cols: dint;
 		sum_val: lreal;
 	end
-	{st}
 	a_size := Array_isRegular2d_lreal(a);
 	l_size := Array_isRegular2d_lreal(l);
 	if (a_size = 0) or (l_size = 0) then
@@ -83,7 +82,6 @@ function Matrix_cholesky_decompose
 			end_if;
 		end_for;
 	end_for;
-	{end}
 end
 
 {#endif}

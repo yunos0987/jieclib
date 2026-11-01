@@ -40,7 +40,6 @@ function Matrix_eigenvector_compute
 		max_val, factor, tmp, sum_val, norm_val: lreal;
 		is_pivot: bool;
 	end
-	{st}
 	a_size := Array_isRegular2d_lreal(a);
 	e_size := Array_isRegular_lreal(eigenvector);
 	if (a_size = 0) or (e_size = 0) then
@@ -155,7 +154,6 @@ function Matrix_eigenvector_compute
 	for i := 0 to n - 1 by 1 do
 		eigenvector[i] := eigenvector[i] / norm_val;
 	end_for;
-	{end}
 end
 
 {#endif}

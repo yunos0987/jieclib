@@ -39,7 +39,6 @@ function Matrix_qr_decompose
 		r_rows, r_cols: dint;
 		dot_val, norm_val: lreal;
 	end
-	{st}
 	a_size := Array_isRegular2d_lreal(a);
 	q_size := Array_isRegular2d_lreal(q);
 	r_size := Array_isRegular2d_lreal(r);
@@ -100,7 +99,6 @@ function Matrix_qr_decompose
 			q[k, j] := q[k, j] / norm_val;
 		end_for;
 	end_for;
-	{end}
 end
 
 {#endif}

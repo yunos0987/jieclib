@@ -46,7 +46,6 @@ TEST_S(test_matrix_eigenvector_compute)
 		a12: array[0..3, 0..3] of lreal := [2.0, 1.0, 0.0, 0.0, 1.0, 3.0, 1.0, 0.0, 0.0, 1.0, 3.0, 1.0, 0.0, 0.0, 1.0, 2.0];
 		ev12: array[0..3] of lreal;
 	end
-	{st}
 	Matrix_eigenvector_compute(a:=a1, eigenvalue:=1.0, eigenvector:=ev1);
 	EXPECT_NEAR(1.0, abs(ev1[0]), EPS);
 	EXPECT_NEAR(0.0, abs(ev1[1]), EPS);
@@ -71,7 +70,6 @@ TEST_S(test_matrix_eigenvector_compute)
 	EXPECT_NEAR(0.70710678, abs(ev9[0]), 1e-6);
 	Matrix_eigenvector_compute(a:=a10, eigenvalue:=2.0, eigenvector:=ev10);
 	EXPECT_NEAR(0.70710678, abs(ev10[0]), 1e-6);
-	{end}
 END_TEST_S
 
 {#undef EPS}

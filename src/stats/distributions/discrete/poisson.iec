@@ -23,7 +23,6 @@ function Stats_poisson_pmf: lreal
 		lambda: lreal;
 	end
 	var_temp k_factorial: lreal; end
-	{st}
 		if k < 0 or lambda < 0.0 then
 			eno := false;
 			Stats_poisson_pmf := 0.0;
@@ -47,7 +46,6 @@ function Stats_poisson_pmf: lreal
 		end_if;
 
 		Stats_poisson_pmf := (lambda ** dint_to_lreal(k)) * exp(-lambda) / k_factorial;
-	{end}
 end
 
 (*{doc ポアソン分布の累積分布関数
@@ -68,7 +66,6 @@ function Stats_poisson_cdf: lreal
 		i: dint;
 		sum_val, term: lreal;
 	end
-	{st}
 		if k < 0 or lambda < 0.0 then
 			eno := false;
 			Stats_poisson_cdf := 0.0;
@@ -85,7 +82,6 @@ function Stats_poisson_cdf: lreal
 		end_for;
 
 		Stats_poisson_cdf := sum_val;
-	{end}
 end
 
 (*{doc ポアソン分布の平均 = lambda
@@ -98,7 +94,7 @@ function Stats_poisson_mean: lreal
 		(*{doc レート。}*)
 		lambda: lreal;
 	end
-	{st} Stats_poisson_mean := lambda; {end}
+	Stats_poisson_mean := lambda;
 end
 
 (*{doc ポアソン分布の分散 = lambda
@@ -111,7 +107,7 @@ function Stats_poisson_variance: lreal
 		(*{doc レート。}*)
 		lambda: lreal;
 	end
-	{st} Stats_poisson_variance := lambda; {end}
+	Stats_poisson_variance := lambda;
 end
 
 {#endif}

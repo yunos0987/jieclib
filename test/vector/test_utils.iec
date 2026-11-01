@@ -35,7 +35,6 @@ TEST_S(test_vector_utils_is_regular)
 		v10: array[0..9] of lreal := [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0];
 		result: bool;
 	end
-	{st}
 	result := Vector_utils_is_regular(vector:=v1);
 	EXPECT_TRUE(result);
 	result := Vector_utils_is_regular(vector:=v2);
@@ -56,7 +55,6 @@ TEST_S(test_vector_utils_is_regular)
 	EXPECT_TRUE(result);
 	result := Vector_utils_is_regular(vector:=v10);
 	EXPECT_TRUE(result);
-	{end}
 END_TEST_S
 
 TEST_S(test_vector_utils_is_zero)
@@ -73,7 +71,6 @@ TEST_S(test_vector_utils_is_zero)
 		v10: array[0..2] of lreal := [0.0, 0.0, -1.0e-5];
 		result: bool;
 	end
-	{st}
 	result := Vector_utils_is_zero(vector:=v1, tolerance:=1.0e-12);
 	EXPECT_TRUE(result);
 	result := Vector_utils_is_zero(vector:=v2, tolerance:=1.0e-12);
@@ -94,7 +91,6 @@ TEST_S(test_vector_utils_is_zero)
 	EXPECT_TRUE(result);
 	result := Vector_utils_is_zero(vector:=v10, tolerance:=1.0e-12);
 	EXPECT_FALSE(result);
-	{end}
 END_TEST_S
 
 TEST_S(test_vector_utils_normalize)
@@ -120,7 +116,6 @@ TEST_S(test_vector_utils_normalize)
 		v10: array[0..2] of lreal := [0.1, 0.2, 0.2];
 		r10: array[0..2] of lreal;
 	end
-	{st}
 	Vector_utils_normalize(vector:=v1, result:=r1, tolerance:=1.0e-15);
 	EXPECT_NEAR(0.6, r1[0], EPS);
 	EXPECT_NEAR(0.8, r1[1], EPS);
@@ -158,7 +153,6 @@ TEST_S(test_vector_utils_normalize)
 	EXPECT_NEAR(0.3333333333333333, r10[0], 1.0e-12);
 	EXPECT_NEAR(0.6666666666666666, r10[1], 1.0e-12);
 	EXPECT_NEAR(0.6666666666666666, r10[2], 1.0e-12);
-	{end}
 END_TEST_S
 
 {#undef EPS}

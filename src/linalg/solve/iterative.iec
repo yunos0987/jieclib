@@ -43,7 +43,6 @@ function Matrix_solve_iterative
 		a_rows, a_cols: dint;
 		sum_val, new_val, diff, max_diff: lreal;
 	end
-	{st}
 	a_size := Array_isRegular2d_lreal(a);
 	b_size := Array_isRegular_lreal(b);
 	x_size := Array_isRegular_lreal(x);
@@ -93,7 +92,6 @@ function Matrix_solve_iterative
 	end_for;
 
 	eno := false;
-	{end}
 end
 
 {#endif}

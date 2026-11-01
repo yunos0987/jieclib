@@ -56,7 +56,6 @@ function Stats_quantile: lreal
 		gamma: lreal;
 		wbase: dint;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(data);
 	if (actual_n = 0) or (n > actual_n) then
 		eno := false;
@@ -133,7 +132,6 @@ function Stats_quantile: lreal
 	else
 		Stats_quantile := 0.0; eno := false; return;
 	end_case;
-	{end}
 end
 
 (*{doc 四分位点(Q1, Q2, Q3)を result に返す
@@ -167,7 +165,6 @@ function Stats_quantiles
 	var_temp
 		nresult: dint;
 	end
-	{st}
 	nresult := Array_isRegular_lreal(result);
 	if (nresult = 0) or (nresult < 3) then
 		eno := false;
@@ -176,7 +173,6 @@ function Stats_quantiles
 	result[0] := Stats_quantile(data:=data, work:=work, p:=0.25, n:=n, quantile_type:=7, eno=>eno);
 	result[1] := Stats_quantile(data:=data, work:=work, p:=0.50, n:=n, quantile_type:=7, eno=>eno);
 	result[2] := Stats_quantile(data:=data, work:=work, p:=0.75, n:=n, quantile_type:=7, eno=>eno);
-	{end}
 end
 
 {#endif}

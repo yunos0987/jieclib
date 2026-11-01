@@ -23,7 +23,6 @@ TEST_S(test_json_escape)
 		rr: STRING;
 		ok: bool;
 	end
-	{st}
 	// Fact: An empty string escapes to an empty string.
 		// Act/Assert
 	EXPECT_EQ_STRING('', json_escape(txt:=''));
@@ -95,7 +94,6 @@ TEST_S(test_json_escape)
 	// Fact: A tab within a word is escaped as \t.
 		// Act/Assert
 	EXPECT_EQ_STRING('key\tvalue', json_escape(txt:='key$09value'));
-	{end}
 END_TEST_S
 
 TEST_S(test_json_unescape)
@@ -103,7 +101,6 @@ TEST_S(test_json_unescape)
 		tt: STRING;
 		ok: bool;
 	end
-	{st}
 	// Fact: An empty string unescapes to an empty string.
 		// Act/Assert
 	EXPECT_EQ_STRING('', json_unescape(txt:=''));
@@ -192,5 +189,4 @@ TEST_S(test_json_unescape)
 	EXPECT_FALSE(ok);
 	json_unescape(txt:='\uFFFF', eno=>ok);
 	EXPECT_FALSE(ok);
-	{end}
 END_TEST_S

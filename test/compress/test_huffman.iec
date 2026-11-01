@@ -26,7 +26,6 @@ TEST_S(test_huffman_encode)
 		ok: bool;
 		ii: dint;
 	end
-	{st}
 	// Fact: Encoding a short ASCII string succeeds and writes the original length into the header.
 		// Arrange: "ABRACADABRA" = 11 bytes
 	src[0]  := byte#16#41; // A
@@ -76,7 +75,6 @@ TEST_S(test_huffman_encode)
 	huffman_encode(dat:=src, dst:=encoded, offset:=300, length:=1, eno=>ok);
 		// Assert
 	EXPECT_FALSE(ok);
-	{end}
 END_TEST_S
 
 TEST_S(test_huffman_decode)
@@ -88,7 +86,6 @@ TEST_S(test_huffman_decode)
 		nn_decoded: dint;
 		ii: dint;
 	end
-	{st}
 	// Fact: A round-trip of a short ASCII string returns the original bytes.
 		// Arrange: "ABRACADABRA" = [41 42 52 41 43 41 44 41 42 52 41]
 	src[0]  := byte#16#41; // A
@@ -168,5 +165,4 @@ TEST_S(test_huffman_decode)
 	for ii := 0 to 255 by 1 do
 		EXPECT_EQ_BYTE(dint_to_byte(ii), decoded[ii]);
 	end_for;
-	{end}
 END_TEST_S

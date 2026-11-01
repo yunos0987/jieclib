@@ -32,7 +32,6 @@ TEST_S(test_stats_mean_absolute_deviation)
 		x_8: array[0..4] of lreal := [0.1, 0.3, 0.5, 0.7, 0.9];
 		result: lreal;
 	end
-	{st}
 		EXPECT_NEAR(2.4, Stats_mean_absolute_deviation(data:=x_1), EPS);
 		EXPECT_NEAR(1.5, Stats_mean_absolute_deviation(data:=x_2), EPS);
 		EXPECT_NEAR(3.36, Stats_mean_absolute_deviation(data:=x_3), EPS);
@@ -41,7 +40,6 @@ TEST_S(test_stats_mean_absolute_deviation)
 		EXPECT_NEAR(5.0, Stats_mean_absolute_deviation(data:=x_6), EPS);
 		EXPECT_NEAR(120.0, Stats_mean_absolute_deviation(data:=x_7), EPS);
 		EXPECT_NEAR(0.24, Stats_mean_absolute_deviation(data:=x_8), EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_median_absolute_deviation)
@@ -78,7 +76,6 @@ TEST_S(test_stats_median_absolute_deviation)
 
 		result: lreal;
 	end
-	{st}
 		result := Stats_median_absolute_deviation(data:=x_mad1, work1:=work1_mad1, work2:=work2_mad1, work3:=work3_mad1);
 		EXPECT_NEAR(1.0, result, 0.5);
 
@@ -112,7 +109,6 @@ TEST_S(test_stats_median_absolute_deviation)
 		result := Stats_median_absolute_deviation(data:=x_symmetric, work1:=work1_symmetric, work2:=work2_symmetric, work3:=work3_symmetric);
 		EXPECT_GT_LREAL(result, 0.0);
 		EXPECT_LT_LREAL(result, 3.5);
-	{end}
 END_TEST_S
 
 {#undef EPS}

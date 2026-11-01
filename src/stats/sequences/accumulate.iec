@@ -31,7 +31,6 @@ function Stats_sum: lreal
 		i: dint;
 		s: lreal;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(x);
 	if (actual_n = 0) or (n > actual_n) then
 		eno := false;
@@ -46,7 +45,6 @@ function Stats_sum: lreal
 		s := s + x[i];
 	end_for;
 	Stats_sum := s;
-	{end}
 end
 
 (*{doc 合計 (Kahan補償付き)
@@ -70,7 +68,6 @@ function Stats_sum_kahan: lreal
 		actual_n, i: dint;
 		s, c, y, t: lreal;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(x);
 	if (actual_n = 0) or (n > actual_n) then
 		eno := false;
@@ -90,7 +87,6 @@ function Stats_sum_kahan: lreal
 	end_for;
 
 	Stats_sum_kahan := s;
-	{end}
 end
 
 (*{doc 合計と要素数を同時に計算
@@ -113,7 +109,6 @@ function Stats_sum_and_count: lreal
 		i: dint;
 		s: lreal;
 	end
-	{st}
 	count := Array_isRegular_lreal(x);
 	if count = 0 then
 		eno := false;
@@ -125,7 +120,6 @@ function Stats_sum_and_count: lreal
 		s := s + x[i];
 	end_for;
 	Stats_sum_and_count := s;
-	{end}
 end
 
 (*{doc 逐次和 (単純加算の別名)
@@ -141,9 +135,7 @@ function Stats_sum_acc: lreal
 		(*{doc 入力値。}*)
 		x: lreal;
 	end
-	{st}
 	Stats_sum_acc := acc + x;
-	{end}
 end
 
 (*{doc 逐次和 (Kahan/Neumaier補償付き)
@@ -167,13 +159,11 @@ function Stats_kahan_sum: lreal
 	var_temp
 		y, t: lreal;
 	end
-	{st}
 	y := x - c;
 	t := acc + y;
 	c := (t - acc) - y;
 	acc := t;
 	Stats_kahan_sum := acc;
-	{end}
 end
 
 (*{doc オンライン平均（逐次更新）
@@ -189,13 +179,11 @@ function Stats_mean_acc: lreal
 		(*{doc 先頭 n 個を使用する。}*)
 		n: dint;
 	end
-	{st}
 	if n <= 0 then
 		eno := false;
 		return;
 	end_if;
 	Stats_mean_acc := s / dint_to_lreal(n);
-	{end}
 end
 
 (*{doc Welford法のオンライン分散更新用状態}*)
@@ -231,7 +219,6 @@ function Stats_welford_update
 		delta1: lreal;
 		delta2: lreal;
 	end
-	{st}
 	if count <= 0 then
 		eno := false;
 		return;
@@ -240,7 +227,6 @@ function Stats_welford_update
 	m := m + (delta1 / dint_to_lreal(count));
 	delta2 := x - m;
 	m2 := m2 + delta1 * delta2;
-	{end}
 end
 
 (*{doc Welford状態から分散を算出
@@ -263,14 +249,12 @@ function Stats_welford_finalize: lreal
 	var_temp
 		den: dint;
 	end
-	{st}
 	den := count - ddof;
 	if den <= 0 then
 		eno := false;
 		return;
 	end_if;
 	Stats_welford_finalize := m2 / dint_to_lreal(den);
-	{end}
 end
 
 {#endif}

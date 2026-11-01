@@ -75,7 +75,6 @@ function Array_equals: bool
 		ii, i_0, i_1: dint;
 		jj, j_0, j_1: dint;
 	end
-	{st}
 	i_0 := lower_bound(self, 1);
 	i_1 := upper_bound(self, 1);
 	j_0 := lower_bound(other, 1);
@@ -95,7 +94,6 @@ function Array_equals: bool
 		jj := jj + 1;
 	end_while;
 	Array_equals := true;
-	{end}
 end
 
 {#undef _ARRAY_EQUALS_ELEM_EQ_}

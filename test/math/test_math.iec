@@ -2,8 +2,8 @@
  * $ cd <JiecLib Project Root>
  * $ jiecc ./test/math/test_math.iec -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/math/test_math.xml -t omron
  *)
-{#if _JIECC and (_JIECC_VER < 514)}
-	{#error This test requires Jiecc 5.14 or later.}
+{#if _JIECC and (_JIECC_FULL_VER < 90200)}
+{#error JiecLib requires Jiecc 9.2.0 or later.}
 {#endif}
 {#include <jiecunit.iec>}
 {#if _JIECUNIT and (_JIECUNIT_VER < 402)}

@@ -24,7 +24,6 @@ function Stats_uniform_pdf: lreal
 		(*{doc 上限。}*)
 		b: lreal;
 	end
-	{st}
 		if b <= a then
 			eno := false;
 			Stats_uniform_pdf := 0.0;
@@ -36,7 +35,6 @@ function Stats_uniform_pdf: lreal
 		else
 			Stats_uniform_pdf := 1.0 / (b - a);
 		end_if;
-	{end}
 end
 
 (*{doc 一様分布の累積分布関数
@@ -56,7 +54,6 @@ function Stats_uniform_cdf: lreal
 		(*{doc 上限。}*)
 		b: lreal;
 	end
-	{st}
 		if b <= a then
 			eno := false;
 			Stats_uniform_cdf := 0.0;
@@ -70,7 +67,6 @@ function Stats_uniform_cdf: lreal
 		else
 			Stats_uniform_cdf := (x - a) / (b - a);
 		end_if;
-	{end}
 end
 
 (*{doc 一様分布の分位関数。Q(p) = a + p * (b - a)
@@ -89,7 +85,6 @@ function Stats_uniform_ppf: lreal
 		(*{doc 上限。}*)
 		b: lreal;
 	end
-	{st}
 		if p < 0.0 or p > 1.0 or b <= a then
 			eno := false;
 			Stats_uniform_ppf := 0.0;
@@ -97,7 +92,6 @@ function Stats_uniform_ppf: lreal
 		end_if;
 
 		Stats_uniform_ppf := a + p * (b - a);
-	{end}
 end
 
 (*{doc 一様分布の平均 = (a + b) / 2
@@ -113,7 +107,7 @@ function Stats_uniform_mean: lreal
 		(*{doc 上限。}*)
 		b: lreal;
 	end
-	{st} Stats_uniform_mean := (a + b) / 2.0; {end}
+	Stats_uniform_mean := (a + b) / 2.0;
 end
 
 (*{doc 一様分布の分散 = (b - a)^2 / 12
@@ -129,7 +123,7 @@ function Stats_uniform_variance: lreal
 		(*{doc 上限。}*)
 		b: lreal;
 	end
-	{st} Stats_uniform_variance := (b - a) * (b - a) / 12.0; {end}
+	Stats_uniform_variance := (b - a) * (b - a) / 12.0;
 end
 
 {#endif}

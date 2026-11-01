@@ -41,7 +41,6 @@ TEST_S(test_stats_covariance)
 		y_real3: array[0..4] of lreal := [0.85, 1.58, 2.27, 3.79, 4.33];
 		sample_cov, pop_cov, result: lreal;
 	end
-	{st}
 		// Covariance of linearly related variables
 		result := Stats_covariance(x:=x_basic, y:=y_basic, ddof:=1);
 		EXPECT_GT_LREAL(result, 0.0);
@@ -80,7 +79,6 @@ TEST_S(test_stats_covariance)
 		// Real-valued test 3: Small decimal precision values
 		result := Stats_covariance(x:=x_real3, y:=y_real3, ddof:=1);
 		EXPECT_NEAR(0.88692, result, EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_covariance_matrix)
@@ -121,7 +119,6 @@ TEST_S(test_stats_covariance_matrix)
 		];
 		result_real3vars: array[0..2, 0..2] of lreal;
 	end
-	{st}
 		// Basic covariance matrix test
 		Stats_covariance_matrix(data:=data_basic, ddof:=1, result:=result_basic);
 		EXPECT_GT_LREAL(result_basic[0, 0], 0.0);
@@ -197,7 +194,6 @@ TEST_S(test_stats_covariance_matrix)
 		EXPECT_NEAR(1.015, result_real3vars[2, 0], EPS);
 		EXPECT_NEAR(1.019, result_real3vars[1, 2], EPS);
 		EXPECT_NEAR(1.019, result_real3vars[2, 1], EPS);
-	{end}
 END_TEST_S
 
 {#undef EPS}

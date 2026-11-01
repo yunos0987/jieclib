@@ -23,7 +23,6 @@ TEST_S(test_array_rotate_lreal)
 	var
 		aa: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
 	end
-	{st}
 	// Fact: Rotating left by 1 moves the first element to the end.
 		// Arrange
 	aa[0] := 1.0; aa[1] := 2.0; aa[2] := 3.0; aa[3] := 4.0; aa[4] := 5.0;
@@ -95,7 +94,6 @@ TEST_S(test_array_rotate_lreal)
 	EXPECT_EQ_LREAL(4.0, aa[2]);
 	EXPECT_EQ_LREAL(5.0, aa[3]);
 	EXPECT_EQ_LREAL(1.0, aa[4]);
-	{end}
 END_TEST_S
 
 TEST_S(test_array_rotate_dint)
@@ -103,7 +101,6 @@ TEST_S(test_array_rotate_dint)
 		bb: array[0..3] of dint := [10, 20, 30, 40];
 		cc: array[0..0] of dint := [99];
 	end
-	{st}
 	// Fact: Rotating a 4-element dint array left by 1 wraps the first element.
 		// Arrange
 	bb[0] := 10; bb[1] := 20; bb[2] := 30; bb[3] := 40;
@@ -132,7 +129,6 @@ TEST_S(test_array_rotate_dint)
 	Array_rotate_dint(self:=cc, shift:=7);
 		// Assert
 	EXPECT_EQ_INT32(99, cc[0]);
-	{end}
 END_TEST_S
 
 TEST_S(test_array_rotate_offset)
@@ -140,7 +136,6 @@ TEST_S(test_array_rotate_offset)
 		aa: array[5..9] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
 		bb: array[10..13] of dint := [10, 20, 30, 40];
 	end
-	{st}
 	// Fact: Rotating an offset lreal array left by 1 wraps the first element to the end.
 		// Arrange
 	aa[5] := 1.0; aa[6] := 2.0; aa[7] := 3.0; aa[8] := 4.0; aa[9] := 5.0;
@@ -175,5 +170,4 @@ TEST_S(test_array_rotate_offset)
 	EXPECT_EQ_LREAL(3.0, aa[7]);
 	EXPECT_EQ_LREAL(4.0, aa[8]);
 	EXPECT_EQ_LREAL(5.0, aa[9]);
-	{end}
 END_TEST_S

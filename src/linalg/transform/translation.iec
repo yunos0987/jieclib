@@ -31,7 +31,6 @@ function Matrix_translation_2d
 		r_size: dint;
 		rows, cols: dint;
 	end
-	{st}
 	r_size := Array_isRegular2d_lreal(translation);
 	if r_size = 0 then
 		eno := false;
@@ -53,7 +52,6 @@ function Matrix_translation_2d
 	translation[2, 0] := 0.0;
 	translation[2, 1] := 0.0;
 	translation[2, 2] := 1.0;
-	{end}
 end
 
 (*{doc 3次元齢群座標を用いた一次何斡変換行列の生成。
@@ -81,7 +79,6 @@ function Matrix_translation_3d
 		r_size: dint;
 		rows, cols: dint;
 	end
-	{st}
 	r_size := Array_isRegular2d_lreal(translation);
 	if r_size = 0 then
 		eno := false;
@@ -110,7 +107,6 @@ function Matrix_translation_3d
 	translation[3, 1] := 0.0;
 	translation[3, 2] := 0.0;
 	translation[3, 3] := 1.0;
-	{end}
 end
 
 {#endif}

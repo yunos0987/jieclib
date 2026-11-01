@@ -32,7 +32,6 @@ function json_escape: STRING
 		i, l, code: dint;
 		out: STRING;
 	end
-	{st}
 	out := '';
 	l := uint_to_dint(len(txt));
 	for i := 0 to l - 1 by 1 do
@@ -69,7 +68,6 @@ function json_escape: STRING
 		end_case;
 	end_for;
 	json_escape := out;
-	{end}
 end
 
 (*{doc Unescape a JSON string value back to a plain string (RFC 8259).
@@ -88,7 +86,6 @@ function json_unescape: STRING
 		decoded_code: dint;
 		out: STRING;
 	end
-	{st}
 	out := '';
 	l := uint_to_dint(len(txt));
 	i := 0;
@@ -152,7 +149,6 @@ function json_unescape: STRING
 		i := i + 1;
 	end_while;
 	json_unescape := out;
-	{end}
 end
 
 {#endif}

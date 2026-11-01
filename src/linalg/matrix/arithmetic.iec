@@ -36,7 +36,6 @@ function Matrix_add
 		r_rows, r_cols: dint;
 		a_size, b_size, r_size: dint;
 	end
-	{st}
 	a_size := Array_isRegular2d_lreal(a);
 	b_size := Array_isRegular2d_lreal(b);
 	r_size := Array_isRegular2d_lreal(result);
@@ -65,7 +64,6 @@ function Matrix_add
 			result[i, j] := a[i, j] + b[i, j];
 		end_for;
 	end_for;
-	{end}
 end
 
 (*{doc 行列の減算 (a - b)。
@@ -95,7 +93,6 @@ function Matrix_sub
 		r_rows, r_cols: dint;
 		a_size, b_size, r_size: dint;
 	end
-	{st}
 	a_size := Array_isRegular2d_lreal(a);
 	b_size := Array_isRegular2d_lreal(b);
 	r_size := Array_isRegular2d_lreal(result);
@@ -124,7 +121,6 @@ function Matrix_sub
 			result[i, j] := a[i, j] - b[i, j];
 		end_for;
 	end_for;
-	{end}
 end
 
 (*{doc 行列のスカラー倍。
@@ -154,7 +150,6 @@ function Matrix_scale
 		r_rows, r_cols: dint;
 		a_size, r_size: dint;
 	end
-	{st}
 	a_size := Array_isRegular2d_lreal(a);
 	r_size := Array_isRegular2d_lreal(result);
 	if (a_size = 0) or (r_size = 0) then
@@ -176,7 +171,6 @@ function Matrix_scale
 			result[i, j] := scalar * a[i, j];
 		end_for;
 	end_for;
-	{end}
 end
 
 (*{doc 行列の乗算 (a × b)。
@@ -207,7 +201,6 @@ function Matrix_multiply
 		a_size, b_size, r_size: dint;
 		sum: lreal;
 	end
-	{st}
 	a_size := Array_isRegular2d_lreal(a);
 	b_size := Array_isRegular2d_lreal(b);
 	r_size := Array_isRegular2d_lreal(result);
@@ -240,7 +233,6 @@ function Matrix_multiply
 			result[i, j] := sum;
 		end_for;
 	end_for;
-	{end}
 end
 
 (*{doc 行列の転置 (aT)。
@@ -265,7 +257,6 @@ function Matrix_transpose
 		r_rows, r_cols: dint;
 		a_size, r_size: dint;
 	end
-	{st}
 	a_size := Array_isRegular2d_lreal(a);
 	r_size := Array_isRegular2d_lreal(result);
 	if (a_size = 0) or (r_size = 0) then
@@ -287,7 +278,6 @@ function Matrix_transpose
 			result[j, i] := a[i, j];
 		end_for;
 	end_for;
-	{end}
 end
 
 (*{doc 行列とベクトルの乗算 (a × v)。
@@ -317,7 +307,6 @@ function Matrix_vector_multiply
 		a_size: dint;
 		sum: lreal;
 	end
-	{st}
 	a_size := Array_isRegular2d_lreal(a);
 	v_size := Array_isRegular_lreal(v);
 	r_size := Array_isRegular_lreal(result);
@@ -340,7 +329,6 @@ function Matrix_vector_multiply
 		end_for;
 		result[i] := sum;
 	end_for;
-	{end}
 end
 
 {#endif}

@@ -31,44 +31,34 @@ DEFINE_CONFIGURATION(
 
 TEST_S(test_xorshift32_nextUint32)
 	var prng: Xorshift32_t; end
-	{st}
 	Xorshift32_init(prng, dword#16#92d68ca2);
 	EXPECT_EQ_UDINT(udint#723471715, Xorshift32_nextUint32(prng));
-	{end}
 END_TEST_S
 
 TEST_S(test_xorshift32_nextBool)
 	var prng: Xorshift32_t; end
-	{st}
 	Xorshift32_init(prng, dword#16#92d68ca2);
 	EXPECT_EQ_BOOL(false, Xorshift32_nextBool(prng));
-	{end}
 END_TEST_S
 
 {#if not (_KEYENCE)}
 TEST_S(test_xorshift32_nextUint64)
 	var prng: Xorshift32_t; end
-	{st}
 	Xorshift32_init(prng, dword#16#92d68ca2);
 	EXPECT_EQ_ULINT(ulint#3107287358003399546, Xorshift32_nextUint64(prng));
-	{end}
 END_TEST_S
 {#endif}
 
 TEST_S(test_xorshift32_nextFloat)
 	var prng: Xorshift32_t; end
-	{st}
 	Xorshift32_init(prng, dword#16#92d68ca2);
 	EXPECT_NEAR(real#1.68446391820908e-01, Xorshift32_nextFloat(prng), 1.0e-7);
-	{end}
 END_TEST_S
 
 TEST_S(test_xorshift32_nextDouble)
 	var prng: Xorshift32_t; end
-	{st}
 	Xorshift32_init(prng, dword#16#92d68ca2);
 	EXPECT_NEAR(lreal#1.68446388702568e-01, Xorshift32_nextDouble(prng), 1.0e-15);
-	{end}
 END_TEST_S
 
 TEST_S(test_xorshift32_nextIntInRange)
@@ -77,7 +67,6 @@ TEST_S(test_xorshift32_nextIntInRange)
 		v: dint;
 		ok: bool;
 	end
-	{st}
 	// min > max → error
 	Xorshift32_init(prng, dword#16#92d68ca2);
 	Xorshift32_nextIntInRange(self:=prng, min_val:=10, max_val:=5, eno=>ok);
@@ -92,7 +81,6 @@ TEST_S(test_xorshift32_nextIntInRange)
 	EXPECT_LE_DINT(v, 100);
 	// Python reference value (seed=0x92d68ca2, range=-100..100)
 	EXPECT_EQ_DINT(dint#54, v);
-	{end}
 END_TEST_S
 
 TEST_S(test_xorshift32_nextRealInRange)
@@ -101,7 +89,6 @@ TEST_S(test_xorshift32_nextRealInRange)
 		v: lreal;
 		ok: bool;
 	end
-	{st}
 	// min >= max → error
 	Xorshift32_init(prng, dword#16#92d68ca2);
 	Xorshift32_nextRealInRange(self:=prng, min_val:=lreal#5.0, max_val:=lreal#5.0, eno=>ok);
@@ -113,14 +100,12 @@ TEST_S(test_xorshift32_nextRealInRange)
 	EXPECT_LT_LREAL(v, lreal#1.0);
 	// Python reference value (seed=0x92d68ca2, range=-1.0..1.0)
 	EXPECT_NEAR(lreal#-6.631072225948642e-01, v, lreal#1.0e-15);
-	{end}
 END_TEST_S
 
 TEST_S(test_xorshift32_nextBernoulli)
 	var
 		prng: Xorshift32_t;
 	end
-	{st}
 	// prob=1.0: always true
 	Xorshift32_init(prng, dword#16#92d68ca2);
 	EXPECT_EQ_BOOL(true, Xorshift32_nextBernoulli(prng, lreal#1.0));
@@ -130,7 +115,6 @@ TEST_S(test_xorshift32_nextBernoulli)
 	// Python reference value: seed=0x92d68ca2, nextDouble=0.168... < 0.2 → true
 	Xorshift32_init(prng, dword#16#92d68ca2);
 	EXPECT_EQ_BOOL(true, Xorshift32_nextBernoulli(prng, lreal#0.2));
-	{end}
 END_TEST_S
 
 TEST_S(test_xorshift32_nextGaussian)
@@ -138,7 +122,6 @@ TEST_S(test_xorshift32_nextGaussian)
 		prng: Xorshift32_t;
 		ok: bool;
 	end
-	{st}
 	// sigma < 0 → error
 	Xorshift32_init(prng, dword#16#92d68ca2);
 	Xorshift32_nextGaussian(self:=prng, mean:=lreal#0.0, sigma:=lreal#-1.0, eno=>ok);
@@ -149,7 +132,6 @@ TEST_S(test_xorshift32_nextGaussian)
 	// Python reference value (seed=0x92d68ca2, mean=0, sigma=1)
 	Xorshift32_init(prng, dword#16#92d68ca2);
 	EXPECT_NEAR(lreal#-1.8733893786419715e+00, Xorshift32_nextGaussian(prng, lreal#0.0, lreal#1.0), lreal#1.0e-10);
-	{end}
 END_TEST_S
 
 TEST_S(test_xorshift32_nextExponential)
@@ -158,7 +140,6 @@ TEST_S(test_xorshift32_nextExponential)
 		v: lreal;
 		ok: bool;
 	end
-	{st}
 	// lambda <= 0 → error
 	Xorshift32_init(prng, dword#16#92d68ca2);
 	Xorshift32_nextExponential(self:=prng, lambda:=lreal#0.0, eno=>ok);
@@ -169,7 +150,6 @@ TEST_S(test_xorshift32_nextExponential)
 	EXPECT_GT_LREAL(v, lreal#0.0);
 	// Python reference value (seed=0x92d68ca2, lambda=1.0)
 	EXPECT_NEAR(lreal#1.78113774775316e+00, v, lreal#1.0e-10);
-	{end}
 END_TEST_S
 
 TEST_S(test_xorshift32_nextPoisson)
@@ -178,7 +158,6 @@ TEST_S(test_xorshift32_nextPoisson)
 		v: dint;
 		ok: bool;
 	end
-	{st}
 	// lambda <= 0 → error
 	Xorshift32_init(prng, dword#16#92d68ca2);
 	Xorshift32_nextPoisson(self:=prng, lambda:=lreal#0.0, eno=>ok);
@@ -189,5 +168,4 @@ TEST_S(test_xorshift32_nextPoisson)
 	EXPECT_GE_DINT(v, 0);
 	// Python reference value (seed=0x92d68ca2, lambda=1.0)
 	EXPECT_EQ_DINT(dint#0, v);
-	{end}
 END_TEST_S

@@ -58,7 +58,6 @@ function Array_reverse
 		lo, hi: dint;
 		tmp: ArrayReverseElementType;
 	end
-	{st}
 	lo := lower_bound(self, 1);
 	hi := upper_bound(self, 1);
 	while lo < hi do
@@ -68,7 +67,6 @@ function Array_reverse
 		lo := lo + 1;
 		hi := hi - 1;
 	end_while;
-	{end}
 end
 
 {#undef _ARRAY_REVERSE_}

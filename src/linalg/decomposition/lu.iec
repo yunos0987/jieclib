@@ -39,7 +39,6 @@ function Matrix_lu_decompose
 		u_rows, u_cols: dint;
 		sum_val: lreal;
 	end
-	{st}
 	a_size := Array_isRegular2d_lreal(a);
 	l_size := Array_isRegular2d_lreal(l);
 	u_size := Array_isRegular2d_lreal(u);
@@ -98,7 +97,6 @@ function Matrix_lu_decompose
 			l[j, i] := (a[j, i] - sum_val) / u[i, i];
 		end_for;
 	end_for;
-	{end}
 end
 
 {#endif}

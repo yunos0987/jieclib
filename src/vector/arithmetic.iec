@@ -32,7 +32,6 @@ function Vector_add
 	var_temp
 		i, a_size, b_size, r_size: dint;
 	end
-	{st}
 	a_size := Array_isRegular_lreal(a);
 	b_size := Array_isRegular_lreal(b);
 	r_size := Array_isRegular_lreal(result);
@@ -50,7 +49,6 @@ function Vector_add
 	for i := 0 to a_size - 1 by 1 do
 		result[i] := a[i] + b[i];
 	end_for;
-	{end}
 end
 
 (*{doc ベクトルの減算 (a - b)。
@@ -76,7 +74,6 @@ function Vector_sub
 	var_temp
 		i, a_size, b_size, r_size: dint;
 	end
-	{st}
 	a_size := Array_isRegular_lreal(a);
 	b_size := Array_isRegular_lreal(b);
 	r_size := Array_isRegular_lreal(result);
@@ -94,7 +91,6 @@ function Vector_sub
 	for i := 0 to a_size - 1 by 1 do
 		result[i] := a[i] - b[i];
 	end_for;
-	{end}
 end
 
 (*{doc ベクトルのスカラー倍。
@@ -121,7 +117,6 @@ function Vector_scale
 	var_temp
 		i, a_size, r_size: dint;
 	end
-	{st}
 	a_size := Array_isRegular_lreal(a);
 	r_size := Array_isRegular_lreal(result);
 	
@@ -138,7 +133,6 @@ function Vector_scale
 	for i := 0 to a_size - 1 by 1 do
 		result[i] := scalar * a[i];
 	end_for;
-	{end}
 end
 
 (*{doc ベクトルのドット積。
@@ -160,7 +154,6 @@ function Vector_dot: lreal
 		i, a_size, b_size: dint;
 		result_val: lreal;
 	end
-	{st}
 	a_size := Array_isRegular_lreal(a);
 	b_size := Array_isRegular_lreal(b);
 	
@@ -180,7 +173,6 @@ function Vector_dot: lreal
 	end_for;
 	
 	Vector_dot := result_val;
-	{end}
 end
 
 (*{doc ベクトルの符号反転。
@@ -202,7 +194,6 @@ function Vector_negate
 	var_temp
 		i, a_size, r_size: dint;
 	end
-	{st}
 	a_size := Array_isRegular_lreal(a);
 	r_size := Array_isRegular_lreal(result);
 	
@@ -219,7 +210,6 @@ function Vector_negate
 	for i := 0 to a_size - 1 by 1 do
 		result[i] := -a[i];
 	end_for;
-	{end}
 end
 
 (*{doc 要素ごとの積 (Hadamard)。
@@ -245,7 +235,6 @@ function Vector_elementwise_mul
 	var_temp
 		i, a_size, b_size, r_size: dint;
 	end
-	{st}
 	a_size := Array_isRegular_lreal(a);
 	b_size := Array_isRegular_lreal(b);
 	r_size := Array_isRegular_lreal(result);
@@ -262,7 +251,6 @@ function Vector_elementwise_mul
 	for i := 0 to a_size - 1 by 1 do
 		result[i] := a[i] * b[i];
 	end_for;
-	{end}
 end
 
 (*{doc 要素ごとの除算。
@@ -288,7 +276,6 @@ function Vector_elementwise_div
 	var_temp
 		i, a_size, b_size, r_size: dint;
 	end
-	{st}
 	a_size := Array_isRegular_lreal(a);
 	b_size := Array_isRegular_lreal(b);
 	r_size := Array_isRegular_lreal(result);
@@ -309,7 +296,6 @@ function Vector_elementwise_div
 		end_if;
 		result[i] := a[i] / b[i];
 	end_for;
-	{end}
 end
 
 (*{doc ベクトルの線形結合 sum(coeff[i] * v[i])。
@@ -336,7 +322,6 @@ function Vector_linear_combination
 		i, j, v_all_size, v_size, c_size, r_size: dint;
 		vec_size: dint;
 	end
-	{st}
 	v_all_size := Array_isRegular2d_lreal(vectors);
 	c_size := Array_isRegular_lreal(coefficients);
 	r_size := Array_isRegular_lreal(result);
@@ -372,7 +357,6 @@ function Vector_linear_combination
 				coefficients[i] * vectors[i, j];
 		end_for;
 	end_for;
-	{end}
 end
 
 (*{doc ベクトルの一致判定。
@@ -399,7 +383,6 @@ function Vector_equal: bool
 	var_temp
 		i, a_size, b_size: dint;
 	end
-	{st}
 	a_size := Array_isRegular_lreal(a);
 	b_size := Array_isRegular_lreal(b);
 	
@@ -420,7 +403,6 @@ function Vector_equal: bool
 			return;
 		end_if;
 	end_for;
-	{end}
 end
 
 {#endif}

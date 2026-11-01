@@ -65,7 +65,6 @@ TEST_S(test_stats_rankdata)
 		idx_small: array[0..4] of dint;
 		idx_mixed: array[0..6] of dint;
 	end
-	{st}
 		// Basic unsorted sample
 		Stats_rankdata(data:=x_basic, rank:=result_basic, work1:=work_basic, work2:=idx_basic, rank_type:=0);
 		EXPECT_NEAR(4.0, result_basic[0], EPS);
@@ -261,7 +260,6 @@ TEST_S(test_stats_rankdata)
 		EXPECT_NEAR(4.0, result_neg_frac[2], EPS);
 		EXPECT_NEAR(5.0, result_neg_frac[3], EPS);
 		EXPECT_NEAR(3.0, result_neg_frac[4], EPS);
-	{end}
 END_TEST_S
 
 {#undef EPS}

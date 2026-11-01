@@ -38,7 +38,6 @@ function Stats_variance_ddof: lreal
 		diff: lreal;
 		den: dint;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(data);
 	if (actual_n = 0) or (n > actual_n) then
 		eno := false;
@@ -65,7 +64,6 @@ function Stats_variance_ddof: lreal
 		acc := acc + diff * diff;
 	end_for;
 	Stats_variance_ddof := acc / dint_to_lreal(den);
-	{end}
 end
 
 (*{doc 母分散 (ddof=0) を計算
@@ -85,9 +83,7 @@ function Stats_variance: lreal
 		(*{doc 先頭n個を使用する。}*)
 		n: dint := -1;
 	end
-	{st}
 	Stats_variance := Stats_variance_ddof(data:=data, n:=n, ddof:=0, eno=>eno);
-	{end}
 end
 
 (*{doc 標本分散 (ddof=1) を計算
@@ -107,9 +103,7 @@ function Stats_sample_variance: lreal
 		(*{doc 先頭n個を使用する。}*)
 		n: dint := -1;
 	end
-	{st}
 	Stats_sample_variance := Stats_variance_ddof(data:=data, n:=n, ddof:=1, eno=>eno);
-	{end}
 end
 
 (*{doc 重み付き分散 (母分散相当: sum(w*(x-mean)^2)/sum(w))
@@ -141,7 +135,6 @@ function Stats_weighted_variance: lreal
 		acc: lreal;
 		diff: lreal;
 	end
-	{st}
 	ndata := Array_isRegular_lreal(data);
 	if (ndata = 0) or (n > ndata) then
 		eno := false;
@@ -191,7 +184,6 @@ function Stats_weighted_variance: lreal
 		acc := acc + weights[i] * diff * diff;
 	end_for;
 	Stats_weighted_variance := acc / s_w;
-	{end}
 end
 
 (*{doc 数値安定な2パス法 (ddof 指定)
@@ -223,7 +215,6 @@ function Stats_variance_two_pass: lreal
 		diff: lreal;
 		den: dint;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(data);
 	if (actual_n = 0) or (n > actual_n) then
 		eno := false;
@@ -249,7 +240,6 @@ function Stats_variance_two_pass: lreal
 		acc := acc + diff * diff;
 	end_for;
 	Stats_variance_two_pass := acc / dint_to_lreal(den);
-	{end}
 end
 
 (*{doc 数値安定なWelford法 (ddof 指定)
@@ -282,7 +272,6 @@ function Stats_variance_welford: lreal
 		delta2: lreal;
 		den: dint;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(data);
 	if (actual_n = 0) or (n > actual_n) then
 		eno := false;
@@ -307,7 +296,6 @@ function Stats_variance_welford: lreal
 		M2 := M2 + delta1 * delta2;
 	end_for;
 	Stats_variance_welford := M2 / dint_to_lreal(den);
-	{end}
 end
 
 {#endif}

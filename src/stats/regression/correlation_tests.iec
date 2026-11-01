@@ -33,7 +33,6 @@ function Stats_test_pearson_correlation
 		n_x, n_y, n: dint;
 		r, t_stat, df: lreal;
 	end
-	{st}
 	n_x := Array_isRegular_lreal(x);
 	n_y := Array_isRegular_lreal(y);
 	if (n_x = 0) or (n_y = 0) or (n_x <> n_y) then
@@ -63,7 +62,6 @@ function Stats_test_pearson_correlation
 	result.ci_lower := 0.0;
 	result.ci_upper := 0.0;
 	result.effect_size := r;
-	{end}
 end
 
 {#endif}

@@ -19,9 +19,7 @@ function private_MD5_number: udint
 	var_input
 		n: lint;
 	end
-	{st}
 	private_MD5_number := dword_to_udint(lint_to_dword(n));
-	{end}
 end
 
 (*{doc 32bit値を左ローテートする。
@@ -34,9 +32,7 @@ function private_MD5_leftrotate: dword
 		x: dword;
 		c: dint;
 	end
-	{st}
 	private_MD5_leftrotate := shl(x, c) or shr(x, 32 - c);
-	{end}
 end
 
 (*{doc 1バイトを16進2桁文字列へ変換する。
@@ -53,11 +49,9 @@ function private_MD5_hexbyte: string[2 + 1]
 		];
 		hi, lo: dint;
 	end
-	{st}
 	hi := byte_to_dint(shr(b, 4));
 	lo := byte_to_dint(b and byte#16#0F);
 	private_MD5_hexbyte := concat(HEX[hi], HEX[lo]);
-	{end}
 end
 
 (*{doc 32bit値をリトルエンディアン順で16進8桁文字列へ変換する。
@@ -72,14 +66,12 @@ function private_MD5_hexword_le: string[8 + 1]
 		dw: dword;
 		b0, b1, b2, b3: byte;
 	end
-	{st}
 	dw := udint_to_dword(w);
 	b0 := dword_to_byte(dw and dword#16#000000FF);
 	b1 := dword_to_byte(shr(dw, 8) and dword#16#000000FF);
 	b2 := dword_to_byte(shr(dw, 16) and dword#16#000000FF);
 	b3 := dword_to_byte(shr(dw, 24) and dword#16#000000FF);
 	private_MD5_hexword_le := jiec_concat(private_MD5_hexbyte(b0), private_MD5_hexbyte(b1), private_MD5_hexbyte(b2), private_MD5_hexbyte(b3));
-	{end}
 end
 
 (*{doc バイト配列のMD5ダイジェスト（32文字16進小文字）を得る。
@@ -146,7 +138,6 @@ function MD5_bytes: string[32 + 1]
 		temp: dword;
 		tmp64: lint;
 	end
-	{st}
 	i0 := lower_bound(dat, 1);
 	i1 := upper_bound(dat, 1);
 	w0 := lower_bound(work, 1);
@@ -253,7 +244,6 @@ function MD5_bytes: string[32 + 1]
 	end_for;
 
 	MD5_bytes := jiec_concat(private_MD5_hexword_le(dword_to_udint(h0)), private_MD5_hexword_le(dword_to_udint(h1)), private_MD5_hexword_le(dword_to_udint(h2)), private_MD5_hexword_le(dword_to_udint(h3)));
-	{end}
 end
 
 (*{doc 文字列のMD5ダイジェスト（32文字16進小文字）を得る。
@@ -276,7 +266,6 @@ function MD5_string: string[32 + 1]
 		i: dint;
 		code: dint;
 	end
-	{st}
 	w0 := lower_bound(work, 1);
 	w1 := upper_bound(work, 1);
 	input_len := uint_to_dint(len(txt));
@@ -297,7 +286,6 @@ function MD5_string: string[32 + 1]
 	if not eno then
 		return;
 	end_if;
-	{end}
 end
 
 {#endif}

@@ -32,7 +32,6 @@ function Stats_moment: lreal
 		actual_n, i: dint;
 		s: lreal;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(data);
 	if (actual_n = 0) or (n > actual_n) then
 		eno := false;
@@ -52,7 +51,6 @@ function Stats_moment: lreal
 		s := s + data[i] ** k;
 	end_for;
 	Stats_moment := s / dint_to_lreal(actual_n);
-	{end}
 end
 
 {#endif}

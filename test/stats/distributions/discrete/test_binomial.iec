@@ -26,7 +26,6 @@ DEFINE_CONFIGURATION(
 // Stats_binomial_pmf: Probability mass function
 TEST_S(test_stats_binomial_pmf)
 	var result: lreal; end
-	{st}
 		// ========== Fair coin (p=0.5) ==========
 
 		// All failures: P(k=0|n=10,p=0.5) = (1/2)^10 ≈ 0.0009766
@@ -79,14 +78,12 @@ TEST_S(test_stats_binomial_pmf)
 		// P(k|n,p) = P(n-k|n,1-p)
 		result := Stats_binomial_pmf(k:=2, n:=10, p:=0.3);
 		EXPECT_NEAR(Stats_binomial_pmf(k:=8, n:=10, p:=0.7), result, 1.0e-6);
-	{end}
 END_TEST_S
 
 // Stats_binomial_cdf: Cumulative distribution function
 TEST_S(test_stats_binomial_cdf)
 	var result: lreal; end
 	var cdf3, cdf5, cdf7: lreal; end
-	{st}
 		// ========== Fair coin (p=0.5) ==========
 
 		// CDF at k=0
@@ -131,13 +128,11 @@ TEST_S(test_stats_binomial_cdf)
 		// CDF for larger n
 		result := Stats_binomial_cdf(k:=15, n:=20, p:=0.7);
 		EXPECT_NEAR(0.7622086447, result, 1.0e-3);
-	{end}
 END_TEST_S
 
 // Stats_binomial_mean: Mean of binomial distribution
 TEST_S(test_stats_binomial_mean)
 	var result: lreal; end
-	{st}
 		// ========== Basic cases ==========
 
 		// Mean = n*p = 10*0.3 = 3.0
@@ -173,13 +168,11 @@ TEST_S(test_stats_binomial_mean)
 
 		result := Stats_binomial_mean(n:=50, p:=0.6);
 		EXPECT_NEAR(30.0, result, EPS);
-	{end}
 END_TEST_S
 
 // Stats_binomial_variance: Variance of binomial distribution
 TEST_S(test_stats_binomial_variance)
 	var result: lreal; end
-	{st}
 		// ========== Basic cases ==========
 
 		// Variance = n*p*(1-p) = 10*0.3*0.7 = 2.1
@@ -216,13 +209,11 @@ TEST_S(test_stats_binomial_variance)
 
 		// Var(n,p) = Var(n,1-p)
 		EXPECT_NEAR(Stats_binomial_variance(n:=10, p:=0.3), Stats_binomial_variance(n:=10, p:=0.7), 1.0e-6);
-	{end}
 END_TEST_S
 
 // Stats_binomial_coefficient: Binomial coefficient C(n,k)
 TEST_S(test_stats_binomial_coefficient)
 	var result, result1, result2: lreal; end
-	{st}
 		// ========== Basic values ==========
 
 		// C(5,2) = 5!/(2!*3!) = 10
@@ -295,7 +286,6 @@ TEST_S(test_stats_binomial_coefficient)
 		result2 := Stats_binomial_coefficient(n:=10, k:=6);
 		result := Stats_binomial_coefficient(n:=11, k:=6);
 		EXPECT_NEAR(result, result1 + result2, EPS);
-	{end}
 END_TEST_S
 
 {#undef EPS}

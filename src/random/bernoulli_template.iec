@@ -60,9 +60,7 @@ function Random_nextBernoulli: bool
 		(*{doc The probability of returning true (0.0 to 1.0).}*)
 		prob: lreal;
 	end
-	{st}
 	Random_nextBernoulli := Random_nextDouble(self) < prob;
-	{end}
 end
 
 {#undef _RANDOM_NEXT_BERNOULLI_}

@@ -72,7 +72,6 @@ function Array_index_of: dint
 	var_temp
 		ii, i_0, i_1: dint;
 	end
-	{st}
 	i_0 := lower_bound(self, 1);
 	i_1 := upper_bound(self, 1);
 	Array_index_of := -1;
@@ -82,7 +81,6 @@ function Array_index_of: dint
 			return;
 		end_if;
 	end_for;
-	{end}
 end
 
 (*{doc Return the array index of the last element equal to value, or -1 if not found.
@@ -103,7 +101,6 @@ function Array_last_index_of: dint
 	var_temp
 		ii, i_0, i_1: dint;
 	end
-	{st}
 	i_0 := lower_bound(self, 1);
 	i_1 := upper_bound(self, 1);
 	Array_last_index_of := -1;
@@ -115,7 +112,6 @@ function Array_last_index_of: dint
 		end_if;
 		ii := ii - 1;
 	end_while;
-	{end}
 end
 
 (*{doc Return true if the array contains at least one element equal to value.
@@ -135,7 +131,6 @@ function Array_contains: bool
 	var_temp
 		ii, i_0, i_1: dint;
 	end
-	{st}
 	i_0 := lower_bound(self, 1);
 	i_1 := upper_bound(self, 1);
 	for ii := i_0 to i_1 by 1 do
@@ -145,7 +140,6 @@ function Array_contains: bool
 		end_if;
 	end_for;
 	Array_contains := false;
-	{end}
 end
 
 {#undef _ARRAY_INDEX_OF_}

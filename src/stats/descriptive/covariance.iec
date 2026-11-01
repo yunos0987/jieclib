@@ -38,7 +38,6 @@ function Stats_covariance: lreal
 		n_x, n_y, actual_n, i: dint;
 		mean_x, mean_y, sum_prod: lreal;
 	end
-	{st}
 	n_x := Array_isRegular_lreal(x);
 	n_y := Array_isRegular_lreal(y);
 	if (n_x <= 0) or (n_y <= 0) then
@@ -69,7 +68,6 @@ function Stats_covariance: lreal
 	end_for;
 
 	Stats_covariance := sum_prod / dint_to_lreal(actual_n - ddof);
-	{end}
 end
 
 (*{doc 共分散行列（n×n 行列、対角は分散）
@@ -98,7 +96,6 @@ function Stats_covariance_matrix
 		mean_i, mean_j, sum_prod: lreal;
 		result_rows, result_cols: dint;
 	end
-	{st}
 	rows := upper_bound(data, 1) - lower_bound(data, 1) + 1;
 	cols := upper_bound(data, 2) - lower_bound(data, 2) + 1;
 	result_rows := upper_bound(result, 1) - lower_bound(result, 1) + 1;
@@ -156,7 +153,6 @@ function Stats_covariance_matrix
 			end_if;
 		end_for;
 	end_for;
-	{end}
 end
 
 {#endif}

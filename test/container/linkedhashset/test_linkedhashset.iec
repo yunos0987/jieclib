@@ -46,7 +46,6 @@ TEST_S(test_linkedhashset_dint_init)
 		elements: array[0..7] of dint;
 		written: dint;
 	end
-	{st}
 
 	// Fact: init sets count to 0 and contains returns false.
 		// Arrange
@@ -72,7 +71,6 @@ TEST_S(test_linkedhashset_dint_init)
 	EXPECT_TRUE(LinkedHashSet_dint_empty(os3));
 	ASSERT_TRUE(LinkedHashSet_dint_elements(os3, elements, written));
 	EXPECT_EQ_INT32(0, written);
-	{end}
 END_TEST_S
 
 TEST_S(test_linkedhashset_dint_add)
@@ -84,7 +82,6 @@ TEST_S(test_linkedhashset_dint_add)
 		added: bool;
 		idx: dint;
 	end
-	{st}
 
 	// Fact: add returns added=true for new element and increments len.
 		// Arrange
@@ -127,7 +124,6 @@ TEST_S(test_linkedhashset_dint_add)
 	EXPECT_FALSE(LinkedHashSet_dint_add(os4, 999, added));
 	EXPECT_EQ_INT32(6, LinkedHashSet_dint_len(os4));
 	EXPECT_FALSE(LinkedHashSet_dint_contains(os4, 999));
-	{end}
 END_TEST_S
 
 TEST_S(test_linkedhashset_dint_add_all)
@@ -138,7 +134,6 @@ TEST_S(test_linkedhashset_dint_add_all)
 		input2: array[0..6] of dint;
 		added_count: dint;
 	end
-	{st}
 
 	// Fact: add_all inserts unique elements and deduplicates.
 		// Arrange
@@ -172,7 +167,6 @@ TEST_S(test_linkedhashset_dint_add_all)
 	EXPECT_FALSE(LinkedHashSet_dint_add_all(os2, input2, added_count));
 	EXPECT_EQ_INT32(6, LinkedHashSet_dint_len(os2));
 	EXPECT_FALSE(LinkedHashSet_dint_contains(os2, 7));
-	{end}
 END_TEST_S
 
 TEST_S(test_linkedhashset_dint_remove)
@@ -181,7 +175,6 @@ TEST_S(test_linkedhashset_dint_remove)
 		os2: LinkedHashSet_dint_t;
 		added: bool;
 	end
-	{st}
 
 	// Fact: remove deletes existing element.
 		// Arrange
@@ -204,7 +197,6 @@ TEST_S(test_linkedhashset_dint_remove)
 		// Assert
 	EXPECT_FALSE(LinkedHashSet_dint_remove(os2, 999));
 	EXPECT_EQ_INT32(1, LinkedHashSet_dint_len(os2));
-	{end}
 END_TEST_S
 
 TEST_S(test_linkedhashset_dint_remove_all)
@@ -216,7 +208,6 @@ TEST_S(test_linkedhashset_dint_remove_all)
 		removed_count: dint;
 		added: bool;
 	end
-	{st}
 
 	// Fact: remove_all removes matching elements and returns correct count.
 		// Arrange
@@ -250,7 +241,6 @@ TEST_S(test_linkedhashset_dint_remove_all)
 		// Assert
 	EXPECT_EQ_INT32(0, removed_count);
 	EXPECT_EQ_INT32(1, LinkedHashSet_dint_len(os2));
-	{end}
 END_TEST_S
 
 TEST_S(test_linkedhashset_dint_contains)
@@ -260,7 +250,6 @@ TEST_S(test_linkedhashset_dint_contains)
 		os3: LinkedHashSet_dint_t;
 		added: bool;
 	end
-	{st}
 
 	// Fact: contains returns false on empty set.
 		// Arrange
@@ -287,7 +276,6 @@ TEST_S(test_linkedhashset_dint_contains)
 	ASSERT_TRUE(LinkedHashSet_dint_add(os3, 2, added));
 		// Assert
 	EXPECT_FALSE(LinkedHashSet_dint_contains(os3, 999));
-	{end}
 END_TEST_S
 
 TEST_S(test_linkedhashset_dint_len)
@@ -299,7 +287,6 @@ TEST_S(test_linkedhashset_dint_len)
 		os5: LinkedHashSet_dint_t;
 		added: bool;
 	end
-	{st}
 
 	// Fact: len is 0 after init.
 		// Arrange
@@ -333,7 +320,6 @@ TEST_S(test_linkedhashset_dint_len)
 	ASSERT_TRUE(LinkedHashSet_dint_remove(os4, 1));
 		// Assert
 	EXPECT_EQ_INT32(1, LinkedHashSet_dint_len(os4));
-	{end}
 END_TEST_S
 
 TEST_S(test_linkedhashset_dint_elements)
@@ -345,7 +331,6 @@ TEST_S(test_linkedhashset_dint_elements)
 		written: dint;
 		added: bool;
 	end
-	{st}
 
 	// Fact: elements returns empty array for empty set.
 		// Arrange
@@ -384,7 +369,6 @@ TEST_S(test_linkedhashset_dint_elements)
 	EXPECT_EQ_INT32(1, elements[0]);
 	EXPECT_EQ_INT32(3, elements[1]);
 	EXPECT_EQ_INT32(4, elements[2]);
-	{end}
 END_TEST_S
 
 TEST_S(test_linkedhashset_dint_copy)
@@ -399,7 +383,6 @@ TEST_S(test_linkedhashset_dint_copy)
 		written: dint;
 		added: bool;
 	end
-	{st}
 
 	// Fact: copy duplicates all elements in insertion order.
 		// Arrange
@@ -440,7 +423,6 @@ TEST_S(test_linkedhashset_dint_copy)
 	ASSERT_TRUE(LinkedHashSet_dint_copy(os_src_empty, os_dst_empty));
 		// Assert
 	EXPECT_TRUE(LinkedHashSet_dint_empty(os_dst_empty));
-	{end}
 END_TEST_S
 
 TEST_S(test_linkedhashset_dint_equals)
@@ -454,7 +436,6 @@ TEST_S(test_linkedhashset_dint_equals)
 		os_empty2: LinkedHashSet_dint_t;
 		added: bool;
 	end
-	{st}
 
 	// Fact: equals returns true for same elements in same insertion order.
 		// Arrange
@@ -501,7 +482,6 @@ TEST_S(test_linkedhashset_dint_equals)
 	LinkedHashSet_dint_init(os_empty2);
 		// Assert
 	EXPECT_TRUE(LinkedHashSet_dint_equals(os_empty1, os_empty2));
-	{end}
 END_TEST_S
 
 TEST_S(test_linkedhashset_dint_hash)
@@ -518,7 +498,6 @@ TEST_S(test_linkedhashset_dint_hash)
 		hash_a: udint;
 		hash_b: udint;
 	end
-	{st}
 
 	// Fact: hash values match for sets with same elements in same order.
 		// Arrange
@@ -576,7 +555,6 @@ TEST_S(test_linkedhashset_dint_hash)
 	hash_b := LinkedHashSet_dint_hash(os_empty2);
 		// Assert
 	EXPECT_EQ_UDINT(hash_a, hash_b);
-	{end}
 END_TEST_S
 
 TEST_S(test_linkedhashset_dint_empty)
@@ -586,7 +564,6 @@ TEST_S(test_linkedhashset_dint_empty)
 		os3: LinkedHashSet_dint_t;
 		added: bool;
 	end
-	{st}
 
 	// Fact: empty is true immediately after init.
 		// Arrange
@@ -608,7 +585,6 @@ TEST_S(test_linkedhashset_dint_empty)
 	ASSERT_TRUE(LinkedHashSet_dint_remove(os3, 1));
 		// Assert
 	EXPECT_TRUE(LinkedHashSet_dint_empty(os3));
-	{end}
 END_TEST_S
 
 TEST_S(test_linkedhashset_dint_clear)
@@ -620,7 +596,6 @@ TEST_S(test_linkedhashset_dint_clear)
 		written: dint;
 		added: bool;
 	end
-	{st}
 
 	// Fact: clear removes all elements.
 		// Arrange
@@ -656,7 +631,6 @@ TEST_S(test_linkedhashset_dint_clear)
 		// Assert
 	EXPECT_TRUE(LinkedHashSet_dint_contains(os_reuse, 9));
 	EXPECT_FALSE(LinkedHashSet_dint_contains(os_reuse, 1));
-	{end}
 END_TEST_S
 
 TEST_S(test_linkedhashset_dint_collision_usecase)
@@ -669,7 +643,6 @@ TEST_S(test_linkedhashset_dint_collision_usecase)
 		added: bool;
 		idx: dint;
 	end
-	{st}
 
 	// Fact: collision usecase validates add/contains/elements/remove flows.
 		// Arrange
@@ -707,7 +680,6 @@ TEST_S(test_linkedhashset_dint_collision_usecase)
 		// Assert
 	EXPECT_FALSE(added);
 	EXPECT_EQ_INT32(1, LinkedHashSet_dint_collision_len(os2));
-	{end}
 END_TEST_S
 
 TEST_S(test_linkedhashset_dint_access_order_usecase)
@@ -718,7 +690,6 @@ TEST_S(test_linkedhashset_dint_access_order_usecase)
 		written: dint;
 		added: bool;
 	end
-	{st}
 
 	// Fact: in access-order mode, re-adding an existing element moves it to the tail.
 		// Arrange
@@ -749,7 +720,6 @@ TEST_S(test_linkedhashset_dint_access_order_usecase)
 	EXPECT_EQ_INT32(2, written);
 	EXPECT_EQ_INT32(1, elements[0]);
 	EXPECT_EQ_INT32(2, elements[1]);
-	{end}
 END_TEST_S
 
 TEST_S(test_linkedhashset_string_usecase)
@@ -762,7 +732,6 @@ TEST_S(test_linkedhashset_string_usecase)
 		written: dint;
 		added: bool;
 	end
-	{st}
 
 	// Fact: string set validates add, duplicate handling, and remove.
 		// Arrange
@@ -815,5 +784,4 @@ TEST_S(test_linkedhashset_string_usecase)
 	ASSERT_TRUE(LinkedHashSet_string16_add(os_eq, 'gamma', added));
 		// Assert
 	EXPECT_FALSE(LinkedHashSet_string16_equals(os_order2, os_eq));
-	{end}
 END_TEST_S

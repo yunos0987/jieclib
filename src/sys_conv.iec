@@ -25,9 +25,7 @@
 			(*{doc The 32-bit signed integer to convert.}*)
 			in: dint;
 		end
-		{st}
 		dint_to_string := NumToDecString(in:=in, zerosuppress:=true, plussignomission:=true);
-		{end}
 	end
 
 	(*{doc Convert a 32-bit unsigned integer to a decimal string representation.
@@ -39,9 +37,7 @@
 			(*{doc The 32-bit unsigned integer to convert.}*)
 			in: udint;
 		end
-		{st}
 		udint_to_string := NumToDecString(in:=in, zerosuppress:=true, plussignomission:=true);
-		{end}
 	end
 
 	(*{doc Convert a 64-bit floating-point value to a string representation.
@@ -53,9 +49,7 @@
 			(*{doc The 64-bit floating-point value to convert.}*)
 			in: lreal;
 		end
-		{st}
 		lreal_to_string := LrealToString(in:=in, format:=1, fullcount:=24, subdeccount:=14);
-		{end}
 	end
 
 	{#define dword_to_string(...) udint_to_string(__VA_ARGS__)}
@@ -71,13 +65,11 @@ function bool_to_string: string[8]
 		(*{doc The boolean value to convert.}*)
 		in: bool;
 	end
-	{st}
 	if in then
 		bool_to_string := 'true';
 	else
 		bool_to_string := 'false';
 	end_if;
-	{end}
 end
 {#endif}
 
@@ -110,7 +102,6 @@ function time_to_string_sec: string[64]
 		sec_rem_str: string[16];
 		sign: string[2] := '';
 	end
-	{st}
 	usec_raw := time_to_usec_dint(in);
 
 	sec_rem_raw := usec_raw mod dint#1_000_000;
@@ -138,7 +129,6 @@ function time_to_string_sec: string[64]
 	else
 		time_to_string_sec := jiec_concat(sign, dint_to_string(sec_int_raw), 's');
 	end_if;
-	{end}
 end
 {#elif _MITSUBISHI}
 	// TODO:
@@ -168,9 +158,7 @@ end
 			(*${doc The input value.$}*)
 			in: dtype dtype_option;
 		end
-		${st$}
 		dtype@@_to_@@dtype := in;
-		${end$}
 	end
 }
 IDENTITY_TYPECONV_FUNCTION(string, [STRING_MAX_SIZE])

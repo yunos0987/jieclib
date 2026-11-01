@@ -24,7 +24,6 @@ TEST_S(test_hexencode)
 		o: bool;
 		r: STRING;
 	end
-	{st}
 	r := hexencode(dat:=d1, eno=>o);
 	EXPECT_TRUE(o);
 	EXPECT_EQ_STRING('00012AFFB3', r);
@@ -42,7 +41,6 @@ TEST_S(test_hexencode)
 
 	r := hexencode(dat:=d1, offset:=0, length:=0, eno=>o);
 	EXPECT_FALSE(o);
-	{end}
 END_TEST_S
 
 TEST_S(test_hexdecode)
@@ -51,7 +49,6 @@ TEST_S(test_hexdecode)
 		n: dint;
 		o: bool;
 	end
-	{st}
 	n := hexdecode(txt:='00012AFFB3', dat:=d);
 	EXPECT_EQ_INT32(5, n);
 	EXPECT_EQ_BYTE(byte#16#00, d[0]);
@@ -79,5 +76,4 @@ TEST_S(test_hexdecode)
 	EXPECT_FALSE(o);
 	hexdecode(txt:='001122334455667788', dat:=d, eno=>o);
 	EXPECT_FALSE(o);
-	{end}
 END_TEST_S
