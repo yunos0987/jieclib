@@ -2,13 +2,17 @@
 
 このファイルは、3.4.0 以降の変更を記録します。それ以前の変更は、Git のタグ（`v1.2.0` 〜 `v3.2.0`）と GitHub のリリース・Pull Request（https://github.com/yunos0987/jieclib）を参照してください。
 
-## 未リリース / Unreleased
+## [4.0.0] - 2026-11-01
 
 ### 互換性に影響する変更 / Breaking changes
 
 - 必要な Jiecc を 5.14 以降（`test/` は 8.0.0 以降）から 9.2.0 以降に変更しました。Jiecc 9.2.0 では、POU の本体直下に ST の文を直接書けるようになったため、`{st}` / `{end}`（マクロ定義内の `${st$}` / `${end$}` を含む）の囲みを、`src/` と `test/` のすべてのソースから取り除きました。
 - Jiecc 9.2.0 未満では、`src/sys.iec` などの `{#error}` で前処理が止まります（`JiecLib requires Jiecc 9.2.0 or later.`）。
-- GitHub Actions の CI は最新リリースの Jiecc を取得する方式のままです。Jiecc 9.2.0 が公開されるまでは、取得される Jiecc が 9.2.0 未満のため、上記の `{#error}` で失敗します。
+- GitHub Actions の CI は最新リリースの Jiecc を取得して実行する方式のままです（9.2.0 以降が必要です）。
+
+### 既知の問題 / Known issues
+
+- jier（`jiecc --run`）でテストを実行すると、`test/` の 83 ファイルが失敗します。幅なしの `shl` / `shr` は `UNDEFINED_SYMBOL` で止まり、dint の `max` / `min` は `cannot marshal Python int ... LREAL` で止まります。Jiecc 8.0.0 でも同じ結果になるため、今回の変更による退行ではありません。PLC ベンダーの環境向けのコンパイルには影響しません。このため、CI の run ジョブが失敗しても、ライブラリが壊れているとは限りません。Jiecc の型推論が完成するまで、対応を保留しています。
 
 ### その他 / Other
 
