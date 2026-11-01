@@ -29,7 +29,6 @@ TEST_S(test_array_equals)
 		aa3: array[0..2] of lreal := [1.0, 2.0, 3.0];
 		ok: bool;
 	end
-	{st}
 	// Fact: Two lreal arrays with equal elements compare as equal.
 		// Arrange
 		// Act
@@ -64,7 +63,6 @@ TEST_S(test_array_equals)
 	ok := Array_equals_lreal(self:=aa, other:=aa3);
 		// Assert
 	EXPECT_FALSE(ok);
-	{end}
 END_TEST_S
 
 TEST_S(test_array_equals_offset)
@@ -77,7 +75,6 @@ TEST_S(test_array_equals_offset)
 		rr: array[10..13] of dint := [1, 2, 3, 9];
 		ok: bool;
 	end
-	{st}
 	// Fact: Two offset lreal arrays with equal elements compare as equal.
 		// Arrange
 		// Act
@@ -105,5 +102,4 @@ TEST_S(test_array_equals_offset)
 	ok := Array_equals_dint(self:=pp, other:=rr);
 		// Assert
 	EXPECT_FALSE(ok);
-	{end}
 END_TEST_S

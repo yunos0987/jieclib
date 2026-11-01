@@ -46,7 +46,6 @@ TEST_S(test_stats_t_test_1samp)
 		//
 		result_eno: bool;
 	end
-	{st}
 		// Case 1: Standard dataset with mean around 100
 		Stats_t_test_1samp(data:=case1_x, mu0:=100.0, result:=result_standard);
 		EXPECT_NEAR(result_standard.statistic, 1.4812257933030621, EPS);
@@ -102,7 +101,6 @@ TEST_S(test_stats_t_test_1samp)
 		EXPECT_NEAR(result_very_small.statistic, -0.3076923076923078, EPS);
 		EXPECT_NEAR(result_very_small.pvalue, 0.7661746657420653, EPS);
 		EXPECT_NEAR(result_very_small.df, 8.0, 0.0);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_t_test_ind)
@@ -140,7 +138,6 @@ TEST_S(test_stats_t_test_ind)
 		//
 		result_eno: bool;
 	end
-	{st}
 		// Case 1: Equal variance - shifted by 1
 		Stats_t_test_ind(x:=case1_x, y:=case1_y, equal_var:=true, result:=result_shifted);
 		EXPECT_NEAR(result_shifted.statistic, -1.0, EPS);
@@ -198,7 +195,6 @@ TEST_S(test_stats_t_test_ind)
 		EXPECT_NEAR(result_small_sample.statistic, -3.6742346141747673, EPS);
 		EXPECT_NEAR(result_small_sample.pvalue, 0.0213116411287567, EPS);
 		EXPECT_NEAR(result_small_sample.df, 4.0, 0.0);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_t_test_paired)
@@ -245,7 +241,6 @@ TEST_S(test_stats_t_test_paired)
 		//
 		result_eno: bool;
 	end
-	{st}
 		// Case 1: Small varying differences
 		Stats_t_test_paired(x:=case1_x, y:=case1_y, result:=result1);
 		EXPECT_NEAR(result1.statistic, -0.4082482904638638, EPS);
@@ -319,7 +314,6 @@ TEST_S(test_stats_t_test_paired)
 		// Error Case 2: No differences - should return error (diff stddev=0)
 		Stats_t_test_paired(x:=case_error2_x, y:=case_error2_y, result:=result_error2, eno=>result_eno);
 		EXPECT_FALSE(result_eno);
-	{end}
 END_TEST_S
 
 {#undef EPS}

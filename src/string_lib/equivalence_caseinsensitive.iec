@@ -35,7 +35,6 @@ function String_equalsAsciiIgnoreCase: bool
 		index, l: dint;
 		self_code, other_code: dint;
 	end
-	{st}
 	l := len(self);
 	if l <> len(other) then
 		String_equalsAsciiIgnoreCase := false;
@@ -65,7 +64,6 @@ function String_equalsAsciiIgnoreCase: bool
 	end_for;
 
 	String_equalsAsciiIgnoreCase := true;
-	{end}
 	{#undef CHARCODE_A}
 	{#undef CHARCODE_Z}
 	{#undef DIFF_CHARCODE_U2L}
@@ -91,7 +89,6 @@ function String_hashAsciiIgnoreCase: udint
 		index, l: dint;
 		code: dint;
 	end
-	{st}
 	fnv_hash := FNV_OFFSET_BASIS;
 	l := len(self);
 	for index := 0 to l - 1 by 1 do
@@ -107,7 +104,6 @@ function String_hashAsciiIgnoreCase: udint
 		fnv_hash := fnv_hash * FNV_PRIME;
 	end_for;
 	String_hashAsciiIgnoreCase := fnv_hash;
-	{end}
 	{#undef FNV_OFFSET_BASIS}
 	{#undef FNV_PRIME}
 	{#undef CHARCODE_A}

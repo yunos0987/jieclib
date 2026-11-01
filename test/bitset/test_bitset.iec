@@ -30,7 +30,6 @@ TEST_S(test_bitset_set)
 		vv: dword;
 		ok: bool;
 	end
-	{st}
 	// Fact: Setting a clear bit yields the mask for that bit.
 		// Arrange
 	vv := dword#16#00000000;
@@ -52,7 +51,6 @@ TEST_S(test_bitset_set)
 	bitset_set(val:=vv, pos:=32, eno=>ok);
 		// Assert
 	EXPECT_FALSE(ok);
-	{end}
 END_TEST_S
 
 TEST_S(test_bitset_clear)
@@ -60,7 +58,6 @@ TEST_S(test_bitset_clear)
 		vv: dword;
 		ok: bool;
 	end
-	{st}
 	// Fact: Clearing a set bit zeroes exactly that bit.
 		// Arrange
 	vv := dword#16#FFFFFFFF;
@@ -81,7 +78,6 @@ TEST_S(test_bitset_clear)
 	bitset_clear(val:=vv, pos:=-1, eno=>ok);
 		// Assert
 	EXPECT_FALSE(ok);
-	{end}
 END_TEST_S
 
 TEST_S(test_bitset_toggle)
@@ -89,7 +85,6 @@ TEST_S(test_bitset_toggle)
 		vv: dword;
 		ok: bool;
 	end
-	{st}
 	// Fact: Toggling a clear bit sets it; toggling a set bit clears it.
 		// Arrange
 	vv := dword#16#00000000;
@@ -104,14 +99,12 @@ TEST_S(test_bitset_toggle)
 	bitset_toggle(val:=vv, pos:=32, eno=>ok);
 		// Assert
 	EXPECT_FALSE(ok);
-	{end}
 END_TEST_S
 
 TEST_S(test_bitset_test)
 	var
 		ok: bool;
 	end
-	{st}
 	// Fact: bitset_test returns true for a bit that is 1.
 		// Arrange
 		// Act
@@ -153,14 +146,12 @@ TEST_S(test_bitset_test)
 	bitset_test(val:=dword#16#FFFFFFFF, pos:=32, eno=>ok);
 		// Assert
 	EXPECT_FALSE(ok);
-	{end}
 END_TEST_S
 
 TEST_S(test_bitset_popcount)
 	var
 		nn: dint;
 	end
-	{st}
 	// Fact: All-zero bitset has population count 0.
 		// Arrange
 		// Act
@@ -202,14 +193,12 @@ TEST_S(test_bitset_popcount)
 	nn := bitset_popcount(val:=dword#16#12345678);
 		// Assert
 	EXPECT_EQ_INT32(13, nn);
-	{end}
 END_TEST_S
 
 TEST_S(test_bitset_ffs)
 	var
 		nn: dint;
 	end
-	{st}
 	// Fact: bitset_ffs returns -1 for an all-zero bitset.
 		// Arrange
 		// Act
@@ -237,14 +226,12 @@ TEST_S(test_bitset_ffs)
 	nn := bitset_ffs(val:=dword#16#00000006);
 		// Assert
 	EXPECT_EQ_INT32(1, nn);
-	{end}
 END_TEST_S
 
 TEST_S(test_bitset_ffc)
 	var
 		nn: dint;
 	end
-	{st}
 	// Fact: bitset_ffc returns -1 for an all-ones bitset.
 		// Arrange
 		// Act
@@ -272,14 +259,12 @@ TEST_S(test_bitset_ffc)
 	nn := bitset_ffc(val:=dword#16#00000000);
 		// Assert
 	EXPECT_EQ_INT32(0, nn);
-	{end}
 END_TEST_S
 
 TEST_S(test_bitset_extract)
 	var
 		ok: bool;
 	end
-	{st}
 	// Fact: Extracting bits [0,3] from 0x000000FF yields 0x0000000F.
 		// Arrange
 		// Act/Assert
@@ -311,7 +296,6 @@ TEST_S(test_bitset_extract)
 	bitset_extract(val:=dword#16#FFFFFFFF, pos:=30, width:=3, eno=>ok);
 		// Assert
 	EXPECT_FALSE(ok);
-	{end}
 END_TEST_S
 
 TEST_S(test_bitset_insert)
@@ -319,7 +303,6 @@ TEST_S(test_bitset_insert)
 		vv: dword;
 		ok: bool;
 	end
-	{st}
 	// Fact: Inserting 0xA into bits [4,7] of 0x00000000 yields 0x000000A0.
 		// Arrange
 		// Act/Assert
@@ -337,5 +320,4 @@ TEST_S(test_bitset_insert)
 	bitset_insert(val:=dword#16#FFFFFFFF, pos:=0, width:=0, field:=dword#1, eno=>ok);
 		// Assert
 	EXPECT_FALSE(ok);
-	{end}
 END_TEST_S

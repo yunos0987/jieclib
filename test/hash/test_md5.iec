@@ -29,7 +29,6 @@ TEST_S(test_MD5_string)
 		rb1: array[0..8] of byte := [byte#16#97, byte#16#F1, byte#16#E2, byte#16#58, byte#16#EE, byte#16#19, byte#16#D9, byte#16#18, byte#16#C8];
 		rb2: array[0..12] of byte := [byte#16#2A, byte#16#41, byte#16#0D, byte#16#52, byte#16#94, byte#16#C2, byte#16#AF, byte#16#89, byte#16#0F, byte#16#CB, byte#16#B8, byte#16#8E, byte#16#D5];
 	end
-	{st}
 	r := MD5_string(txt:='', work:=work);
 	EXPECT_EQ_STRING('d41d8cd98f00b204e9800998ecf8427e', r);
 
@@ -73,7 +72,6 @@ TEST_S(test_MD5_string)
 	EXPECT_FALSE(o);
 	MD5_string(txt:='abc', work:=work_small, eno=>o);
 	EXPECT_FALSE(o);
-	{end}
 END_TEST_S
 
 TEST_S(test_MD5_bytes)
@@ -95,7 +93,6 @@ TEST_S(test_MD5_bytes)
 		rb2: array[0..12] of byte := [byte#16#2A, byte#16#41, byte#16#0D, byte#16#52, byte#16#94, byte#16#C2, byte#16#AF, byte#16#89, byte#16#0F, byte#16#CB, byte#16#B8, byte#16#8E, byte#16#D5];
 		rb1000: array[0..999] of byte := TEST_HASH_RB1000_LITERAL();
 	end
-	{st}
 	r := MD5_bytes(dat:=d0, length:=0, work:=work);
 	EXPECT_EQ_STRING('d41d8cd98f00b204e9800998ecf8427e', r);
 
@@ -140,5 +137,4 @@ TEST_S(test_MD5_bytes)
 	EXPECT_FALSE(o);
 	MD5_bytes(dat:=d1, work:=d0, eno=>o);
 	EXPECT_FALSE(o);
-	{end}
 END_TEST_S

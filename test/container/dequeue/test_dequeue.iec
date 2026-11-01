@@ -41,7 +41,6 @@ TEST_S(test_dequeue_init)
 		x_1, x_2, x_3: Dequeue_int_t;
 		value: int;
 	end
-	{st}
 
 	// Fact: initialization sets empty state and boundary behavior correctly.
 		// Act
@@ -66,7 +65,6 @@ TEST_S(test_dequeue_init)
 	ASSERT_TRUE(Dequeue_int_pop(x_3, value));
 		// Assert
 	EXPECT_EQ_INT32(7, value);
-	{end}
 END_TEST_S
 
 TEST_S(test_dequeue_string_caseinsensitive_usecase)
@@ -82,7 +80,6 @@ TEST_S(test_dequeue_string_caseinsensitive_usecase)
 		hash_a: udint;
 		hash_b: udint;
 	end
-	{st}
 
 	// Fact: contains, first, and last are case-insensitive.
 		// Arrange
@@ -136,7 +133,6 @@ TEST_S(test_dequeue_string_caseinsensitive_usecase)
 	EXPECT_TRUE(Dequeue_string_ci_equals(sessions_hash_a, sessions_hash_b));
 	EXPECT_FALSE(Dequeue_string_ci_equals(sessions_hash_a, sessions_hash_diff));
 	EXPECT_EQ_UINT32(hash_a, hash_b);
-	{end}
 END_TEST_S
 
 TEST_S(test_dequeue_copy)
@@ -149,7 +145,6 @@ TEST_S(test_dequeue_copy)
 		x_dst_empty: Dequeue_int_t;
 		value: int;
 	end
-	{st}
 
 	// Fact: empty queue copy matches source state.
 		// Arrange
@@ -204,7 +199,6 @@ TEST_S(test_dequeue_copy)
 		// Assert
 	EXPECT_TRUE(Dequeue_int_empty(x_dst_empty));
 	EXPECT_EQ_INT32(0, Dequeue_int_len(x_dst_empty));
-	{end}
 END_TEST_S
 
 TEST_S(test_dequeue_empty)
@@ -214,7 +208,6 @@ TEST_S(test_dequeue_empty)
 		x_clear: Dequeue_int_t;
 		value: int;
 	end
-	{st}
 
 	// Fact: queue is empty immediately after initialization.
 		// Act
@@ -243,7 +236,6 @@ TEST_S(test_dequeue_empty)
 	Dequeue_int_clear(x_clear);
 		// Assert
 	EXPECT_TRUE(Dequeue_int_empty(x_clear));
-	{end}
 END_TEST_S
 
 TEST_S(test_dequeue_len)
@@ -256,7 +248,6 @@ TEST_S(test_dequeue_len)
 		x_transitions: Dequeue_int_t;
 		value: int;
 	end
-	{st}
 
 	// Fact: length is 0 immediately after initialization.
 		// Act
@@ -315,7 +306,6 @@ TEST_S(test_dequeue_len)
 		// Assert
 	EXPECT_FALSE(Dequeue_int_empty(x_transitions));
 	EXPECT_EQ_INT32(3, Dequeue_int_len(x_transitions));
-	{end}
 END_TEST_S
 
 TEST_S(test_dequeue_clear)
@@ -325,7 +315,6 @@ TEST_S(test_dequeue_clear)
 		x_reuse: Dequeue_int_t;
 		value: int;
 	end
-	{st}
 
 	// Fact: clear on populated queue resets length and empty state.
 		// Arrange
@@ -362,7 +351,6 @@ TEST_S(test_dequeue_clear)
 	ASSERT_TRUE(Dequeue_int_popleft(x_reuse, value));
 		// Assert
 	EXPECT_EQ_INT32(9, value);
-	{end}
 END_TEST_S
 
 TEST_S(test_dequeue_append)
@@ -372,7 +360,6 @@ TEST_S(test_dequeue_append)
 		x_empty: Dequeue_int_t;
 		value: int;
 	end
-	{st}
 
 	// Fact: append succeeds until capacity and then fails.
 		// Arrange
@@ -404,7 +391,6 @@ TEST_S(test_dequeue_append)
 	Dequeue_int_init(x_empty);
 		// Act / Assert
 	EXPECT_FALSE(Dequeue_int_popleft(x_empty, value));
-	{end}
 END_TEST_S
 
 TEST_S(test_dequeue_appendleft)
@@ -414,7 +400,6 @@ TEST_S(test_dequeue_appendleft)
 		x_empty: Dequeue_int_t;
 		value: int;
 	end
-	{st}
 
 	// Fact: appendleft succeeds until capacity and then fails.
 		// Arrange
@@ -451,7 +436,6 @@ TEST_S(test_dequeue_appendleft)
 	Dequeue_int_init(x_empty);
 		// Act / Assert
 	EXPECT_FALSE(Dequeue_int_pop(x_empty, value));
-	{end}
 END_TEST_S
 
 TEST_S(test_dequeue_pop)
@@ -465,7 +449,6 @@ TEST_S(test_dequeue_pop)
 		elements: array[0..2] of int;
 		written: dint;
 	end
-	{st}
 
 	// Fact: pop on empty queue returns failure.
 		// Arrange
@@ -544,7 +527,6 @@ TEST_S(test_dequeue_pop)
 	EXPECT_EQ_INT32(9, elements[0]);
 	EXPECT_EQ_INT32(2, elements[1]);
 	EXPECT_EQ_INT32(3, elements[2]);
-	{end}
 END_TEST_S
 
 TEST_S(test_dequeue_popleft)
@@ -556,7 +538,6 @@ TEST_S(test_dequeue_popleft)
 		x_wrap: Dequeue_int_t;
 		value: int;
 	end
-	{st}
 
 	// Fact: popleft returns head element in expected order.
 		// Arrange
@@ -640,7 +621,6 @@ TEST_S(test_dequeue_popleft)
 	ASSERT_TRUE(Dequeue_int_popleft(x_wrap, value));
 		// Assert
 	EXPECT_EQ_INT32(4, value);
-	{end}
 END_TEST_S
 
 TEST_S(test_dequeue_first)
@@ -651,7 +631,6 @@ TEST_S(test_dequeue_first)
 		value: int;
 		first_value: int;
 	end
-	{st}
 
 	// Fact: first on empty queue returns failure.
 		// Arrange
@@ -679,7 +658,6 @@ TEST_S(test_dequeue_first)
 	ASSERT_TRUE(Dequeue_int_first(x_after_pop, first_value));
 		// Assert
 	EXPECT_EQ_INT32(30, first_value);
-	{end}
 END_TEST_S
 
 TEST_S(test_dequeue_last)
@@ -690,7 +668,6 @@ TEST_S(test_dequeue_last)
 		value: int;
 		last_value: int;
 	end
-	{st}
 
 	// Fact: last on empty queue returns failure.
 		// Arrange
@@ -718,7 +695,6 @@ TEST_S(test_dequeue_last)
 	ASSERT_TRUE(Dequeue_int_last(x_after_pop, last_value));
 		// Assert
 	EXPECT_EQ_INT32(10, last_value);
-	{end}
 END_TEST_S
 
 TEST_S(test_dequeue_contains)
@@ -728,7 +704,6 @@ TEST_S(test_dequeue_contains)
 		x_after_remove: Dequeue_int_t;
 		value: int;
 	end
-	{st}
 
 	// Fact: contains returns false on empty queue.
 		// Arrange
@@ -758,7 +733,6 @@ TEST_S(test_dequeue_contains)
 	EXPECT_EQ_INT32(10, value);
 	EXPECT_FALSE(Dequeue_int_contains(x_after_remove, 10));
 	EXPECT_TRUE(Dequeue_int_contains(x_after_remove, 20));
-	{end}
 END_TEST_S
 
 TEST_S(test_dequeue_elements)
@@ -773,7 +747,6 @@ TEST_S(test_dequeue_elements)
 		small_elements: array[0..0] of int;
 		written: dint;
 	end
-	{st}
 
 	// Fact: to_array on empty queue writes zero elements.
 		// Arrange
@@ -842,7 +815,6 @@ TEST_S(test_dequeue_elements)
 	EXPECT_EQ_INT32(2, elements[0]);
 	EXPECT_EQ_INT32(3, elements[1]);
 	EXPECT_EQ_INT32(4, elements[2]);
-	{end}
 END_TEST_S
 
 TEST_S(test_dequeue_equals)
@@ -855,7 +827,6 @@ TEST_S(test_dequeue_equals)
 		x_mutate_b: Dequeue_int_t;
 		value: int;
 	end
-	{st}
 
 	// Fact: equals returns true for identical queue content and order.
 		// Arrange
@@ -900,7 +871,6 @@ TEST_S(test_dequeue_equals)
 	ASSERT_TRUE(Dequeue_int_appendleft(x_mutate_b, 10));
 		// Assert
 	EXPECT_FALSE(Dequeue_int_equals(x_mutate_a, x_mutate_b));
-	{end}
 END_TEST_S
 
 TEST_S(test_dequeue_hash)
@@ -916,7 +886,6 @@ TEST_S(test_dequeue_hash)
 		h_empty1: udint;
 		h_empty2: udint;
 	end
-	{st}
 
 	// Fact: hash values are equal for identical queue content.
 		// Arrange
@@ -956,5 +925,4 @@ TEST_S(test_dequeue_hash)
 	h_empty2 := Dequeue_int_hash(x_empty2);
 		// Assert
 	EXPECT_EQ_UINT32(h_empty1, h_empty2);
-	{end}
 END_TEST_S

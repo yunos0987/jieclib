@@ -29,11 +29,9 @@ function Vector_cross_product
 		(*{doc 外積を格納する3次元ベクトル。}*)
 		result: array[0..2] of lreal;
 	end
-	{st}
 	result[0] := a[1] * b[2] - a[2] * b[1];
 	result[1] := a[2] * b[0] - a[0] * b[2];
 	result[2] := a[0] * b[1] - a[1] * b[0];
-	{end}
 end
 
 // Cross Product Magnitude
@@ -54,12 +52,10 @@ function Vector_cross_product_magnitude: lreal
 	var_temp
 		cx, cy, cz: lreal;
 	end
-	{st}
 	cx := a[1] * b[2] - a[2] * b[1];
 	cy := a[2] * b[0] - a[0] * b[2];
 	cz := a[0] * b[1] - a[1] * b[0];
 	Vector_cross_product_magnitude := sqrt(cx * cx + cy * cy + cz * cz);
-	{end}
 end
 
 // Unit Cross Product
@@ -84,7 +80,6 @@ function Vector_cross_product_unit
 	var_temp
 		cx, cy, cz, mag: lreal;
 	end
-	{st}
 	cx := a[1] * b[2] - a[2] * b[1];
 	cy := a[2] * b[0] - a[0] * b[2];
 	cz := a[0] * b[1] - a[1] * b[0];
@@ -98,7 +93,6 @@ function Vector_cross_product_unit
 	result[0] := cx / mag;
 	result[1] := cy / mag;
 	result[2] := cz / mag;
-	{end}
 end
 
 // Scalar Triple Product
@@ -122,12 +116,10 @@ function Vector_scalar_triple_product: lreal
 	var_temp
 		bcx, bcy, bcz: lreal;
 	end
-	{st}
 	bcx := b[1] * c[2] - b[2] * c[1];
 	bcy := b[2] * c[0] - b[0] * c[2];
 	bcz := b[0] * c[1] - b[1] * c[0];
 	Vector_scalar_triple_product := a[0] * bcx + a[1] * bcy + a[2] * bcz;
-	{end}
 end
 
 // Vector Triple Product
@@ -155,14 +147,12 @@ function Vector_vector_triple_product
 	var_temp
 		bcx, bcy, bcz: lreal;
 	end
-	{st}
 	bcx := b[1] * c[2] - b[2] * c[1];
 	bcy := b[2] * c[0] - b[0] * c[2];
 	bcz := b[0] * c[1] - b[1] * c[0];
 	result[0] := a[1] * bcz - a[2] * bcy;
 	result[1] := a[2] * bcx - a[0] * bcz;
 	result[2] := a[0] * bcy - a[1] * bcx;
-	{end}
 end
 
 // Angle Between Vectors
@@ -183,7 +173,6 @@ function Vector_angle_from_cross_product: lreal
 	var_temp
 		cx, cy, cz, cross_mag, a_mag, b_mag: lreal;
 	end
-	{st}
 	cx := a[1] * b[2] - a[2] * b[1];
 	cy := a[2] * b[0] - a[0] * b[2];
 	cz := a[0] * b[1] - a[1] * b[0];
@@ -198,7 +187,6 @@ function Vector_angle_from_cross_product: lreal
 	end_if;
 	
 	Vector_angle_from_cross_product := ASIN(cross_mag / (a_mag * b_mag));
-	{end}
 end
 
 // Vector Relationship Tests
@@ -224,14 +212,12 @@ function Vector_is_parallel: bool
 	var_temp
 		cx, cy, cz, cross_mag: lreal;
 	end
-	{st}
 	cx := a[1] * b[2] - a[2] * b[1];
 	cy := a[2] * b[0] - a[0] * b[2];
 	cz := a[0] * b[1] - a[1] * b[0];
 	cross_mag := sqrt(cx * cx + cy * cy + cz * cz);
 	
 	Vector_is_parallel := (cross_mag < tolerance);
-	{end}
 end
 
 (*{doc 2つのベクトルが直交（垂直）かどうかをチェックする。
@@ -256,10 +242,8 @@ function Vector_is_orthogonal: bool
 	var_temp
 		dot_product: lreal;
 	end
-	{st}
 	dot_product := a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 	Vector_is_orthogonal := (abs(dot_product) < tolerance);
-	{end}
 end
 
 {#endif}

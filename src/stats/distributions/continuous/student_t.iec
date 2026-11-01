@@ -25,7 +25,6 @@ function Stats_student_t_pdf: lreal
 		df: lreal;
 	end
 	var_temp logC, logK: lreal; end
-	{st}
 		if df <= 0.0 then
 			eno := false;
 			Stats_student_t_pdf := 0.0;
@@ -35,7 +34,6 @@ function Stats_student_t_pdf: lreal
 		logC := Stats_lgamma((df + 1.0) / 2.0) - (0.5 * (ln(df) + ln(3.14159265358979323846)) + Stats_lgamma(df / 2.0));
 		logK := -((df + 1.0) / 2.0) * ln(1.0 + (t * t) / df);
 		Stats_student_t_pdf := exp(logC + logK);
-	{end}
 end
 
 (*{doc Student t 分布の累積分布関数。正規化不完全ベータ関数による近似。
@@ -53,7 +51,6 @@ function Stats_student_t_cdf: lreal
 		df: lreal;
 	end
 	var_temp x, a, b, I_x_a_b: lreal; end
-	{st}
 		if df <= 0.0 then
 			eno := false;
 			Stats_student_t_cdf := 0.0;
@@ -76,7 +73,6 @@ function Stats_student_t_cdf: lreal
 		else
 			Stats_student_t_cdf := 0.5 * I_x_a_b;
 		end_if;
-	{end}
 end
 
 (*{doc Student t 分布の分位関数。Newton-Raphson 法
@@ -97,7 +93,6 @@ function Stats_student_t_ppf: lreal
 		z, sign, tail_p, t2, correction: lreal;
 		i: dint;
 	end
-	{st}
 		if df <= 0.0 or p < 0.0 or p > 1.0 then
 			eno := false;
 			Stats_student_t_ppf := 0.0;
@@ -156,7 +151,6 @@ function Stats_student_t_ppf: lreal
 		end_for;
 
 		Stats_student_t_ppf := t;
-	{end}
 end
 
 (*{doc Student t 分布の平均（期待値）。
@@ -169,14 +163,12 @@ function Stats_student_t_mean: lreal
 		(*{doc 自由度。}*)
 		df: lreal;
 	end
-	{st}
 		if df <= 1.0 then
 			eno := false;
 			Stats_student_t_mean := 0.0;
 			return;
 		end_if;
 		Stats_student_t_mean := 0.0;
-	{end}
 end
 
 (*{doc Student t 分布の分散
@@ -189,7 +181,6 @@ function Stats_student_t_variance: lreal
 		(*{doc 自由度。}*)
 		df: lreal;
 	end
-	{st}
 		if df <= 2.0 then
 			eno := false;
 			Stats_student_t_variance := 0.0;
@@ -197,7 +188,6 @@ function Stats_student_t_variance: lreal
 		end_if;
 
 		Stats_student_t_variance := df / (df - 2.0);
-	{end}
 end
 
 {#endif}

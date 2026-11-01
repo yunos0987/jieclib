@@ -20,13 +20,11 @@ function bitset_set: dword
 		(*{doc Zero-based bit position to set (0–31).}*)
 		pos: dint;
 	end
-	{st}
 	if (pos < 0) or (pos > 31) then
 		eno := false;
 		return;
 	end_if;
 	bitset_set := val or shl(dword#1, pos);
-	{end}
 end
 
 (*{doc Clear a single bit of a 32-bit bitset.
@@ -42,13 +40,11 @@ function bitset_clear: dword
 		(*{doc Zero-based bit position to clear (0–31).}*)
 		pos: dint;
 	end
-	{st}
 	if (pos < 0) or (pos > 31) then
 		eno := false;
 		return;
 	end_if;
 	bitset_clear := val and (not shl(dword#1, pos));
-	{end}
 end
 
 (*{doc Test a single bit of a 32-bit bitset.
@@ -64,13 +60,11 @@ function bitset_test: bool
 		(*{doc Zero-based bit position to test (0–31).}*)
 		pos: dint;
 	end
-	{st}
 	if (pos < 0) or (pos > 31) then
 		eno := false;
 		return;
 	end_if;
 	bitset_test := (val and shl(dword#1, pos)) <> dword#0;
-	{end}
 end
 
 (*{doc Toggle (invert) a single bit of a 32-bit bitset.
@@ -86,13 +80,11 @@ function bitset_toggle: dword
 		(*{doc Zero-based bit position to toggle (0–31).}*)
 		pos: dint;
 	end
-	{st}
 	if (pos < 0) or (pos > 31) then
 		eno := false;
 		return;
 	end_if;
 	bitset_toggle := val xor shl(dword#1, pos);
-	{end}
 end
 
 (*{doc Count the number of bits set to 1 (population count).
@@ -108,7 +100,6 @@ function bitset_popcount: dint
 		ww: dword;
 		cnt, ii: dint;
 	end
-	{st}
 	ww  := val;
 	cnt := 0;
 	ii  := 0;
@@ -120,7 +111,6 @@ function bitset_popcount: dint
 		ii := ii + 1;
 	end_while;
 	bitset_popcount := cnt;
-	{end}
 end
 
 (*{doc Find the position of the lowest set bit (Bit Scan Forward).
@@ -136,7 +126,6 @@ function bitset_ffs: dint
 		ww: dword;
 		ii: dint;
 	end
-	{st}
 	if val = dword#0 then
 		bitset_ffs := -1;
 		return;
@@ -148,7 +137,6 @@ function bitset_ffs: dint
 		ii := ii + 1;
 	end_while;
 	bitset_ffs := ii;
-	{end}
 end
 
 (*{doc Find the position of the lowest clear bit.
@@ -164,7 +152,6 @@ function bitset_ffc: dint
 		ww: dword;
 		ii: dint;
 	end
-	{st}
 	ww := not val;
 	if ww = dword#0 then
 		bitset_ffc := -1;
@@ -176,7 +163,6 @@ function bitset_ffc: dint
 		ii := ii + 1;
 	end_while;
 	bitset_ffc := ii;
-	{end}
 end
 
 (*{doc Extract a contiguous bit field from a 32-bit bitset.
@@ -200,7 +186,6 @@ function bitset_extract: dword
 		mask: dword;
 		ii: dint;
 	end
-	{st}
 	if (pos < 0) or (width < 1) or ((pos + width) > 32) then
 		eno := false;
 		return;
@@ -210,7 +195,6 @@ function bitset_extract: dword
 		mask := mask or shl(dword#1, ii);
 	end_for;
 	bitset_extract := shr(val, pos) and mask;
-	{end}
 end
 
 (*{doc Insert a right-justified bit field into a 32-bit bitset.
@@ -238,7 +222,6 @@ function bitset_insert: dword
 		mask: dword;
 		ii: dint;
 	end
-	{st}
 	if (pos < 0) or (width < 1) or ((pos + width) > 32) then
 		eno := false;
 		return;
@@ -248,7 +231,6 @@ function bitset_insert: dword
 		mask := mask or shl(dword#1, pos + ii);
 	end_for;
 	bitset_insert := (val and (not mask)) or (shl(field, pos) and mask);
-	{end}
 end
 
 {#endif}

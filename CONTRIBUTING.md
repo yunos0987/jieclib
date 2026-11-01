@@ -138,7 +138,7 @@ end_if;
 
 - インデントにはタブ文字を使用する。スペース文字によるインデントは使用しない。
 - エディタのタブ幅設定は4文字とする。
-- コード部は、`{st}` ~ `{end}`で括ります。defineマクロ内では、エスケープして、`${st$}` ~ `${end$}`と記述します。
+- コード部は、POUの本体に直接書きます（Jiecc 9.2.0以降）。`{st}` ~ `{end}`では括りません。defineマクロ内でも、`${st$}` ~ `${end$}`は不要です。
 
 ### エラーハンドリング
 
@@ -159,7 +159,6 @@ TEST_S(test_mean)
 		x_negative: array[0..2] of lreal;
 		mean_val: lreal;
 	end
-	{st}
 	// Fact: The mean of a sequence of values equals their arithmetic average.
 		// Arrange
 	x_regular[0] := 6.0;
@@ -188,7 +187,6 @@ TEST_S(test_mean)
 	mean_val := mean(x_negative);
 		// Assert
 	EXPECT_NEAR(-2.0, mean_val, 1.0e-6);
-	{end}
 END_TEST_S
 ```
 

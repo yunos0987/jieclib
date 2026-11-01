@@ -26,9 +26,7 @@ function Stats_sums_sum: lreal
 		(*{doc 先頭n個を使用する。}*)
 		n: dint := -1;
 	end
-	{st}
 	Stats_sums_sum := Stats_sum(x:=data, n:=n, eno=>eno);
-	{end}
 end
 
 (*{doc 高精度総和 (Kahan補償)
@@ -48,9 +46,7 @@ function Stats_sums_fsum: lreal
 		(*{doc 先頭n個を使用する。}*)
 		n: dint := -1;
 	end
-	{st}
 	Stats_sums_fsum := Stats_sum_kahan(x:=data, n:=n, eno=>eno);
-	{end}
 end
 
 (*{doc 二乗和
@@ -76,7 +72,6 @@ function Stats_sums_sum_of_squares: lreal
 		acc: lreal;
 		v: lreal;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(data);
 	if (actual_n = 0) or (n > actual_n) then
 		eno := false;
@@ -92,7 +87,6 @@ function Stats_sums_sum_of_squares: lreal
 		acc := acc + v * v;
 	end_for;
 	Stats_sums_sum_of_squares := acc;
-	{end}
 end
 
 (*{doc 積和
@@ -121,7 +115,6 @@ function Stats_sums_sum_of_products: lreal
 		i: dint;
 		acc: lreal;
 	end
-	{st}
 	actual_nx := Array_isRegular_lreal(x);
 	actual_ny := Array_isRegular_lreal(y);
 	if (actual_nx = 0) or (actual_ny = 0) or (n > actual_nx) or (n > actual_ny) then
@@ -143,7 +136,6 @@ function Stats_sums_sum_of_products: lreal
 		acc := acc + x[i] * y[i];
 	end_for;
 	Stats_sums_sum_of_products := acc;
-	{end}
 end
 
 (*{doc 累積和 result[i] = sum(j=0..i) data[j]
@@ -173,7 +165,6 @@ function Stats_sums_cumsum
 		i: dint;
 		acc: lreal;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(data);
 	if (actual_n = 0) or (n > actual_n) then
 		eno := false;
@@ -192,7 +183,6 @@ function Stats_sums_cumsum
 		acc := acc + data[i];
 		result[i] := acc;
 	end_for;
-	{end}
 end
 
 {#endif}

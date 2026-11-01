@@ -46,7 +46,6 @@ TEST_S(test_matrix_cholesky_decompose)
 		a12: array[0..3, 0..3] of lreal := [4.0, 1.0, 0.0, 0.0, 1.0, 5.0, 1.0, 0.0, 0.0, 1.0, 6.0, 1.0, 0.0, 0.0, 1.0, 7.0];
 		l12: array[0..3, 0..3] of lreal;
 	end
-	{st}
 	Matrix_cholesky_decompose(a:=a1, l:=l1);
 	EXPECT_NEAR(2.0, l1[0, 0], EPS);
 	EXPECT_NEAR(0.0, l1[0, 1], EPS);
@@ -104,7 +103,6 @@ TEST_S(test_matrix_cholesky_decompose)
 	EXPECT_NEAR(2.17944947, l12[1, 1], 1e-7);
 	EXPECT_NEAR(2.40613252, l12[2, 2], 1e-7);
 	EXPECT_NEAR(2.61290504, l12[3, 3], 1e-7);
-	{end}
 END_TEST_S
 
 {#undef EPS}

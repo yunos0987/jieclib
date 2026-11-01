@@ -44,7 +44,6 @@ function Stats_ci_mean_t
 		actual_n: dint;
 		mean_val, std_val, se, t_crit, alpha: lreal;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(data);
 	if (actual_n = 0) or (n > actual_n) then
 		eno := false;
@@ -79,7 +78,6 @@ function Stats_ci_mean_t
 
 	ci_lower := mean_val - t_crit * se;
 	ci_upper := mean_val + t_crit * se;
-	{end}
 end
 
 (*{doc カイ二乗分布を用いた分散信頼区間。
@@ -114,7 +112,6 @@ function Stats_ci_variance_chi_square
 		actual_n: dint;
 		var_val, chi2_lower, chi2_upper, alpha: lreal;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(data);
 	if (actual_n = 0) or (n > actual_n) then
 		eno := false;
@@ -156,7 +153,6 @@ function Stats_ci_variance_chi_square
 
 	ci_lower := (dint_to_lreal(actual_n) - 1.0) * var_val / chi2_upper;
 	ci_upper := (dint_to_lreal(actual_n) - 1.0) * var_val / chi2_lower;
-	{end}
 end
 
 (*{doc カイ二乗分布による分散の信頼区間。
@@ -188,9 +184,7 @@ function Stats_ci_variance
 		(*{doc 信頼区間上限値。}*)
 		ci_upper: lreal;
 	end
-	{st}
 	Stats_ci_variance_chi_square(data:=data, n:=n, confidence:=confidence, ci_lower=>ci_lower, ci_upper=>ci_upper, eno=>eno);
-	{end}
 end
 
 (*{doc 既知の分散を使った平均信頼区間（正規分布）。sigma: 既知の標準偏差。
@@ -228,7 +222,6 @@ function Stats_ci_mean_known_var
 		actual_n: dint;
 		mean_val, se, z_crit, alpha: lreal;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(data);
 	if (actual_n = 0) or (n > actual_n) then
 		eno := false;
@@ -267,7 +260,6 @@ function Stats_ci_mean_known_var
 
 	ci_lower := mean_val - z_crit * se;
 	ci_upper := mean_val + z_crit * se;
-	{end}
 end
 
 (*{doc 未知の分散を使った平均信頼区間。
@@ -299,9 +291,7 @@ function Stats_ci_mean_unknown_var
 		(*{doc 信頼区間上限値。}*)
 		ci_upper: lreal;
 	end
-	{st}
 	Stats_ci_mean_t(data:=data, n:=n, confidence:=confidence, ci_lower=>ci_lower, ci_upper=>ci_upper, eno=>eno);
-	{end}
 end
 
 (*{doc 割合の信頼区間（Wilson score interval）。successes: 成功数
@@ -332,7 +322,6 @@ function Stats_ci_proportion
 	var_temp
 		prob_hat, n, z, denominator, center: lreal;
 	end
-	{st}
 	if (trials <= 0) or (successes < 0) or (successes > trials) then
 		eno := false;
 		return;
@@ -358,7 +347,6 @@ function Stats_ci_proportion
 	ci_lower := max(ci_lower, 0.0); // note: max(...sqrt(...)..., 0.0) is error on omron.
 	ci_upper := center + z * sqrt(prob_hat * (1.0 - prob_hat) / n + z * z / (4.0 * n * n)) / denominator;
 	ci_upper := min(ci_upper, 1.0);
-	{end}
 end
 
 {#endif}

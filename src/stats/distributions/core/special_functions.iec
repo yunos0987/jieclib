@@ -22,7 +22,6 @@ function Stats_erf: lreal
 		a1, a2, a3, a4, a5, p, t, abs_x: lreal;
 		sign, erf_val, x2, series: lreal;
 	end
-	{st}
 		// 符号を保持し、絶対値で作業
 		if x < 0.0 then
 			sign := -1.0;
@@ -58,7 +57,6 @@ function Stats_erf: lreal
 		end_if;
 
 		Stats_erf := sign * erf_val;
-	{end}
 end
 
 (*{doc 補誤差関数 erfc(x) = 1 - erf(x)。高精度実装。
@@ -71,14 +69,12 @@ function Stats_erfc: lreal
 		(*{doc 入力値。}*)
 		x: lreal;
 	end
-	{st}
 		if x = 0.0 then
 			Stats_erfc := 1.0;
 			return;
 		end_if;
 
 		Stats_erfc := 1.0 - Stats_erf(x:=x);
-	{end}
 end
 
 (*{doc ガンマ関数 Gamma(x)。Lanczos近似、x > 0。
@@ -96,7 +92,6 @@ function Stats_gamma: lreal
 		z, sum_val, base, pi: lreal;
 		g, c0, c1, c2, c3, c4, c5, c6: lreal;
 	end
-	{st}
 		if x <= 0.0 then
 			eno := false;
 			Stats_gamma := 0.0;
@@ -143,7 +138,6 @@ function Stats_gamma: lreal
 		base := z + g + 0.5;
 
 		Stats_gamma := sqrt(2.0 * pi) * (base ** (z + 0.5)) * exp(-base) * sum_val;
-	{end}
 end
 
 (*{doc 自然対数ガンマ関数 lgamma(x) = ln(Gamma(x))。x > 0。
@@ -161,7 +155,6 @@ function Stats_lgamma: lreal
 		z, sum_val, base, pi: lreal;
 		g, c0, c1, c2, c3, c4, c5, c6: lreal;
 	end
-	{st}
 		if x <= 0.0 then
 			eno := false;
 			Stats_lgamma := 0.0;
@@ -207,7 +200,6 @@ function Stats_lgamma: lreal
 		base := z + g + 0.5;
 
 		Stats_lgamma := ln(sqrt(2.0 * pi)) + (z + 0.5) * ln(base) - base + ln(sum_val);
-	{end}
 end
 
 (*{doc 正規化下側不完全ガンマ関数 P(a,z) - gammainc(a,z)
@@ -232,7 +224,6 @@ function Stats_gammainc: lreal
 		sum_val, ap, del, term: lreal;
 		i: dint;
 	end
-	{st}
 		// boundary: z=0 -> P=0
 		if z = 0.0 then
 			Stats_gammainc := 0.0;
@@ -262,7 +253,6 @@ function Stats_gammainc: lreal
 	Stats_gammainc := sum_val * exp(-z + a * ln(z) - gln);
 	if Stats_gammainc < 0.0 then Stats_gammainc := 0.0; end_if;
 	if Stats_gammainc > 1.0 then Stats_gammainc := 1.0; end_if;
-	{end}
 end
 
 (*{doc 正規化上側不完全ガンマ関数 Q(a,z) - gammaincc(a,z)
@@ -287,7 +277,6 @@ function Stats_gammaincc: lreal
 		i0, i1, an, b, c, d, del, h: lreal;
 		i: dint;
 	end
-	{st}
 		// boundary: z=0 -> Q=1
 		if z = 0.0 then
 			Stats_gammaincc := 1.0;
@@ -321,7 +310,6 @@ function Stats_gammaincc: lreal
 		Stats_gammaincc := h * exp(-z + a * ln(z) - gln);
 		if Stats_gammaincc < 0.0 then Stats_gammaincc := 0.0; end_if;
 		if Stats_gammaincc > 1.0 then Stats_gammaincc := 1.0; end_if;
-	{end}
 end
 
 (*{doc ベータ関数 Beta(a, b) = Gamma(a)*Gamma(b)/Gamma(a+b)。a,b > 0。
@@ -338,7 +326,6 @@ function Stats_beta: lreal
 		b: lreal;
 	end
 	var_temp ga, gb, gab: lreal; end
-	{st}
 		if a <= 0.0 or b <= 0.0 then
 			eno := false;
 			Stats_beta := 0.0;
@@ -353,7 +340,6 @@ function Stats_beta: lreal
 			return;
 		end_if;
 		Stats_beta := (ga * gb) / gab;
-	{end}
 end
 
 (*{doc ベータ関数の連分率展開による計算補助関数
@@ -377,7 +363,6 @@ function Stats_beta_continued_fraction: lreal
 		aa: lreal;
 		m: dint;
 	end
-	{st}
 		qab := a + b;
 		qap := a + 1.0;
 		qam := a - 1.0;
@@ -413,7 +398,6 @@ function Stats_beta_continued_fraction: lreal
 		end_for;
 
 		Stats_beta_continued_fraction := h;
-	{end}
 end
 
 (*{doc 正規化不完全ベータ関数 Beta_incomplete(x, a, b)
@@ -439,7 +423,6 @@ function Stats_beta_incomplete: lreal
 		aa: lreal;
 		m: dint;
 	end
-	{st}
 		if x < 0.0 or x > 1.0 or a <= 0.0 or b <= 0.0 then
 			eno := false;
 			Stats_beta_incomplete := 0.0;
@@ -468,7 +451,6 @@ function Stats_beta_incomplete: lreal
 			result := 1.0 - bt * Stats_beta_continued_fraction(x:=1.0 - x, a:=b, b:=a) / b;
 			Stats_beta_incomplete := result;
 		end_if;
-	{end}
 end
 
 {#endif}

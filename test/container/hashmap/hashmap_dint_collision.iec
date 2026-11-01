@@ -8,9 +8,7 @@ function Collision_hash_for_hashmap_test: udint
 	var_input
 		self: string[16 + 1];
 	end
-	{st}
 	Collision_hash_for_hashmap_test := udint#1;
-	{end}
 end
 
 function Dint_hash_for_collision_hashmap_test: udint
@@ -18,9 +16,7 @@ function Dint_hash_for_collision_hashmap_test: udint
 	var_input
 		self: dint;
 	end
-	{st}
 	Dint_hash_for_collision_hashmap_test := dword_to_udint(dint_to_dword(self));
-	{end}
 end
 
 {#define HashMapName dint_collision}

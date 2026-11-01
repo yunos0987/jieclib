@@ -25,7 +25,6 @@ TEST_S(test_array_reverse)
 		cc: array[0..1] of lreal := [7.0, 8.0];
 		dd: array[0..0] of dint  := [99];
 	end
-	{st}
 	// Fact: Reversing a 5-element lreal array yields the mirror order.
 		// Arrange/Act
 	Array_reverse_lreal(self:=aa);
@@ -57,7 +56,6 @@ TEST_S(test_array_reverse)
 	Array_reverse_dint(self:=dd);
 		// Assert
 	EXPECT_EQ_INT32(99, dd[0]);
-	{end}
 END_TEST_S
 
 TEST_S(test_array_reverse_offset)
@@ -65,7 +63,6 @@ TEST_S(test_array_reverse_offset)
 		aa: array[5..9] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
 		bb: array[10..13] of dint := [10, 20, 30, 40];
 	end
-	{st}
 	// Fact: Reversing an offset lreal array yields the mirror order.
 		// Arrange/Act
 	Array_reverse_lreal(self:=aa);
@@ -84,5 +81,4 @@ TEST_S(test_array_reverse_offset)
 	EXPECT_EQ_INT32(30, bb[11]);
 	EXPECT_EQ_INT32(20, bb[12]);
 	EXPECT_EQ_INT32(10, bb[13]);
-	{end}
 END_TEST_S

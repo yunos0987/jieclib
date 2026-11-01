@@ -35,7 +35,6 @@ TEST_S(test_stack_dint_init)
 		st1: Stack_dint_t;
 		st2: Stack_dint_t;
 	end
-	{st}
 
 	// Fact: init sets len to 0.
 		// Arrange
@@ -48,7 +47,6 @@ TEST_S(test_stack_dint_init)
 	Stack_dint_init(st2);
 		// Assert
 	EXPECT_TRUE(Stack_dint_empty(st2));
-	{end}
 END_TEST_S
 
 TEST_S(test_stack_dint_push)
@@ -58,7 +56,6 @@ TEST_S(test_stack_dint_push)
 		st3: Stack_dint_t;
 		st4: Stack_dint_t;
 	end
-	{st}
 
 	// Fact: push returns true for a new element.
 		// Arrange
@@ -90,7 +87,6 @@ TEST_S(test_stack_dint_push)
 	ASSERT_TRUE(Stack_dint_push(st4, 10));
 		// Assert
 	EXPECT_EQ_INT32(2, Stack_dint_len(st4));
-	{end}
 END_TEST_S
 
 TEST_S(test_stack_dint_pop)
@@ -101,7 +97,6 @@ TEST_S(test_stack_dint_pop)
 		st4: Stack_dint_t;
 		value: dint;
 	end
-	{st}
 
 	// Fact: pop returns the most recently pushed element.
 		// Arrange
@@ -147,7 +142,6 @@ TEST_S(test_stack_dint_pop)
 		// Assert
 	EXPECT_FALSE(Stack_dint_pop(st4, value));
 	EXPECT_EQ_INT32(0, value);
-	{end}
 END_TEST_S
 
 TEST_S(test_stack_dint_peek)
@@ -156,7 +150,6 @@ TEST_S(test_stack_dint_peek)
 		st2: Stack_dint_t;
 		value: dint;
 	end
-	{st}
 
 	// Fact: peek returns the top element without removing it.
 		// Arrange
@@ -177,7 +170,6 @@ TEST_S(test_stack_dint_peek)
 		// Assert
 	EXPECT_FALSE(Stack_dint_peek(st2, value));
 	EXPECT_EQ_INT32(0, value);
-	{end}
 END_TEST_S
 
 TEST_S(test_stack_dint_len)
@@ -189,7 +181,6 @@ TEST_S(test_stack_dint_len)
 		st5: Stack_dint_t;
 		value: dint;
 	end
-	{st}
 
 	// Fact: len is 0 after init.
 		// Arrange
@@ -228,7 +219,6 @@ TEST_S(test_stack_dint_len)
 	ASSERT_TRUE(Stack_dint_pop(st5, value));
 		// Assert
 	EXPECT_EQ_INT32(0, Stack_dint_len(st5));
-	{end}
 END_TEST_S
 
 TEST_S(test_stack_dint_empty)
@@ -238,7 +228,6 @@ TEST_S(test_stack_dint_empty)
 		st3: Stack_dint_t;
 		value: dint;
 	end
-	{st}
 
 	// Fact: empty returns true when len is 0.
 		// Arrange
@@ -260,14 +249,12 @@ TEST_S(test_stack_dint_empty)
 	ASSERT_TRUE(Stack_dint_pop(st3, value));
 		// Assert
 	EXPECT_TRUE(Stack_dint_empty(st3));
-	{end}
 END_TEST_S
 
 TEST_S(test_stack_dint_clear)
 	var
 		st1: Stack_dint_t;
 	end
-	{st}
 
 	// Fact: clear resets len to 0.
 		// Arrange
@@ -280,7 +267,6 @@ TEST_S(test_stack_dint_clear)
 		// Assert
 	EXPECT_EQ_INT32(0, Stack_dint_len(st1));
 	EXPECT_TRUE(Stack_dint_empty(st1));
-	{end}
 END_TEST_S
 
 TEST_S(test_stack_dint_copy)
@@ -291,7 +277,6 @@ TEST_S(test_stack_dint_copy)
 		st_dst_empty: Stack_dint_t;
 		value: dint;
 	end
-	{st}
 
 	// Fact: copy duplicates all elements in the same order.
 		// Arrange
@@ -328,7 +313,6 @@ TEST_S(test_stack_dint_copy)
 	ASSERT_TRUE(Stack_dint_copy(st_src_empty, st_dst_empty));
 		// Assert
 	EXPECT_EQ_INT32(0, Stack_dint_len(st_dst_empty));
-	{end}
 END_TEST_S
 
 TEST_S(test_stack_dint_equals)
@@ -340,7 +324,6 @@ TEST_S(test_stack_dint_equals)
 		st5: Stack_dint_t;
 		st6: Stack_dint_t;
 	end
-	{st}
 
 	// Fact: two stacks with the same elements in the same order are equal.
 		// Arrange
@@ -379,7 +362,6 @@ TEST_S(test_stack_dint_equals)
 	ASSERT_TRUE(Stack_dint_push(st6, 20));
 		// Assert
 	EXPECT_FALSE(Stack_dint_equals(st5, st6));
-	{end}
 END_TEST_S
 
 TEST_S(test_stack_dint_hash)
@@ -391,7 +373,6 @@ TEST_S(test_stack_dint_hash)
 		hash_a: udint;
 		hash_b: udint;
 	end
-	{st}
 
 	// Fact: equal stacks produce equal hash values.
 		// Arrange
@@ -420,7 +401,6 @@ TEST_S(test_stack_dint_hash)
 	hash_b := Stack_dint_hash(st4);
 		// Assert
 	EXPECT_NE_UINT32(hash_a, hash_b);
-	{end}
 END_TEST_S
 
 TEST_S(test_stack_dint_overflow_usecase)
@@ -430,7 +410,6 @@ TEST_S(test_stack_dint_overflow_usecase)
 		value: dint;
 		idx: dint;
 	end
-	{st}
 
 	// Fact: push fails when capacity is exceeded.
 		// Arrange
@@ -453,5 +432,4 @@ TEST_S(test_stack_dint_overflow_usecase)
 	ASSERT_TRUE(Stack_dint_pop(st2, value));
 		// Assert
 	EXPECT_EQ_INT32(8, value);
-	{end}
 END_TEST_S

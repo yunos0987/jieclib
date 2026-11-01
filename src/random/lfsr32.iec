@@ -37,14 +37,12 @@ function LFSR32_init
 		(*{doc The tap polynomial. Defaults to 0xB4BCD35C (32-bit maximal-length polynomial).}*)
 		poly: dword := dword#16#B4BCD35C;
 	end
-	{st}
 	if seed = dword#0 then
 		eno := false;
 	else
 		self.state := seed;
 		self.poly := poly;
 	end_if;
-	{end}
 end
 
 (*{doc Advances the LFSR by one step and returns the output bit as a bool.
@@ -59,7 +57,6 @@ function LFSR32_nextBool: bool
 	var_temp
 		lsb: bool;
 	end
-	{st}
 	lsb := (self.state and dword#1) <> dword#0;
 	if lsb then
 		self.state := shr(self.state, 1) xor self.poly;
@@ -67,7 +64,6 @@ function LFSR32_nextBool: bool
 		self.state := shr(self.state, 1);
 	end_if;
 	LFSR32_nextBool := lsb;
-	{end}
 end
 
 (*{doc Advances the LFSR by 8 steps and returns 8 output bits assembled as a byte (LSB first).
@@ -83,7 +79,6 @@ function LFSR32_nextByte: byte
 		bit_idx: dint;
 		result: dword;
 	end
-	{st}
 	result := dword#0;
 	for bit_idx := 0 to 7 by 1 do
 		if LFSR32_nextBool(self) then
@@ -91,7 +86,6 @@ function LFSR32_nextByte: byte
 		end_if;
 	end_for;
 	LFSR32_nextByte := dword_to_byte(result);
-	{end}
 end
 
 (*{doc Advances the LFSR by 32 steps and returns 32 output bits assembled as an unsigned 32-bit integer (LSB first).
@@ -107,7 +101,6 @@ function LFSR32_nextUint32: udint
 		bit_idx: dint;
 		result: dword;
 	end
-	{st}
 	result := dword#0;
 	for bit_idx := 0 to 31 by 1 do
 		if LFSR32_nextBool(self) then
@@ -115,7 +108,6 @@ function LFSR32_nextUint32: udint
 		end_if;
 	end_for;
 	LFSR32_nextUint32 := dword_to_udint(result);
-	{end}
 end
 {#define LFSR32_nextUDINT LFSR32_nextUint32} (* alias *)
 

@@ -60,13 +60,11 @@ function MersenneTwister_init
 	var_temp
 		idx: dint;
 	end_var
-	// {st}
 	self.mt[0] := seed;
 	for idx := 1 to N - 1 by 1 do
 		self.mt[idx] := udint_to_dword(udint#1812433253 * dword_to_udint(self.mt[idx - 1] xor shr(self.mt[idx - 1], 30)) + dint_to_udint(idx));
 	end_for;
 	self.mti := N;
-	// {end}
 end_function
 
 (*{doc Initialize the MersenneTwister PRNG with an array of seed values.
@@ -90,7 +88,6 @@ function MersenneTwister_initByArray
 	var_temp
 		mt_idx, seed_idx, loop_cnt: dint;
 	end_var
-	// {st}
 	MersenneTwister_init(self, dword#19650218);
 	mt_idx := 1;
 	seed_idx := 0;
@@ -125,7 +122,6 @@ function MersenneTwister_initByArray
 	end_for;
 
 	self.mt[0] := dword#16#80000000;
-	// {end}
 end_function
 
 (*{doc Generates a pseudo-random number.
@@ -149,7 +145,6 @@ function MersenneTwister_next: dword
 	var_temp constant
 		mag01: array[0..1] of dword := [dword#16#0, MATRIX_A];
 	end_var
-	// {st}
 	if self.mti >= N then
 		if self.mti = 625 then
 			MersenneTwister_init(self, dword#5489);
@@ -177,7 +172,6 @@ function MersenneTwister_next: dword
 	yw := yw xor shr(yw, 18);
 
 	MersenneTwister_next := shr(yw, 32 - bits);
-	// {end}
 end_function
 
 (*{doc Generates a uniformly distributed boolean pseudo-random number.
@@ -189,9 +183,7 @@ function MersenneTwister_nextBool: bool
 		(*{doc The MersenneTwister generator state.}*)
 		self: MersenneTwister_t;
 	end_var
-	// {st}
 	MersenneTwister_nextBool := MersenneTwister_next(self, 1) = dword#1;
-	// {end}
 end_function
 
 (*{doc Generates a uniformly distributed unsigned 32-bit integer pseudo-random number.
@@ -203,9 +195,7 @@ function MersenneTwister_nextUint32: udint
 		(*{doc The MersenneTwister generator state.}*)
 		self: MersenneTwister_t;
 	end_var
-	// {st}
 	MersenneTwister_nextUint32 := dword_to_udint(MersenneTwister_next(self, 32));
-	// {end}
 end_function
 {#define MersenneTwister_nextUDINT MersenneTwister_nextUint32} (* alias *)
 
@@ -222,11 +212,9 @@ function MersenneTwister_nextUint64: ulint
 	var_temp
 		hi_word, lo_word: lword;
 	end_var
-	// {st}
 	hi_word := MersenneTwister_next(self, 32);
 	lo_word := MersenneTwister_next(self, 32);
 	MersenneTwister_nextUint64 := lword_to_ulint(shl(hi_word, 32) or lo_word);
-	// {end}
 end_function
 {#define MersenneTwister_nextULINT MersenneTwister_nextUint64} (* alias *)
 {#endif}
@@ -240,10 +228,8 @@ function MersenneTwister_nextFloat: real
 		(*{doc The MersenneTwister generator state.}*)
 		self: MersenneTwister_t;
 	end_var
-	// {st}
 	MersenneTwister_nextFloat := lreal_to_real(
 		udint_to_lreal(dword_to_udint(MersenneTwister_next(self, 32))) / lreal#4294967296.0); // 2^32
-	// {end}
 end_function
 {#define MersenneTwister_nextREAL MersenneTwister_nextFloat} (* alias *)
 
@@ -259,11 +245,9 @@ function MersenneTwister_nextDouble: lreal
 	var_temp
 		hi_bits, lo_bits: lreal;
 	end_var
-	// {st}
 	hi_bits := udint_to_lreal(dword_to_udint(MersenneTwister_next(self, 32 - 5)));
 	lo_bits := udint_to_lreal(dword_to_udint(MersenneTwister_next(self, 32 - 6)));
 	MersenneTwister_nextDouble := (hi_bits * lreal#67108864.0 + lo_bits) / lreal#9007199254740992.0;
-	// {end}
 end_function
 {#define MersenneTwister_nextLREAL MersenneTwister_nextDouble} (* alias *)
 

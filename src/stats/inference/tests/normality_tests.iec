@@ -32,7 +32,6 @@ function Stats_jarque_bera
 		kurt: lreal;
 		jb_stat: lreal;
 	end
-	{st}
 		n := Array_size(data);
 		if n < 4 then
 			eno := false;
@@ -57,7 +56,6 @@ function Stats_jarque_bera
 		result.ci_lower := 0.0;
 		result.ci_upper := 0.0;
 		result.effect_size := 0.0;
-	{end}
 end
 
 (*{doc シャピロ・ウィルク正規性検定（Shapiro-Wilk test）。
@@ -137,7 +135,6 @@ function Stats_shapiro_wilk
 		a_exact_6: array[6] of lreal := [0.64297120, 0.28071252, 0.08825254, -0.08825254, -0.28071252, -0.64297120];
 		a_exact_7: array[7] of lreal := [0.62310576, 0.30302212, 0.14112695, 0.00000000, -0.14112695, -0.30302212, -0.62310576];
 	end
-	{st}
 
 		// --- size / buffers ---
 		n := Array_size(data);
@@ -388,7 +385,6 @@ function Stats_shapiro_wilk
 		result.ci_lower := 0.0;
 		result.ci_upper := 0.0;
 		result.effect_size := 0.0;
-	{end}
 end
 
 {#endif}

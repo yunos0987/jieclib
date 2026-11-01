@@ -32,7 +32,6 @@ function Stats_mean: lreal
 		actual_n: dint;
 		s: lreal;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(data);
 	if (actual_n = 0) or (n > actual_n) then
 		eno := false;
@@ -47,7 +46,6 @@ function Stats_mean: lreal
 	end_if;
 
 	Stats_mean := s / dint_to_lreal(actual_n);
-	{end}
 end
 
 (*{doc 加重平均計算 (sum(x*w) / sum(w))
@@ -81,7 +79,6 @@ function Stats_weighted_mean: lreal
 		sum_xw: lreal;
 		sum_w: lreal;
 	end
-	{st}
 	ndata := Array_isRegular_lreal(data);
 	if (ndata = 0) or (n > ndata) then
 		eno := false;
@@ -109,7 +106,6 @@ function Stats_weighted_mean: lreal
 		sum_w := sum_w + w[i];
 	end_for;
 	Stats_weighted_mean := sum_xw / sum_w;
-	{end}
 end
 
 (*{doc トリム平均 端から proportion 割合を除外して平均
@@ -149,7 +145,6 @@ function Stats_trimmed_mean: lreal
 		acc: lreal;
 		cnt: dint;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(data);
 	if (actual_n = 0) or (n > actual_n) then
 		eno := false;
@@ -185,7 +180,6 @@ function Stats_trimmed_mean: lreal
 		cnt := cnt + 1;
 	end_for;
 	Stats_trimmed_mean := acc / dint_to_lreal(cnt);
-	{end}
 end
 
 (*{doc ウィンザー平均 端の proportion 割合を端値で置換して平均
@@ -223,7 +217,6 @@ function Stats_winsorized_mean: lreal
 		acc: lreal;
 		lowv, highv: lreal;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(data);
 	if (actual_n = 0) or (n > actual_n) then
 		eno := false;
@@ -262,7 +255,6 @@ function Stats_winsorized_mean: lreal
 	end_for;
 
 	Stats_winsorized_mean := acc / dint_to_lreal(actual_n);
-	{end}
 end
 
 (*{doc 指定軸方向の平均計算 (axis=1: 行方向, axis=2: 列方向)
@@ -293,7 +285,6 @@ function Stats_mean_axis
 		i, j: dint;
 		s: lreal;
 	end
-	{st}
 	nrows := Array_size(data);
 	ncols := upper_bound(data, 2) - lower_bound(data, 2) + 1;
 
@@ -333,7 +324,6 @@ function Stats_mean_axis
 		eno := false;
 		return;
 	end_if;
-	{end}
 end
 
 (*{doc Kahan補償アルゴリズムを使用した高精度平均
@@ -357,7 +347,6 @@ function Stats_mean_kahan: lreal
 		actual_n: dint;
 		s: lreal;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(data);
 	if (actual_n = 0) or (n > actual_n) then
 		eno := false;
@@ -369,7 +358,6 @@ function Stats_mean_kahan: lreal
 
 	s := Stats_sum_kahan(x:=data, n:=actual_n, eno=>eno);
 	Stats_mean_kahan := s / dint_to_lreal(actual_n);
-	{end}
 end
 
 {#endif}

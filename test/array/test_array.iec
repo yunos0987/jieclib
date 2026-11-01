@@ -61,7 +61,6 @@ TEST_S(test_array_size)
 		y_2: array[4..5] of lreal;
 		y_3: array[4..6] of lreal;
 	end
-	{st}
 	// Fact: Array_size returns the element count for zero-based arrays.
 		// Arrange
 		// Act/Assert
@@ -75,7 +74,6 @@ TEST_S(test_array_size)
 	EXPECT_EQ_INT32(1, Array_size_lreal(y_1));
 	EXPECT_EQ_INT32(2, Array_size_lreal(y_2));
 	EXPECT_EQ_INT32(3, Array_size_lreal(y_3));
-	{end}
 END_TEST_S
 
 TEST_S(test_array_isRegular2d)
@@ -87,7 +85,6 @@ TEST_S(test_array_isRegular2d)
 		x_nonregular_lb2: array[0..1, 2..3] of lreal;
 		result: dint;
 	end
-	{st}
 	// Fact: A regular 2D array (both dimensions start at 0) returns its total element count.
 		// Arrange
 		// Act
@@ -115,7 +112,6 @@ TEST_S(test_array_isRegular2d)
 	result := Array_isRegular2d_lreal(x_nonregular_lb2);
 		// Assert
 	EXPECT_EQ_INT32(0, result);
-	{end}
 END_TEST_S
 
 TEST_S(test_array_isRegular2d_x)
@@ -125,7 +121,6 @@ TEST_S(test_array_isRegular2d_x)
 		x_nonregular_lb2: array[0..1, 2..4] of lreal;
 		result: dint;
 	end
-	{st}
 	// Fact: For a regular 2D array, dim=1 returns the row count and dim=2 returns the column count.
 		// Arrange
 		// Act/Assert
@@ -157,7 +152,6 @@ TEST_S(test_array_isRegular2d_x)
 	EXPECT_EQ_INT32(0, result);
 	result := Array_isRegular2d_x_lreal(x_regular, 3);
 	EXPECT_EQ_INT32(0, result);
-	{end}
 END_TEST_S
 
 TEST_S(test_array_isRegular)
@@ -171,7 +165,6 @@ TEST_S(test_array_isRegular)
 		//x_empty: array[0..-1] of lreal;
 		result: dint;
 	end
-	{st}
 	// Fact: A 1-D array starting at index 0 is regular and returns its element count.
 		// Arrange
 		// Act/Assert
@@ -193,7 +186,6 @@ TEST_S(test_array_isRegular)
 
 	//result := Array_isRegular_lreal(x_empty);
 	//EXPECT_EQ_INT32(0, result);
-	{end}
 END_TEST_S
 
 {#include "test_array_aggregate.iec"}

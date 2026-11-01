@@ -64,7 +64,6 @@ function Array_rotate
 		lo, hi: dint;
 		tmp: ArrayRotateElementType;
 	end
-	{st}
 	i_0 := lower_bound(self, 1);
 	i_1 := upper_bound(self, 1);
 	nn  := i_1 - i_0 + 1;
@@ -113,7 +112,6 @@ function Array_rotate
 		lo := lo + 1;
 		hi := hi - 1;
 	end_while;
-	{end}
 end
 
 {#undef _ARRAY_ROTATE_}

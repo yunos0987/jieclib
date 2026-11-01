@@ -2,6 +2,14 @@
 
 このファイルは、3.4.0 以降の変更を記録します。それ以前の変更は、Git のタグ（`v1.2.0` 〜 `v3.2.0`）と GitHub のリリース・Pull Request（https://github.com/yunos0987/jieclib）を参照してください。
 
+## 未リリース / Unreleased
+
+### 互換性に影響する変更 / Breaking changes
+
+- 必要な Jiecc を 5.14 以降（`test/` は 8.0.0 以降）から 9.2.0 以降に変更しました。Jiecc 9.2.0 では、POU の本体直下に ST の文を直接書けるようになったため、`{st}` / `{end}`（マクロ定義内の `${st$}` / `${end$}` を含む）の囲みを、`src/` と `test/` のすべてのソースから取り除きました。
+- Jiecc 9.2.0 未満では、`src/sys.iec` などの `{#error}` で前処理が止まります（`JiecLib requires Jiecc 9.2.0 or later.`）。
+- GitHub Actions の CI は最新リリースの Jiecc を取得する方式のままです。Jiecc 9.2.0 が公開されるまでは、取得される Jiecc が 9.2.0 未満のため、上記の `{#error}` で失敗します。
+
 ## [3.4.0] - 2026-10-18
 
 ### 修正 / Fixed

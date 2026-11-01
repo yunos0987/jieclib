@@ -44,7 +44,6 @@ TEST_S(test_stats_percentile)
 		result: lreal;
 		result_eno: bool;
 	end
-	{st}
 		result := Stats_percentile(data:=x_p_seq10, p:=0.25, work:=work_p_seq10);
 		EXPECT_NEAR(3.25, result, EPS);
 
@@ -86,7 +85,6 @@ TEST_S(test_stats_percentile)
 
 		result := Stats_percentile(data:=x_p_short5, p:=0.5, work:=work_p_tiny2, eno=>result_eno);
 		EXPECT_FALSE(result_eno);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_iqr)
@@ -129,7 +127,6 @@ TEST_S(test_stats_iqr)
 		result: lreal;
 		result_eno: bool;
 	end
-	{st}
 		result := Stats_iqr(data:=x_iqr_seq10, q_work:=q_iqr_seq10, work:=work_seq10);
 		EXPECT_NEAR(4.5, result, EPS);
 
@@ -162,7 +159,6 @@ TEST_S(test_stats_iqr)
 
 		result := Stats_iqr(data:=x_iqr_fail3, q_work:=q_iqr_fail3, work:=work_tiny, eno=>result_eno);
 		EXPECT_FALSE(result_eno);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_quartiles_desc)
@@ -202,7 +198,6 @@ TEST_S(test_stats_quartiles_desc)
 		//
 		result_eno: bool;
 	end
-	{st}
 	Stats_quartiles_desc(data:=x_q_basic9, work:=work_basic9, result:=result_basic9);
 	EXPECT_NEAR(3.0, result_basic9[0], EPS);
 	EXPECT_NEAR(5.0, result_basic9[1], EPS);
@@ -257,7 +252,6 @@ TEST_S(test_stats_quartiles_desc)
 	EXPECT_FALSE(result_eno);
 	Stats_quartiles_desc(data:=x_q_basic9, work:=work_basic9, result:=result_short, eno=>result_eno);
 	EXPECT_FALSE(result_eno);
-	{end}
 END_TEST_S
 
 {#undef EPS}

@@ -35,7 +35,6 @@ function Stats_coefficient_of_variation: lreal
 		actual_n: dint;
 		mean_val, std_val, var_val: lreal;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(data);
 	if (actual_n = 0) or (n > actual_n) then
 		eno := false;
@@ -72,7 +71,6 @@ function Stats_coefficient_of_variation: lreal
 
 	std_val := sqrt(var_val);
 	Stats_coefficient_of_variation := std_val / abs(mean_val);
-	{end}
 end
 
 (*{doc 相対標準偏差。CV と同じだが百分率で返す。
@@ -98,7 +96,6 @@ function Stats_relative_stddev: lreal
 	var_temp
 		actual_n: dint;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(data);
 	if actual_n = 0 then
 		eno := false;
@@ -113,7 +110,6 @@ function Stats_relative_stddev: lreal
 	end_if;
 
 	Stats_relative_stddev := Stats_coefficient_of_variation(data:=data, n:=actual_n, ddof:=ddof, eno=>eno) * 100.0;
-	{end}
 end
 
 {#endif}

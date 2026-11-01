@@ -33,10 +33,8 @@ function Stats_p_value_normal_two_tailed: lreal
 		z: lreal;
 	end
 	var_temp cdf_val: lreal; end
-	{st}
 	cdf_val := Stats_normal_cdf(x:=abs(z), mu:=0.0, sigma:=1.0, eno=>eno);
 	Stats_p_value_normal_two_tailed := 2.0 * (1.0 - cdf_val);
-	{end}
 end
 
 (*{doc t 分布の p-value 計算（両側）
@@ -53,14 +51,12 @@ function Stats_p_value_t_two_tailed: lreal
 		df: lreal;
 	end
 	var_temp cdf_val: lreal; end
-	{st}
 	if df <= 0.0 then
 		eno := false;
 		return;
 	end_if;
 	cdf_val := Stats_student_t_cdf(t:=abs(t), df:=df, eno=>eno);
 	Stats_p_value_t_two_tailed := 2.0 * (1.0 - cdf_val);
-	{end}
 end
 
 (*{doc カイ二乗分布の p-value 計算（右側）
@@ -77,14 +73,12 @@ function Stats_p_value_chi_square_right: lreal
 		df: lreal;
 	end
 	var_temp cdf_val: lreal; end
-	{st}
 	if (df <= 0.0) or (chi_sq < 0.0) then
 		eno := false;
 		return;
 	end_if;
 	cdf_val := Stats_chi_square_cdf(x:=chi_sq, df:=df, eno=>eno);
 	Stats_p_value_chi_square_right := 1.0 - cdf_val;
-	{end}
 end
 
 {#endif}

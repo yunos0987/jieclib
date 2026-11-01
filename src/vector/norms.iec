@@ -26,7 +26,6 @@ function Vector_norm_l1: lreal
 		i, v_size: dint;
 		result_val: lreal;
 	end
-	{st}
 	v_size := Array_isRegular_lreal(vector);
 	
 	if (v_size = 0) then
@@ -40,7 +39,6 @@ function Vector_norm_l1: lreal
 	end_for;
 	
 	Vector_norm_l1 := result_val;
-	{end}
 end
 
 // L2 Norm
@@ -59,7 +57,6 @@ function Vector_norm_l2: lreal
 		i, v_size: dint;
 		result_val: lreal;
 	end
-	{st}
 	v_size := Array_isRegular_lreal(vector);
 	
 	if (v_size = 0) then
@@ -73,7 +70,6 @@ function Vector_norm_l2: lreal
 	end_for;
 	
 	Vector_norm_l2 := sqrt(result_val);
-	{end}
 end
 
 // L∞ Norm
@@ -92,7 +88,6 @@ function Vector_norm_linf: lreal
 		i, v_size: dint;
 		result_val, abs_val: lreal;
 	end
-	{st}
 	v_size := Array_isRegular_lreal(vector);
 	
 	if (v_size = 0) then
@@ -109,7 +104,6 @@ function Vector_norm_linf: lreal
 	end_for;
 	
 	Vector_norm_linf := result_val;
-	{end}
 end
 
 // Lp Norm
@@ -133,7 +127,6 @@ function Vector_norm_lp: lreal
 		i, v_size: dint;
 		result_val: lreal;
 	end
-	{st}
 	if (p <= 0.0) then
 		eno := false;
 		return;
@@ -152,7 +145,6 @@ function Vector_norm_lp: lreal
 	end_for;
 	
 	Vector_norm_lp := result_val ** (1.0 / p);
-	{end}
 end
 
 // Vector Normalization
@@ -175,7 +167,6 @@ function Vector_normalize_l2
 		i, v_size, r_size: dint;
 		norm_val: lreal;
 	end
-	{st}
 	v_size := Array_isRegular_lreal(vector);
 	r_size := Array_isRegular_lreal(result);
 	
@@ -203,7 +194,6 @@ function Vector_normalize_l2
 	for i := 0 to v_size - 1 by 1 do
 		result[i] := vector[i] / norm_val;
 	end_for;
-	{end}
 end
 
 // Distance Functions
@@ -225,7 +215,6 @@ function Vector_distance_l1: lreal
 		i, a_size, b_size: dint;
 		result_val: lreal;
 	end
-	{st}
 	a_size := Array_isRegular_lreal(a);
 	b_size := Array_isRegular_lreal(b);
 	
@@ -245,7 +234,6 @@ function Vector_distance_l1: lreal
 	end_for;
 	
 	Vector_distance_l1 := result_val;
-	{end}
 end
 
 (*{doc 2つのベクトル間のL2距離を計算する。
@@ -266,7 +254,6 @@ function Vector_distance_l2: lreal
 		i, a_size, b_size: dint;
 		result_val, diff: lreal;
 	end
-	{st}
 	a_size := Array_isRegular_lreal(a);
 	b_size := Array_isRegular_lreal(b);
 	
@@ -287,7 +274,6 @@ function Vector_distance_l2: lreal
 	end_for;
 	
 	Vector_distance_l2 := sqrt(result_val);
-	{end}
 end
 
 (*{doc 2つのベクトル間のL∞距離を計算する。
@@ -308,7 +294,6 @@ function Vector_distance_linf: lreal
 		i, a_size, b_size: dint;
 		max_diff, diff: lreal;
 	end
-	{st}
 	a_size := Array_isRegular_lreal(a);
 	b_size := Array_isRegular_lreal(b);
 	
@@ -331,7 +316,6 @@ function Vector_distance_linf: lreal
 	end_for;
 	
 	Vector_distance_linf := max_diff;
-	{end}
 end
 
 // Unit Vector Test
@@ -355,7 +339,6 @@ function Vector_is_unit: bool
 		i, v_size: dint;
 		norm_val: lreal;
 	end
-	{st}
 	v_size := Array_isRegular_lreal(vector);
 	
 	if (v_size = 0) then
@@ -370,7 +353,6 @@ function Vector_is_unit: bool
 	norm_val := sqrt(norm_val);
 	
 	Vector_is_unit := (abs(norm_val - 1.0) < tolerance);
-	{end}
 end
 
 {#endif}

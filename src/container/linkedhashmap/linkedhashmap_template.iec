@@ -248,7 +248,6 @@ function LinkedHashMap_init
 	var_temp
 		idx: dint;
 	end
-	{st}
 	LinkedHashMap_backing_init(self:=self.index_map);
 
 	for idx := 0 to LinkedHashMapCapacity - 1 by 1 do
@@ -261,7 +260,6 @@ function LinkedHashMap_init
 	self.head_idx := -1;
 	self.tail_idx := -1;
 	self.count := 0;
-	{end}
 end
 
 (*{doc Insert or update a key/value pair.
@@ -291,7 +289,6 @@ function LinkedHashMap_upsert: bool
 		replaced_internal: bool;
 		succeeded: bool;
 	end
-	{st}
 	LinkedHashMap_backing_lookup(self:=self.index_map, key:=key, value:=idx, eno=>eno);
 	if eno then
 		if (idx < 0) or (idx >= LinkedHashMapCapacity) or (not self.nodes[idx].used) then
@@ -388,7 +385,6 @@ function LinkedHashMap_upsert: bool
 	self.count := self.count + 1;
 	replaced := false;
 	LinkedHashMap_upsert := true;
-	{end}
 end
 
 (*{doc Copy container state.
@@ -407,7 +403,6 @@ function LinkedHashMap_copy: bool
 		cur: dint;
 		replaced: bool;
 	end
-	{st}
 	LinkedHashMap_init(dest);
 
 	cur := self.head_idx;
@@ -427,7 +422,6 @@ function LinkedHashMap_copy: bool
 	end_while;
 
 	LinkedHashMap_copy := true;
-	{end}
 end
 
 (*{doc Lookup a value by key.
@@ -452,7 +446,6 @@ function LinkedHashMap_lookup
 		prev_idx: dint;
 		next_idx: dint;
 	end
-	{st}
 	LinkedHashMap_backing_lookup(self:=self.index_map, key:=key, value:=idx, eno=>eno);
 	if not eno then
 		return;
@@ -488,7 +481,6 @@ function LinkedHashMap_lookup
 		end_if;
 		self.tail_idx := idx;
 	end_if;
-	{end}
 end
 
 (*{doc Delete a key/value pair.
@@ -511,7 +503,6 @@ function LinkedHashMap_delete: bool
 		next_idx: dint;
 		removed: bool;
 	end
-	{st}
 	LinkedHashMap_backing_lookup(self:=self.index_map, key:=key, value:=idx, eno=>eno);
 	if not eno then
 		eno := true;
@@ -557,7 +548,6 @@ function LinkedHashMap_delete: bool
 	self.count := self.count - 1;
 
 	LinkedHashMap_delete := true;
-	{end}
 end
 
 (*{doc Return true if the target key exists.
@@ -574,9 +564,7 @@ function LinkedHashMap_contains: bool
 	var_input
 		key: LinkedHashMapKeyType;
 	end
-	{st}
 	LinkedHashMap_contains := LinkedHashMap_backing_contains(self:=self.index_map, key:=key, eno=>eno);
-	{end}
 end
 
 (*{doc Return the number of stored entries.
@@ -588,9 +576,7 @@ function LinkedHashMap_len: dint
 	var_in_out
 		self: LinkedHashMapCoreType;
 	end
-	{st}
 	LinkedHashMap_len := self.count;
-	{end}
 end
 
 (*{doc Copy keys into an output array in linked order.
@@ -616,7 +602,6 @@ function LinkedHashMap_keys: bool
 		out_hi: dint;
 		cur: dint;
 	end
-	{st}
 	out_idx := lower_bound(keys, 1);
 	out_hi := upper_bound(keys, 1);
 	written := 0;
@@ -638,7 +623,6 @@ function LinkedHashMap_keys: bool
 	end_while;
 
 	LinkedHashMap_keys := true;
-	{end}
 end
 
 (*{doc Copy values into an output array in linked order.
@@ -664,7 +648,6 @@ function LinkedHashMap_values: bool
 		out_hi: dint;
 		cur: dint;
 	end
-	{st}
 	out_idx := lower_bound(values, 1);
 	out_hi := upper_bound(values, 1);
 	written := 0;
@@ -686,7 +669,6 @@ function LinkedHashMap_values: bool
 	end_while;
 
 	LinkedHashMap_values := true;
-	{end}
 end
 
 (*{doc Copy key/value items into an output array in linked order.
@@ -712,7 +694,6 @@ function LinkedHashMap_items: bool
 		out_hi: dint;
 		cur: dint;
 	end
-	{st}
 	out_idx := lower_bound(items, 1);
 	out_hi := upper_bound(items, 1);
 	written := 0;
@@ -735,7 +716,6 @@ function LinkedHashMap_items: bool
 	end_while;
 
 	LinkedHashMap_items := true;
-	{end}
 end
 
 (*{doc Compare two LinkedHashMaps for equality.
@@ -754,7 +734,6 @@ function LinkedHashMap_equals: bool
 		cur_a: dint;
 		cur_b: dint;
 	end
-	{st}
 	if self.count <> other.count then
 		LinkedHashMap_equals := false;
 		return;
@@ -791,7 +770,6 @@ function LinkedHashMap_equals: bool
 	end_if;
 
 	LinkedHashMap_equals := true;
-	{end}
 end
 
 {#ifdef LinkedHashMapValueHashFunction}
@@ -810,7 +788,6 @@ function LinkedHashMap_hash: udint
 		cur: dint;
 		sequence_idx: dint;
 	end
-	{st}
 	acc := udint#2166136261;
 	cur := self.head_idx;
 	sequence_idx := 0;
@@ -828,7 +805,6 @@ function LinkedHashMap_hash: udint
 	end_while;
 
 	LinkedHashMap_hash := acc + dint_to_udint(self.count);
-	{end}
 end
 {#endif}
 
@@ -841,9 +817,7 @@ function LinkedHashMap_empty: bool
 	var_in_out
 		self: LinkedHashMapCoreType;
 	end
-	{st}
 	LinkedHashMap_empty := self.count = 0;
-	{end}
 end
 
 (*{doc Clear all entries.
@@ -859,7 +833,6 @@ function LinkedHashMap_clear: bool
 	var_temp
 		idx: dint;
 	end
-	{st}
 	if not LinkedHashMap_backing_clear(self:=self.index_map, eno=>eno) then
 		if not eno then
 			return;
@@ -880,7 +853,6 @@ function LinkedHashMap_clear: bool
 	self.count := 0;
 
 	LinkedHashMap_clear := true;
-	{end}
 end
 
 {#ifdef _LINKEDHASHMAP_DEFAULT_MAX_LOAD_PERMILLE_DEFINED__}

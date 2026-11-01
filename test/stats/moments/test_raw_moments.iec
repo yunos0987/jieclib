@@ -33,7 +33,6 @@ TEST_S(test_stats_moment)
 		mixed: array[0..5] of lreal := [-3.0, -1.0, 0.0, 1.0, 3.0, 5.0];
 		result: lreal;
 	end
-	{st}
 		// ========== k=0: Always 1.0 ==========
 
 		result := Stats_moment(data:=simple_seq, k:=0);
@@ -155,7 +154,6 @@ TEST_S(test_stats_moment)
 
 		result := Stats_moment(data:=mixed, k:=2);
 		EXPECT_NEAR(7.5, result, 0.001);  // (9+1+0+1+9+25)/6 = 45/6
-	{end}
 END_TEST_S
 
 {#undef EPS}

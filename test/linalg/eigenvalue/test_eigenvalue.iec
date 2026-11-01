@@ -46,7 +46,6 @@ TEST_S(test_matrix_eigenvalue_compute)
 		a12: array[0..3, 0..3] of lreal := [2.0, 1.0, 0.0, 0.0, 1.0, 3.0, 1.0, 0.0, 0.0, 1.0, 3.0, 1.0, 0.0, 0.0, 1.0, 2.0];
 		eigen12: array[0..3] of lreal;
 	end
-	{st}
 	Matrix_eigenvalue_compute(a:=a1, eigenvalues:=eigen1);
 	EXPECT_NEAR(1.0, eigen1[0], EPS);
 	EXPECT_NEAR(2.0, eigen1[1], EPS);
@@ -91,7 +90,6 @@ TEST_S(test_matrix_eigenvalue_compute)
 	EXPECT_NEAR(3.0 - SQRT(2.0), eigen12[1], EPS);
 	EXPECT_NEAR(3.0, eigen12[2], EPS);
 	EXPECT_NEAR(3.0 + SQRT(2.0), eigen12[3], EPS);
-	{end}
 END_TEST_S
 
 {#undef EPS}

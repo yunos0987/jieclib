@@ -27,7 +27,6 @@ TEST_S(test_CRC32_string)
 		work_exact: array[0..2] of byte;
 		work_small: array[0..1] of byte;
 	end
-	{st}
 	r := CRC32_string(txt:='', work:=work);
 	EXPECT_EQ_STRING('00000000', r);
 
@@ -58,7 +57,6 @@ TEST_S(test_CRC32_string)
 	EXPECT_FALSE(o);
 	CRC32_string(txt:='abc', work:=work_small, eno=>o);
 	EXPECT_FALSE(o);
-	{end}
 END_TEST_S
 
 TEST_S(test_CRC32_bytes)
@@ -75,7 +73,6 @@ TEST_S(test_CRC32_bytes)
 		rb2: array[0..12] of byte := [byte#16#2A, byte#16#41, byte#16#0D, byte#16#52, byte#16#94, byte#16#C2, byte#16#AF, byte#16#89, byte#16#0F, byte#16#CB, byte#16#B8, byte#16#8E, byte#16#D5];
 		rb1000: array[0..999] of byte := TEST_HASH_RB1000_LITERAL();
 	end
-	{st}
 	r := CRC32_bytes(dat:=d0, length:=0, work:=work);
 	EXPECT_EQ_STRING('00000000', r);
 
@@ -117,5 +114,4 @@ TEST_S(test_CRC32_bytes)
 	EXPECT_FALSE(o);
 	CRC32_bytes(dat:=d1, work:=d0, eno=>o);
 	EXPECT_FALSE(o);
-	{end}
 END_TEST_S

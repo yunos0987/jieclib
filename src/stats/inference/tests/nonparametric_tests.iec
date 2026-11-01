@@ -52,7 +52,6 @@ function Stats_mann_whitney_u
 		x_lb, y_lb, combined_lb, ranks_lb, rank_sort_lb, rank_idx_lb: dint;
 		u_x, u_y, u_stat, mean_u, std_u, z_stat: lreal;
 	end
-	{st}
 		n_x := Array_isRegular_lreal(x);
 		n_y := Array_isRegular_lreal(y);
 		if (n_x = 0) or (n_y = 0) then
@@ -133,7 +132,6 @@ function Stats_mann_whitney_u
 		result.ci_lower := 0.0;
 		result.ci_upper := 0.0;
 		result.effect_size := 0.0;
-	{end}
 end
 
 (*{doc Wilcoxon signed-rank test。対応あり。H0: 差の中央値が0。
@@ -180,7 +178,6 @@ function Stats_wilcoxon_signed_rank
 		x_lb, y_lb, diff_lb, abs_diff_lb, ranks_lb, rank_sort_lb, rank_idx_lb: dint;
 		diff_val, w_plus, w_minus, w_stat, mean_w, std_w, z_stat: lreal;
 	end
-	{st}
 		n := Array_size(x);
 		if (n < 2) or (Array_size(y) <> n) then
 			eno := false;
@@ -281,7 +278,6 @@ function Stats_wilcoxon_signed_rank
 		result.ci_lower := 0.0;
 		result.ci_upper := 0.0;
 		result.effect_size := 0.0;
-	{end}
 end
 
 {#endif}

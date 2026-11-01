@@ -8,9 +8,7 @@ function Dint_hash_for_hashmap_test: udint
 	var_input
 		self: dint;
 	end
-	{st}
 	Dint_hash_for_hashmap_test := dword_to_udint(dint_to_dword(self));
-	{end}
 end
 
 {#define HashMapName dint}

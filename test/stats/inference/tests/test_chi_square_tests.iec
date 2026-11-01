@@ -61,7 +61,6 @@ TEST_S(test_stats_chi_square_gof)
 		stat_tol: lreal := 1.0e-6;
 		pvalue_tol: lreal := 1.0e-4; // CONTRIBUTING: 統計p値の検証はabs_error=1.0e-4
 	end
-	{st}
 	// Perfect fit (observed == expected)
 	Stats_chi_square_gof(observed:=observed_1, expected:=expected_1, result:=result_1);
 	EXPECT_NEAR(0.0, result_1.statistic, stat_tol);
@@ -133,7 +132,6 @@ TEST_S(test_stats_chi_square_gof)
 	EXPECT_NEAR(1.666666666667, result_12.statistic, stat_tol);
 	EXPECT_NEAR(0.796763382263, result_12.pvalue, pvalue_tol);
 	EXPECT_NEAR(4.0, result_12.df, EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_chi_square_independence)
@@ -156,7 +154,6 @@ TEST_S(test_stats_chi_square_independence)
 		row_totals_work: array[0..15] of lreal;
 		col_totals_work: array[0..15] of lreal;
 	end
-	{st}
 		// Case 1: Basic 2x2 test
 		Stats_chi_square_independence(table:=table_case1_2x2, result:=result1, row_totals_work:=row_totals_work, col_totals_work:=col_totals_work);
 		EXPECT_NEAR(0.446428571429, result1.statistic, stat_tol);
@@ -228,7 +225,6 @@ TEST_S(test_stats_chi_square_independence)
 		EXPECT_NEAR(46.707070707071, result12.statistic, stat_tol);
 		EXPECT_NEAR(8.24310500836e-12, result12.pvalue, pvalue_tol);
 		EXPECT_NEAR(1.0, result12.df, EPS);
-	{end}
 END_TEST_S
 
 {#undef EPS}

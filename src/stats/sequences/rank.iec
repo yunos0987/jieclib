@@ -55,7 +55,6 @@ function Stats_rankdata
 		tmpd: lreal;
 		tmpi: dint;
 	end
-	{st}
 		ndata := Array_isRegular_lreal(data);
 		if ndata = 0 then
 			eno := false;
@@ -135,7 +134,6 @@ function Stats_rankdata
 			end_for;
 			i := i + 1;
 		end_while;
-	{end}
 end
 
 {#endif}

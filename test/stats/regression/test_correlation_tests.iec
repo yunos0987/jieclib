@@ -48,7 +48,6 @@ TEST_S(test_stats_pearson_correlation_normal)
 		result: Stats_TestResult;
 		result_eno: bool;
 	end
-	{st}
 		// Perfect positive correlation
 		Stats_test_pearson_correlation(x:=x_perfect_pos, y:=y_perfect_pos, result:=result);
 		EXPECT_NEAR(1.000000000000, result.statistic, EPS);
@@ -114,7 +113,6 @@ TEST_S(test_stats_pearson_correlation_normal)
 		// Failure case: Size mismatch
 		Stats_test_pearson_correlation(x:=x_size_mismatch, y:=y_size_mismatch, result:=result, eno=>result_eno);
 		EXPECT_FALSE(result_eno);
-	{end}
 END_TEST_S
 
 {#undef EPS}

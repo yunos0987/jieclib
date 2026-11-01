@@ -25,7 +25,6 @@ TEST_S(test_stats_student_t_pdf)
 	var result: lreal; end
 	var result1: lreal; end
 	var result2: lreal; end
-	{st}
 		// Various degrees of freedom at origin
 		result := Stats_student_t_pdf(t:=0.0, df:=1.0);
 		EXPECT_NEAR(0.318309886183791, result, 1e-6);
@@ -72,12 +71,10 @@ TEST_S(test_stats_student_t_pdf)
 		result1 := Stats_student_t_pdf(t:=2.0, df:=5.0);
 		result2 := Stats_student_t_pdf(t:=-2.0, df:=5.0);
 		EXPECT_NEAR(result1, result2, 1e-6);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_student_t_cdf)
 	var result: lreal; end
-	{st}
 		// CDF at origin should be 0.5 for any df
 		result := Stats_student_t_cdf(t:=0.0, df:=1.0);
 		EXPECT_NEAR(0.500000000000000, result, 1e-6);
@@ -124,14 +121,12 @@ TEST_S(test_stats_student_t_cdf)
 
 		result := Stats_student_t_cdf(t:=0.5, df:=30.0);
 		EXPECT_NEAR(0.689638497557436, result, 1e-6);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_student_t_ppf)
 	var result: lreal; end
 	var t_df10000: lreal; end
 	var normal: lreal; end
-	{st}
 		// Median should be 0 for any df
 		result := Stats_student_t_ppf(p:=0.5, df:=1.0);
 		EXPECT_NEAR(0.000000000000000, result, 1e-6);
@@ -183,12 +178,10 @@ TEST_S(test_stats_student_t_ppf)
 		t_df10000 := Stats_student_t_ppf(p:=0.95, df:=10000.0);
 		normal := Stats_normal_ppf(p:=0.95, mu:=0.0, sigma:=1.0);
 		EXPECT_NEAR(t_df10000, normal, 1e-2);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_student_t_mean)
 	var mean_val: lreal; end
-	{st}
 		// Mean is 0 for df > 1
 		mean_val := Stats_student_t_mean(df:=3.0);
 		EXPECT_NEAR(0.000000000000000, mean_val, 1e-6);
@@ -228,12 +221,10 @@ TEST_S(test_stats_student_t_mean)
 
 		mean_val := Stats_student_t_mean(df:=25.7);
 		EXPECT_NEAR(0.000000000000000, mean_val, 1e-6);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_student_t_variance)
 	var variance_val: lreal; end
-	{st}
 		// Variance = df/(df-2) for df > 2
 		variance_val := Stats_student_t_variance(df:=3.0);
 		EXPECT_NEAR(3.000000000000000, variance_val, 1e-6);
@@ -273,5 +264,4 @@ TEST_S(test_stats_student_t_variance)
 
 		variance_val := Stats_student_t_variance(df:=2.1);
 		EXPECT_NEAR(21.0, variance_val, 1e-4);
-	{end}
 END_TEST_S

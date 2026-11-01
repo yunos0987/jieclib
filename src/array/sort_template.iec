@@ -97,7 +97,6 @@ function Array_bubblesort_n
 		cond: bool;
 		tmp: ArraySortElementType;
 	end
-	{st}
 	i_0 := lower_bound(self, 1);
 	i_1 := upper_bound(self, 1);
 	if i_0 > i_1 then
@@ -129,7 +128,6 @@ function Array_bubblesort_n
 			j := j - 1;
 		end_while;
 	end_for;
-	{end}
 end
 
 (*{doc Sort a 1-D array using bubble sort.
@@ -145,9 +143,7 @@ function Array_bubblesort
 		(*{doc Sort ascending when true, descending when false.}*)
 		ascending: bool := true;
 	end
-	{st}
 	Array_bubblesort_n(self:=self, ascending:=ascending, n:=-1, eno=>eno);
-	{end}
 end
 
 (*{doc Sort the first n elements of a 1-D array using merge sort.
@@ -182,7 +178,6 @@ function Array_mergesort_n
 		w_i_0, w_i_1: dint;
 		cond: bool;
 	end
-	{st}
 	i_0 := lower_bound(self, 1);
 	i_1 := upper_bound(self, 1);
 	if i_0 > i_1 then
@@ -258,7 +253,6 @@ function Array_mergesort_n
 		end_while;
 		width := width + width;
 	end_while;
-	{end}
 end
 
 (*{doc Sort a 1-D array using merge sort.
@@ -280,9 +274,7 @@ function Array_mergesort
 		(*{doc Scratch array of at least length(self) elements.}*)
 		work: array[*] of ArraySortElementType;
 	end
-	{st}
 	Array_mergesort_n(self:=self, ascending:=ascending, n:=-1, work:=work, eno=>eno);
-	{end}
 end
 
 (*{doc Sort the first n elements of a 1-D array using quicksort.
@@ -314,7 +306,6 @@ function Array_quicksort_n
 		sp: dint;
 		cond: bool;
 	end
-	{st}
 	i_0 := lower_bound(self, 1);
 	i_1 := upper_bound(self, 1);
 	if i_0 > i_1 then
@@ -419,7 +410,6 @@ function Array_quicksort_n
 			end_if;
 		end_if;
 	end_while;
-	{end}
 end
 
 (*{doc Sort a 1-D array using quicksort.
@@ -435,9 +425,7 @@ function Array_quicksort
 		(*{doc Sort ascending when true, descending when false.}*)
 		ascending: bool := true;
 	end
-	{st}
 	Array_quicksort_n(self:=self, ascending:=ascending, n:=-1, eno=>eno);
-	{end}
 end
 
 {#undef _ARRAY_BUBBLESORT_N_}

@@ -53,7 +53,6 @@ TEST_S(test_stats_linear_regression_normal)
 		result_9, result_10, result_n1, result_n2, result_short, result_mismatch: Stats_LinearRegressionResult;
 		result_eno: bool;
 	end
-	{st}
 		// Perfect positive linear relationship: y = 2*x
 		Stats_linear_regression(x:=x_1, y:=y_1, result:=result_1);
 		EXPECT_NEAR(2.0, result_1.slope, EPS);
@@ -132,7 +131,6 @@ TEST_S(test_stats_linear_regression_normal)
 		// Failure case: array size mismatch
 		Stats_linear_regression(x:=x_mismatch, y:=y_mismatch, result:=result_mismatch, eno=>result_eno);
 		EXPECT_FALSE(result_eno);
-	{end}
 END_TEST_S
 
 {#undef EPS}

@@ -32,7 +32,6 @@ function Matrix_determinant: lreal
 		det_val, factor, max_val, tmp: lreal;
 		sign: lreal;
 	end
-	{st}
 	a_size := Array_isRegular2d_lreal(a);
 	if (a_size = 0) then
 		eno := false;
@@ -79,7 +78,6 @@ function Matrix_determinant: lreal
 		end_for;
 	end_for;
 	Matrix_determinant := det_val * sign;
-	{end}
 end
 
 // Trace
@@ -103,7 +101,6 @@ function Matrix_trace: lreal
 		a_size: dint;
 		sum_val: lreal;
 	end
-	{st}
 	a_size := Array_isRegular2d_lreal(a);
 	if (a_size = 0) then
 		eno := false;
@@ -123,7 +120,6 @@ function Matrix_trace: lreal
 		sum_val := sum_val + a[i, i];
 	end_for;
 	Matrix_trace := sum_val;
-	{end}
 end
 
 // Frobenius Norm
@@ -145,7 +141,6 @@ function Matrix_norm_frobenius: lreal
 		a_size: dint;
 		sum_val: lreal;
 	end
-	{st}
 	a_size := Array_isRegular2d_lreal(a);
 	if (a_size = 0) then
 		eno := false;
@@ -161,7 +156,6 @@ function Matrix_norm_frobenius: lreal
 		end_for;
 	end_for;
 	Matrix_norm_frobenius := sqrt(sum_val);
-	{end}
 end
 
 // Spectral Norm (2-norm)
@@ -188,7 +182,6 @@ function Matrix_norm_spectral: lreal
 		v3, w3, av3: array[0..2] of lreal;
 		norm_val, max_diag: lreal;
 	end
-	{st}
 	a_size := Array_isRegular2d_lreal(a);
 	if (a_size = 0) then
 		eno := false;
@@ -294,7 +287,6 @@ function Matrix_norm_spectral: lreal
 	end_if;
 
 	eno := false;
-	{end}
 end
 
 // Rank
@@ -322,7 +314,6 @@ function Matrix_rank: dint
 		max_val, factor, tmp: lreal;
 		rank_val: dint;
 	end
-	{st}
 	a_size := Array_isRegular2d_lreal(a);
 	if (a_size = 0) then
 		eno := false;
@@ -364,7 +355,6 @@ function Matrix_rank: dint
 		end_if;
 	end_for;
 	Matrix_rank := rank_val;
-	{end}
 end
 
 // Norm L1
@@ -386,7 +376,6 @@ function Matrix_norm_l1: lreal
 		a_size: dint;
 		col_sum, max_sum: lreal;
 	end
-	{st}
 	a_size := Array_isRegular2d_lreal(a);
 	if (a_size = 0) then
 		eno := false;
@@ -406,7 +395,6 @@ function Matrix_norm_l1: lreal
 		end_if;
 	end_for;
 	Matrix_norm_l1 := max_sum;
-	{end}
 end
 
 // Norm Infinity
@@ -428,7 +416,6 @@ function Matrix_norm_linf: lreal
 		a_size: dint;
 		row_sum, max_sum: lreal;
 	end
-	{st}
 	a_size := Array_isRegular2d_lreal(a);
 	if (a_size = 0) then
 		eno := false;
@@ -448,7 +435,6 @@ function Matrix_norm_linf: lreal
 		end_if;
 	end_for;
 	Matrix_norm_linf := max_sum;
-	{end}
 end
 
 {#endif}

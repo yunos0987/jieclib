@@ -36,7 +36,6 @@ TEST_S(test_stats_kurtosis)
 		x_uniform: array[0..9] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
 		x_peaked: array[0..4] of lreal := [5.0, 5.0, 5.0, 5.0, 5.1];
 	end
-	{st}
 		// Test with fisher_true=true, bias=true
 		EXPECT_NEAR(-1.300000000000, Stats_kurtosis(data:=x_seq5, fisher_true:=true, bias:=true), EPS);
 		EXPECT_NEAR(0.581854423868423868, Stats_kurtosis(data:=x_mixed1, fisher_true:=true, bias:=true), EPS);
@@ -79,7 +78,6 @@ TEST_S(test_stats_kurtosis)
 		EXPECT_NEAR(1.800000000000, Stats_kurtosis(data:=x_large, fisher_true:=false, bias:=false), EPS);
 		EXPECT_NEAR(6.196450617284, Stats_kurtosis(data:=x_mixed1, fisher_true:=false, bias:=false), EPS);
 		EXPECT_NEAR(8.0, Stats_kurtosis(data:=x_peaked, fisher_true:=false, bias:=false), EPS);
-	{end}
 END_TEST_S
 
 {#undef EPS}

@@ -26,7 +26,6 @@ TEST_S(test_array_index_of)
 		yy: array[0..4] of dint  := [10, 20, 30, 20, 50];
 		ri: dint;
 	end
-	{st}
 	// Fact: Array_index_of_lreal returns the index of the first match.
 		// Arrange
 		// Act
@@ -68,7 +67,6 @@ TEST_S(test_array_index_of)
 	ri := Array_index_of_dint(self:=yy, value:=50);
 		// Assert
 	EXPECT_EQ_INT32(4, ri);
-	{end}
 END_TEST_S
 
 TEST_S(test_array_last_index_of)
@@ -77,7 +75,6 @@ TEST_S(test_array_last_index_of)
 		yy: array[0..4] of dint  := [10, 20, 30, 20, 50];
 		ri: dint;
 	end
-	{st}
 	// Fact: Array_last_index_of_lreal returns the index of the last match.
 		// Arrange: value 2.0 appears at indices 1, 3, 5 -- last is 5
 		// Act
@@ -125,7 +122,6 @@ TEST_S(test_array_last_index_of)
 		// Act/Assert
 	EXPECT_EQ_INT32(2, Array_last_index_of_dint(self:=yy, value:=30));
 	EXPECT_EQ_INT32(2, Array_index_of_dint(self:=yy, value:=30));
-	{end}
 END_TEST_S
 
 TEST_S(test_array_contains)
@@ -134,7 +130,6 @@ TEST_S(test_array_contains)
 		yy: array[0..4] of dint  := [10, 20, 30, 40, 50];
 		ok: bool;
 	end
-	{st}
 	// Fact: Array_contains_lreal is true when the value is present.
 		// Arrange
 		// Act
@@ -162,7 +157,6 @@ TEST_S(test_array_contains)
 	ok := Array_contains_dint(self:=yy, value:=99);
 		// Assert
 	EXPECT_FALSE(ok);
-	{end}
 END_TEST_S
 
 TEST_S(test_array_search_empty)
@@ -172,7 +166,6 @@ TEST_S(test_array_search_empty)
 		ri: dint;
 		ok: bool;
 	end
-	{st}
 	// Fact: Array_index_of_lreal on an offset array returns the actual array index.
 		// Arrange
 		// Act
@@ -214,5 +207,4 @@ TEST_S(test_array_search_empty)
 	ri := Array_index_of_dint(self:=yy, value:=99);
 		// Assert
 	EXPECT_EQ_INT32(-1, ri);
-	{end}
 END_TEST_S

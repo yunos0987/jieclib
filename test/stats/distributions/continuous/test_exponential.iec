@@ -34,7 +34,6 @@ TEST_S(test_stats_exponential_pdf)
 	var result_zero: lreal; end
 	var result_large: lreal; end
 	var result_small: lreal; end
-	{st}
 		// PDF(x=0, lambda=1) = 1
 		result := Stats_exponential_pdf(x:=0.0, lambda:=1.0);
 		EXPECT_NEAR(1.0, result, EPS);
@@ -79,7 +78,6 @@ TEST_S(test_stats_exponential_pdf)
 		result_small := Stats_exponential_pdf(x:=0.001, lambda:=1.0);
 		EXPECT_TRUE(result_small < 1.0);
 		EXPECT_TRUE(result_small > 0.99);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_exponential_cdf)
@@ -92,7 +90,6 @@ TEST_S(test_stats_exponential_cdf)
 	var cdf_lambda1: lreal; end
 	var cdf_lambda2: lreal; end
 	var cdf_neg: lreal; end
-	{st}
 		// CDF(x=0, lambda=1) = 0
 		result := Stats_exponential_cdf(x:=0.0, lambda:=1.0);
 		EXPECT_NEAR(0.0, result, EPS);
@@ -135,7 +132,6 @@ TEST_S(test_stats_exponential_cdf)
 		// CDF for negative x should be 0
 		cdf_neg := Stats_exponential_cdf(x:=-1.0, lambda:=1.0);
 		EXPECT_NEAR(0.0, cdf_neg, EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_exponential_ppf)
@@ -150,7 +146,6 @@ TEST_S(test_stats_exponential_ppf)
 	var ppf_lambda2: lreal; end
 	var cdf_val: lreal; end
 	var inv_val: lreal; end
-	{st}
 		// PPF(p=0, lambda=1) = 0
 		ppf_0 := Stats_exponential_ppf(p:=0.0, lambda:=1.0);
 		EXPECT_NEAR(0.0, ppf_0, EPS);
@@ -187,7 +182,6 @@ TEST_S(test_stats_exponential_ppf)
 		cdf_val := Stats_exponential_cdf(x:=1.5, lambda:=1.0);
 		inv_val := Stats_exponential_ppf(p:=cdf_val, lambda:=1.0);
 		EXPECT_NEAR(1.5, inv_val, 0.01);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_exponential_mean)
@@ -197,7 +191,6 @@ TEST_S(test_stats_exponential_mean)
 	var mean_lambda05: lreal; end
 	var mean_lambda3: lreal; end
 	var mean_lambda4: lreal; end
-	{st}
 		// Mean = 1/lambda
 		mean_lambda1 := Stats_exponential_mean(lambda:=1.0);
 		EXPECT_NEAR(1.0, mean_lambda1, EPS);
@@ -217,7 +210,6 @@ TEST_S(test_stats_exponential_mean)
 		// Mean = 0.25
 		mean_lambda4 := Stats_exponential_mean(lambda:=4.0);
 		EXPECT_NEAR(0.25, mean_lambda4, EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_exponential_variance)
@@ -227,7 +219,6 @@ TEST_S(test_stats_exponential_variance)
 	var var_lambda05: lreal; end
 	var var_lambda3: lreal; end
 	var var_lambda4: lreal; end
-	{st}
 		// Variance = 1/lambda^2
 		var_lambda1 := Stats_exponential_variance(lambda:=1.0);
 		EXPECT_NEAR(1.0, var_lambda1, EPS);
@@ -247,7 +238,6 @@ TEST_S(test_stats_exponential_variance)
 		// Variance = 1/16 = 0.0625
 		var_lambda4 := Stats_exponential_variance(lambda:=4.0);
 		EXPECT_NEAR(0.0625, var_lambda4, EPS);
-	{end}
 END_TEST_S
 
 {#undef EPS}

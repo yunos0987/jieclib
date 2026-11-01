@@ -164,7 +164,6 @@ function LinkedList_init
 	var_temp
 		idx_loop: dint;
 	end
-	{st}
 	self.head_idx := -1;
 	self.tail_idx := -1;
 	self.free_head_idx := 0;
@@ -180,7 +179,6 @@ function LinkedList_init
 			self.nodes[idx_loop].next_idx := idx_loop + 1;
 		end_if;
 	end_for;
-	{end}
 end
 
 (*{doc Return the number of stored elements.
@@ -192,9 +190,7 @@ function LinkedList_len: dint
 	var_in_out
 		self: LinkedListCoreType;
 	end
-	{st}
 	LinkedList_len := self.count;
-	{end}
 end
 
 (*{doc Return true when the container is empty.
@@ -206,9 +202,7 @@ function LinkedList_empty: bool
 	var_in_out
 		self: LinkedListCoreType;
 	end
-	{st}
 	LinkedList_empty := self.count = 0;
-	{end}
 end
 
 (*{doc Clear all elements.
@@ -220,10 +214,8 @@ function LinkedList_clear: bool
 	var_in_out
 		self: LinkedListCoreType;
 	end
-	{st}
 	LinkedList_init(self);
 	LinkedList_clear := true;
-	{end}
 end
 
 (*{doc Append one element at the tail.
@@ -243,7 +235,6 @@ function LinkedList_append: bool
 		idx: dint;
 		old_tail: dint;
 	end
-	{st}
 	if self.free_head_idx < 0 then
 		LinkedList_append := false;
 		return;
@@ -267,7 +258,6 @@ function LinkedList_append: bool
 	self.count := self.count + 1;
 
 	LinkedList_append := true;
-	{end}
 end
 
 (*{doc Insert one element at the head.
@@ -287,7 +277,6 @@ function LinkedList_appendleft: bool
 		idx: dint;
 		old_head: dint;
 	end
-	{st}
 	if self.free_head_idx < 0 then
 		LinkedList_appendleft := false;
 		return;
@@ -311,7 +300,6 @@ function LinkedList_appendleft: bool
 	self.count := self.count + 1;
 
 	LinkedList_appendleft := true;
-	{end}
 end
 
 (*{doc Insert one element at an index.
@@ -335,7 +323,6 @@ function LinkedList_insert: bool
 		next_idx: dint;
 		prev_idx: dint;
 	end
-	{st}
 	if (index < 0) or (index > self.count) then
 		LinkedList_insert := false;
 		return;
@@ -401,7 +388,6 @@ function LinkedList_insert: bool
 
 	self.count := self.count + 1;
 	LinkedList_insert := true;
-	{end}
 end
 
 (*{doc Remove and return the last element.
@@ -421,7 +407,6 @@ function LinkedList_pop: bool
 		idx: dint;
 		prev_idx: dint;
 	end
-	{st}
 	idx := self.tail_idx;
 	if idx < 0 then
 		LinkedList_pop := false;
@@ -444,7 +429,6 @@ function LinkedList_pop: bool
 	self.count := self.count - 1;
 
 	LinkedList_pop := true;
-	{end}
 end
 
 (*{doc Remove and return the first element.
@@ -464,7 +448,6 @@ function LinkedList_popleft: bool
 		idx: dint;
 		next_idx: dint;
 	end
-	{st}
 	idx := self.head_idx;
 	if idx < 0 then
 		LinkedList_popleft := false;
@@ -487,7 +470,6 @@ function LinkedList_popleft: bool
 	self.count := self.count - 1;
 
 	LinkedList_popleft := true;
-	{end}
 end
 
 (*{doc Remove one element by index.
@@ -513,7 +495,6 @@ function LinkedList_remove: bool
 		prev_idx: dint;
 		next_idx: dint;
 	end
-	{st}
 	if (index < 0) or (index >= self.count) then
 		LinkedList_remove := false;
 		return;
@@ -553,7 +534,6 @@ function LinkedList_remove: bool
 	self.count := self.count - 1;
 
 	LinkedList_remove := true;
-	{end}
 end
 
 (*{doc Get one element by index.
@@ -577,7 +557,6 @@ function LinkedList_get
 		idx: dint;
 		step_idx: dint;
 	end
-	{st}
 	if (index < 0) or (index >= self.count) then
 		eno := false;
 		return;
@@ -596,7 +575,6 @@ function LinkedList_get
 	end_if;
 
 	item := self.nodes[idx].value;
-	{end}
 end
 
 (*{doc Return true if the target element exists.
@@ -615,7 +593,6 @@ function LinkedList_contains: bool
 	var_temp
 		idx: dint;
 	end
-	{st}
 	idx := self.head_idx;
 	while idx >= 0 do
 		if _LINKEDLIST_ELEM_EQUALS_(self.nodes[idx].value, item) then
@@ -626,7 +603,6 @@ function LinkedList_contains: bool
 	end_while;
 
 	LinkedList_contains := false;
-	{end}
 end
 
 (*{doc Return the index of the first matching element.
@@ -646,7 +622,6 @@ function LinkedList_index: dint
 		idx: dint;
 		logical_index: dint;
 	end
-	{st}
 	idx := self.head_idx;
 	logical_index := 0;
 	while idx >= 0 do
@@ -659,7 +634,6 @@ function LinkedList_index: dint
 	end_while;
 
 	LinkedList_index := -1;
-	{end}
 end
 
 (*{doc Copy elements into an output array.
@@ -685,7 +659,6 @@ function LinkedList_values: bool
 		out_hi: dint;
 		cur: dint;
 	end
-	{st}
 	out_idx := lower_bound(values, 1);
 	out_hi := upper_bound(values, 1);
 	written := 0;
@@ -707,7 +680,6 @@ function LinkedList_values: bool
 	end_while;
 
 	LinkedList_values := true;
-	{end}
 end
 
 (*{doc Update one element at an index.
@@ -729,7 +701,6 @@ function LinkedList_set: bool
 		idx: dint;
 		step_idx: dint;
 	end
-	{st}
 	if (index < 0) or (index >= self.count) then
 		LinkedList_set := false;
 		return;
@@ -749,7 +720,6 @@ function LinkedList_set: bool
 
 	self.nodes[idx].value := item;
 	LinkedList_set := true;
-	{end}
 end
 
 (*{doc Copy container state.
@@ -767,7 +737,6 @@ function LinkedList_copy: bool
 		idx: dint;
 		succeeded: bool;
 	end
-	{st}
 	LinkedList_init(dest);
 	if dest.capacity < self.count then
 		LinkedList_copy := false;
@@ -785,7 +754,6 @@ function LinkedList_copy: bool
 	end_while;
 
 	LinkedList_copy := true;
-	{end}
 end
 
 (*{doc Compare two LinkedLists for equality.
@@ -803,7 +771,6 @@ function LinkedList_equals: bool
 		idx1: dint;
 		idx2: dint;
 	end
-	{st}
 	if self.count <> other.count then
 		LinkedList_equals := false;
 		return;
@@ -821,7 +788,6 @@ function LinkedList_equals: bool
 	end_while;
 
 	LinkedList_equals := (idx1 < 0) and (idx2 < 0);
-	{end}
 end
 
 {#ifdef LinkedListElementHashFunction}
@@ -839,7 +805,6 @@ function LinkedList_hash: udint
 		acc: udint;
 		sequence_idx: dint;
 	end
-	{st}
 	acc := udint#2166136261;
 	sequence_idx := 0;
 	idx := self.head_idx;
@@ -850,7 +815,6 @@ function LinkedList_hash: udint
 	end_while;
 
 	LinkedList_hash := acc + dint_to_udint(self.count);
-	{end}
 end
 {#endif}
 

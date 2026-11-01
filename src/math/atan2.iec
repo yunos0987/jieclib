@@ -22,7 +22,6 @@ function Math_atan2: lreal
 		{doc X座標値}
 		x: lreal;
 	end
-	{st}
 		if x > 0.0 then
 			Math_atan2 := atan(y / x);
 		elsif x < 0.0 then
@@ -40,7 +39,6 @@ function Math_atan2: lreal
 				Math_atan2 := 0.0;  // 未定義だが0を返す
 			end_if;
 		end_if;
-	{end}
 	{#undef PI}
 end
 

@@ -26,14 +26,12 @@ TEST_S(test_LFSR32_init)
 		lfsr: LFSR32_t;
 		ok: bool;
 	end
-	{st}
 	// seed=0 must fail (LFSR halts at zero state)
 	LFSR32_init(self:=lfsr, seed:=dword#0, eno=>ok);
 	EXPECT_FALSE(ok);
 	// seed != 0 must succeed
 	LFSR32_init(self:=lfsr, seed:=dword#1, eno=>ok);
 	EXPECT_TRUE(ok);
-	{end}
 END_TEST_S
 
 TEST_S(test_LFSR32_nextBool)
@@ -41,7 +39,6 @@ TEST_S(test_LFSR32_nextBool)
 		lfsr: LFSR32_t;
 		b1: bool;
 	end
-	{st}
 	// seed=1: LSB=1 → first bit is true
 	LFSR32_init(self:=lfsr, seed:=dword#1);
 	EXPECT_EQ_BOOL(true, LFSR32_nextBool(lfsr));
@@ -57,7 +54,6 @@ TEST_S(test_LFSR32_nextBool)
 	b1 := LFSR32_nextBool(lfsr);
 	LFSR32_init(self:=lfsr, seed:=dword#16#DEADBEEF);
 	EXPECT_EQ_BOOL(b1, LFSR32_nextBool(lfsr));
-	{end}
 END_TEST_S
 
 TEST_S(test_LFSR32_nextByte)
@@ -66,7 +62,6 @@ TEST_S(test_LFSR32_nextByte)
 		bit_idx: dint;
 		expected: dword;
 	end
-	{st}
 	// seed=1, default poly=0xB4BCD35C:
 	// bits 0-7 = 1,0,0,1,1,1,1,1 → 0xF9 = 249
 	LFSR32_init(self:=lfsr, seed:=dword#1);
@@ -82,7 +77,6 @@ TEST_S(test_LFSR32_nextByte)
 	end_for;
 	LFSR32_init(self:=lfsr, seed:=dword#16#CAFEBABE);
 	EXPECT_EQ_BYTE(dword_to_byte(expected), LFSR32_nextByte(lfsr));
-	{end}
 END_TEST_S
 
 TEST_S(test_LFSR32_nextUint32)
@@ -91,7 +85,6 @@ TEST_S(test_LFSR32_nextUint32)
 		bit_idx: dint;
 		expected: dword;
 	end
-	{st}
 	// nextUint32 must equal 32 consecutive nextBool calls assembled LSB-first
 	LFSR32_init(self:=lfsr, seed:=dword#16#CAFEBABE);
 	expected := dword#0;
@@ -102,7 +95,6 @@ TEST_S(test_LFSR32_nextUint32)
 	end_for;
 	LFSR32_init(self:=lfsr, seed:=dword#16#CAFEBABE);
 	EXPECT_EQ_UDINT(dword_to_udint(expected), LFSR32_nextUint32(lfsr));
-	{end}
 END_TEST_S
 
 TEST_S(test_LFSR32_nextIntInRange)
@@ -111,7 +103,6 @@ TEST_S(test_LFSR32_nextIntInRange)
 		result: dint;
 		ok: bool;
 	end
-	{st}
 	// min > max → error
 	LFSR32_init(self:=lfsr, seed:=dword#1);
 	LFSR32_nextIntInRange(self:=lfsr, min_val:=10, max_val:=5, eno=>ok);
@@ -126,5 +117,4 @@ TEST_S(test_LFSR32_nextIntInRange)
 	result := LFSR32_nextIntInRange(lfsr, -10, 10);
 	EXPECT_GE_DINT(result, -10);
 	EXPECT_LE_DINT(result, 10);
-	{end}
 END_TEST_S

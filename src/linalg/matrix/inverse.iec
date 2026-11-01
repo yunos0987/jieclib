@@ -36,7 +36,6 @@ function Matrix_inverse
 		pivot_row: dint;
 		pivot_val, factor, max_val, tmp: lreal;
 	end
-	{st}
 	a_size := Array_isRegular2d_lreal(a);
 	r_size := Array_isRegular2d_lreal(result);
 	if (a_size = 0) or (r_size = 0) then
@@ -110,7 +109,6 @@ function Matrix_inverse
 			end_if;
 		end_for;
 	end_for;
-	{end}
 end
 
 {#endif}

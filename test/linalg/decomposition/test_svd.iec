@@ -70,7 +70,6 @@ TEST_S(test_matrix_svd_decompose)
 		s12: array[0..3] of lreal;
 		v12: array[0..3, 0..3] of lreal;
 	end
-	{st}
 	Matrix_svd_decompose(a:=a1, u:=u1, s:=s1, v:=v1);
 	EXPECT_NEAR(1.0, s1[0], EPS);
 	EXPECT_NEAR(1.0, s1[1], EPS);
@@ -101,7 +100,6 @@ TEST_S(test_matrix_svd_decompose)
 	EXPECT_NEAR(1.16515139, s11[1], 1.0e-6);
 	Matrix_svd_decompose(a:=a12, u:=u12, s:=s12, v:=v12);
 	EXPECT_NEAR(9.52282685, s12[0], 1.0e-6);
-	{end}
 END_TEST_S
 
 {#undef EPS}

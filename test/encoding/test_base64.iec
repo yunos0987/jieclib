@@ -35,7 +35,6 @@ TEST_S(test_base64encode)
 		o: bool;
 		x_n: array[8] of byte := [byte#16#02, byte#16#03, byte#16#05, byte#16#07, byte#16#0B, byte#16#0D, byte#16#11, byte#16#17];
 	end
-	{st}
 	EXPECT_EQ_STRING('AgMFBwsNERc=', base64encode(dat:=x_1));
 	EXPECT_EQ_STRING('AAEC', base64encode(dat:=x_2));
 	EXPECT_EQ_STRING('/+7d', base64encode(dat:=x_3));
@@ -76,7 +75,6 @@ TEST_S(test_base64encode)
 	EXPECT_TRUE(o);
 	base64encode(dat:=x_n, offset:=2, length:=7, eno=>o); // error
 	EXPECT_FALSE(o);
-	{end}
 END_TEST_S
 
 TEST_S(test_base64decode)
@@ -84,7 +82,6 @@ TEST_S(test_base64decode)
 		l: dint;
 		x_4096: array[4096] of byte;
 	end
-	{st}
 	//
 	l := base64decode(txt:='XYZ=', dat:=x_4096);
 	EXPECT_EQ_INT32(2, l);
@@ -220,5 +217,4 @@ TEST_S(test_base64decode)
 	EXPECT_EQ_BYTE(byte#16#f3, x_4096[45]);
 	EXPECT_EQ_BYTE(byte#16#df, x_4096[46]);
 	EXPECT_EQ_BYTE(byte#16#bf, x_4096[47]);
-	{end}
 END_TEST_S

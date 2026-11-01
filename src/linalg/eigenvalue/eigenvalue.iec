@@ -35,7 +35,6 @@ function Matrix_eigenvalue_compute
 		max_val, apq, app, aqq, phi, c, s_rot, tmp: lreal;
 		tmp_val: lreal;
 	end
-	{st}
 	a_size := Array_isRegular2d_lreal(a);
 	e_size := Array_isRegular_lreal(eigenvalues);
 	if (a_size = 0) or (e_size = 0) then
@@ -111,7 +110,6 @@ function Matrix_eigenvalue_compute
 			eigenvalues[max_idx] := tmp_val;
 		end_if;
 	end_for;
-	{end}
 end
 
 {#endif}

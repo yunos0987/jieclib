@@ -31,7 +31,6 @@ function Matrix_scaling_2d
 		r_size: dint;
 		rows, cols: dint;
 	end
-	{st}
 	r_size := Array_isRegular2d_lreal(scaling);
 	if r_size = 0 then
 		eno := false;
@@ -53,7 +52,6 @@ function Matrix_scaling_2d
 	scaling[2, 0] := 0.0;
 	scaling[2, 1] := 0.0;
 	scaling[2, 2] := 1.0;
-	{end}
 end
 
 (*{doc 3次元スケーリング行列の生成。
@@ -81,7 +79,6 @@ function Matrix_scaling_3d
 		r_size: dint;
 		rows, cols: dint;
 	end
-	{st}
 	r_size := Array_isRegular2d_lreal(scaling);
 	if r_size = 0 then
 		eno := false;
@@ -110,7 +107,6 @@ function Matrix_scaling_3d
 	scaling[3, 1] := 0.0;
 	scaling[3, 2] := 0.0;
 	scaling[3, 3] := 1.0;
-	{end}
 end
 
 {#endif}

@@ -59,7 +59,6 @@ TEST_S(test_matrix_lu_decompose)
 		u12: array[0..3, 0..3] of lreal;
 		result_eno: bool;
 	end
-	{st}
 	Matrix_lu_decompose(a:=a1, l:=l1, u:=u1);
 	EXPECT_NEAR(1.0, l1[0, 0], 1.0e-9);
 	EXPECT_NEAR(2.0, u1[0, 1], 1.0e-9);
@@ -93,7 +92,6 @@ TEST_S(test_matrix_lu_decompose)
 	EXPECT_FALSE(result_eno);
 	Matrix_lu_decompose(a:=a12, l:=l12, u:=u12, eno=>result_eno);
 	EXPECT_FALSE(result_eno);
-	{end}
 END_TEST_S
 
 {#undef EPS}

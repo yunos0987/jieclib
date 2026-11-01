@@ -40,7 +40,6 @@ function Stats_chi_square_gof
 		nobs, nexp, i, actual_n: dint;
 		chi_sq_stat, pvalue, diff: lreal;
 	end
-	{st}
 	nobs := Array_isRegular_lreal(observed);
 	nexp := Array_isRegular_lreal(expected);
 	if (nobs = 0) or (n > nobs) or (nexp = 0) or (n > nexp) then
@@ -79,7 +78,6 @@ function Stats_chi_square_gof
 	result.ci_lower := 0.0;
 	result.ci_upper := 0.0;
 	result.effect_size := 0.0;
-	{end}
 end
 
 (*{doc カイ二乗独立性検定（分割表）。table: 分割表（行×列の度数）
@@ -110,7 +108,6 @@ function Stats_chi_square_independence
 		row_total, col_total, grand_total, chi_sq_stat, expected, diff, adj_diff: lreal;
 		apply_yates: bool;
 	end
-	{st}
 		table_row_lb := lower_bound(table, 1);
 		table_col_lb := lower_bound(table, 2);
 		rows := upper_bound(table, 1) - table_row_lb + 1;
@@ -184,7 +181,6 @@ function Stats_chi_square_independence
 		result.ci_lower := 0.0;
 		result.ci_upper := 0.0;
 		result.effect_size := 0.0;
-	{end}
 end
 
 {#endif}

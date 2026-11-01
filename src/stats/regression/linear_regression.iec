@@ -45,7 +45,6 @@ function Stats_linear_regression
 		mean_x, mean_y, cov_xy, var_x, slope, intercept: lreal;
 		ss_total, ss_residual, residual, r_squared, se: lreal;
 	end
-	{st}
 	n_x := Array_isRegular_lreal(x);
 	if n_x = 0 then
 		eno := false;
@@ -119,7 +118,6 @@ function Stats_linear_regression
 	result.intercept := intercept;
 	result.r_squared := r_squared;
 	result.se := se;
-	{end}
 end
 
 {#endif}

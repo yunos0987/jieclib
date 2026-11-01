@@ -21,9 +21,7 @@ function String_length: dint
 	var_input
 		self: STRING;
 	end
-	{st}
 	String_length := len(self);
-	{end}
 end
 
 {doc 指定位置の文字を取得する}
@@ -37,7 +35,6 @@ function String_at: string[CHAR_MAX_BYTE + 1]
 	var_temp
 		q, l: dint;
 	end
-	{st}
 	l := len(self);
 	if p >= 0 then
 		q := p;
@@ -49,7 +46,6 @@ function String_at: string[CHAR_MAX_BYTE + 1]
 	else
 		String_at := '';
 	end_if;
-	{end}
 end
 
 {doc 指定位置の文字を取得する}
@@ -60,13 +56,11 @@ function String_charAt: string[CHAR_MAX_BYTE + 1]
 		{doc: 0 origin.}
 		p: dint := 0;
 	end
-	{st}
 	if (0 <= p) and (p < uint_to_dint(len(self))) then
 		String_charAt := mid(self, 1, dint_to_uint(p + 1));
 	else
 		String_charAt := '';
 	end_if;
-	{end}
 end
 
 {doc 空文字列か調べる}
@@ -75,9 +69,7 @@ function String_empty: bool
 	var_input
 		self: STRING;
 	end
-	{st}
 	String_empty := self = ''; // eq('', self), len(self) = 0
-	{end}
 end
 
 // 文字列を結合する
@@ -142,13 +134,11 @@ function String_fromAsciiCharCode1: string[CHAR_MAX_BYTE + 1]
 			'$60', '$61', '$62', '$63', '$64', '$65', '$66', '$67', '$68', '$69', '$6A', '$6B', '$6C', '$6D', '$6E', '$6F',
 			'$70', '$71', '$72', '$73', '$74', '$75', '$76', '$77', '$78', '$79', '$7A', '$7B', '$7C', '$7D', '$7E', '$7F',];
 	end
-	{st}
 	if (CODE0 <= charcode) and (charcode <= CODE1) then
 		String_fromAsciiCharCode1 := CODE2CHAR[charcode];
 	else
 		eno := false;
 	end_if;
-	{end}
 	{#undef CODE0}
 	{#undef CODE1}
 end
@@ -167,7 +157,6 @@ function String_lower: STRING
 		c_x, d_x: string[CHAR_MAX_BYTE + 1];
 		code: dint;
 	end
-	{st}
 	String_lower := '';
 	l := len(self);
 	for index := 0 to l - 1 by 1 do
@@ -180,7 +169,6 @@ function String_lower: STRING
 			String_lower := concat(String_lower, c_x);
 		end_if;
 	end_for;
-	{end}
 	{#undef CHARCODE_A}
 	{#undef CHARCODE_Z}
 	{#undef DIFF_CHARCODE_U2L}
@@ -201,7 +189,6 @@ function String_upper: STRING
 		c_x, d_x: string[CHAR_MAX_BYTE + 1];
 		code: dint;
 	end
-	{st}
 	String_upper := '';
 	l := len(self);
 	for index := 0 to l - 1 by 1 do
@@ -214,7 +201,6 @@ function String_upper: STRING
 			String_upper := concat(String_upper, c_x);
 		end_if;
 	end_for;
-	{end}
 	{#undef CHARCODE_a}
 	{#undef CHARCODE_z}
 	{#undef DIFF_CHARCODE_U2L}
@@ -239,7 +225,6 @@ function String_remove: STRING
 		h_str, t_str: STRING;
 		r_str: STRING;
 	end
-	{st}
 	del_len := len(del);
 	t_str := self;
 	l := len(t_str);
@@ -261,7 +246,6 @@ function String_remove: STRING
 		c_x := c_x - 1;
 	end_while;
 	String_remove := concat(r_str, t_str);
-	{end}
 end
 
 {doc 文字列を逆順に並び替える}
@@ -273,12 +257,10 @@ function String_reverse: STRING
 	var_temp
 		p: dint;
 	end
-	{st}
 	String_reverse := '';
 	for p := len(self) to 1 by -1 do
 		String_reverse := concat(String_reverse, mid(self, 1, dint_to_uint(p)));
 	end_for;
-	{end}
 end
 
 {doc 指定の文字列で始まるか調べる}
@@ -291,7 +273,6 @@ function String_startswith: bool
 	var_temp
 		m: dint;
 	end
-	{st}
 	m := len(prefix);
 	if m <> 0 then
 		if uint_to_dint(len(self)) >= m then
@@ -302,7 +283,6 @@ function String_startswith: bool
 	else
 		String_startswith := true;
 	end_if;
-	{end}
 end
 
 {doc 指定の文字列で終わるか調べる}
@@ -315,7 +295,6 @@ function String_endswith: bool
 	var_temp
 		m: dint;
 	end
-	{st}
 	m := len(suffix);
 	if m <> 0 then
 		if uint_to_dint(len(self)) >= m then
@@ -326,7 +305,6 @@ function String_endswith: bool
 	else
 		String_endswith := true;
 	end_if;
-	{end}
 end
 
 {doc 指定の文字列を含む位置を取得する}
@@ -342,7 +320,6 @@ function String_indexOf: dint
 		l: dint;
 		str: STRING;
 	end
-	{st}
 	p := max(0, position);
 	if searchString <> '' then
 		l := len(self);
@@ -369,7 +346,6 @@ function String_indexOf: dint
 	else
 		String_indexOf := p;
 	end_if;
-	{end}
 end
 
 {doc 指定の文字列を後ろから検索する}
@@ -386,7 +362,6 @@ function String_lastIndexOf: dint
 		start_pos: dint;
 		segment: STRING;
 	end
-	{st}
 	l := len(self);
 	m := len(searchString);
 	if m <> 0 then
@@ -405,7 +380,6 @@ function String_lastIndexOf: dint
 	else
 		String_lastIndexOf := min(position, l);
 	end_if;
-	{end}
 end
 
 {doc 指定の文字列を含むか調べる}
@@ -416,9 +390,7 @@ function String_includes: bool
 		searchString: STRING;
 		position: dint := 0;
 	end
-	{st}
 	String_includes := String_indexOf(self, searchString, position) <> -1;
-	{end}
 end
 
 {doc 文字列を指定文字列で分割する}
@@ -437,7 +409,6 @@ function String_split: dint
 		l, m: dint;
 		i_0, i_1, index: dint;
 	end
-	{st}
 	i_0 := lower_bound(outputs, 1);
 	i_1 := upper_bound(outputs, 1);
 	l := len(self);
@@ -484,7 +455,6 @@ function String_split: dint
 			return;
 		end_if;
 	end_while;
-	{end}
 end
 
 {doc 開始インデクスと終了インデクスを指定して、文字列の部分を取得する}
@@ -500,7 +470,6 @@ function String_substring: STRING
 		i_0, i_1: dint;
 		temp: dint;
 	end
-	{st}
 	l := len(self);
 	i_0 := max(0, indexStart);
 	i_0 := min(l, i_0); // memo: omron bug; min(l, max(0, indexStart));
@@ -516,7 +485,6 @@ function String_substring: STRING
 	else
 		String_substring := '';
 	end_if;
-	{end}
 end
 
 {doc 両端の空白を削除する}
@@ -532,7 +500,6 @@ function String_trim: STRING
 		c_x: string[2];
 		found: bool;
 	end
-	{st}
 	l := len(self);
 	if l = 0 then
 		String_trim := '';
@@ -577,7 +544,6 @@ function String_trim: STRING
 	end_for;
 
 	String_trim := mid(self, dint_to_uint(i_1 - i_0 + 1), dint_to_uint(i_0));
-	{end}
 end
 
 {doc 左端の空白を削除する}
@@ -594,7 +560,6 @@ function String_ltrim: STRING
 		c_x: string[2];
 		found: bool;
 	end
-	{st}
 	l := len(self);
 	if l = 0 then
 		String_ltrim := '';
@@ -622,7 +587,6 @@ function String_ltrim: STRING
 	end_if;
 
 	String_ltrim := mid(self, dint_to_uint(l - p + 1), dint_to_uint(p));
-	{end}
 end
 {#define String_trimStart String_ltrim}
 {#define String_trimLeft String_ltrim}
@@ -640,7 +604,6 @@ function String_rtrim: STRING
 		c_x: string[2];
 		found: bool;
 	end
-	{st}
 	l := len(self);
 	if l = 0 then
 		String_rtrim := '';
@@ -669,7 +632,6 @@ function String_rtrim: STRING
 	end_if;
 
 	String_rtrim := mid(self, dint_to_uint(p), 1);
-	{end}
 end
 {#define String_trimEnd String_rtrim}
 {#define String_trimRight String_rtrim}
@@ -686,14 +648,12 @@ function String_join: STRING
 	var_temp
 		index, i_0, i_1: dint;
 	end
-	{st}
 	i_0 := lower_bound(a, 1);
 	i_1 := upper_bound(a, 1);
 	String_join := a[i_0];
 	for index := i_0 + 1 to i_1 by 1 do
 		String_join := concat(String_join, self, a[index]);
 	end_for;
-	{end}
 end
 
 {doc 指定の文字列を置換する}
@@ -715,7 +675,6 @@ function String_substitute: STRING
 		p, l: dint;
 		h_str, t_str: STRING;
 	end
-	{st}
 	String_substitute := '';
 	old_len := len(old);
 	t_str := self;
@@ -734,7 +693,6 @@ function String_substitute: STRING
 		c_x := c_x - 1;
 	end_while;
 	String_substitute := concat(String_substitute, t_str);
-	{end}
 end
 
 {doc 指定の文字列を指定回数繰り返す}
@@ -748,14 +706,12 @@ function String_repeat: STRING
 	var_temp
 		c: dint;
 	end
-	{st}
 	String_repeat := '';
 	c := count;
 	while c > 0 do
 		String_repeat := concat(String_repeat, self);
 		c := c - 1;
 	end_while;
-	{end}
 end
 
 {doc 左側にパディング文字列を追加する}
@@ -774,7 +730,6 @@ function String_padStart: STRING
 		repeat_count: dint;
 		padded: STRING;
 	end
-	{st}
 	current_len := len(self);
 	if current_len >= targetLength then
 		String_padStart := self;
@@ -789,7 +744,6 @@ function String_padStart: STRING
 		padded := left(padded, dint_to_uint(pad_len));
 		String_padStart := concat(padded, self);
 	end_if;
-	{end}
 end
 
 {doc 右側にパディング文字列を追加する}
@@ -808,7 +762,6 @@ function String_padEnd: STRING
 		repeat_count: dint;
 		padded: STRING;
 	end
-	{st}
 	current_len := len(self);
 	if current_len >= targetLength then
 		String_padEnd := self;
@@ -823,7 +776,6 @@ function String_padEnd: STRING
 		padded := left(padded, dint_to_uint(pad_len));
 		String_padEnd := concat(self, padded);
 	end_if;
-	{end}
 end
 
 {#endif}

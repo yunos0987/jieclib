@@ -30,7 +30,6 @@ function Matrix_rotation_2d
 		r_size: dint;
 		c, s: lreal;
 	end
-	{st}
 	r_size := Array_isRegular2d_lreal(rotation);
 	if r_size = 0 then
 		eno := false;
@@ -60,7 +59,6 @@ function Matrix_rotation_2d
 		rotation[2, 1] := 0.0;
 		rotation[2, 2] := 1.0;
 	end_if;
-	{end}
 end
 
 (*{doc 3次元回軨行列の生成（Z軸中一。
@@ -84,7 +82,6 @@ function Matrix_rotation_z
 		r_size: dint;
 		c, s: lreal;
 	end
-	{st}
 	r_size := Array_isRegular2d_lreal(rotation);
 	if r_size = 0 then
 		eno := false;
@@ -108,7 +105,6 @@ function Matrix_rotation_z
 	rotation[2, 0] := 0.0;
 	rotation[2, 1] := 0.0;
 	rotation[2, 2] := 1.0;
-	{end}
 end
 
 {#endif}

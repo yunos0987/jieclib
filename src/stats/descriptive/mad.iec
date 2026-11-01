@@ -34,7 +34,6 @@ function Stats_mean_absolute_deviation: lreal
 		actual_n, i: dint;
 		mu, acc: lreal;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(data);
 	if (actual_n = 0) or (n > actual_n) then
 		eno := false;
@@ -52,7 +51,6 @@ function Stats_mean_absolute_deviation: lreal
 	end_for;
 
 	Stats_mean_absolute_deviation := acc / dint_to_lreal(actual_n);
-	{end}
 end
 
 (*{doc 中央絶対偏差: median(|x - median(x)|) * scale
@@ -97,7 +95,6 @@ function Stats_median_absolute_deviation: lreal
 		nwork1, nwork2, nwork3: dint;
 		m: lreal;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(data);
 	if (actual_n = 0) or (n > actual_n) then
 		eno := false;
@@ -130,7 +127,6 @@ function Stats_median_absolute_deviation: lreal
 	end_for;
 
 	Stats_median_absolute_deviation := scale * Stats_median(data:=work2, n:=actual_n, work1:=work1, work2:=work3);
-	{end}
 end
 
 {#endif}

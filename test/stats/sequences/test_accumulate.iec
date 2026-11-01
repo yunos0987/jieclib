@@ -41,7 +41,6 @@ TEST_S(test_stats_sum)
 		x_11: array[0..4] of lreal := [1.0e-6, 2.0e-6, 3.0e-6, 4.0e-6, 5.0e-6];
 		x_12: array[0..5] of lreal := [0.001, 1000.0, 0.01, 100.0, 0.1, 10.0];
 	end
-	{st}
 	// Test 1: basic_positive
 	EXPECT_NEAR(20.0, Stats_sum(x_1, -1), EPS);
 	// Test 2: mixed_signs
@@ -66,7 +65,6 @@ TEST_S(test_stats_sum)
 	EXPECT_NEAR(1.5e-5, Stats_sum(x_11, -1), EPS);
 	// Test 12: mixed_magnitudes
 	EXPECT_NEAR(1110.111, Stats_sum(x_12, -1), EPS);
-	{end}
 END_TEST_S
 
 
@@ -85,7 +83,6 @@ TEST_S(test_stats_sum_kahan)
 		x_11: array[0..4] of lreal := [1.0e-6, 2.0e-6, 3.0e-6, 4.0e-6, 5.0e-6];
 		x_12: array[0..5] of lreal := [0.001, 1000.0, 0.01, 100.0, 0.1, 10.0];
 	end
-	{st}
 	// Test 1: basic_positive
 	EXPECT_NEAR(20.0, Stats_sum_kahan(x_1, -1), EPS);
 	// Test 2: mixed_signs
@@ -110,7 +107,6 @@ TEST_S(test_stats_sum_kahan)
 	EXPECT_NEAR(1.5e-5, Stats_sum_kahan(x_11, -1), EPS);
 	// Test 12: mixed_magnitudes
 	EXPECT_NEAR(1110.111, Stats_sum_kahan(x_12, -1), EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_sum_and_count)
@@ -121,7 +117,6 @@ TEST_S(test_stats_sum_and_count)
 		s: lreal;
 		n: dint;
 	end
-	{st}
 	// basic
 	s := Stats_sum_and_count(x:=x_5, count=>n);
 	EXPECT_NEAR(20.0, s, EPS);
@@ -134,7 +129,6 @@ TEST_S(test_stats_sum_and_count)
 	s := Stats_sum_and_count(x:=x_4, count=>n);
 	EXPECT_NEAR(1.0, s, EPS);
 	EXPECT_EQ_INT32(4, n);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_sum_acc)
@@ -143,13 +137,11 @@ TEST_S(test_stats_sum_acc)
 		x: array[0..4] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0];
 		i: dint;
 	end
-	{st}
 		// Accumulate sum incrementally
 		for i := 0 to 4 do
 			acc := Stats_sum_acc(acc:=acc, x:=x[i]);
 		end_for;
 		EXPECT_NEAR(15.0, acc, EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_kahan_sum_acc)
@@ -161,7 +153,6 @@ TEST_S(test_stats_kahan_sum_acc)
 		x_large: array[0..3] of lreal := [100.0, 200.0, 300.0, 400.0];
 		i: dint;
 	end
-	{st}
 		// Case 1: simple decimals
 		acc := 0.0; c := 0.0;
 		for i := 0 to 4 do
@@ -182,7 +173,6 @@ TEST_S(test_stats_kahan_sum_acc)
 			acc := Stats_kahan_sum(acc:=acc, c:=c, x:=x_large[i]);
 		end_for;
 		EXPECT_NEAR(1000.0, acc, EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_mean_acc)
@@ -195,7 +185,6 @@ TEST_S(test_stats_mean_acc)
 		result: lreal;
 		i: dint;
 	end
-	{st}
 		// Case 1: basic mean
 		acc_sum := 0.0; n := 0;
 		for i := 0 to 4 do
@@ -222,7 +211,6 @@ TEST_S(test_stats_mean_acc)
 		end_for;
 		result := Stats_mean_acc(s:=acc_sum, n:=n);
 		EXPECT_NEAR(200.0, result, EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_welford_update)
@@ -241,7 +229,6 @@ TEST_S(test_stats_welford_update)
 		V: lreal;
 		i: dint;
 	end
-	{st}
 		// Test 1: Welford online algorithm for variance
 		for i := 0 to 4 do
 			count := count + 1;
@@ -328,7 +315,6 @@ TEST_S(test_stats_welford_update)
 		end_for;
 		EXPECT_NEAR(2.75, m, 0.01);
 		EXPECT_GT_LREAL(m2, 0.0);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_welford_finalize)
@@ -348,7 +334,6 @@ TEST_S(test_stats_welford_finalize)
 		var_pop: lreal;
 		i: dint;
 	end
-	{st}
 		// Test 1: basic - Sample variance (ddof=1): 2.5
 		for i := 0 to 4 do
 			count := count + 1;
@@ -431,7 +416,6 @@ TEST_S(test_stats_welford_finalize)
 		end_for;
 		V := Stats_welford_finalize(m2:=m2, count:=count, ddof:=1);
 		EXPECT_GT_LREAL(V, 0.0);
-	{end}
 END_TEST_S
 
 {#undef EPS}

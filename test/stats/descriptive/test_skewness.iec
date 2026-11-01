@@ -34,7 +34,6 @@ TEST_S(test_stats_skewness)
 		x_right_skew: array[0..5] of lreal := [1.0, 2.0, 2.0, 3.0, 4.0, 10.0];
 		x_left_skew: array[0..4] of lreal := [1.0, 7.0, 8.0, 9.0, 10.0];
 	end
-	{st}
 		// Test with bias=true - biased skewness estimator
 		EXPECT_NEAR(0.000000000000, Stats_skewness(data:=x_seq5, bias:=true), EPS);
 		EXPECT_NEAR(1.381230331499, Stats_skewness(data:=x_mixed1, bias:=true), EPS);
@@ -68,7 +67,6 @@ TEST_S(test_stats_skewness)
 		EXPECT_LT_LREAL(Stats_skewness(data:=x_left_skew, bias:=true), 0.0);
 		EXPECT_GT_LREAL(Stats_skewness(data:=x_mixed1, bias:=true), 0.0);
 		EXPECT_LT_LREAL(Stats_skewness(data:=x_mixed2, bias:=true), 0.0);
-	{end}
 END_TEST_S
 
 {#undef EPS}

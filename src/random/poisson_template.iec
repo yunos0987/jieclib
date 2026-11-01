@@ -67,7 +67,6 @@ function Random_nextPoisson: dint
 		prod: lreal;
 		rand_val: lreal;
 	end
-	{st}
 	if lambda <= lreal#0.0 then
 		eno := false;
 	else
@@ -85,7 +84,6 @@ function Random_nextPoisson: dint
 		end_repeat;
 		Random_nextPoisson := cnt - 1;
 	end_if;
-	{end}
 end
 
 {#undef _RANDOM_NEXT_POISSON_}

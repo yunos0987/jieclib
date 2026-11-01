@@ -25,7 +25,6 @@ DEFINE_CONFIGURATION(
 
 TEST_S(test_stats_uniform_pdf)
 	var result: lreal; end
-	{st}
 		// PDF on [0,1]: f(x) = 1 for x in [0,1]
 		result := Stats_uniform_pdf(x:=0.5, a:=0.0, b:=1.0);
 		EXPECT_NEAR(1.0, result, EPS);
@@ -55,12 +54,10 @@ TEST_S(test_stats_uniform_pdf)
 		EXPECT_NEAR(1.0, result, EPS);
 		result := Stats_uniform_pdf(x:=1.0, a:=0.0, b:=1.0);
 		EXPECT_NEAR(1.0, result, EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_uniform_cdf)
 	var result: lreal; end
-	{st}
 		// CDF at lower bound
 		result := Stats_uniform_cdf(x:=0.0, a:=0.0, b:=1.0);
 		EXPECT_NEAR(0.0, result, EPS);
@@ -96,12 +93,10 @@ TEST_S(test_stats_uniform_cdf)
 		EXPECT_NEAR(0.5, result, EPS);
 		result := Stats_uniform_cdf(x:=10.25, a:=10.0, b:=10.5);
 		EXPECT_NEAR(0.5, result, EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_uniform_ppf)
 	var result: lreal; end
-	{st}
 		// PPF(p=0) = a
 		result := Stats_uniform_ppf(p:=0.0, a:=0.0, b:=1.0);
 		EXPECT_NEAR(0.0, result, EPS);
@@ -130,12 +125,10 @@ TEST_S(test_stats_uniform_ppf)
 		EXPECT_NEAR(10.165, result, 1e-6);
 		result := Stats_uniform_ppf(p:=0.9, a:=-1.0, b:=1.0);
 		EXPECT_NEAR(0.8, result, EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_uniform_mean)
 	var mean_val: lreal; end
-	{st}
 		// Mean = (a+b)/2
 		mean_val := Stats_uniform_mean(a:=2.0, b:=6.0);
 		EXPECT_NEAR(4.0, mean_val, EPS);
@@ -166,12 +159,10 @@ TEST_S(test_stats_uniform_mean)
 		EXPECT_NEAR(0.0, mean_val, EPS);
 		mean_val := Stats_uniform_mean(a:=100.0, b:=200.0);
 		EXPECT_NEAR(150.0, mean_val, EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_uniform_variance)
 	var variance_val: lreal; end
-	{st}
 		// Variance = (b-a)^2/12
 		variance_val := Stats_uniform_variance(a:=2.0, b:=6.0);
 		EXPECT_NEAR(1.3333333333, variance_val, 0.001);
@@ -197,7 +188,6 @@ TEST_S(test_stats_uniform_variance)
 		EXPECT_NEAR(0.3333333333, variance_val, 0.001);
 		variance_val := Stats_uniform_variance(a:=100.0, b:=200.0);
 		EXPECT_NEAR(833.3333333333, variance_val, 0.001);
-	{end}
 END_TEST_S
 
 {#undef EPS}

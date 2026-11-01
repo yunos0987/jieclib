@@ -59,7 +59,6 @@ TEST_S(test_vector_cross_product)
 		a10: array[0..2] of lreal := [1.0, 2.0, 0.0];
 		b10: array[0..2] of lreal := [2.0, 1.0, 0.0];
 		r10: array[0..2] of lreal;	end
-	{st}
 	Vector_cross_product(a:=a1, b:=b1, result:=r1);
 	EXPECT_NEAR(0.0, r1[0], EPS);
 	EXPECT_NEAR(0.0, r1[1], EPS);
@@ -100,7 +99,6 @@ TEST_S(test_vector_cross_product)
 	EXPECT_NEAR(0.0, r10[0], EPS);
 	EXPECT_NEAR(0.0, r10[1], EPS);
 	EXPECT_NEAR(-3.0, r10[2], EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_vector_cross_product_magnitude)
@@ -127,7 +125,6 @@ TEST_S(test_vector_cross_product_magnitude)
 		b10: array[0..2] of lreal := [0.0, 0.0, 5.0];
 		result: lreal;
 	end
-	{st}
 	result := Vector_cross_product_magnitude(a:=a1, b:=b1);
 	EXPECT_NEAR(1.0, result, EPS);
 	result := Vector_cross_product_magnitude(a:=a2, b:=b2);
@@ -148,7 +145,6 @@ TEST_S(test_vector_cross_product_magnitude)
 	EXPECT_NEAR(4.58257569495584, result, 1.0e-12);
 	result := Vector_cross_product_magnitude(a:=a10, b:=b10);
 	EXPECT_NEAR(25.0, result, EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_vector_cross_product_unit)
@@ -183,7 +179,6 @@ TEST_S(test_vector_cross_product_unit)
 		a10: array[0..2] of lreal := [-1.0, 0.0, 1.0];
 		b10: array[0..2] of lreal := [0.0, 1.0, 0.0];
 		r10: array[0..2] of lreal;	end
-	{st}
 	Vector_cross_product_unit(a:=a1, b:=b1, result:=r1);
 	EXPECT_NEAR(0.0, r1[0], EPS);
 	EXPECT_NEAR(0.0, r1[1], EPS);
@@ -224,7 +219,6 @@ TEST_S(test_vector_cross_product_unit)
 	EXPECT_NEAR(-0.7071067811865475, r10[0], 1.0e-12);
 	EXPECT_NEAR(0.0, r10[1], EPS);
 	EXPECT_NEAR(-0.7071067811865475, r10[2], 1.0e-12);
-	{end}
 END_TEST_S
 
 TEST_S(test_vector_scalar_triple_product)
@@ -261,7 +255,6 @@ TEST_S(test_vector_scalar_triple_product)
 		c10: array[0..2] of lreal := [4.0, 5.0, 6.0];
 		result: lreal;
 	end
-	{st}
 	result := Vector_scalar_triple_product(a:=a1, b:=b1, c:=c1);
 	EXPECT_NEAR(1.0, result, EPS);
 	result := Vector_scalar_triple_product(a:=a2, b:=b2, c:=c2);
@@ -282,7 +275,6 @@ TEST_S(test_vector_scalar_triple_product)
 	EXPECT_NEAR(-25.0, result, EPS);
 	result := Vector_scalar_triple_product(a:=a10, b:=b10, c:=c10);
 	EXPECT_NEAR(13.5, result, EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_vector_vector_triple_product)
@@ -327,7 +319,6 @@ TEST_S(test_vector_vector_triple_product)
 		b10: array[0..2] of lreal := [1.0, 2.0, 3.0];
 		c10: array[0..2] of lreal := [4.0, 5.0, 6.0];
 		r10: array[0..2] of lreal;	end
-	{st}
 	Vector_vector_triple_product(a:=a1, b:=b1, c:=c1, result:=r1);
 	EXPECT_NEAR(0.0, r1[0], EPS);
 	EXPECT_NEAR(0.0, r1[1], EPS);
@@ -368,7 +359,6 @@ TEST_S(test_vector_vector_triple_product)
 	EXPECT_NEAR(7.5, r10[0], EPS);
 	EXPECT_NEAR(7.5, r10[1], EPS);
 	EXPECT_NEAR(7.5, r10[2], EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_vector_angle_from_cross_product)
@@ -395,7 +385,6 @@ TEST_S(test_vector_angle_from_cross_product)
 		b10: array[0..2] of lreal := [4.0, 5.0, 6.0];
 		result: lreal;
 	end
-	{st}
 	result := Vector_angle_from_cross_product(a:=a1, b:=b1);
 	EXPECT_NEAR(1.5707963267948966, result, ANG_EPS);
 	result := Vector_angle_from_cross_product(a:=a2, b:=b2);
@@ -416,7 +405,6 @@ TEST_S(test_vector_angle_from_cross_product)
 	EXPECT_NEAR(0.9553166181245092, result, ANG_EPS);
 	result := Vector_angle_from_cross_product(a:=a10, b:=b10);
 	EXPECT_NEAR(0.2257261285527342, result, ANG_EPS);
-	{end}
 END_TEST_S
 
 TEST_S(test_vector_is_parallel)
@@ -443,7 +431,6 @@ TEST_S(test_vector_is_parallel)
 		b10: array[0..2] of lreal := [2.0, 1.0, 0.0];
 		result: bool;
 	end
-	{st}
 	result := Vector_is_parallel(a:=a1, b:=b1, tolerance:=1.0e-9);
 	EXPECT_TRUE(result);
 	result := Vector_is_parallel(a:=a2, b:=b2, tolerance:=1.0e-9);
@@ -464,7 +451,6 @@ TEST_S(test_vector_is_parallel)
 	EXPECT_TRUE(result);
 	result := Vector_is_parallel(a:=a10, b:=b10, tolerance:=1.0e-9);
 	EXPECT_FALSE(result);
-	{end}
 END_TEST_S
 
 TEST_S(test_vector_is_orthogonal)
@@ -491,7 +477,6 @@ TEST_S(test_vector_is_orthogonal)
 		b10: array[0..2] of lreal := [4.0, 2.0, 0.0];
 		result: bool;
 	end
-	{st}
 	result := Vector_is_orthogonal(a:=a1, b:=b1, tolerance:=1.0e-9);
 	EXPECT_TRUE(result);
 	result := Vector_is_orthogonal(a:=a2, b:=b2, tolerance:=1.0e-9);
@@ -512,7 +497,6 @@ TEST_S(test_vector_is_orthogonal)
 	EXPECT_FALSE(result);
 	result := Vector_is_orthogonal(a:=a10, b:=b10, tolerance:=1.0e-9);
 	EXPECT_TRUE(result);
-	{end}
 END_TEST_S
 
 {#undef EPS}

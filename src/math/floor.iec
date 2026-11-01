@@ -18,7 +18,6 @@ function Math_floor: lreal
 		truncated: lreal;
 		frac_part: lreal;
 	end
-	{st}
 		truncated := lint_to_lreal(trunc(x));
 		frac_part := x - truncated;
 
@@ -27,7 +26,6 @@ function Math_floor: lreal
 		else
 			Math_floor := truncated;
 		end_if;
-	{end}
 end
 
 {#endif}

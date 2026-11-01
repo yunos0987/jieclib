@@ -37,7 +37,6 @@ function Stats_kurtosis: lreal
 		kurt, m2, m4, mean_val, sum2, sum4, nf, ratio: lreal;
 		i: dint;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(data);
 	if (actual_n = 0) or (n > actual_n) then
 		eno := false;
@@ -95,7 +94,6 @@ function Stats_kurtosis: lreal
 	end_if;
 
 	Stats_kurtosis := kurt;
-	{end}
 end
 
 {#endif}

@@ -60,7 +60,6 @@ TEST_S(test_stats_mann_whitney_u)
 		stat_tol: lreal := 1.0e-6;
 		pvalue_tol: lreal := 1.0e-4; // CONTRIBUTING: 統計p値の検証はabs_error=1.0e-4
 	end
-	{st}
 		// Case 1: Different groups - p値は小さいはず
 		Stats_mann_whitney_u(
 			x:=case1_x,
@@ -203,7 +202,6 @@ TEST_S(test_stats_mann_whitney_u)
 		);
 		EXPECT_NEAR(0.0, result11.statistic, stat_tol);
 		EXPECT_NEAR(3.066977765420198e-06, result11.pvalue, pvalue_tol);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_wilcoxon_signed_rank)
@@ -250,7 +248,6 @@ TEST_S(test_stats_wilcoxon_signed_rank)
 		pvalue_tol: lreal := 1.0e-4; // CONTRIBUTING: 統計p値の検証はabs_error=1.0e-4
 		result_eno: bool;
 	end
-	{st}
 		// Case 1: Zero difference - 同じデータ
 		Stats_wilcoxon_signed_rank(
 			x:=case1_x,
@@ -404,5 +401,4 @@ TEST_S(test_stats_wilcoxon_signed_rank)
 		);
 		EXPECT_NEAR(56.0, result11.statistic, stat_tol);
 		EXPECT_NEAR(0.8202800980995039, result11.pvalue, pvalue_tol);
-	{end}
 END_TEST_S

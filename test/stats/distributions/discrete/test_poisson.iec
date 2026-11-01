@@ -26,7 +26,6 @@ DEFINE_CONFIGURATION(
 TEST_S(test_stats_poisson_pmf)
 	var result: lreal; end
 	var pmf1, pmf2: lreal; end
-	{st}
 		// ========== Basic cases (lambda=3) ==========
 
 		// P(k=0|λ=3) = e^-3 ≈ 0.0498
@@ -80,14 +79,12 @@ TEST_S(test_stats_poisson_pmf)
 		pmf2 := Stats_poisson_pmf(k:=5, lambda:=5.0);
 		EXPECT_TRUE(pmf1 > 0.0);
 		EXPECT_TRUE(pmf2 > 0.0);
-	{end}
 END_TEST_S
 
 // Stats_poisson_cdf: Cumulative distribution function
 TEST_S(test_stats_poisson_cdf)
 	var result: lreal; end
 	var cdf1, cdf2, cdf3: lreal; end
-	{st}
 		// ========== Basic cases (lambda=3) ==========
 
 		// CDF at k=0
@@ -139,13 +136,11 @@ TEST_S(test_stats_poisson_cdf)
 		// CDF at k=0 equals PMF at k=0
 		result := Stats_poisson_cdf(k:=0, lambda:=2.0);
 		EXPECT_NEAR(Stats_poisson_pmf(k:=0, lambda:=2.0), result, 1.0e-6);
-	{end}
 END_TEST_S
 
 // Stats_poisson_mean: Mean of Poisson distribution
 TEST_S(test_stats_poisson_mean)
 	var result: lreal; end
-	{st}
 		// ========== Basic cases ==========
 
 		// Mean = λ = 3.0
@@ -180,13 +175,11 @@ TEST_S(test_stats_poisson_mean)
 
 		result := Stats_poisson_mean(lambda:=50.0);
 		EXPECT_NEAR(50.0, result, EPS);
-	{end}
 END_TEST_S
 
 // Stats_poisson_variance: Variance of Poisson distribution
 TEST_S(test_stats_poisson_variance)
 	var result: lreal; end
-	{st}
 		// ========== Basic cases ==========
 
 		// Variance = λ = 3.0
@@ -217,7 +210,6 @@ TEST_S(test_stats_poisson_variance)
 		EXPECT_NEAR(Stats_poisson_mean(lambda:=7.0), Stats_poisson_variance(lambda:=7.0), EPS);
 		EXPECT_NEAR(Stats_poisson_mean(lambda:=15.5), Stats_poisson_variance(lambda:=15.5), EPS);
 		EXPECT_NEAR(Stats_poisson_mean(lambda:=100.0), Stats_poisson_variance(lambda:=100.0), EPS);
-	{end}
 END_TEST_S
 
 {#undef EPS}

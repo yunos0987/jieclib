@@ -39,7 +39,6 @@ TEST_S(test_stats_standard_error_mean)
 		result, se_small, se_large: lreal;
 		result_eno: bool;
 	end
-	{st}
 		result := Stats_standard_error_mean(data:=x_basic);
 		EXPECT_NEAR(0.707106781187, result, 1.0e-9);
 
@@ -79,7 +78,6 @@ TEST_S(test_stats_standard_error_mean)
 		// Failure case: Single element (n<2)
 		result := Stats_standard_error_mean(data:=x_single, eno=>result_eno);
 		EXPECT_FALSE(result_eno);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_standard_error_proportion)
@@ -87,7 +85,6 @@ TEST_S(test_stats_standard_error_proportion)
 		result: lreal;
 		result_eno: bool;
 	end
-	{st}
 		result := Stats_standard_error_proportion(p:=0.5, n:=100);
 		EXPECT_NEAR(0.050000000000, result, 1.0e-9);
 
@@ -139,7 +136,6 @@ TEST_S(test_stats_standard_error_proportion)
 		// Failure case: n < 0
 		result := Stats_standard_error_proportion(p:=0.5, n:=-10, eno=>result_eno);
 		EXPECT_FALSE(result_eno);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_standard_error_difference_of_means)
@@ -166,7 +162,6 @@ TEST_S(test_stats_standard_error_difference_of_means)
 		result: lreal;
 		result_eno: bool;
 	end
-	{st}
 		result := Stats_standard_error_difference_of_means(x:=x_basic, y:=y_basic);
 		EXPECT_NEAR(1.0, result, EPS);
 
@@ -204,7 +199,6 @@ TEST_S(test_stats_standard_error_difference_of_means)
 		// Failure case: y with single element (n<2)
 		result := Stats_standard_error_difference_of_means(x:=x_equal, y:=x_single, eno=>result_eno);
 		EXPECT_FALSE(result_eno);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_standard_error_difference)
@@ -229,7 +223,6 @@ TEST_S(test_stats_standard_error_difference)
 		result_pooled, result_welch: lreal;
 		result_eno: bool;
 	end
-	{st}
 		result_pooled := Stats_standard_error_difference(sample1:=x1, sample2:=y1, equal_var:=true);
 		EXPECT_NEAR(1.000000000000, result_pooled, 1.0e-9);
 
@@ -273,7 +266,6 @@ TEST_S(test_stats_standard_error_difference)
 		// Failure case: sample2 with single element (Welch, n<2)
 		result_welch := Stats_standard_error_difference(sample1:=x_negative, sample2:=x_single, equal_var:=false, eno=>result_eno);
 		EXPECT_FALSE(result_eno);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_standard_error_regression)
@@ -318,7 +310,6 @@ TEST_S(test_stats_standard_error_regression)
 		se_slope, se_intercept: lreal;
 		result_eno: bool;
 	end
-	{st}
 		Stats_standard_error_regression(x:=x_perfect, y:=y_perfect, se_slope=>se_slope, se_intercept=>se_intercept);
 		EXPECT_NEAR(0.0, se_slope, 1.0e-12);
 		EXPECT_NEAR(0.0, se_intercept, 1.0e-12);
@@ -390,7 +381,6 @@ TEST_S(test_stats_standard_error_regression)
 		// Failure case: All x identical (ss_x = 0)
 		Stats_standard_error_regression(x:=x_identical, y:=y_varied, se_slope=>se_slope, se_intercept=>se_intercept, eno=>result_eno);
 		EXPECT_FALSE(result_eno);
-	{end}
 END_TEST_S
 
 {#undef EPS}

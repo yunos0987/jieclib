@@ -6,9 +6,7 @@ function Int_hash_for_dequeue_test: udint
 	var_input
 		self: int;
 	end
-	{st}
 	Int_hash_for_dequeue_test := int_to_udint(self) * udint#16777619 + udint#2166136261;
-	{end}
 end
 
 {#define DequeueName int}

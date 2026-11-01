@@ -33,7 +33,6 @@ function Stats_sorted_copy
 	var_temp
 		actual_n: dint;
 	end
-	{st}
 	actual_n := Array_copy_x_lreal(src:=data, src_index:=0, dst:=sorted, dst_index:=0, n:=n, eno=>eno);
 	if not eno then
 		return;
@@ -42,7 +41,6 @@ function Stats_sorted_copy
 	if not eno then
 		return;
 	end_if;
-	{end}
 end
 
 (*{doc data 内で k 番目(0-origin)の要素値を返す（非破壊的、work配列を使用、メディアン・オブ・スリーでピボット選択）
@@ -75,7 +73,6 @@ function Stats_select_kth: lreal
 		actual_n: dint;
 		nwork: dint;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(data);
 	if (actual_n = 0) or (n > actual_n) then
 		eno := false;
@@ -104,7 +101,6 @@ function Stats_select_kth: lreal
 	end_if;
 
 	Stats_select_kth := work[k];
-	{end}
 end
 
 {#endif}

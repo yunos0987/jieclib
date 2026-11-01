@@ -32,7 +32,6 @@ TEST_S(test_stats_geometric_mean)
 	var x_small: array[0..3] of lreal := [0.1, 0.2, 0.4, 0.8]; end
 	var x_two: array[0..1] of lreal := [4.0, 9.0]; end
 	var result: lreal; end
-	{st}
 		// Geometric mean = (1*2*4*8)^(1/4) = 64^(1/4) = 2.828...
 		result := Stats_geometric_mean(data:=x_basic);
 		EXPECT_NEAR(2.8284271247, result, 0.001);
@@ -76,7 +75,6 @@ TEST_S(test_stats_geometric_mean)
 		// Two elements
 		result := Stats_geometric_mean(data:=x_two);
 		EXPECT_NEAR(6.0, result, 0.0001);
-	{end}
 END_TEST_S
 
 {#undef EPS}

@@ -31,7 +31,6 @@ TEST_S(test_array_min)
 		rr: lreal;
 		ri: dint;
 	end
-	{st}
 	// Fact: Array_min_lreal returns the smallest element.
 		// Arrange
 		// Act
@@ -67,7 +66,6 @@ TEST_S(test_array_min)
 	oy[10] := 3; oy[11] := 1; oy[12] := 4; oy[13] := 1; oy[14] := 5;
 		// Act/Assert
 	EXPECT_EQ_INT32(1, Array_min_dint(self:=oy));
-	{end}
 END_TEST_S
 
 TEST_S(test_array_max)
@@ -81,7 +79,6 @@ TEST_S(test_array_max)
 		rr: lreal;
 		ri: dint;
 	end
-	{st}
 	// Fact: Array_max_lreal returns the largest element.
 		// Arrange
 		// Act
@@ -117,7 +114,6 @@ TEST_S(test_array_max)
 	oy[10] := 3; oy[11] := 1; oy[12] := 4; oy[13] := 1; oy[14] := 5;
 		// Act/Assert
 	EXPECT_EQ_INT32(5, Array_max_dint(self:=oy));
-	{end}
 END_TEST_S
 
 TEST_S(test_array_min_index)
@@ -129,7 +125,6 @@ TEST_S(test_array_min_index)
 		oy: array[10..14] of dint;
 		ri: dint;
 	end
-	{st}
 	// Fact: Array_min_index_lreal returns the index of the first minimum.
 		// Arrange
 		// Act
@@ -172,7 +167,6 @@ TEST_S(test_array_min_index)
 	ri := Array_min_index_dint(self:=oy);
 		// Assert
 	EXPECT_EQ_INT32(10, ri);
-	{end}
 END_TEST_S
 
 TEST_S(test_array_max_index)
@@ -184,7 +178,6 @@ TEST_S(test_array_max_index)
 		oy: array[10..14] of dint;
 		ri: dint;
 	end
-	{st}
 	// Fact: Array_max_index_lreal returns the index of the first maximum.
 		// Arrange
 		// Act
@@ -227,5 +220,4 @@ TEST_S(test_array_max_index)
 	ri := Array_max_index_dint(self:=oy);
 		// Assert
 	EXPECT_EQ_INT32(14, ri);
-	{end}
 END_TEST_S

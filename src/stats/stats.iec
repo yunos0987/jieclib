@@ -5,8 +5,8 @@
 {#ifndef __STATS_STATS_IEC__}
 {#define __STATS_STATS_IEC__}
 
-{#if _JIECC and (_JIECC_VER < 514)}
-	{#error This library requires Jiecc 5.14 or later.}
+{#if _JIECC and (_JIECC_FULL_VER < 90200)}
+{#error JiecLib requires Jiecc 9.2.0 or later.}
 {#endif}
 
 {#include <sys.iec>}
@@ -64,9 +64,7 @@ function sampleSize: dint
 		(*{doc サンプルデータを含む配列。}*)
 		sample: array[*] of lreal;
 	end
-	{st}
 	sampleSize := Array_size(sample);
-	{end}
 end
 
 (*{doc 合計: Σ
@@ -80,9 +78,7 @@ function sum: lreal
 		(*{doc サンプルデータを含む配列。}*)
 		sample: array[*] of lreal;
 	end
-	{st}
 	sum := Stats_sum(sample, -1);
-	{end}
 end
 
 (*{doc 算術平均: μ = E[X]
@@ -96,9 +92,7 @@ function mean: lreal
 		(*{doc サンプルデータを含む配列。}*)
 		sample: array[*] of lreal;
 	end
-	{st}
 	mean := Stats_mean(sample, -1);
-	{end}
 end
 
 (*{doc 分散: σ^2 = V[X] = E[X^2] - (E[X])^2
@@ -112,9 +106,7 @@ function variance: lreal
 		(*{doc サンプルデータを含む配列。}*)
 		sample: array[*] of lreal;
 	end
-	{st}
 	variance := Stats_variance(sample, -1);
-	{end}
 end
 
 (*{doc 歪度: E[(X-μ)^3] / σ^3 = (Σ(x-μ)^3 / n) / (√(Σ(x-μ)^2 / n))^3
@@ -128,9 +120,7 @@ function skewness: lreal
 		(*{doc サンプルデータを含む配列。}*)
 		sample: array[*] of lreal;
 	end
-	{st}
 	skewness := Stats_skewness(sample, -1, false);
-	{end}
 end
 
 (*{doc 尖度: E[(X-μ)^4] / σ^4 - 3 = (Σ(x-μ)^4 / n) / (√(Σ(x-μ)^2 / n))^4 - 3
@@ -144,9 +134,7 @@ function kurtosis: lreal
 		(*{doc サンプルデータを含む配列。}*)
 		sample: array[*] of lreal;
 	end
-	{st}
 	kurtosis := Stats_kurtosis(sample, -1, true, false);
-	{end}
 end
 
 (*{doc 標準偏差: σ = √(分散)
@@ -160,9 +148,7 @@ function standardDeviation: lreal
 		(*{doc サンプルデータを含む配列。}*)
 		sample: array[*] of lreal;
 	end
-	{st}
 	standardDeviation := Stats_stddev(sample, -1, 0);
-	{end}
 end
 
 (*{doc 変動係数: C.V. = 標準偏差 / 平均値
@@ -176,9 +162,7 @@ function coefficientOfVariation: lreal
 		(*{doc サンプルデータを含む配列。}*)
 		sample: array[*] of lreal;
 	end
-	{st}
 	coefficientOfVariation := Stats_coefficient_of_variation(sample, -1, 0);
-	{end}
 end
 
 (*{doc 不偏分散: s^2 = V(X) * n / (n - 1)
@@ -192,9 +176,7 @@ function sampleVariance: lreal
 		(*{doc サンプルデータを含む配列。}*)
 		sample: array[*] of lreal;
 	end
-	{st}
 	sampleVariance := Stats_sample_variance(sample, -1);
-	{end}
 end
 
 (*{doc 標準誤差: S.E. = √(不偏分散 / サンプルサイズ)
@@ -208,9 +190,7 @@ function standardError: lreal
 		(*{doc サンプルデータを含む配列。}*)
 		sample: array[*] of lreal;
 	end
-	{st}
 	standardError := Stats_standard_error_mean(sample, -1, 0);
-	{end}
 end
 
 (*{doc 幾何平均: (Πx)^(1/n)
@@ -224,9 +204,7 @@ function geometricMean: lreal
 		(*{doc サンプルデータを含む配列。}*)
 		sample: array[*] of lreal;
 	end
-	{st}
 	geometricMean := Stats_geometric_mean(sample, -1);
-	{end}
 end
 
 (*{doc 調和平均: (Σx^(-1) / n)^(-1)
@@ -240,9 +218,7 @@ function harmonicMean: lreal
 		(*{doc サンプルデータを含む配列。}*)
 		sample: array[*] of lreal;
 	end
-	{st}
 	harmonicMean := Stats_harmonic_mean(sample, -1);
-	{end}
 end
 
 (*{doc 中央値
@@ -264,9 +240,7 @@ function median: lreal
 		(*{doc 作業配列。}*)
 		work2: array[*] of lreal;
 	end
-	{st}
 	median := Stats_median(data:=sample, n:=-1, work1:=work1, work2:=work2);
-	{end}
 end
 
 {#endif}

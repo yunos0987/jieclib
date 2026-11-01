@@ -33,7 +33,6 @@ TEST_S(test_array_copy)
 		copied: dint;
 		result_eno: bool;
 	end
-	{st}
 	// Fact: Copying to a destination of the same size copies all elements and returns the element count.
 		// Arrange
 		// Act
@@ -65,7 +64,6 @@ TEST_S(test_array_copy)
 	copied := Array_copy_lreal(src:=x_3, dst:=y_2, eno=>result_eno);
 		// Assert
 	EXPECT_FALSE(result_eno);
-	{end}
 END_TEST_S
 
 TEST_S(test_array_copy_offset)
@@ -95,7 +93,6 @@ TEST_S(test_array_copy_offset)
 		y_2_5: array[15..16] of lreal := [-1.0, -1.0];
 		y_2_6: array[16..17] of lreal := [-1.0, -1.0];
 	end
-	{st}
 	// Fact: Array_copy works correctly regardless of the lower bound of src and dst when sizes are equal.
 		// Arrange
 		// Act/Assert
@@ -220,7 +217,6 @@ TEST_S(test_array_copy_offset)
 
 	copied := Array_copy_lreal(src:=x_3, dst:=y_2_6, eno=>result_eno);
 	EXPECT_FALSE(result_eno);
-	{end}
 END_TEST_S
 
 TEST_S(test_array_copy_x_index_0)
@@ -237,7 +233,6 @@ TEST_S(test_array_copy_x_index_0)
 		y_4_4:  array[0..3] of lreal := [-1.0, -1.0, -1.0, -1.0];
 		y_4_5:  array[0..3] of lreal := [-1.0, -1.0, -1.0, -1.0];
 	end
-	{st}
 	// Fact: n=-1 copies all elements from src_index to the end of src.
 		// Arrange
 		// Act
@@ -331,7 +326,6 @@ TEST_S(test_array_copy_x_index_0)
 	copied := Array_copy_x_lreal(src:=x_5, src_index:=0, dst:=y_4_5, dst_index:=0, n:=5, eno=>result_eno);
 		// Assert
 	EXPECT_FALSE(result_eno);
-	{end}
 END_TEST_S
 
 TEST_S(test_array_copy_x_partial)
@@ -344,7 +338,6 @@ TEST_S(test_array_copy_x_partial)
 		y_5_3:  array[0..4] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0];
 		y_5_4:  array[0..4] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0];
 	end
-	{st}
 	// Fact: src_index=1 with n=-1 copies elements from index 1 to the end of src.
 		// Arrange
 		// Act
@@ -387,7 +380,6 @@ TEST_S(test_array_copy_x_partial)
 	copied := Array_copy_x_lreal(src:=x_5, src_index:=1, dst:=y_5_4, dst_index:=2, n:=4, eno=>result_eno);
 		// Assert
 	EXPECT_FALSE(result_eno);
-	{end}
 END_TEST_S
 
 TEST_S(test_array_copy_dint)
@@ -399,7 +391,6 @@ TEST_S(test_array_copy_dint)
 		copied: dint;
 		result_eno: bool;
 	end
-	{st}
 	// Fact: Copying a dint array to a destination of the same size copies all elements.
 		// Arrange
 		// Act
@@ -427,7 +418,6 @@ TEST_S(test_array_copy_dint)
 	copied := Array_copy_dint(src:=x_3, dst:=y_2, eno=>result_eno);
 		// Assert
 	EXPECT_FALSE(result_eno);
-	{end}
 END_TEST_S
 
 TEST_S(test_array_copy_x_error)
@@ -437,7 +427,6 @@ TEST_S(test_array_copy_x_error)
 		x_5: array[3..7] of lreal := [1.0, 2.0, 3.0, 5.0, 7.0];
 		y_5: array[2..6] of lreal := [-1.0, -1.0, -1.0, -1.0, -1.0];
 	end
-	{st}
 	// Fact: src_index below the lower bound of src returns an error.
 		// Arrange
 		// Act
@@ -451,5 +440,4 @@ TEST_S(test_array_copy_x_error)
 	copied := Array_copy_x_lreal(src:=x_5, src_index:=3, dst:=y_5, dst_index:=1, n:=1, eno=>result_eno);
 		// Assert
 	EXPECT_FALSE(result_eno);
-	{end}
 END_TEST_S

@@ -75,7 +75,6 @@ function Array_min: ArrayAggregateElementType
 		ii, i_0, i_1: dint;
 		min_val: ArrayAggregateElementType;
 	end
-	{st}
 	i_0 := lower_bound(self, 1);
 	i_1 := upper_bound(self, 1);
 	if i_0 > i_1 then
@@ -89,7 +88,6 @@ function Array_min: ArrayAggregateElementType
 		end_if;
 	end_for;
 	Array_min := min_val;
-	{end}
 end
 
 (*{doc Return the maximum value in a 1-D array.
@@ -106,7 +104,6 @@ function Array_max: ArrayAggregateElementType
 		ii, i_0, i_1: dint;
 		max_val: ArrayAggregateElementType;
 	end
-	{st}
 	i_0 := lower_bound(self, 1);
 	i_1 := upper_bound(self, 1);
 	if i_0 > i_1 then
@@ -120,7 +117,6 @@ function Array_max: ArrayAggregateElementType
 		end_if;
 	end_for;
 	Array_max := max_val;
-	{end}
 end
 
 (*{doc Return the array index of the first minimum element in a 1-D array.
@@ -136,7 +132,6 @@ function Array_min_index: dint
 	var_temp
 		ii, i_0, i_1, min_idx: dint;
 	end
-	{st}
 	i_0 := lower_bound(self, 1);
 	i_1 := upper_bound(self, 1);
 	if i_0 > i_1 then
@@ -150,7 +145,6 @@ function Array_min_index: dint
 		end_if;
 	end_for;
 	Array_min_index := min_idx;
-	{end}
 end
 
 (*{doc Return the array index of the first maximum element in a 1-D array.
@@ -166,7 +160,6 @@ function Array_max_index: dint
 	var_temp
 		ii, i_0, i_1, max_idx: dint;
 	end
-	{st}
 	i_0 := lower_bound(self, 1);
 	i_1 := upper_bound(self, 1);
 	if i_0 > i_1 then
@@ -180,7 +173,6 @@ function Array_max_index: dint
 		end_if;
 	end_for;
 	Array_max_index := max_idx;
-	{end}
 end
 
 {#undef _ARRAY_MIN_}

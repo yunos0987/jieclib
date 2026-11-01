@@ -42,7 +42,6 @@ TEST_S(test_arraylist_dint_init)
 		xs_empty: ArrayList_dint_t;
 		xs_capacity: ArrayList_dint_t;
 	end
-	{st}
 
 	// Fact: init sets length to 0.
 		// Act
@@ -61,7 +60,6 @@ TEST_S(test_arraylist_dint_init)
 	ArrayList_dint_init(xs_capacity);
 		// Assert
 	EXPECT_EQ_INT32(8, xs_capacity.capacity);
-	{end}
 END_TEST_S
 
 TEST_S(test_arraylist_dint_append)
@@ -73,7 +71,6 @@ TEST_S(test_arraylist_dint_append)
 		value: dint;
 		result_eno: bool;
 	end
-	{st}
 
 	// Fact: append succeeds and increments length up to capacity.
 		// Arrange
@@ -110,7 +107,6 @@ TEST_S(test_arraylist_dint_append)
 	end_for;
 		// Act / Assert
 	EXPECT_FALSE(ArrayList_dint_append(xs_capacity, 9));
-	{end}
 END_TEST_S
 
 TEST_S(test_arraylist_dint_insert)
@@ -122,7 +118,6 @@ TEST_S(test_arraylist_dint_insert)
 		result_eno: bool;
 		idx: dint;
 	end
-	{st}
 
 	// Fact: insert succeeds at head, middle, and tail positions.
 		// Arrange
@@ -161,7 +156,6 @@ TEST_S(test_arraylist_dint_insert)
 		// Act / Assert
 	EXPECT_FALSE(ArrayList_dint_insert(xs_capacity, 0, 99));
 	EXPECT_FALSE(ArrayList_dint_insert(xs_capacity, ArrayList_dint_len(xs_capacity), 99));
-	{end}
 END_TEST_S
 
 TEST_S(test_arraylist_dint_get)
@@ -172,7 +166,6 @@ TEST_S(test_arraylist_dint_get)
 		value: dint;
 		result_eno: bool;
 	end
-	{st}
 
 	// Fact: get returns head element successfully.
 		// Arrange
@@ -203,7 +196,6 @@ TEST_S(test_arraylist_dint_get)
 	ArrayList_dint_get(self:=xs_ng, index:=0, item:=value, eno=>result_eno);
 		// Assert
 	EXPECT_FALSE(result_eno);
-	{end}
 END_TEST_S
 
 TEST_S(test_arraylist_dint_set)
@@ -214,7 +206,6 @@ TEST_S(test_arraylist_dint_set)
 		value: dint;
 		result_eno: bool;
 	end
-	{st}
 
 	// Fact: set updates element at specified index.
 		// Arrange
@@ -246,7 +237,6 @@ TEST_S(test_arraylist_dint_set)
 		// Act / Assert
 	EXPECT_FALSE(ArrayList_dint_set(xs_oob, -1, 7));
 	EXPECT_FALSE(ArrayList_dint_set(xs_oob, 1, 7));
-	{end}
 END_TEST_S
 
 TEST_S(test_arraylist_dint_remove)
@@ -258,7 +248,6 @@ TEST_S(test_arraylist_dint_remove)
 		value: dint;
 		result_eno: bool;
 	end
-	{st}
 
 	// Fact: remove deletes element and shifts remaining elements.
 		// Arrange
@@ -301,7 +290,6 @@ TEST_S(test_arraylist_dint_remove)
 	ASSERT_TRUE(ArrayList_dint_append(xs_oob, 10));
 		// Act / Assert
 	EXPECT_FALSE(ArrayList_dint_remove(xs_oob, 1, removed));
-	{end}
 END_TEST_S
 
 TEST_S(test_arraylist_dint_contains)
@@ -310,7 +298,6 @@ TEST_S(test_arraylist_dint_contains)
 		xs_hit: ArrayList_dint_t;
 		xs_miss: ArrayList_dint_t;
 	end
-	{st}
 
 	// Fact: contains returns false on empty list.
 		// Arrange
@@ -333,7 +320,6 @@ TEST_S(test_arraylist_dint_contains)
 	ASSERT_TRUE(ArrayList_dint_append(xs_miss, 3));
 		// Assert
 	EXPECT_FALSE(ArrayList_dint_contains(xs_miss, 2));
-	{end}
 END_TEST_S
 
 TEST_S(test_arraylist_dint_index)
@@ -342,7 +328,6 @@ TEST_S(test_arraylist_dint_index)
 		xs_first_dup: ArrayList_dint_t;
 		xs_miss: ArrayList_dint_t;
 	end
-	{st}
 
 	// Fact: index returns correct position for existing element.
 		// Arrange
@@ -369,7 +354,6 @@ TEST_S(test_arraylist_dint_index)
 	ASSERT_TRUE(ArrayList_dint_append(xs_miss, 2));
 		// Assert
 	EXPECT_EQ_INT32(-1, ArrayList_dint_index(xs_miss, 99));
-	{end}
 END_TEST_S
 
 TEST_S(test_arraylist_dint_values)
@@ -382,7 +366,6 @@ TEST_S(test_arraylist_dint_values)
 		written: dint;
 		result_eno: bool;
 	end
-	{st}
 
 	// Fact: values copies elements in order to output array.
 		// Arrange
@@ -418,7 +401,6 @@ TEST_S(test_arraylist_dint_values)
 	EXPECT_FALSE(ArrayList_dint_values(self:=xs_small, values:=small_values, written=>written, eno=>result_eno));
 		// Assert
 	EXPECT_FALSE(result_eno);
-	{end}
 END_TEST_S
 
 TEST_S(test_arraylist_dint_len)
@@ -428,7 +410,6 @@ TEST_S(test_arraylist_dint_len)
 		xs_remove: ArrayList_dint_t;
 		removed: dint;
 	end
-	{st}
 
 	// Fact: len is 0 immediately after init.
 		// Arrange
@@ -452,7 +433,6 @@ TEST_S(test_arraylist_dint_len)
 	ASSERT_TRUE(ArrayList_dint_remove(xs_remove, 0, removed));
 		// Assert
 	EXPECT_EQ_INT32(1, ArrayList_dint_len(xs_remove));
-	{end}
 END_TEST_S
 
 TEST_S(test_arraylist_dint_empty)
@@ -461,7 +441,6 @@ TEST_S(test_arraylist_dint_empty)
 		xs_after_append: ArrayList_dint_t;
 		xs_after_clear: ArrayList_dint_t;
 	end
-	{st}
 
 	// Fact: empty is true immediately after init.
 		// Arrange
@@ -483,7 +462,6 @@ TEST_S(test_arraylist_dint_empty)
 	ASSERT_TRUE(ArrayList_dint_clear(xs_after_clear));
 		// Assert
 	EXPECT_TRUE(ArrayList_dint_empty(xs_after_clear));
-	{end}
 END_TEST_S
 
 TEST_S(test_arraylist_dint_clear)
@@ -492,7 +470,6 @@ TEST_S(test_arraylist_dint_clear)
 		xs_idempotent: ArrayList_dint_t;
 		xs_reuse: ArrayList_dint_t;
 	end
-	{st}
 
 	// Fact: clear resets length to 0.
 		// Arrange
@@ -523,7 +500,6 @@ TEST_S(test_arraylist_dint_clear)
 	ASSERT_TRUE(ArrayList_dint_append(xs_reuse, 9));
 		// Assert
 	EXPECT_EQ_INT32(1, ArrayList_dint_len(xs_reuse));
-	{end}
 END_TEST_S
 
 TEST_S(test_arraylist_dint_copy)
@@ -537,7 +513,6 @@ TEST_S(test_arraylist_dint_copy)
 		value: dint;
 		result_eno: bool;
 	end
-	{st}
 
 	// Fact: copy duplicates all elements.
 		// Arrange
@@ -580,7 +555,6 @@ TEST_S(test_arraylist_dint_copy)
 	ASSERT_TRUE(ArrayList_dint_copy(src_empty, dst_empty));
 		// Assert
 	EXPECT_TRUE(ArrayList_dint_empty(dst_empty));
-	{end}
 END_TEST_S
 
 TEST_S(test_arraylist_dint_equals)
@@ -589,7 +563,6 @@ TEST_S(test_arraylist_dint_equals)
 		list_b: ArrayList_dint_t;
 		list_c: ArrayList_dint_t;
 	end
-	{st}
 
 	// Fact: equals returns true for same content and false for different content.
 		// Arrange
@@ -609,7 +582,6 @@ TEST_S(test_arraylist_dint_equals)
 	ASSERT_TRUE(ArrayList_dint_set(list_c, 1, 3));
 		// Assert
 	EXPECT_FALSE(ArrayList_dint_equals(list_a, list_c));
-	{end}
 END_TEST_S
 
 TEST_S(test_arraylist_dint_hash)
@@ -619,7 +591,6 @@ TEST_S(test_arraylist_dint_hash)
 		hash_a: udint;
 		hash_b: udint;
 	end
-	{st}
 
 	// Fact: hash values match for same content and differ after mutation.
 		// Arrange
@@ -644,7 +615,6 @@ TEST_S(test_arraylist_dint_hash)
 	hash_b := ArrayList_dint_hash(list_b);
 		// Assert
 	EXPECT_NE_UINT32(hash_a, hash_b);
-	{end}
 END_TEST_S
 
 TEST_S(test_arraylist_string_caseinsensitive_usecase)
@@ -658,7 +628,6 @@ TEST_S(test_arraylist_string_caseinsensitive_usecase)
 		hash_a: udint;
 		hash_b: udint;
 	end
-	{st}
 
 	// Fact: contains and index are case-insensitive.
 		// Arrange
@@ -697,5 +666,4 @@ TEST_S(test_arraylist_string_caseinsensitive_usecase)
 	hash_b := ArrayList_string_ci_hash(users_same);
 		// Assert
 	EXPECT_EQ_UINT32(hash_a, hash_b);
-	{end}
 END_TEST_S

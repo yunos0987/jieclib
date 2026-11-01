@@ -195,9 +195,7 @@ function HashSet_init
 	var_in_out
 		self: HashSetCoreType;
 	end
-	{st}
 	HashSet_backing_init(self:=self.backing);
-	{end}
 end
 
 (*{doc Copy container state.
@@ -211,9 +209,7 @@ function HashSet_copy: bool
 		self: HashSetCoreType;
 		dest: HashSetCoreType;
 	end
-	{st}
 	HashSet_copy := HashSet_backing_copy(self:=self.backing, dest:=dest.backing, eno=>eno);
-	{end}
 end
 
 (*{doc Add one element.
@@ -237,13 +233,11 @@ function HashSet_add: bool
 	var_temp
 		replaced: bool;
 	end
-	{st}
 	HashSet_add := HashSet_backing_upsert(self:=self.backing, key:=element, value:=true, replaced=>replaced, eno=>eno);
 	if not eno then
 		return;
 	end_if;
 	added := not replaced;
-	{end}
 end
 
 (*{doc Add all elements from an input array.
@@ -270,7 +264,6 @@ function HashSet_add_all: bool
 		replaced: bool;
 		succeeded: bool;
 	end
-	{st}
 	idx_begin := lower_bound(elements, 1);
 	idx_end := upper_bound(elements, 1);
 	added_count := 0;
@@ -290,7 +283,6 @@ function HashSet_add_all: bool
 	end_for;
 
 	HashSet_add_all := true;
-	{end}
 end
 
 (*{doc Remove one element.
@@ -306,9 +298,7 @@ function HashSet_remove: bool
 	var_input
 		element: HashSetElementType;
 	end
-	{st}
 	HashSet_remove := HashSet_backing_remove(self:=self.backing, key:=element, eno=>eno);
-	{end}
 end
 
 (*{doc Remove all matching elements from an input array.
@@ -334,7 +324,6 @@ function HashSet_remove_all: bool
 		idx_begin, idx_end: dint;
 		removed: bool;
 	end
-	{st}
 	idx_begin := lower_bound(elements, 1);
 	idx_end := upper_bound(elements, 1);
 	removed_count := 0;
@@ -350,7 +339,6 @@ function HashSet_remove_all: bool
 	end_for;
 
 	HashSet_remove_all := true;
-	{end}
 end
 
 (*{doc Compare two HashSets for equality.
@@ -372,7 +360,6 @@ function HashSet_equals: bool
 		idx: dint;
 		contained: bool;
 	end
-	{st}
 	count_self := HashSet_backing_len(self:=self.backing, eno=>eno);
 	if not eno then
 		return;
@@ -404,7 +391,6 @@ function HashSet_equals: bool
 	end_for;
 
 	HashSet_equals := true;
-	{end}
 end
 
 (*{doc Return true if the target element exists.
@@ -420,9 +406,7 @@ function HashSet_contains: bool
 	var_input
 		element: HashSetElementType;
 	end
-	{st}
 	HashSet_contains := HashSet_backing_contains(self:=self.backing, key:=element, eno=>eno);
-	{end}
 end
 
 (*{doc Return the number of elements.
@@ -434,9 +418,7 @@ function HashSet_len: dint
 	var_in_out
 		self: HashSetCoreType;
 	end
-	{st}
 	HashSet_len := HashSet_backing_len(self:=self.backing, eno=>eno);
-	{end}
 end
 
 (*{doc Copy all elements into an output array.
@@ -457,9 +439,7 @@ function HashSet_elements: bool
 	var_output
 		written: dint;
 	end
-	{st}
 	HashSet_elements := HashSet_backing_elements(self:=self.backing, keys:=elements, written=>written, eno=>eno);
-	{end}
 end
 
 {#ifdef HashSetElementHashFunction}
@@ -480,7 +460,6 @@ function HashSet_hash: udint
 		acc1: udint;
 		acc2: udint;
 	end
-	{st}
 	acc1 := udint#2166136261;
 	acc2 := udint#0;
 
@@ -496,7 +475,6 @@ function HashSet_hash: udint
 	end_for;
 
 	HashSet_hash := acc1 * udint#2246822519 + acc2;
-	{end}
 end
 {#endif}
 
@@ -509,9 +487,7 @@ function HashSet_empty: bool
 	var_in_out
 		self: HashSetCoreType;
 	end
-	{st}
 	HashSet_empty := HashSet_backing_empty(self:=self.backing, eno=>eno);
-	{end}
 end
 
 (*{doc Clear all elements.
@@ -523,9 +499,7 @@ function HashSet_clear: bool
 	var_in_out
 		self: HashSetCoreType;
 	end
-	{st}
 	HashSet_clear := HashSet_backing_clear(self:=self.backing, eno=>eno);
-	{end}
 end
 
 {#ifdef _HASHSET_DEFAULT_MAX_LOAD_PERMILLE_DEFINED__}

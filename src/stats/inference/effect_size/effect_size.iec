@@ -39,7 +39,6 @@ function Stats_cohens_d: lreal
 		actual_nx, actual_ny: dint;
 		mean_x, mean_y, var_x, var_y, pooled_std: lreal;
 	end
-	{st}
 	actual_nx := Array_isRegular_lreal(x);
 	if (actual_nx = 0) or (n_x > actual_nx) then
 		eno := false;
@@ -78,7 +77,6 @@ function Stats_cohens_d: lreal
 	end_if;
 
 	Stats_cohens_d := (mean_x - mean_y) / pooled_std;
-	{end}
 end
 
 (*{doc Hedges g: Cohen d のバイアス補正
@@ -111,7 +109,6 @@ function Stats_hedges_g: lreal
 		actual_nx, actual_ny: dint;
 		d, correction: lreal;
 	end
-	{st}
 	actual_nx := Array_isRegular_lreal(x);
 	if (actual_nx = 0) or (n_x > actual_nx) then
 		eno := false;
@@ -144,7 +141,6 @@ function Stats_hedges_g: lreal
 	end_if;
 	correction := 1.0 - 3.0 / (4.0 * (lreal_to_dint(actual_nx) + lreal_to_dint(actual_ny) - 2.0) - 1.0);
 	Stats_hedges_g := d * correction;
-	{end}
 end
 
 {#endif}

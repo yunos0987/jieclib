@@ -46,7 +46,6 @@ TEST_S(test_stats_median)
 		work1_a3, work2_a3: array[0..5] of lreal;
 		work1_a4, work2_a4: array[0..4] of lreal;
 	end
-	{st}
 	// odd-length datasets
 	EXPECT_NEAR(3.0, Stats_median(data:=x_1, work1:=work1_1, work2:=work2_1), EPS);
 	EXPECT_NEAR(0.0, Stats_median(data:=x_3, work1:=work1_3, work2:=work2_3), EPS);
@@ -62,7 +61,6 @@ TEST_S(test_stats_median)
 	EXPECT_NEAR(2.5, Stats_median(data:=x_4, work1:=work1_4, work2:=work2_4), EPS);
 	EXPECT_NEAR(15.0, Stats_median(data:=x_6, work1:=work1_6, work2:=work2_6), EPS);
 	EXPECT_NEAR(9.0, Stats_median(data:=x_a2, work1:=work1_a2, work2:=work2_a2), EPS);
-	{end}
 END_TEST_S
 
 {#undef EPS}

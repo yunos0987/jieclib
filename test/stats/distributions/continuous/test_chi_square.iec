@@ -38,7 +38,6 @@ TEST_S(test_stats_chi_square_pdf)
 		ratio2: lreal;
 		result_eno: bool;
 	end
-	{st}
 		// Chi-square(df=2) PDF at x=1.0
 		result := Stats_chi_square_pdf(x:=1.0, df:=2.0);
 		EXPECT_NEAR(0.303265329856317, result, 0.0001);
@@ -82,7 +81,6 @@ TEST_S(test_stats_chi_square_pdf)
 		// PDF at x=0 for df=3
 		pdf_df3 := Stats_chi_square_pdf(x:=0.0, df:=3.0);
 		EXPECT_NEAR(0.0, pdf_df3, 0.001);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_chi_square_cdf)
@@ -101,7 +99,6 @@ TEST_S(test_stats_chi_square_cdf)
 		cdf_ratio: lreal;
 		result_eno: bool;
 	end
-	{st}
 		// Chi-square(df=3) CDF at x=5.0 ~ 0.8282
 		result := Stats_chi_square_cdf(x:=5.0, df:=3.0);
 		EXPECT_NEAR(0.828202855703266, result, 0.0001);
@@ -167,7 +164,6 @@ TEST_S(test_stats_chi_square_cdf)
 		// Test that CDF is strictly increasing
 		cdf_ratio := Stats_chi_square_cdf(x:=5.0, df:=3.0) - Stats_chi_square_cdf(x:=3.0, df:=3.0);
 		EXPECT_TRUE(cdf_ratio > 0.0);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_chi_square_ppf)
@@ -185,7 +181,6 @@ TEST_S(test_stats_chi_square_ppf)
 		ppf_0_75: lreal;
 		ppf_0_99: lreal;
 	end
-	{st}
 		// Chi-square(df=3) PPF at p=0.90 ~ 6.2514
 		p90 := Stats_chi_square_ppf(p:=0.90, df:=3.0);
 		EXPECT_NEAR(6.251388631170325, p90, 0.01);
@@ -236,14 +231,12 @@ TEST_S(test_stats_chi_square_ppf)
 		EXPECT_TRUE(ppf_0_1 < ppf_0_25);
 		EXPECT_TRUE(ppf_0_25 < ppf_0_75);
 		EXPECT_TRUE(ppf_0_75 < ppf_0_99);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_chi_square_mean)
 	var
 		mean_val: lreal;
 	end
-	{st}
 		// Mean = df
 		mean_val := Stats_chi_square_mean(df:=1.0);
 		EXPECT_NEAR(1.0, mean_val, 0.0001);
@@ -263,14 +256,12 @@ TEST_S(test_stats_chi_square_mean)
 		// Mean = df
 		mean_val := Stats_chi_square_mean(df:=20.0);
 		EXPECT_NEAR(20.0, mean_val, 0.0001);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_chi_square_variance)
 	var
 		variance_val: lreal;
 	end
-	{st}
 		// Variance = 2*df
 		variance_val := Stats_chi_square_variance(df:=1.0);
 		EXPECT_NEAR(2.0, variance_val, 0.0001);
@@ -290,5 +281,4 @@ TEST_S(test_stats_chi_square_variance)
 		// Variance = 2*df
 		variance_val := Stats_chi_square_variance(df:=20.0);
 		EXPECT_NEAR(40.0, variance_val, 0.0001);
-	{end}
 END_TEST_S

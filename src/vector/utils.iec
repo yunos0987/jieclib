@@ -21,14 +21,12 @@ function Vector_utils_is_regular: bool
 	var_temp
 		size: dint;
 	end
-	{st}
 	size := Array_isRegular_lreal(vector);
 	if size = 0 then
 		eno := false;
 		return;
 	end_if;
 	Vector_utils_is_regular := true;
-	{end}
 end
 
 (*{doc ベクトルが実質ゼロベクトルかどうかを判定する。
@@ -49,7 +47,6 @@ function Vector_utils_is_zero: bool
 	var_temp
 		i, size: dint;
 	end
-	{st}
 	size := Array_isRegular_lreal(vector);
 	if size = 0 then
 		eno := false;
@@ -67,7 +64,6 @@ function Vector_utils_is_zero: bool
 			return;
 		end_if;
 	end_for;
-	{end}
 end
 
 (*{doc ベクトルをL2正規化する。
@@ -93,7 +89,6 @@ function Vector_utils_normalize
 		i, v_size, r_size: dint;
 		norm_val: lreal;
 	end
-	{st}
 	v_size := Array_isRegular_lreal(vector);
 	r_size := Array_isRegular_lreal(result);
 	if (v_size = 0) or (r_size = 0) then
@@ -122,7 +117,6 @@ function Vector_utils_normalize
 	for i := 0 to v_size - 1 by 1 do
 		result[i] := vector[i] / norm_val;
 	end_for;
-	{end}
 end
 
 {#endif}

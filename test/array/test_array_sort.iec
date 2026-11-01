@@ -53,7 +53,6 @@ TEST_S(test_array_bubblesort)
 		y_2: array[0..1] of lreal := [-3.0, -2.0];
 		y_2_reverse: array[0..1] of lreal := [-2.0, -3.0];
 	end
-	{st}
 	// Fact: Ascending bubble sort on various 5-element inputs produces [1.0, 2.0, 2.0, 3.0, 7.0].
 		// Arrange
 		// Act/Assert
@@ -101,7 +100,6 @@ TEST_S(test_array_bubblesort)
 	for index := 0 to 1 by 1 do EXPECT_EQ_LREAL(y_2[index], x_2[index]); end_for;
 	Array_bubblesort_lreal(x_2_reverse, false);
 	for index := 0 to 1 by 1 do EXPECT_EQ_LREAL(y_2_reverse[index], x_2_reverse[index]); end_for;
-	{end}
 END_TEST_S
 
 TEST_S(test_array_bubblesort_offset)
@@ -120,7 +118,6 @@ TEST_S(test_array_bubblesort_offset)
 		x_1: array[100..100] of lreal := [2.0];
 		y_1: array[100..100] of lreal := [2.0];
 	end
-	{st}
 	// Fact: Ascending bubble sort works correctly on an offset array.
 		// Arrange
 		// Act/Assert
@@ -144,7 +141,6 @@ TEST_S(test_array_bubblesort_offset)
 		// Act/Assert
 	Array_bubblesort_lreal(x_1, true);
 	for index := 100 to 100 by 1 do EXPECT_EQ_LREAL(y_1[index], x_1[index]); end_for;
-	{end}
 END_TEST_S
 
 TEST_S(test_array_bubblesort_n)
@@ -164,7 +160,6 @@ TEST_S(test_array_bubblesort_n)
 		// abnormal cases
 		x_3: array[3..5] of lreal := [2.0, 1.0, 3.0];
 	end
-	{st}
 	// Fact: n=-1 sorts all elements ascending.
 		// Arrange
 		// Act/Assert
@@ -233,7 +228,6 @@ TEST_S(test_array_bubblesort_n)
 	Array_bubblesort_n_lreal(self:=x_3, ascending:=true, n:=4, eno=>result_eno);
 		// Assert
 	EXPECT_EQ_BOOL(false, result_eno);
-	{end}
 END_TEST_S
 
 TEST_S(test_array_mergesort)
@@ -276,7 +270,6 @@ TEST_S(test_array_mergesort)
 		y_d5_reverse: array[0..4] of dint := [5, 3, 0, -1, -2];
 		w_d5_reverse: array[0..4] of dint;
 	end
-	{st}
 	// Fact: Ascending merge sort on various 5-element lreal inputs produces [1.0, 2.0, 2.0, 3.0, 7.0].
 		// Arrange
 		// Act/Assert
@@ -324,7 +317,6 @@ TEST_S(test_array_mergesort)
 	for index := 0 to 4 by 1 do EXPECT_EQ_INT32(y_d5[index], x_d5[index]); end_for;
 	Array_mergesort_dint(self:=x_d5_reverse, work:=w_d5_reverse, ascending:=false);
 	for index := 0 to 4 by 1 do EXPECT_EQ_INT32(y_d5_reverse[index], x_d5_reverse[index]); end_for;
-	{end}
 END_TEST_S
 
 TEST_S(test_array_mergesort_offset)
@@ -351,7 +343,6 @@ TEST_S(test_array_mergesort_offset)
 		y_d5: array[20..24] of dint := [-2, -1, 0, 3, 5];
 		w_d5: array[20..24] of dint;
 	end
-	{st}
 	// Fact: Ascending merge sort works correctly on an offset array.
 		// Arrange
 		// Act/Assert
@@ -381,7 +372,6 @@ TEST_S(test_array_mergesort_offset)
 		// Act/Assert
 	Array_mergesort_dint(self:=x_d5, work:=w_d5, ascending:=true);
 	for index := 20 to 24 by 1 do EXPECT_EQ_INT32(y_d5[index], x_d5[index]); end_for;
-	{end}
 END_TEST_S
 
 TEST_S(test_array_mergesort_n)
@@ -415,7 +405,6 @@ TEST_S(test_array_mergesort_n)
 		x_5_too_small: array[0..4] of lreal := [3.0, 1.0, 4.0, 2.0, 5.0];
 		work_too_small: array[0..1] of lreal;
 	end
-	{st}
 	// Fact: n=-1 sorts all elements ascending.
 		// Arrange
 		// Act/Assert
@@ -501,7 +490,6 @@ TEST_S(test_array_mergesort_n)
 	Array_mergesort_n_lreal(self:=x_5_too_small, ascending:=true, n:=5, work:=work_too_small, eno=>result_eno);
 		// Assert
 	EXPECT_EQ_BOOL(false, result_eno);
-	{end}
 END_TEST_S
 
 TEST_S(test_array_quicksort)
@@ -532,7 +520,6 @@ TEST_S(test_array_quicksort)
 		x_d5_reverse: array[0..4] of dint := [5, -1, 3, -2, 0];
 		y_d5_reverse: array[0..4] of dint := [5, 3, 0, -1, -2];
 	end
-	{st}
 	// Fact: Ascending quick sort on various 5-element lreal inputs produces [1.0, 2.0, 2.0, 3.0, 7.0].
 		// Arrange
 		// Act/Assert
@@ -580,7 +567,6 @@ TEST_S(test_array_quicksort)
 	for index := 0 to 4 by 1 do EXPECT_EQ_INT32(y_d5[index], x_d5[index]); end_for;
 	Array_quicksort_dint(self:=x_d5_reverse, ascending:=false);
 	for index := 0 to 4 by 1 do EXPECT_EQ_INT32(y_d5_reverse[index], x_d5_reverse[index]); end_for;
-	{end}
 END_TEST_S
 
 TEST_S(test_array_quicksort_offset)
@@ -602,7 +588,6 @@ TEST_S(test_array_quicksort_offset)
 		x_d5: array[20..24] of dint := [5, -1, 3, -2, 0];
 		y_d5: array[20..24] of dint := [-2, -1, 0, 3, 5];
 	end
-	{st}
 	// Fact: Ascending quick sort works correctly on an offset array.
 		// Arrange
 		// Act/Assert
@@ -632,7 +617,6 @@ TEST_S(test_array_quicksort_offset)
 		// Act/Assert
 	Array_quicksort_dint(self:=x_d5, ascending:=true);
 	for index := 20 to 24 by 1 do EXPECT_EQ_INT32(y_d5[index], x_d5[index]); end_for;
-	{end}
 END_TEST_S
 
 TEST_S(test_array_quicksort_n)
@@ -652,7 +636,6 @@ TEST_S(test_array_quicksort_n)
 		// abnormal cases
 		x_3: array[3..5] of lreal := [2.0, 1.0, 3.0];
 	end
-	{st}
 	// Fact: n=-1 sorts all elements ascending.
 		// Arrange
 		// Act/Assert
@@ -721,5 +704,4 @@ TEST_S(test_array_quicksort_n)
 	Array_quicksort_n_lreal(self:=x_3, ascending:=true, n:=4, eno=>result_eno);
 		// Assert
 	EXPECT_EQ_BOOL(false, result_eno);
-	{end}
 END_TEST_S

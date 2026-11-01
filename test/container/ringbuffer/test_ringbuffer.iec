@@ -29,7 +29,6 @@ TEST_S(test_ringbuffer_init)
 		buf: array[BUF_SIZE] of int;
 		value: int;
 	end
-	{st}
 
 	// Fact: init capacity settings drive enqueue acceptance correctly.
 		// Arrange
@@ -44,7 +43,6 @@ TEST_S(test_ringbuffer_init)
 	RingBuffer_int_init(x_3, BUF_SIZE + 1, false);
 		// Act / Assert
 	ASSERT_TRUE(RingBuffer_int_enqueue(x_3, buf, 2)); // note
-	{end}
 	{#undef BUF_SIZE}
 END_TEST_S
 
@@ -59,7 +57,6 @@ TEST_S(test_ringbuffer_enqueue)
 		buf_full: array[4] of int;
 		value: int;
 	end
-	{st}
 
 	// Fact: enqueue fails when buffer is full.
 		// Arrange
@@ -111,7 +108,6 @@ TEST_S(test_ringbuffer_enqueue)
 		// Act / Assert
 	EXPECT_TRUE(RingBuffer_int_enqueue(x_overwrite, buf_full, 11));
 	EXPECT_TRUE(RingBuffer_int_enqueue(x_overwrite, buf_full, 13));
-	{end}
 END_TEST_S
 
 TEST_S(test_ringbuffer_dequeue)
@@ -123,7 +119,6 @@ TEST_S(test_ringbuffer_dequeue)
 		buf_full: array[4] of int;
 		value: int;
 	end
-	{st}
 
 	// Fact: dequeue returns single element and fails on empty.
 		// Arrange
@@ -218,5 +213,4 @@ TEST_S(test_ringbuffer_dequeue)
 	EXPECT_EQ_INT32(13, value);
 		// Act / Assert
 	EXPECT_FALSE(RingBuffer_int_dequeue(x_overwrite, buf_full, value));
-	{end}
 END_TEST_S

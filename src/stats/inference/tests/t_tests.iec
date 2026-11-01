@@ -33,7 +33,6 @@ function Stats_t_test_1samp
 	var_temp
 		n, mean_val, std_val, se, t_stat, pvalue: lreal;
 	end
-	{st}
 		n := dint_to_lreal(Array_size(data));
 		if n <= 1.0 then
 			eno := false;
@@ -59,7 +58,6 @@ function Stats_t_test_1samp
 		result.ci_lower := mean_val - 2.0 * se;
 		result.ci_upper := mean_val + 2.0 * se;
 		result.effect_size := t_stat / sqrt(n);
-	{end}
 end
 
 (*{doc 独立2 サンプル t 検定（等分散と Welch）。
@@ -88,7 +86,6 @@ function Stats_t_test_ind
 	var_temp
 		n_x, n_y, mean_x, mean_y, var_x, var_y, t_stat, pvalue, se, df, s_p: lreal;
 	end
-	{st}
 		n_x := dint_to_lreal(Array_size(x));
 		n_y := dint_to_lreal(Array_size(y));
 
@@ -128,7 +125,6 @@ function Stats_t_test_ind
 		result.ci_lower := (mean_x - mean_y) - 2.0 * se;
 		result.ci_upper := (mean_x - mean_y) + 2.0 * se;
 		result.effect_size := (mean_x - mean_y) / sqrt((var_x + var_y) / 2.0);
-	{end}
 end
 
 (*{doc 対応あり 2 サンプル t 検定（paired）。
@@ -153,7 +149,6 @@ function Stats_t_test_paired
 		n_lreal, mean_diff, std_diff, se, t_stat, pvalue: lreal;
 		sum_diff, sum_sq_diff, variance_diff: lreal;
 	end
-	{st}
 	n := Array_size(x);
 	if n < 2 or Array_size(y) <> n then
 		eno := false;
@@ -192,7 +187,6 @@ function Stats_t_test_paired
 	result.ci_lower := mean_diff - 2.0 * se;
 	result.ci_upper := mean_diff + 2.0 * se;
 	result.effect_size := t_stat / sqrt(n_lreal);
-	{end}
 end
 
 {#endif}

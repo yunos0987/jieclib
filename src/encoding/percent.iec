@@ -36,7 +36,6 @@ function percentencode: STRING
 		hi, lo: dint;
 		out: STRING;
 	end
-	{st}
 	out := '';
 	l := uint_to_dint(len(txt));
 	for i := 0 to l - 1 by 1 do
@@ -57,7 +56,6 @@ function percentencode: STRING
 		end_if;
 	end_for;
 	percentencode := out;
-	{end}
 end
 
 (*{doc Decode a percent-encoded string.
@@ -75,7 +73,6 @@ function percentdecode: STRING
 		decoded_code: dint;
 		out: STRING;
 	end
-	{st}
 	out := '';
 	l := uint_to_dint(len(txt));
 	i := 0;
@@ -110,7 +107,6 @@ function percentdecode: STRING
 		end_if;
 	end_while;
 	percentdecode := out;
-	{end}
 end
 
 {#undef CODE_0}

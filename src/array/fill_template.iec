@@ -62,13 +62,11 @@ function Array_fill
 	var_temp
 		ii, i_0, i_1: dint;
 	end
-	{st}
 	i_0 := lower_bound(self, 1);
 	i_1 := upper_bound(self, 1);
 	for ii := i_0 to i_1 by 1 do
 		self[ii] := value;
 	end_for;
-	{end}
 end
 
 {#undef _ARRAY_FILL_}

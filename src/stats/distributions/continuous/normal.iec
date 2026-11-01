@@ -28,7 +28,6 @@ function Stats_normal_pdf: lreal
 	var_temp
 		z, coeff: lreal;
 	end
-	{st}
 		if sigma <= 0.0 then
 			eno := false;
 			return;
@@ -36,7 +35,6 @@ function Stats_normal_pdf: lreal
 		z := (x - mu) / sigma;
 		coeff := 1.0 / (sqrt(2.0 * 3.14159265358979323846) * sigma);
 		Stats_normal_pdf := coeff * exp(-0.5 * z * z);
-	{end}
 end
 
 (*{doc 正規分布の累積分布関数 Normal CDF。
@@ -59,14 +57,12 @@ function Stats_normal_cdf: lreal
 	var_temp
 		z: lreal;
 	end
-	{st}
 	if sigma <= 0.0 then
 		eno := false;
 		return;
 	end_if;
 	z := (x - mu) / (sigma * sqrt(2.0));
 	Stats_normal_cdf := 0.5 * (1.0 + Stats_erf(x:=z));
-	{end}
 end
 
 (*{doc 正規分布の分位関数。Newton-Raphson 法で求解。
@@ -93,7 +89,6 @@ function Stats_normal_ppf: lreal
 		x, pdf_val, cdf_val, delta, iter: lreal;
 		i: dint;
 	end
-	{st}
 	if (sigma <= 0.0) or (p < 0.0) or (p > 1.0) then
 		eno := false;
 		return;
@@ -125,7 +120,6 @@ function Stats_normal_ppf: lreal
 	end_for;
 
 	Stats_normal_ppf := x;
-	{end}
 end
 
 (*{doc 正規分布の平均（期待値）。
@@ -141,13 +135,11 @@ function Stats_normal_mean: lreal
 		(*{doc 標準偏差。}*)
 		sigma: lreal;
 	end
-	{st}
 	if sigma <= 0.0 then
 		eno := false;
 		return;
 	end_if;
 	Stats_normal_mean := mu;
-	{end}
 end
 
 (*{doc 正規分布の分散。
@@ -163,13 +155,11 @@ function Stats_normal_variance: lreal
 		(*{doc 標準偏差。}*)
 		sigma: lreal;
 	end
-	{st}
 	if sigma <= 0.0 then
 		eno := false;
 		return;
 	end_if;
 	Stats_normal_variance := sigma * sigma;
-	{end}
 end
 
 {#endif}

@@ -38,7 +38,6 @@ function Stats_standardized_moment: lreal
 		sigma_k: lreal;
 		cm: lreal;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(data);
 	if (actual_n = 0) or (n > actual_n) then
 		eno := false;
@@ -62,7 +61,6 @@ function Stats_standardized_moment: lreal
 		return;
 	end_if;
 	Stats_standardized_moment := cm / sigma_k;
-	{end}
 end
 
 (*{doc 配列から歪度を計算 = 標準化3次モーメント
@@ -82,9 +80,7 @@ function private_Stats_skewness_from_data: lreal
 		(*{doc 先頭n個を使用する。}*)
 		n: dint := -1;
 	end
-	{st}
 	private_Stats_skewness_from_data := Stats_standardized_moment(data:=data, k:=3, n:=n, eno=>eno);
-	{end}
 end
 
 (*{doc モーメント値から歪度を計算
@@ -99,13 +95,11 @@ function Stats_skewness_from_moments: lreal
 	var_input
 		m2, m3: lreal;
 	end
-	{st}
 	if m2 <= 0.0 then
 		eno := false;
 		return;
 	end_if;
 	Stats_skewness_from_moments := m3 / (m2 ** (3.0 / 2));
-	{end}
 end
 
 (*{doc 配列から尖度を計算 = 標準化4次モーメント - 3
@@ -125,9 +119,7 @@ function private_Stats_kurtosis_from_data: lreal
 		(*{doc 先頭n個を使用する。}*)
 		n: dint := -1;
 	end
-	{st}
 	private_Stats_kurtosis_from_data := Stats_standardized_moment(data:=data, k:=4, n:=n, eno=>eno) - 3.0;
-	{end}
 end
 
 (*{doc モーメント値から尖度を計算
@@ -149,7 +141,6 @@ function Stats_kurtosis_from_moments: lreal
 		(*{doc Fisherの定義を使用するかどうか。}*)
 		fisher: bool := true;
 	end
-	{st}
 	if m2 <= 0.0 then
 		eno := false;
 		return;
@@ -159,7 +150,6 @@ function Stats_kurtosis_from_moments: lreal
 	else
 		Stats_kurtosis_from_moments := m4 / (m2 * m2);
 	end_if;
-	{end}
 end
 
 {#endif}

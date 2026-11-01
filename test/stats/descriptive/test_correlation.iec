@@ -40,7 +40,6 @@ TEST_S(test_stats_pearson)
 	var x_p2: array[0..6] of lreal := [1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5]; end
 	var y_p2: array[0..6] of lreal := [3.0, 5.1, 7.2, 9.0, 11.1, 13.0, 15.2]; end
 	var result: lreal; end
-	{st}
 		// Correlation perfect positive
 		result := Stats_pearson(x:=x_pos, y:=y_pos);
 		EXPECT_NEAR(1.0, result, EPS);
@@ -81,7 +80,6 @@ TEST_S(test_stats_pearson)
 		result := Stats_pearson(x:=x_p2, y:=y_p2);
 		EXPECT_GT_LREAL(result, 0.99);
 		EXPECT_LT_LREAL(result, 1.01);
-	{end}
 END_TEST_S
 
 TEST_S(test_stats_spearman)
@@ -104,7 +102,6 @@ TEST_S(test_stats_spearman)
 		rank_x_work, rank_y_work: array[0..9] of lreal;
 	end
 	var result: lreal; end
-	{st}
 		// Spearman basic/monotonic
 		result := Stats_spearman(x:=x_pos, y:=y_spearman_basic, idx_x:=idx_x, idx_y:=idx_y, x_work:=x_work, y_work:=x_work, rank_x_work:=rank_x_work, rank_y_work:=rank_y_work);
 		EXPECT_NEAR(1.0, result, EPS);
@@ -122,7 +119,6 @@ TEST_S(test_stats_spearman)
 		EXPECT_NEAR(1.0, result, EPS);
 		result := Stats_spearman(x:=x_s_nonmono, y:=y_s_nonmono, idx_x:=idx_x, idx_y:=idx_y, x_work:=x_work, y_work:=y_work, rank_x_work:=rank_x_work, rank_y_work:=rank_y_work);
 		EXPECT_NEAR(-0.9, result, EPS);
-	{end}
 END_TEST_S
 
 {#undef EPS}

@@ -28,9 +28,7 @@ function Stats_arithmetic_mean: lreal
 		(*{doc dataの先頭n個を使用する。}*)
 		n: dint := -1;
 	end
-	{st}
 	Stats_arithmetic_mean := Stats_mean(data:=data, n:=n, eno=>eno);
-	{end}
 end
 
 (*{doc 加重算術平均を得る。
@@ -54,9 +52,7 @@ function Stats_weighted_arithmetic_mean: lreal
 		(*{doc dataの先頭n個を使用する。}*)
 		n: dint := -1;
 	end
-	{st}
 	Stats_weighted_arithmetic_mean := Stats_weighted_mean(data:=data, w:=weights, n:=n, eno=>eno);
-	{end}
 end
 
 (*{doc 移動平均を得る。
@@ -91,7 +87,6 @@ function Stats_moving_average
 		acc: lreal;
 		w: dint;
 	end
-	{st}
 	ndata := Array_isRegular_lreal(data);
 	nresult := Array_isRegular_lreal(result);
 	if (ndata = 0) or (nresult = 0) then
@@ -125,7 +120,6 @@ function Stats_moving_average
 		acc := acc + data[i + w - 1] - data[i - 1];
 		result[i] := acc / dint_to_lreal(w);
 	end_for;
-	{end}
 end
 
 {#endif}

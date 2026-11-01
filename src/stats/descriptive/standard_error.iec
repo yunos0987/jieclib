@@ -35,7 +35,6 @@ function Stats_standard_error_mean: lreal
 		actual_n: dint;
 		std_val, var_val: lreal;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(data);
 	if (actual_n = 0) or (n > actual_n) then
 		eno := false;
@@ -55,7 +54,6 @@ function Stats_standard_error_mean: lreal
 		return;
 	end_if;
 	Stats_standard_error_mean := sqrt(var_val / dint_to_lreal(actual_n));
-	{end}
 end
 
 (*{doc 比率の標準誤差
@@ -72,14 +70,12 @@ function Stats_standard_error_proportion: lreal
 		(*{doc 標本数。}*)
 		n: dint;
 	end
-	{st}
 	if (n <= 0) or (p < 0.0) or (p > 1.0) then
 		eno := false;
 		return;
 	end_if;
 
 	Stats_standard_error_proportion := sqrt(p * (1.0 - p) / dint_to_lreal(n));
-	{end}
 end
 
 (*{doc 2 平均の差の標準誤差（等分散の仮定）
@@ -116,7 +112,6 @@ function Stats_standard_error_difference_of_means: lreal
 		actual_nx, actual_ny: dint;
 		var_x, var_y, s_p_sq: lreal;
 	end
-	{st}
 	actual_nx := Array_isRegular_lreal(x);
 	if (actual_nx = 0) or (n_x > actual_nx) then
 		eno := false;
@@ -152,7 +147,6 @@ function Stats_standard_error_difference_of_means: lreal
 	s_p_sq := (dint_to_lreal(actual_nx - 1) * var_x + dint_to_lreal(actual_ny - 1) * var_y) / dint_to_lreal(actual_nx + actual_ny - 2);
 
 	Stats_standard_error_difference_of_means := sqrt(s_p_sq * (1.0 / dint_to_lreal(actual_nx) + 1.0 / dint_to_lreal(actual_ny)));
-	{end}
 end
 
 (*{doc 2 サンプルの差の標準誤差（等分散・異分散対応） - equal_var=true: pooled variance, equal_var=false: Welch method
@@ -183,7 +177,6 @@ function Stats_standard_error_difference: lreal
 		actual_n1, actual_n2: dint;
 		var1, var2, se_sq: lreal;
 	end
-	{st}
 	actual_n1 := Array_isRegular_lreal(sample1);
 	if (actual_n1 = 0) or (sample_size > actual_n1) then
 		eno := false;
@@ -216,7 +209,6 @@ function Stats_standard_error_difference: lreal
 		se_sq := var1 / dint_to_lreal(actual_n1) + var2 / dint_to_lreal(actual_n2);
 		Stats_standard_error_difference := sqrt(se_sq);
 	end_if;
-	{end}
 end
 
 (*{doc 線形回帰の標準誤差（傾き・切片）
@@ -254,7 +246,6 @@ function Stats_standard_error_regression
 		i: dint;
 		diff_x, residual, sse, mse: lreal;
 	end
-	{st}
 	n_x := Array_isRegular_lreal(x);
 	n_y := Array_isRegular_lreal(y);
 	if (n_x = 0) or (n_y = 0) or (n > n_x) or (n > n_y) then
@@ -311,7 +302,6 @@ function Stats_standard_error_regression
 
 	se_slope := sqrt(mse / ss_x);
 	se_intercept := sqrt(mse * (1.0 / dint_to_lreal(actual_n) + m_x * m_x / ss_x));
-	{end}
 end
 
 {#endif}

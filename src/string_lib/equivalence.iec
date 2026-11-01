@@ -38,7 +38,6 @@ function String_asciiCharCodeAt: dint
 			'@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_'
 			'`abcdefghijklmnopqrstuvwxyz{|}~$7F' constant;
 	end
-	{st}
 	l := len(self);
 	if (0 <= p) and (p < l) then
 		c_x := mid(self, 1, dint_to_uint(p + 1));
@@ -51,7 +50,6 @@ function String_asciiCharCodeAt: dint
 		end_for;
 	end_if;
 	String_asciiCharCodeAt := -1;
-	{end}
 end
 
 (*{doc 2つの文字列が同一かどうかを判定する。
@@ -68,9 +66,7 @@ function String_equals: bool
 		{doc: 比較対象の文字列。}
 		other: STRING;
 	end
-	{st}
 	String_equals := self = other;
-	{end}
 end
 
 (*{doc 文字列のFNV-1a(32bit, udint)ハッシュ値を取得する。
@@ -90,7 +86,6 @@ function String_hash: udint
 		index, l: dint;
 		code: dint;
 	end
-	{st}
 	fnv_hash := FNV_OFFSET_BASIS;
 	l := len(self);
 	for index := 0 to l - 1 by 1 do
@@ -104,7 +99,6 @@ function String_hash: udint
 		fnv_hash := fnv_hash * FNV_PRIME;
 	end_for;
 	String_hash := fnv_hash;
-	{end}
 	{#undef FNV_OFFSET_BASIS}
 	{#undef FNV_PRIME}
 end

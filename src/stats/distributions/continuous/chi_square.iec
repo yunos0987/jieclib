@@ -28,7 +28,6 @@ function Stats_chi_square_pdf: lreal
 		power: lreal;
 		ln_result: lreal;
 	end
-	{st}
 		Stats_chi_square_pdf := 0.0;
 		if (df <= 0.0) or (x < 0.0) then
 			eno := false;
@@ -54,7 +53,6 @@ function Stats_chi_square_pdf: lreal
 		   ln(f(x)) = (df/2-1)*ln(x) - x/2 - (df/2)*ln(2) - lgamma(df/2) *)
 		ln_result := (power - 1.0) * ln(x) - x / 2.0 - power * ln(2.0) - Stats_lgamma(x:=power);
 		Stats_chi_square_pdf := exp(ln_result);
-	{end}
 end
 
 (*{doc カイ二乗分布の累積分布関数
@@ -77,7 +75,6 @@ function Stats_chi_square_cdf: lreal
 		gln: lreal;   // ln Gamma(a)
 		p: lreal;
 	end
-	{st}
 		// domain
 		if (df <= 0.0) or (x < 0.0) then
 			eno := false;
@@ -107,7 +104,6 @@ function Stats_chi_square_cdf: lreal
 		if p < 0.0 then p := 0.0; end_if;
 		if p > 1.0 then p := 1.0; end_if;
 		Stats_chi_square_cdf := p;
-	{end}
 end
 
 (*{doc カイ二乗分布の分位関数。二分法とNewton-Raphson法を併用
@@ -127,7 +123,6 @@ function Stats_chi_square_ppf: lreal
 		x_low, x_high, x_mid, cdf_low, cdf_high, cdf_mid, cdf_val, pdf_val, delta: lreal;
 		i, j: dint;
 	end
-	{st}
 		if df <= 0.0 or p < 0.0 or p > 1.0 then
 			eno := false;
 			Stats_chi_square_ppf := 0.0;
@@ -184,7 +179,6 @@ function Stats_chi_square_ppf: lreal
 			end_if;
 		end_for;
 		Stats_chi_square_ppf := x_mid;
-	{end}
 end
 
 (*{doc カイ二乗分布の平均（期待値）。E[X] = df
@@ -197,14 +191,12 @@ function Stats_chi_square_mean: lreal
 		(*{doc 自由度。}*)
 		df: lreal;
 	end
-	{st}
 		if df <= 0.0 then
 			eno := false;
 			Stats_chi_square_mean := 0.0;
 			return;
 		end_if;
 		Stats_chi_square_mean := df;
-	{end}
 end
 
 (*{doc カイ二乗分布の分散 Var[X] = 2*df
@@ -217,14 +209,12 @@ function Stats_chi_square_variance: lreal
 		(*{doc 自由度。}*)
 		df: lreal;
 	end
-	{st}
 		if df <= 0.0 then
 			eno := false;
 			Stats_chi_square_variance := 0.0;
 			return;
 		end_if;
 		Stats_chi_square_variance := 2.0 * df;
-	{end}
 end
 
 {#endif}

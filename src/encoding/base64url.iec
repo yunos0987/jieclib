@@ -39,7 +39,6 @@ function base64url_encode: STRING
 		startindex, endindex: dint;
 		b1, b2, b3: byte;
 	end
-	{st}
 	base64url_encode := '';
 	if length = 0 then // ok
 		return;
@@ -100,7 +99,6 @@ function base64url_encode: STRING
 			b3 and byte#16#3f
 		)]);
 	end_while;
-	{end}
 end
 
 (*{doc Decode a Base64URL string into a byte array (RFC 4648 Section 5).
@@ -137,7 +135,6 @@ function base64url_decode: dint
 		o: dint;
 		code: dint;
 	end
-	{st}
 	l := uint_to_dint(len(txt));
 	p := 0;
 	o := offset;
@@ -177,7 +174,6 @@ function base64url_decode: dint
 		o := o + 1;
 	end_while;
 	base64url_decode := o - offset;
-	{end}
 end
 
 {#endif}

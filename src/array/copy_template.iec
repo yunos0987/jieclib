@@ -83,7 +83,6 @@ function Array_copy_x: dint
 		dst_i_0, dst_i_1: dint;
 		src_i, dst_i, actual_n: dint;
 	end
-	{st}
 	src_i_0 := lower_bound(src, 1);
 	if src_index < src_i_0 then
 		eno := false;
@@ -123,7 +122,6 @@ function Array_copy_x: dint
 	end_for;
 
 	Array_copy_x := actual_n;
-	{end}
 end
 
 (*{doc Copy all elements from src into dst, starting at each array s lower bound.
@@ -139,12 +137,10 @@ function Array_copy: dint
 		(*{doc Destination array.}*)
 		dst: array[*] of ArrayCopyElementType;
 	end
-	{st}
 	Array_copy := Array_copy_x(
 		src:=src, src_index:=lower_bound(src, 1),
 		dst:=dst, dst_index:=lower_bound(dst, 1),
 		n:=-1, eno=>eno);
-	{end}
 end
 
 {#undef _ARRAY_COPY_X_}

@@ -58,7 +58,6 @@ TEST_S(test_matrix_solve_gaussian)
 		b12: array[0..3] of lreal := [5.0, 17.0, 13.0, 11.0];
 		x12: array[0..3] of lreal;
 	end
-	{st}
 	Matrix_solve_gaussian(a:=a1, b:=b1, x:=x1);
 	EXPECT_NEAR(1.0, x1[0], EPS);
 	EXPECT_NEAR(2.0, x1[1], EPS);
@@ -103,7 +102,6 @@ TEST_S(test_matrix_solve_gaussian)
 	EXPECT_NEAR(1.42257336, x12[1], 1e-7);
 	EXPECT_NEAR(0.94401806, x12[2], 1e-7);
 	EXPECT_NEAR(0.96117381, x12[3], 1e-7);
-	{end}
 END_TEST_S
 
 {#undef EPS}

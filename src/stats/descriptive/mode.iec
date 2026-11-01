@@ -43,7 +43,6 @@ function Stats_mode: lreal
 		j: dint;
 		tmp: lreal;
 	end
-	{st}
 	actual_n := Array_isRegular_lreal(data);
 	if (actual_n = 0) or (n > actual_n) then
 		eno := false;
@@ -93,7 +92,6 @@ function Stats_mode: lreal
 		best_val := cur_val;
 	end_if;
 	Stats_mode := best_val;
-	{end}
 end
 
 {#endif}
