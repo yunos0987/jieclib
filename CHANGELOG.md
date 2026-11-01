@@ -10,6 +10,10 @@
 - Jiecc 9.2.0 未満では、`src/sys.iec` などの `{#error}` で前処理が止まります（`JiecLib requires Jiecc 9.2.0 or later.`）。
 - GitHub Actions の CI は最新リリースの Jiecc を取得する方式のままです。Jiecc 9.2.0 が公開されるまでは、取得される Jiecc が 9.2.0 未満のため、上記の `{#error}` で失敗します。
 
+### その他 / Other
+
+- サブモジュール `vendor/jiecunit` を JiecUnit v5.0.0 から v6.0.0 に更新しました。JiecUnit v6.0.0 は `{st}` / `{end}` を使わず、Jiecc 9.2.0 以降を必要とします。JiecLib の必要な Jiecc のバージョンと揃います。README.md の記述も v6.0.0 に更新しました。
+
 ## [3.4.0] - 2026-10-18
 
 ### 修正 / Fixed
