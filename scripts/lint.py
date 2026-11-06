@@ -20,6 +20,12 @@ Rules (rule id, severity):
   test-fact      warning  Every TEST_S / TEST_M has a "// Fact:" comment.
   parse          error    The file can be split into code, comments, strings
                           and pragmas (e.g. no unterminated comment).
+  target-consistency error  The entry files under src/<module>/ and the test
+                          files under test/<module>/ declare the same
+                          targets on their "$ jiecc" header lines
+                          (scripts/target_table.py; the files directly under
+                          src/ and test/ are the module "sys"). Checked only
+                          when no paths are given.
 
 With --xml-dir DIR, the rules of scripts/lint_xml.py also check the XML
 that `python scripts/run_tests.py --compile-only --output-dir DIR` wrote
@@ -58,6 +64,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import lint_xml  # noqa: E402
 import run_tests  # noqa: E402
+import target_table  # noqa: E402
 
 _DEFAULT_DIRS = ('src', 'test', 'samples')
 # Directories whose {#define} names are collected even when they are not linted.
@@ -80,6 +87,8 @@ RULES = collections.OrderedDict([
 ])
 SOURCE_RULES = tuple(RULES)
 SOURCE_WARNING_RULES = tuple(r for r, s in RULES.items() if s == WARNING)
+# A rule on the whole repository, not on one file.
+RULES['target-consistency'] = ERROR
 RULES.update(lint_xml.RULES)
 XML_WARNING_RULES = tuple(r for r, s in lint_xml.RULES if s == WARNING)
 WARNING_RULES = tuple(r for r, s in RULES.items() if s == WARNING)
@@ -674,6 +683,14 @@ def main(argv=None, root=None):
     for path in files:
         findings.extend(lint_text(_read_text(path), _rel(root, path), macros))
     checked = set(_rel(root, p) for p in files)
+
+    if not args.paths:
+        for obj, src_targets, test_targets in target_table.mismatches(root):
+            where = 'src' if obj == target_table.SYS else 'src/' + obj
+            findings.append(Finding(
+                'target-consistency', where, 1,
+                'the sources declare {} but the tests declare {}; declare the same targets '
+                '(README.md, "対応ターゲット")'.format(', '.join(src_targets), ', '.join(test_targets))))
 
     active_rules = list(SOURCE_WARNING_RULES)
     xml_count = 0

@@ -156,6 +156,18 @@ class RequiredLevelTest(unittest.TestCase):
     def test_deleted_file_uses_its_module(self):
         self.assertEqual(['L3', 'L4'], self.levels('src/gamma/deleted.iec'))
 
+    def test_a_file_included_by_a_keyence_file_requires_l4(self):
+        # src/delta/delta.iec declares only omron, but a keyence file includes
+        # it through another file, so it is part of a keyence build.
+        self.write('src/delta/delta.iec', _HEADER_OMRON + '// delta\n')
+        self.write('src/delta/inner.iec', '// included by delta.iec\n')
+        self.write('test/delta/test_delta.iec', _HEADER_OMRON)
+        self.write('src/epsilon/epsilon.iec', _HEADER_KEYENCE + '{#include <delta/wrapper.iec>}\n')
+        self.write('src/delta/wrapper.iec', '{#include "inner.iec"}\n')
+        self.assertEqual(['L3', 'L4'], self.levels('src/delta/inner.iec'))
+        self.assertEqual(['L3'], self.levels('src/delta/delta.iec'))
+        self.assertIn('src/delta/wrapper.iec', check_pr_body.keyence_files(self.root))
+
     def test_check_reports_missing_records(self):
         levels, errors = check_pr_body.check(_template(), ['src/alpha/alpha.iec'], self.root)
         self.assertEqual(['L3', 'L4'], levels)

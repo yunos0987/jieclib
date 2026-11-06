@@ -69,9 +69,14 @@ jobs:
           python scripts/test_check_pr_body.py
           python scripts/test_pou_inventory.py
           python scripts/test_package_release.py
+          python scripts/test_target_table.py
 
       - name: Lint
         run: python scripts/lint.py
+
+      # The table of the declared targets in README.md must match the headers.
+      - name: Check the target table of README.md
+        run: python scripts/target_table.py --check
 
   # Compiles every library entry file in src/ and every test file in test/
   # for the targets named in their header comments. A failure fails CI.

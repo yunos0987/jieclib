@@ -8,10 +8,13 @@ and this script checks that the required sections are filled in:
 
   - L3 is required when the pull request changes a file under src/.
   - L4 is required when it changes a .iec file under src/, test/ or samples/
-    that declares the keyence target. A file without a "$ jiecc" header (a
-    template, sys.iec, ...) uses the targets declared by the other files of
-    the same module: src/<module>/ and test/<module>/, or for the files
-    directly under src/ and test/, the module "sys".
+    that declares the keyence target, or a file that such a file includes
+    (directly or through other files: sys.iec, array/array.iec, ...), since
+    the change reaches the KV Studio build of that file. A file without a
+    "$ jiecc" header that no keyence file includes (a deleted file, ...)
+    uses the targets declared by the other files of the same module:
+    src/<module>/ and test/<module>/, or for the files directly under src/
+    and test/, the module "sys".
 
 A filled-in section has "- 結果:" set to 合格, 不合格 or 未実施. 合格 and 不合格
 also need "- 開発環境と版:" and "- 実行したテストファイル:"; 未実施 needs
@@ -50,6 +53,9 @@ _RE_HEADING = re.compile(r'^##[ \t]+(.*?)[ \t]*$', re.M)
 _RE_LEVEL = re.compile(r'^(L[34])(?![0-9A-Za-z_])')
 # The result is the first word of the value: "合格", "合格（全件）", "**合格**".
 _RE_RESULT = re.compile(r'^(不合格|合格|未実施)(?=$|[\s(（、。,:：])')
+# {#include <path>} (searched in the repository root, src/ and vendor/jiecunit)
+# or {#include "path"} (searched next to the including file first).
+_RE_INCLUDE = re.compile(r'\{#include[ \t]+([<"])([^>"]+)[>"]')
 _RE_FIELD = re.compile(r'^[-*][ \t]+([^:：\n]+?)[ \t]*[:：][ \t]*(.*)$')
 
 
@@ -155,14 +161,58 @@ def declared_targets(root, path):
     return _module_targets(root, module) if module else set()
 
 
+def _resolve_include(root, including, kind, name):
+    # type: (str, str, str, str) -> str
+    """Return the repository-relative path of an included file, or ''."""
+    bases = []
+    if kind == '"':
+        bases.append(os.path.dirname(including))
+    bases.extend(['', 'src', 'vendor/jiecunit'])
+    for base in bases:
+        rel = os.path.normpath(os.path.join(base, name)).replace(os.sep, '/')
+        if os.path.isfile(os.path.join(root, rel)):
+            return rel
+    return ''
+
+
+def keyence_files(root):
+    # type: (str) -> set
+    """Return the .iec files that are part of a keyence build.
+
+    These are the files that declare keyence on a "$ jiecc" line, and every
+    file that they include, directly or through other files.
+    """
+    found = set()
+    pending = []
+    for top in _TOPS:
+        for dirpath, dirnames, filenames in os.walk(os.path.join(root, top)):
+            for name in filenames:
+                if name.endswith('.iec'):
+                    rel = os.path.relpath(os.path.join(dirpath, name), root).replace(os.sep, '/')
+                    if 'keyence' in _header_targets(_read_text(os.path.join(root, rel))):
+                        pending.append(rel)
+    while pending:
+        rel = pending.pop()
+        if rel in found:
+            continue
+        found.add(rel)
+        for kind, name in _RE_INCLUDE.findall(_read_text(os.path.join(root, rel))):
+            target = _resolve_include(root, rel, kind, name)
+            if target and target not in found:
+                pending.append(target)
+    return found
+
+
 def required_levels(root, changed):
     # type: (str, list) -> list
     levels = []
     if any(p.startswith('src/') for p in changed):
         levels.append('L3')
+    keyence = keyence_files(root)
     for p in changed:
-        if p.endswith('.iec') and p.split('/')[0] in _TOPS and \
-                'keyence' in declared_targets(root, p):
+        if not (p.endswith('.iec') and p.split('/')[0] in _TOPS):
+            continue
+        if p in keyence or 'keyence' in declared_targets(root, p):
             levels.append('L4')
             break
     return levels

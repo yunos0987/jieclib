@@ -3,6 +3,7 @@
 ## 目次
 
 - [概要](#概要)
+- [対応ターゲット](#対応ターゲット)
 - [必要環境](#必要環境)
 - [Sysmac StudioでJiecLib内のライブラリを取り込む方法](#sysmac-studioでjieclib内のライブラリを取り込む方法)
 - [JiecLibに含まれるライブラリ](#jieclibに含まれるライブラリ)
@@ -34,7 +35,46 @@ JiecLibは、<a href="https://www.graviness.com/iec_61131-3/">IEC 61131-3 ST言�
 
 テキスト形式のコードをPLCメーカーのツールで取り込み可能な形式に変換するために、[IEC 61131-3 ⇄ IEC 61131-10変換ソフトウェア Jiecc](https://www.graviness.com/iec_61131-3/jiecc.html)を使用します。
 
-現在、JiecLibはオムロン社製の[Sysmac Studio](https://www.fa.omron.co.jp/products/family/3077/download/software.html)（[IEC 61131-10 XML](https://plcopen.org/sites/default/files/downloads/iec_61131-10_preview.pdf)対応）を対象としています。
+主な対象は、オムロン社製の[Sysmac Studio](https://www.fa.omron.co.jp/products/family/3077/download/software.html)（[IEC 61131-10 XML](https://plcopen.org/sites/default/files/downloads/iec_61131-10_preview.pdf)対応）です。ライブラリごとに使えるターゲットは、[対応ターゲット](#対応ターゲット)を参照してください。
+
+## 対応ターゲット
+
+各ライブラリの `.iec` の先頭コメントの `$ jiecc ... -t <ターゲット>` の行が、そのライブラリが対応を宣言したターゲットです。CI は、宣言したすべてのターゲットでコンパイルします。ただし、Jiecc のコンパイルはどのターゲットでも通るので、コンパイルが通ることは、その開発環境で使えることを意味しません。宣言は、その開発環境（Sysmac Studio・KV Studio）でテストを実行して確かめたものだけにします。
+
+<!-- target-table:begin -->
+| ライブラリ | 宣言したターゲット |
+|---|---|
+| [array](./src/array) | omron |
+| [bitset](./src/bitset) | omron |
+| [compress](./src/compress) | omron |
+| [container](./src/container) | keyence, omron |
+| [encoding](./src/encoding) | omron |
+| [hash](./src/hash) | omron |
+| [interp](./src/interp) | omron |
+| [linalg](./src/linalg) | omron |
+| [math](./src/math) | omron |
+| [random](./src/random) | keyence, omron |
+| [signal](./src/signal) | omron |
+| [stats](./src/stats) | omron |
+| [string_lib](./src/string_lib) | keyence, omron |
+| [sys](./src)（`src/` 直下の `sys.iec` など） | omron |
+| [vector](./src/vector) | omron |
+<!-- target-table:end -->
+
+この表は `python scripts/target_table.py --update` で作ります。CI（`lint` ジョブ）が、ヘッダーと一致するかを確かめます。テンプレートだけのライブラリ（container）と `sys` は、テストのヘッダーを宣言とみなします。
+
+開発環境で確かめた結果（L3: Sysmac Studio のシミュレータ、L4: KV Studio）は、Pull Request の本文に記録します。次の表は、その記録をまとめたものです。記録のないものは「未確認」です。
+
+| ライブラリ | omron（Sysmac Studio） | keyence（KV Studio） |
+|---|---|---|
+| すべて | 未確認（記録なし） | 未確認（記録なし） |
+
+この表は、作者が確かめた範囲を書き足していきます（まだ記録がありません）。
+
+`sys`（`sys.iec`・`sys_conv.iec`）は omron だけを宣言していますが、keyence を宣言したライブラリ（string_lib・random・container）が include して使うので、keyence のビルドにも入ります。その確認は、それらのライブラリの L4 で行います。`sys` を変更した Pull Request は、L4 の欄も求められます（`scripts/check_pr_body.py` が include をたどります）。
+
+- 三菱電機（mitsubishi）には対応しません。`src/sys.iec` などに三菱電機向けの分岐がありますが、完全ではありません（関数の `var_in_out` の扱いなど）。
+- CODESYS（codesys）は、`src/sys_config.iec` に分岐がありますが、宣言したライブラリはありません。
 
 ## 必要環境
 

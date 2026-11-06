@@ -95,6 +95,14 @@ $ python scripts/lint.py src/math test/math
 - 一覧に項目を足す変更は、CI（`pr-checks.yml` の `lint-baseline` ジョブ）が失敗にします。規則そのものを見直す Pull Request だけは、`python scripts/lint.py --reset-baseline` で一覧を作り直し、管理者がラベル `lint-baseline-reset` を付けます。本文に理由を書いてください。
 - `scripts/test_lint.py` は、`lint.py` の単体テストです。規則ごとの違反の例と違反しない例が `scripts/lint_testdata/` にあります。
 
+#### 対応ターゲットの宣言
+
+各 `.iec` の先頭コメントの `$ jiecc ... -t <ターゲット>` の行が、対応を宣言したターゲットです（[README.md の「対応ターゲット」](README.md#対応ターゲット)）。宣言は、そのターゲットの開発環境で確かめたものだけにします。新しいファイルは omron だけを宣言します。
+
+- `src/<名前>/` のエントリファイルと `test/<名前>/` のテストは、同じライブラリとして扱います（`src/` と `test/` の直下のファイルは `sys`）。ソースとテストで宣言が違うと、lint の `target-consistency` がエラーにします（パスを指定しない、全体の検査のとき）。ソースにヘッダーがないライブラリ（テンプレートだけのもの）は、テストのヘッダーを宣言とみなします。
+- 宣言を変えたら、`python scripts/target_table.py --update` で README.md の表を作り直します。CI の `lint` ジョブが、表とヘッダーの一致を確かめます（`--check`）。
+- 開発環境で確かめた結果は、Pull Request の本文の L3・L4 の欄に書き、README.md の「開発環境で確かめた結果」の表も直します。
+
 #### コンパイルした XML の検査
 
 名前と型の規則は、jiecc でコンパイルした XML を読んで検査します。テンプレートが作る POU や変数の名前も検査できます。

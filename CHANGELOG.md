@@ -22,6 +22,9 @@
 
 ### その他 / Other
 
+- 対応ターゲットの宣言を整理しました。ソースとテストで食い違っていた `keyence` の宣言を外しました（`src/array/array.iec`・`src/array/sort.iec`、`test/math/test_floor.iec`・`test/math/test_atan2.iec`、`test/test_sys.iec`・`test/test_sys_conv.iec`）。KV Studio で確かめた記録がないためです。確かめた後で、ソースとテストの両方に宣言を戻します。CI は、これらを keyence ではコンパイルしなくなります。
+- README.md に「対応ターゲット」の節を設け、ライブラリごとの宣言の表（`scripts/target_table.py` で作り、CI が一致を確かめる）と、開発環境で確かめた結果の表を載せました。三菱電機（mitsubishi）には対応しないことを明記しました。
+- lint に `target-consistency`（同じライブラリのソースとテストで、宣言したターゲットが同じ）を追加しました。
 - `scripts/lint.py` を追加しました。CONTRIBUTING.md と AGENTS.md の規約のうち、ソースを読んで判定できるもの（キーワードなどの小文字、doc プラグマの書き方・引用符・有無、`continue` と `/* */` の禁止、コメントの英語、テストの `// Fact:`）を検査します。既存の警告（日本語のコメント・doc プラグマ 1,139 件、`// Fact:` のないテスト 273 件）は `scripts/lint_baseline.json` に一覧として記録し、一覧にない警告だけを失敗にします。`scripts/test_lint.py` がその単体テストです。
 - 規約に合わせて、既存のソースを直しました。動作は変わりません。
   - 大文字のキーワードと真理値（`OR` 2 か所、`TRUE` 2 か所）と、大文字の標準関数の名前（`COS`・`SQRT`・`SIN`・`LN`・`EXP`・`ASIN` の 18 か所）を小文字にしました。
