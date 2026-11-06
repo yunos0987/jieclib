@@ -46,6 +46,10 @@ _TOPS = ('src', 'test', 'samples')
 
 _RE_COMMENT = re.compile(r'<!--.*?-->', re.S)
 _RE_HEADING = re.compile(r'^##[ \t]+(.*?)[ \t]*$', re.M)
+# The level is the first word of a heading: "## L3 ...", "## L3: ...", "## L3（...）".
+_RE_LEVEL = re.compile(r'^(L[34])(?![0-9A-Za-z_])')
+# The result is the first word of the value: "合格", "合格（全件）", "**合格**".
+_RE_RESULT = re.compile(r'^(不合格|合格|未実施)(?=$|[\s(（、。,:：])')
 _RE_FIELD = re.compile(r'^[-*][ \t]+([^:：\n]+?)[ \t]*[:：][ \t]*(.*)$')
 
 
@@ -66,9 +70,10 @@ def parse_sections(body):
     headings = list(_RE_HEADING.finditer(body))
     sections = {}
     for index, m in enumerate(headings):
-        level = m.group(1).split()[0] if m.group(1).split() else ''
-        if level not in _SECTIONS:
+        lm = _RE_LEVEL.match(m.group(1))
+        if not lm:
             continue
+        level = lm.group(1)
         end = headings[index + 1].start() if index + 1 < len(headings) else len(body)
         fields = {}
         current = None
@@ -93,7 +98,10 @@ def check_section(level, fields):
         return ['the "## {} {}" section is missing; use .github/pull_request_template.md'.format(
             level, _SECTIONS[level])]
     result = fields.get(_FIELD_RESULT, '')
-    if result not in _RESULTS:
+    rm = _RE_RESULT.match(re.sub(r'[*_`]', '', result).strip())
+    if rm:
+        result = rm.group(1)
+    else:
         return ['{}: "- {}:" must be one of {} (found {!r})'.format(
             title, _FIELD_RESULT, ' / '.join(_RESULTS), result)]
     errors = []
@@ -173,8 +181,11 @@ def check(body, changed, root):
 
 def _changed_files(root, base):
     # type: (str, str) -> list
-    out = subprocess.check_output(['git', 'diff', '--name-only', base, 'HEAD'], cwd=root)
-    return [line for line in out.decode('utf-8').splitlines() if line]
+    # -z keeps non-ASCII paths unquoted (core.quotePath would quote them), and
+    # --no-renames lists both the old and the new path of a moved file.
+    out = subprocess.check_output(['git', 'diff', '--name-only', '-z', '--no-renames', base,
+                                   'HEAD'], cwd=root)
+    return [p for p in out.decode('utf-8').split('\0') if p]
 
 
 def main(argv=None):

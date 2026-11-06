@@ -101,6 +101,18 @@ class RuleTest(unittest.TestCase):
         self.assertEqual(['keyword-case'], [f.rule for f in lint.lint_text(text, 'src/a.iec')])
         self.assertEqual([], lint.lint_text(text, 'src/a.iec', frozenset(['STRING'])))
 
+    def test_dollar_escapes_the_closing_brace_of_a_pragma(self):
+        # jiepp reads "$}" as an escaped brace, also outside a string
+        # ("(*{doc costs 5$} x}*)" gives the documentation "costs 5} x").
+        text = '(*{doc costs 5$} x}*)\nfunction F1: dint\n\tF1 := 1;\nend\n'
+        scan = lint.Scan(text)
+        self.assertEqual([' costs 5$} x'], [d.body for d in scan.docs])
+        self.assertEqual([], lint.lint_text(text, 'src/a.iec'))
+
+    def test_member_names_are_not_keywords(self):
+        text = '(*{doc A.}*)\nfunction F1: dint\n\tF1 := axis.Max + axis.Time;\nend\n'
+        self.assertEqual([], lint.lint_text(text, 'src/a.iec'))
+
     def test_unterminated_quote(self):
         self.assertFalse(lint._unterminated_quote("doesn$27t, '=' and \"x'y\""))
         self.assertFalse(lint._unterminated_quote("'a$'b'"))
@@ -184,6 +196,16 @@ class MainTest(unittest.TestCase):
         self.write('test/test_b.iec', _BAD_TEST.replace('test_one', 'test_three'))
         self.assertEqual(1, self.run_main('--update-baseline'))
         self.assertEqual({'doc-language': [], 'test-fact': []}, self.read_baseline())
+
+    def test_update_baseline_needs_an_existing_baseline(self):
+        self.assertEqual(2, self.run_main('--update-baseline'))
+        self.assertFalse(os.path.exists(os.path.join(self.root, 'scripts', 'lint_baseline.json')))
+
+    def test_update_baseline_creates_the_section_of_a_new_rule(self):
+        self.write('scripts/lint_baseline.json', '{"doc-language": []}')
+        self.assertEqual(0, self.run_main('--update-baseline'))
+        self.assertEqual({'doc-language': [], 'test-fact': ['test/test_a.iec: test_one']},
+                         self.read_baseline())
 
     def test_error_fails_even_with_a_baseline(self):
         self.run_main('--reset-baseline')

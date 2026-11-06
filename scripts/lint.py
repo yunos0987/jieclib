@@ -374,8 +374,10 @@ def lint_text(text, path, macros=frozenset()):
     for m in _RE_IDENT.finditer(code):
         word = m.group(0)
         start = m.start()
-        if start > 0 and code[start - 1] in '#@':
-            continue  # digits of a based literal (16#FF) or a token pasted with @@
+        if start > 0 and code[start - 1] in '#@.':
+            # Digits of a based literal (16#FF), a token pasted with @@, or a
+            # member name after '.' (a member of a vendor type may be named Max).
+            continue
         lower = word.lower()
         if lower == 'continue':
             add('no-continue', start, 'continue is not supported in the OMRON environment')
@@ -543,12 +545,24 @@ def _check_baseline_against(root, rev):
     except (OSError, subprocess.CalledProcessError) as e:
         print('error: cannot resolve commit {!r}: {}'.format(rev, e))
         return 2
+    # Tell "the file is not in the commit" apart from a failing git command:
+    # only the former skips the comparison.
+    try:
+        listed = subprocess.check_output(['git', 'ls-tree', '--name-only', rev, '--',
+                                          _BASELINE_REL], cwd=root, stderr=subprocess.STDOUT)
+    except (OSError, subprocess.CalledProcessError) as e:
+        print('error: cannot list {} in {}: {}'.format(_BASELINE_REL, rev, e))
+        return 2
+    if not listed.strip():
+        print('note: {} does not exist in {}; nothing to compare.'.format(_BASELINE_REL, rev))
+        return 0
     proc = subprocess.Popen(['git', 'show', '{}:{}'.format(rev, _BASELINE_REL)], cwd=root,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = proc.communicate()
     if proc.returncode != 0:
-        print('note: {} does not exist in {}; nothing to compare.'.format(_BASELINE_REL, rev))
-        return 0
+        print('error: cannot read {} in {}: {}'.format(
+            _BASELINE_REL, rev, err.decode('utf-8', errors='replace').strip()))
+        return 2
     try:
         base = load_baseline_text(out.decode('utf-8'), '{}:{}'.format(rev, _BASELINE_REL))
     except ValueError as e:
@@ -620,7 +634,15 @@ def main(argv=None, root=None):
         if f.severity == WARNING:
             current[f.rule].add(f.key)
 
+    if args.update_baseline and not os.path.isfile(baseline_path):
+        print('error: {} does not exist; create it with --reset-baseline.'.format(_BASELINE_REL),
+              file=sys.stderr)
+        return 2
     if args.reset_baseline or args.update_baseline:
+        # --update-baseline only removes entries from the existing sections. A
+        # warning rule without a section is a new rule; its section is created
+        # from the current warnings (CI allows a new section, see
+        # baseline_additions).
         new = {}
         for rule in WARNING_RULES:
             if args.update_baseline and rule in baseline:

@@ -7,6 +7,7 @@ Usage:
 """
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -86,6 +87,22 @@ class SectionTest(unittest.TestCase):
         self.assertEqual('- test/a.iec\n- test/b.iec', fields['実行したテストファイル'])
         self.assertEqual([], check_pr_body.check_section('L3', fields))
 
+    def test_heading_and_result_variants(self):
+        body = ('## L3: Sysmac Studio\n\n- 結果: **合格**\n- 開発環境と版: Sysmac Studio 1.62\n'
+                '- 実行したテストファイル: test/a.iec\n'
+                '## L4（KV Studio）\n\n- 結果: 未実施（KV Studio がない）\n- 未実施の理由: 環境がない\n')
+        sections = check_pr_body.parse_sections(body)
+        self.assertEqual(['L3', 'L4'], sorted(sections))
+        self.assertEqual([], check_pr_body.check_section('L3', sections['L3']))
+        self.assertEqual([], check_pr_body.check_section('L4', sections['L4']))
+        for value in ('合格済み', '一部合格', 'L3 合格'):
+            with self.subTest(value=value):
+                fields = {'結果': value, '開発環境と版': 'x', '実行したテストファイル': 'y'}
+                self.assertEqual(1, len(check_pr_body.check_section('L3', fields)))
+
+    def test_l30_is_not_l3(self):
+        self.assertEqual({}, check_pr_body.parse_sections('## L30 x\n\n- 結果: 合格\n'))
+
     def test_crlf_body(self):
         body = '## L3 x\r\n\r\n- 結果: 未実施\r\n- 未実施の理由: 環境がない\r\n'
         fields = check_pr_body.parse_sections(body)['L3']
@@ -143,6 +160,41 @@ class RequiredLevelTest(unittest.TestCase):
         levels, errors = check_pr_body.check(_template(), ['src/alpha/alpha.iec'], self.root)
         self.assertEqual(['L3', 'L4'], levels)
         self.assertEqual(2, len(errors), errors)
+
+
+@unittest.skipIf(shutil.which('git') is None, 'git is not available')
+class ChangedFilesTest(unittest.TestCase):
+    """Runs _changed_files on a temporary git repository."""
+
+    def setUp(self):
+        self.root = tempfile.mkdtemp()
+        self.git('init', '-q')
+        self.git('config', 'user.email', 'check@example.com')
+        self.git('config', 'user.name', 'check')
+        self.write('src/a/old.iec', '// old\n')
+        self.git('add', '-A')
+        self.git('commit', '-q', '-m', 'first')
+
+    def tearDown(self):
+        shutil.rmtree(self.root, ignore_errors=True)
+
+    def git(self, *args):
+        subprocess.check_call(['git'] + list(args), cwd=self.root, stdout=subprocess.DEVNULL)
+
+    def write(self, rel, text):
+        path = os.path.join(self.root, rel)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, 'w', encoding='utf-8', newline='\n') as f:
+            f.write(text)
+
+    def test_non_ascii_and_moved_paths(self):
+        self.write('src/a/日本語.iec', '// new\n')
+        os.makedirs(os.path.join(self.root, 'docs'))
+        self.git('mv', 'src/a/old.iec', 'docs/old.iec')
+        self.git('add', '-A')
+        self.git('commit', '-q', '-m', 'second')
+        changed = check_pr_body._changed_files(self.root, 'HEAD~1')
+        self.assertEqual(['docs/old.iec', 'src/a/old.iec', 'src/a/日本語.iec'], sorted(changed))
 
 
 if __name__ == '__main__':
