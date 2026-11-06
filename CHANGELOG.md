@@ -20,6 +20,7 @@
   - 既定の `--max-cycles` を 100000 から 2000 に下げました。jier は、テストが終わった後も指定した周期数まで回り続けるため、4.0.0 の「既知の問題」の、エラーで止まらない 29 ファイルは時間切れになっていました。2000 周期では、そのうち 28 ファイルが合格します。残りの `test/string_lib/test_string_lib.iec` は、jier の `find` の振る舞いのため終わりません。測定の結果は `docs/jier_cycles.md` にあります。
   - `[========] Running N tests.` の数と、実行したテストの数が合わないとき（周期数が足りないとき）も、失敗と判定するようにしました。
   - `--output-dir DIR`（生成した XML を残す）と `--paths-from FILE`（対象のパスと周期数をファイルから読む）を追加しました。
+- `scripts/lint.py` に `--xml-dir DIR` を追加しました。`run_tests.py --compile-only --output-dir DIR` でコンパイルした XML を読み、テンプレートが作る名前も含めて、名前と型の規則（`left` などの予約語、`p_` の接頭辞、可変長配列は `var_in_out` だけ、構造体を返す関数、エイリアス型、64 バイトを超える POU 名、キーエンスの名前の制約）を検査します（`scripts/lint_xml.py`）。既存のコードの違反は、キーエンスの名前の制約の 54 件（警告。`scripts/lint_baseline.json` に記録）だけです。CI の `compile` ジョブが、コンパイルの後にこの検査を行います。
 - jier で必ず通すテストファイルの一覧 `scripts/jier_required.txt` と、CI の `run-required` ジョブを追加しました。一覧のテストが jier で失敗すると、CI が失敗します。新しく追加するテストファイルは、この一覧に載せます。
 - この節（`[Unreleased]`）を設けました。変更は Pull Request ごとにこの節へ書き、リリースのコミットで見出しを `[X.Y.Z] - 日付` に置き換えます。
 

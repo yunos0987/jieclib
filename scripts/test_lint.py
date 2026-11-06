@@ -57,13 +57,13 @@ def _lint_testdata(rule, name):
 class RuleTest(unittest.TestCase):
 
     def test_every_rule_has_bad_and_good_inputs(self):
-        for rule in lint.RULES:
+        for rule in lint.SOURCE_RULES:
             names = os.listdir(os.path.join(_TESTDATA, rule))
             self.assertTrue(any(n.startswith('bad') for n in names), rule)
             self.assertTrue(any(n.startswith('good') for n in names), rule)
 
     def test_every_bad_input_has_an_expected_count(self):
-        for rule in lint.RULES:
+        for rule in lint.SOURCE_RULES:
             for name in os.listdir(os.path.join(_TESTDATA, rule)):
                 if name.startswith('bad'):
                     self.assertIn((rule, name), _EXPECTED)
@@ -76,7 +76,7 @@ class RuleTest(unittest.TestCase):
                 self.assertEqual(count, len(got), [f.format() for f in findings])
 
     def test_good_inputs(self):
-        for rule in lint.RULES:
+        for rule in lint.SOURCE_RULES:
             for name in sorted(os.listdir(os.path.join(_TESTDATA, rule))):
                 if not name.startswith('good'):
                     continue
@@ -279,6 +279,194 @@ class CheckBaselineAgainstTest(unittest.TestCase):
         self.write_baseline({'test-fact': []})
         self.assertEqual(2, _quiet_main(['--check-baseline-against', 'no-such-commit'],
                                         self.root))
+
+
+_XML_DATA = os.path.join(_TESTDATA, 'xml')
+_XML_OUT = os.path.join(_XML_DATA, 'out')
+_BOTH = ['omron', 'keyence']
+
+# (rule, key) of every finding that bad_xml.iec must produce.
+_XML_EXPECTED = {
+    ('no-alias-type', 'Bad_count_t'),
+    ('omron-p-prefix', 'Bad_record_t.p_value'),
+    ('reserved-name', 'Bad_record_t.left'),
+    ('keyence-names', 'Bad_record_t.v'),
+    ('no-struct-return', 'Bad_returns_struct'),
+    ('varlen-array-inout', 'Bad_returns_struct.values'),
+    ('keyence-names', 'Bad_returns_struct.x'),
+    ('keyence-names', 'Bad_returns_struct.hi'),
+    ('keyence-names', 'Bad_returns_struct.r1'),
+    ('reserved-name', 'Bad_returns_struct.cmp'),
+    ('omron-p-prefix', 'Bad_returns_struct.P_count'),
+    ('pou-name-length', 'Bad_function_block_whose_name_is_longer_than_sixty_four_bytes_xxx'),
+    ('varlen-array-inout', 'Bad_function_block_whose_name_is_longer_than_sixty_four_bytes_xxx.arr'),
+}
+
+
+def _xml_keys(findings):
+    return set((f.rule, f.key) for f in findings)
+
+
+def _find_jiecc():
+    found = os.environ.get('JIECC') or shutil.which('jiecc') or shutil.which('jiecc.exe')
+    return found if found and (os.path.isfile(found) or shutil.which(found)) else None
+
+
+class XmlRuleTest(unittest.TestCase):
+    """The XML rules, on XML compiled from scripts/lint_testdata/xml/*.iec."""
+
+    def check(self, name, targets=None, pous=(), types=(), xml_dir=_XML_OUT):
+        return lint.lint_xml.check_xml_dir(xml_dir, [(name, targets or _BOTH)], set(pous),
+                                           set(types))
+
+    def test_every_xml_rule_is_covered(self):
+        rules = set(rule for rule, key in _XML_EXPECTED) | {'xml-missing'}
+        self.assertEqual(set(r for r, s in lint.lint_xml.RULES), rules)
+
+    def test_bad_input(self):
+        self.assertEqual(_XML_EXPECTED, _xml_keys(self.check('bad_xml.iec')))
+
+    def test_good_input(self):
+        self.assertEqual([], [f.format() for f in self.check('good_xml.iec')])
+
+    def test_keyence_names_only_for_keyence_and_mitsubishi(self):
+        keys = _xml_keys(self.check('bad_xml.iec', ['omron']))
+        self.assertEqual(set(k for k in _XML_EXPECTED if k[0] != 'keyence-names'), keys)
+
+    def test_severity_and_format(self):
+        findings = dict(((f.rule, f.key), f) for f in self.check('bad_xml.iec'))
+        f = findings[('keyence-names', 'Bad_returns_struct.x')]
+        self.assertEqual('warning', f.severity)
+        self.assertTrue(f.format().endswith(
+            'keyence/bad_xml.xml: warning: keyence-names: Bad_returns_struct.x: '
+            'one-letter name (KEYENCE / Mitsubishi naming rule)'), f.format())
+        self.assertEqual('error', findings[('reserved-name', 'Bad_record_t.left')].severity)
+
+    def test_jiecunit_names_are_not_checked(self):
+        keys = _xml_keys(self.check('bad_xml.iec', pous=['bad_returns_struct'],
+                                    types=['bad_record_t', 'bad_count_t']))
+        self.assertEqual(
+            {('pou-name-length',
+              'Bad_function_block_whose_name_is_longer_than_sixty_four_bytes_xxx'),
+             ('varlen-array-inout',
+              'Bad_function_block_whose_name_is_longer_than_sixty_four_bytes_xxx.arr')}, keys)
+
+    def test_missing_and_broken_xml_are_errors(self):
+        keys = [f.rule for f in self.check('bad_xml.iec', ['mitsubishi'])]
+        self.assertEqual(['xml-missing'], keys)
+        tmp = tempfile.mkdtemp()
+        try:
+            os.makedirs(os.path.join(tmp, 'omron'))
+            with open(os.path.join(tmp, 'omron', 'x.xml'), 'w') as f:
+                f.write('<Project')
+            findings = self.check('x.iec', ['omron'], xml_dir=tmp)
+            self.assertEqual(['xml-missing'], [f.rule for f in findings])
+            self.assertIn('cannot read', findings[0].message)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_source_names(self):
+        code = ('type\n\tA_t: struct\n\t\tx: dint;\n\tend_struct;\n\tB_t: dint;\nend_type\n'
+                'function F1: dint\nend_function\nfunction_block Fb2\nend_function_block\n')
+        self.assertEqual(({'f1', 'fb2'}, {'a_t', 'x', 'b_t'}), lint.lint_xml.source_names(code))
+
+    @unittest.skipIf(_find_jiecc() is None, 'jiecc is not found')
+    def test_committed_xml_matches_jiecc(self):
+        # The XML in lint_testdata/xml/out is committed so that the lint job
+        # (without jiecc) can test the rules. Recompile it and compare the
+        # findings, to notice a change of the XML format of jiecc.
+        jiecc = _find_jiecc()
+        tmp = tempfile.mkdtemp()
+        try:
+            for name in ('bad_xml', 'good_xml'):
+                for target in _BOTH:
+                    os.makedirs(os.path.join(tmp, target), exist_ok=True)
+                    subprocess.check_call(
+                        [jiecc, name + '.iec', '-o', os.path.join(tmp, target, name + '.xml'),
+                         '-t', target], cwd=_XML_DATA, stdout=subprocess.DEVNULL)
+                self.assertEqual(_xml_keys(self.check(name + '.iec')),
+                                 _xml_keys(self.check(name + '.iec', xml_dir=tmp)))
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+
+_HEADER_BOTH = '(*\n * $ jiecc ./a.iec -o ./a.xml -t omron\n * $ jiecc ./a.iec -o ./a.xml -t keyence\n *)\n'
+
+
+class MainXmlTest(unittest.TestCase):
+    """Runs main() with --xml-dir on a temporary repository."""
+
+    def setUp(self):
+        self.root = tempfile.mkdtemp()
+        for rel in ('src/a', 'scripts', 'out/omron/src/a', 'out/keyence/src/a'):
+            os.makedirs(os.path.join(self.root, *rel.split('/')))
+        self.write('src/a/a.iec', _HEADER_BOTH + '(*{doc A.}*)\nfunction F1: dint\n\tF1 := 1;\nend\n')
+        self.out = os.path.join(self.root, 'out')
+
+    def tearDown(self):
+        shutil.rmtree(self.root, ignore_errors=True)
+
+    def write(self, rel, text):
+        with open(os.path.join(self.root, *rel.split('/')), 'w', encoding='utf-8',
+                  newline='\n') as f:
+            f.write(text)
+
+    def use_xml(self, name):
+        for target in _BOTH:
+            shutil.copyfile(os.path.join(_XML_OUT, target, name),
+                            os.path.join(self.out, target, 'src', 'a', 'a.xml'))
+
+    def read_baseline(self):
+        with open(os.path.join(self.root, 'scripts', 'lint_baseline.json'), encoding='utf-8') as f:
+            return json.load(f)
+
+    def run_main(self, *argv):
+        return _quiet_main(list(argv), self.root)
+
+    def test_good_xml_passes_and_missing_xml_fails(self):
+        self.assertEqual(1, self.run_main('--xml-dir', self.out))
+        self.use_xml('good_xml.xml')
+        self.assertEqual(0, self.run_main('--xml-dir', self.out))
+        self.assertEqual(2, self.run_main('--xml-dir', os.path.join(self.root, 'none')))
+
+    def test_keyence_names_baseline(self):
+        self.use_xml('bad_xml.xml')
+        self.assertEqual(1, self.run_main('--xml-dir', self.out))
+        # The baseline is written, but the errors still fail: only warnings
+        # can be in the baseline.
+        self.assertEqual(1, self.run_main('--reset-baseline', '--xml-dir', self.out))
+        self.assertEqual(4, len(self.read_baseline()['keyence-names']))
+        self.assertEqual(1, self.run_main('--xml-dir', self.out))
+        # Without --xml-dir, the keyence-names section is kept as it is.
+        self.assertEqual(0, self.run_main('--update-baseline'))
+        self.assertEqual(4, len(self.read_baseline()['keyence-names']))
+        self.assertEqual(0, self.run_main())
+        # With --xml-dir, fixed warnings are removed from the baseline.
+        self.use_xml('good_xml.xml')
+        self.assertEqual(0, self.run_main('--update-baseline', '--xml-dir', self.out))
+        self.assertEqual([], self.read_baseline()['keyence-names'])
+
+    def test_baseline_is_not_rewritten_when_an_xml_is_missing(self):
+        self.use_xml('bad_xml.xml')
+        self.run_main('--reset-baseline', '--xml-dir', self.out)
+        before = self.read_baseline()
+        os.remove(os.path.join(self.out, 'keyence', 'src', 'a', 'a.xml'))
+        self.assertEqual(2, self.run_main('--update-baseline', '--xml-dir', self.out))
+        self.assertEqual(2, self.run_main('--reset-baseline', '--xml-dir', self.out))
+        self.assertEqual(before, self.read_baseline())
+
+    def test_paths_limit_the_expected_xml(self):
+        self.write('src/b.iec', '(*\n * $ jiecc ./b.iec -o ./b.xml -t omron\n *)\n'
+                   '(*{doc B.}*)\nfunction F2: dint\n\tF2 := 2;\nend\n')
+        self.use_xml('good_xml.xml')
+        # src/b.iec has no XML: a full run fails, a run on src/a passes.
+        self.assertEqual(1, self.run_main('--xml-dir', self.out))
+        old = os.getcwd()
+        os.chdir(self.root)
+        try:
+            self.assertEqual(0, self.run_main('--xml-dir', self.out, 'src/a'))
+        finally:
+            os.chdir(old)
 
 
 if __name__ == '__main__':

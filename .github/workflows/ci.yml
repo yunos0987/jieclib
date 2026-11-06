@@ -92,7 +92,8 @@ jobs:
       - uses: ./.github/actions/setup-jiecc
 
       # A Python step runs the same way on Windows and Linux, and its exit
-      # code is the exit code of run_tests.py.
+      # code is the exit code of run_tests.py. The XML is kept in out/ for
+      # the next step.
       - name: Compile sources and tests
         shell: python
         run: |
@@ -101,14 +102,22 @@ jobs:
           import sys
 
           sys.exit(subprocess.call([sys.executable, "scripts/run_tests.py", "--compile-only",
+                                    "--output-dir", "out",
                                     "--jiecc", os.environ["JIECC_EXE"]]))
+
+      # Checks the names and types in the compiled XML (scripts/lint_xml.py).
+      # It runs even when a compile failed: the missing XML is reported.
+      - name: Lint the compiled XML
+        if: ${{ !cancelled() }}
+        run: python scripts/lint.py --xml-dir out
 
   # Runs the test files listed in scripts/jier_required.txt with jier. Unlike
   # the run job, a failure fails CI: every new test file must pass under jier.
   # Each line of the list gives the cycles the file needs, because jier keeps
   # running until --max-cycles even after the tests have finished. The job
-  # also runs the unit tests of run_tests.py, including the check that a
-  # timeout kills the whole jiecc process tree on this OS.
+  # also runs the unit tests of run_tests.py and lint.py with jiecc,
+  # including the check that a timeout kills the whole jiecc process tree on
+  # this OS.
   run-required:
     strategy:
       fail-fast: false
@@ -127,15 +136,19 @@ jobs:
 
       - uses: ./.github/actions/setup-jiecc
 
-      - name: Test run_tests.py
+      - name: Test run_tests.py and lint.py with jiecc
         shell: python
         run: |
           import os
           import subprocess
           import sys
 
+          # test_lint.py also recompiles its XML test data with jiecc here,
+          # to notice a change of the XML format of jiecc.
           env = dict(os.environ, JIECC=os.environ["JIECC_EXE"])
-          sys.exit(subprocess.call([sys.executable, "scripts/test_run_tests.py"], env=env))
+          codes = [subprocess.call([sys.executable, "scripts/" + name], env=env)
+                   for name in ("test_run_tests.py", "test_lint.py")]
+          sys.exit(1 if any(codes) else 0)
 
       - name: Run the required tests with jier
         shell: python

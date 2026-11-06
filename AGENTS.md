@@ -23,6 +23,7 @@ JiecLib は、IEC 61131-3 ST 言語のライブラリです。コーディング
 - 新しく追加したテストファイルは、jier で通し、必要な周期数と一緒に `scripts/jier_required.txt` に載せる（CI の `run-required` ジョブが必ず通す）。周期数は [docs/jier_cycles.md](docs/jier_cycles.md) の方法で測る。既存のテストファイルの多くは jier で通らないので、既存のファイルにテストを足すときは、新しいファイルに分ける。
 - `scripts/run_tests.py` を変更したら、`python scripts/test_run_tests.py` を実行する。
 - `.iec` を変更したら、`python scripts/lint.py` を実行し、`Lint passed.` と表示されることを確認する。キーワード・標準関数・型の名前の小文字、doc プラグマの書き方（`(*{doc ...}*)`）などを検査する（[CONTRIBUTING.md](CONTRIBUTING.md#規約の検査lint)）。
+- 名前と型の規則（予約語・`p_` の接頭辞・可変長配列・構造体の戻り値・エイリアス型・POU 名の長さ・キーエンスの名前の制約）は、コンパイルした XML で検査する。`python scripts/run_tests.py --compile-only --output-dir out` の後に `python scripts/lint.py --xml-dir out` を実行する（CI の `compile` ジョブも行う）。
 - 新しく書くコメントと doc プラグマは英語にし、テストには `// Fact:` を書く。既存の違反は `scripts/lint_baseline.json` に記録した分だけ許される。警告を通すために、この一覧に項目を足さない（CI が失敗にする）。直した警告は `python scripts/lint.py --update-baseline` で一覧から消す。
 
 ## 既知の落とし穴

@@ -7,3 +7,5 @@ __pycache__
 /test/**/*.xml
 #
 \.claude/settings\.local\.json
+#
+/out/

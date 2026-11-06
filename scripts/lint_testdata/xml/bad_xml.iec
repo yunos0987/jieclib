@@ -1,0 +1,56 @@
+(*
+ * Violates every XML rule of scripts/lint_xml.py. The expected findings are
+ * in scripts/test_lint.py (XmlRuleTest). The XML in out/ is the output of:
+ * $ jiecc ./bad_xml.iec -o ./out/omron/bad_xml.xml -t omron
+ * $ jiecc ./bad_xml.iec -o ./out/keyence/bad_xml.xml -t keyence
+ *)
+type
+	(*{doc An alias type (no-alias-type).}*)
+	Bad_count_t: dint;
+	(*{doc A structure with bad member names.}*)
+	Bad_record_t: struct
+		(*{doc omron-p-prefix.}*)
+		p_value: dint;
+		(*{doc reserved-name.}*)
+		left: dint;
+		(*{doc keyence-names (one letter).}*)
+		v: dint;
+		(*{doc Not a finding: the h rule applies only to variables.}*)
+		hash: dint;
+	end_struct;
+end_type
+
+(*{doc Returns a structure (no-struct-return).}*)
+function Bad_returns_struct: Bad_record_t
+	var_input
+		(*{doc varlen-array-inout (an input).}*)
+		values: array[*] of dint;
+		(*{doc keyence-names (one letter).}*)
+		x: dint;
+		(*{doc keyence-names (h without _).}*)
+		hi: dint;
+		(*{doc keyence-names (a device name).}*)
+		r1: dint;
+		(*{doc reserved-name.}*)
+		cmp: dint;
+		(*{doc omron-p-prefix.}*)
+		P_count: dint;
+	end_var
+	Bad_returns_struct.v := x;
+end_function
+
+(*{doc pou-name-length (65 bytes) and varlen-array-inout (a local variable).}*)
+function_block Bad_function_block_whose_name_is_longer_than_sixty_four_bytes_xxx
+	var
+		arr: array[*] of dint;
+	end_var
+	;
+end_function_block
+
+(*{doc Not checked: the name starts with JiecTest_.}*)
+function JiecTest_ignored: dint
+	var_input
+		x: dint;
+	end_var
+	JiecTest_ignored := x;
+end_function

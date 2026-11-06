@@ -1,0 +1,30 @@
+(*
+ * Has no finding of scripts/lint_xml.py. The XML in out/ is the output of:
+ * $ jiecc ./good_xml.iec -o ./out/omron/good_xml.xml -t omron
+ * $ jiecc ./good_xml.iec -o ./out/keyence/good_xml.xml -t keyence
+ *)
+type
+	(*{doc A structure with good member names.}*)
+	Good_record_t: struct
+		(*{doc A member.}*)
+		total_value: dint;
+		(*{doc A member that starts with h (allowed for members).}*)
+		hash: dint;
+	end_struct;
+end_type
+
+(*{doc Fills a structure through var_in_out instead of returning it.}*)
+function Good_fill_record: bool
+	var_in_out
+		(*{doc The variable-length array is a var_in_out parameter.}*)
+		values: array[*] of dint;
+		(*{doc The record to fill.}*)
+		record: Good_record_t;
+	end_var
+	var_input
+		(*{doc A name with an underscore.}*)
+		high_value: dint;
+	end_var
+	record.total_value := values[lower_bound(values, 1)] + high_value;
+	Good_fill_record := true;
+end_function

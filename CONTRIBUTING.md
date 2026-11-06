@@ -95,9 +95,36 @@ $ python scripts/lint.py src/math test/math
 - 一覧に項目を足す変更は、CI（`pr-checks.yml` の `lint-baseline` ジョブ）が失敗にします。規則そのものを見直す Pull Request だけは、`python scripts/lint.py --reset-baseline` で一覧を作り直し、管理者がラベル `lint-baseline-reset` を付けます。本文に理由を書いてください。
 - `scripts/test_lint.py` は、`lint.py` の単体テストです。規則ごとの違反の例と違反しない例が `scripts/lint_testdata/` にあります。
 
+#### コンパイルした XML の検査
+
+名前と型の規則は、jiecc でコンパイルした XML を読んで検査します。テンプレートが作る POU や変数の名前も検査できます。
+
+```
+$ python scripts/run_tests.py --compile-only --output-dir out
+$ python scripts/lint.py --xml-dir out
+```
+
+`--xml-dir` を付けると、ソースの規則に加えて、次の規則を検査します（`scripts/lint_xml.py`）。違反は `<XML>: error: <規則>: <POU 名>.<名前>: <説明>` の形で出力します。同じ POU は、それを include したすべての XML に入るので、規則・POU・名前ごとに 1 回だけ出力します。
+
+| 規則 | 重さ | 内容 |
+|---|---|---|
+| `xml-missing` | エラー | ヘッダーで宣言したターゲットの XML がない、または読めない（コンパイルの失敗を見逃さない） |
+| `pou-name-length` | エラー | POU 名が 64 バイトを超える |
+| `reserved-name` | エラー | 変数・構造体のメンバーの名前が `left`・`right`・`len`・`cmp`・`dec` |
+| `omron-p-prefix` | エラー | 変数・構造体のメンバーの名前が `p_`・`P_` で始まる |
+| `varlen-array-inout` | エラー | 可変長配列（`array[*]`）を `var_in_out` 以外で使う |
+| `no-struct-return` | エラー | 関数が構造体を返す |
+| `no-alias-type` | エラー | 直接派生型（エイリアス型）を宣言する |
+| `keyence-names` | 警告 | keyence（または mitsubishi）を宣言したファイルで、1 文字の名前、`h` / `H` で始まり `_` を含まない変数名、`^[rRtTcC]\d+$` の変数名を使う |
+
+- 対象は、関数・ファンクションブロックの変数（引数・局所変数・一時変数）と、構造体のメンバーです。テストのプログラム（`Program`）と、構成（`Configuration`）のグローバル変数（テストにだけある）と、JiecUnit の POU と型（`vendor/jiecunit` で定義し、`src/` で定義していないもの、`JiecTest_` で始まるもの）は検査しません。
+- `keyence-names` の既存の違反は、`scripts/lint_baseline.json` の `keyence-names` の節にあります（項目は `<POU 名>.<名前>`）。`--xml-dir` を付けずに `--update-baseline` を実行しても、この節は変わりません。
+- CI の `compile` ジョブが、コンパイルの後にこの検査を行います。
+- ファイルやディレクトリを指定すると（例: `python scripts/lint.py --xml-dir out src/math`）、その下のファイルの XML だけを読みます。
+
 ### CI
 
-GitHub Actions の CI（`.github/workflows/ci.yml`）は、Windows と Linux の両方で、最新の Jiecc（Windows は [jiecc.zip](https://www.graviness.com/iec_61131-3/jiecc.zip)、Linux は [jiecc.tgz](https://www.graviness.com/iec_61131-3/jiecc.tgz)）を取得し、`--compile-only` と `--run-only` を別々のジョブで実行します。現在、全テストを実行する `run` ジョブは失敗しても CI を失敗にしません。`run-required` ジョブは、`scripts/jier_required.txt` のテストファイルを jier で実行し（[jier で必ず通すテスト](#jier-で必ず通すテスト)）、失敗すると CI を失敗にします。このジョブは `scripts/run_tests.py` の単体テスト（`scripts/test_run_tests.py`）も実行します。`lint` ジョブは `scripts/lint.py` とその単体テストを実行します。
+GitHub Actions の CI（`.github/workflows/ci.yml`）は、Windows と Linux の両方で、最新の Jiecc（Windows は [jiecc.zip](https://www.graviness.com/iec_61131-3/jiecc.zip)、Linux は [jiecc.tgz](https://www.graviness.com/iec_61131-3/jiecc.tgz)）を取得し、`--compile-only` と `--run-only` を別々のジョブで実行します。現在、全テストを実行する `run` ジョブは失敗しても CI を失敗にしません。`run-required` ジョブは、`scripts/jier_required.txt` のテストファイルを jier で実行し（[jier で必ず通すテスト](#jier-で必ず通すテスト)）、失敗すると CI を失敗にします。このジョブは、`scripts/run_tests.py` と `scripts/lint.py` の単体テストも、jiecc を使って実行します。`compile` ジョブは、コンパイルの後に、生成した XML を `python scripts/lint.py --xml-dir out` で検査します（[コンパイルした XML の検査](#コンパイルした-xml-の検査)）。`lint` ジョブは `scripts/lint.py` とその単体テストを実行します。
 
 Pull Request では、`.github/workflows/pr-checks.yml` も実行します。本文やラベルを変えたときにも再実行されます。
 

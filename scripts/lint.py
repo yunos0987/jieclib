@@ -21,6 +21,13 @@ Rules (rule id, severity):
   parse          error    The file can be split into code, comments, strings
                           and pragmas (e.g. no unterminated comment).
 
+With --xml-dir DIR, the rules of scripts/lint_xml.py also check the XML
+that `python scripts/run_tests.py --compile-only --output-dir DIR` wrote
+(names and types after preprocessing, including the names made by the
+templates): xml-missing, pou-name-length, reserved-name, omron-p-prefix,
+varlen-array-inout, no-struct-return, no-alias-type (errors) and
+keyence-names (a warning).
+
 Warnings are managed with a baseline (scripts/lint_baseline.json): the list of
 warnings that existed when the rule was introduced. A warning that is not in
 the list fails the check. Entries do not contain line numbers, so moving code
@@ -36,6 +43,8 @@ Usage:
   python scripts/lint.py --update-baseline  # drop fixed warnings from the baseline
   python scripts/lint.py --reset-baseline   # rewrite the baseline from scratch
   python scripts/lint.py --check-baseline-against <commit>
+  python scripts/run_tests.py --compile-only --output-dir out
+  python scripts/lint.py --xml-dir out      # also check the compiled XML
 """
 import argparse
 import collections
@@ -44,6 +53,11 @@ import os
 import re
 import subprocess
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+import lint_xml  # noqa: E402
+import run_tests  # noqa: E402
 
 _DEFAULT_DIRS = ('src', 'test', 'samples')
 # Directories whose {#define} names are collected even when they are not linted.
@@ -64,6 +78,10 @@ RULES = collections.OrderedDict([
     ('test-fact', WARNING),
     ('parse', ERROR),
 ])
+SOURCE_RULES = tuple(RULES)
+SOURCE_WARNING_RULES = tuple(r for r, s in RULES.items() if s == WARNING)
+RULES.update(lint_xml.RULES)
+XML_WARNING_RULES = tuple(r for r, s in lint_xml.RULES if s == WARNING)
 WARNING_RULES = tuple(r for r, s in RULES.items() if s == WARNING)
 
 _KEYWORDS = frozenset('''
@@ -483,6 +501,40 @@ def _collect_targets(root, args):
     return files
 
 
+def xml_entries(root, paths):
+    # type: (str, list) -> list
+    """Return [(repository-relative path, targets)] of the files compiled by run_tests.py.
+
+    These are the files whose XML --xml-dir expects. With paths, only the
+    files under the given files or directories are returned.
+    """
+    items = run_tests._discover(root)
+    if paths:
+        prefixes = [os.path.normcase(os.path.abspath(p)) for p in paths]
+
+        def selected(item):
+            full = os.path.normcase(os.path.join(root, *item.name.split('/')))
+            return any(full == p or full.startswith(p.rstrip(os.sep) + os.sep) for p in prefixes)
+        items = [i for i in items if selected(i)]
+    return [(i.name, i.targets) for i in items]
+
+
+def jiecunit_names(root):
+    # type: (str) -> tuple
+    """Return (POU names, type names) that JiecUnit defines and src/ does not (lowercase)."""
+    def names(dirs):
+        pous, types = set(), set()
+        for path in _iter_files(root, dirs):
+            p, t = lint_xml.source_names(Scan(_read_text(path)).code)
+            pous |= p
+            types |= t
+        return pous, types
+    vendor_pous, vendor_types = names([os.path.join('vendor', 'jiecunit', 'src'),
+                                       os.path.join('vendor', 'jiecunit', 'sys')])
+    src_pous, src_types = names(['src'])
+    return vendor_pous - src_pous, vendor_types - src_types
+
+
 def load_baseline_text(text, origin):
     # type: (str, str) -> dict
     """Parse a baseline. Return {rule: set(keys)}. Raise ValueError when it is invalid."""
@@ -591,6 +643,9 @@ def main(argv=None, root=None):
                            '(only for a pull request that changes a rule)')
     mode.add_argument('--check-baseline-against', metavar='COMMIT',
                       help='fail if the baseline has entries that COMMIT does not have')
+    parser.add_argument('--xml-dir', metavar='DIR',
+                        help='also check the XML written by run_tests.py --compile-only '
+                             '--output-dir DIR (see scripts/lint_xml.py)')
     args = parser.parse_args(argv)
     root = root or _repo_root()
     # Messages quote non-ASCII comments; do not fail on a console that cannot show them.
@@ -620,6 +675,33 @@ def main(argv=None, root=None):
         findings.extend(lint_text(_read_text(path), _rel(root, path), macros))
     checked = set(_rel(root, p) for p in files)
 
+    active_rules = list(SOURCE_WARNING_RULES)
+    xml_count = 0
+    if args.xml_dir:
+        xml_dir = os.path.abspath(args.xml_dir)
+        if not os.path.isdir(xml_dir):
+            print('error: --xml-dir {}: no such directory'.format(args.xml_dir), file=sys.stderr)
+            return 2
+        entries = xml_entries(root, args.paths)
+        pous, types = jiecunit_names(root)
+        xml_findings = lint_xml.check_xml_dir(xml_dir, entries, pous, types,
+                                              display_root=os.getcwd())
+        findings.extend(xml_findings)
+        xml_count = sum(len(targets) for name, targets in entries)
+        active_rules.extend(XML_WARNING_RULES)
+    # XML keys have no path, so stale XML entries are reported only on a full
+    # run that could read every XML. With a missing XML, the warnings in it
+    # are unknown, so the baseline must not be rewritten either.
+    xml_incomplete = any(f.rule == 'xml-missing' for f in findings)
+    xml_full_run = bool(args.xml_dir) and not args.paths and not xml_incomplete
+    if xml_incomplete and (args.update_baseline or args.reset_baseline):
+        for f in findings:
+            if f.rule == 'xml-missing':
+                print(f.format(), file=sys.stderr)
+        print('error: some XML files are missing; compile them before updating the baseline.',
+              file=sys.stderr)
+        return 2
+
     baseline_path = os.path.join(root, _BASELINE_REL)
     baseline = {}
     if os.path.isfile(baseline_path):
@@ -629,7 +711,7 @@ def main(argv=None, root=None):
             print('error: {}'.format(e), file=sys.stderr)
             return 2
 
-    current = dict((r, set()) for r in WARNING_RULES)
+    current = dict((r, set()) for r in active_rules)
     for f in findings:
         if f.severity == WARNING:
             current[f.rule].add(f.key)
@@ -642,9 +724,14 @@ def main(argv=None, root=None):
         # --update-baseline only removes entries from the existing sections. A
         # warning rule without a section is a new rule; its section is created
         # from the current warnings (CI allows a new section, see
-        # baseline_additions).
+        # baseline_additions). The sections of rules that this run did not
+        # check (the XML rules without --xml-dir) are kept as they are.
         new = {}
         for rule in WARNING_RULES:
+            if rule not in current:
+                if rule in baseline:
+                    new[rule] = baseline[rule]
+                continue
             if args.update_baseline and rule in baseline:
                 new[rule] = current[rule] & baseline[rule]
             else:
@@ -661,8 +748,13 @@ def main(argv=None, root=None):
 
     stale = []
     for rule, keys in sorted(baseline.items()):
-        for key in sorted(keys - current.get(rule, set())):
-            if key.split(': ', 1)[0] in checked:
+        if rule not in current:
+            continue
+        for key in sorted(keys - current[rule]):
+            if rule in XML_WARNING_RULES:
+                if xml_full_run:
+                    stale.append((rule, key))
+            elif key.split(': ', 1)[0] in checked:
                 stale.append((rule, key))
     for rule, key in stale:
         print('note: {}: no longer occurs: {}'.format(rule, key))
@@ -671,8 +763,9 @@ def main(argv=None, root=None):
               'from {}.'.format(_BASELINE_REL))
 
     baselined = sum(1 for f in findings if f.severity == WARNING) - len(new_warnings)
-    print('lint: {} files, {} errors, {} new warnings, {} warnings in the baseline.'.format(
-        len(files), len(errors), len(new_warnings), baselined))
+    xml_note = ' and {} XML files'.format(xml_count) if args.xml_dir else ''
+    print('lint: {} files{}, {} errors, {} new warnings, {} warnings in the baseline.'.format(
+        len(files), xml_note, len(errors), len(new_warnings), baselined))
     if errors or new_warnings:
         return 1
     print('Lint passed.')

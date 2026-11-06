@@ -192,7 +192,7 @@ CONTRIBUTING.md と AGENTS.md の規約のうち、機械的に判定できる�
 - 2 層に分ける。
   - ソースを読む規則（PR-1）: jiecc は要らない。`.iec` を直接読む。
   - XML を読む規則（PR-3）: `--xml-dir DIR` で、`run_tests.py --compile-only --output-dir DIR`（PR-2）が出力した XML を読む。テンプレートが生成した POU・変数の名前も検査できる。前処理の出力は使わない（2.3 節）。
-- XML の規則は、規則ごとに読むターゲットを決める。`keyence-names` は `DIR/keyence/` の XML（keyence を宣言したファイルのコンパイル結果）を、ほかの規則は `DIR/omron/` の XML を読む。同じ POU が複数の XML に入るので（2.3 節）、POU 名と変数名の組で重複を除いてから報告する。報告には、その POU が見つかった XML の 1 つを書く。
+- XML の規則は、規則ごとに読むターゲットを決める。`keyence-names` は `DIR/keyence/` の XML（keyence を宣言したファイルのコンパイル結果）を、ほかの規則は `DIR/omron/` の XML を読む。同じ POU が複数の XML に入るので（2.3 節）、POU 名と変数名の組で重複を除いてから報告する。報告には、その POU が見つかった XML の 1 つを書く。（PR-3 では、`keyence-names` 以外の規則を全ターゲットの XML に当てた。下の「PR-3 の実装で計画から変えたこと」）
 - `--xml-dir` を指定したのに、ヘッダーから予想される XML がないとき（コンパイルの失敗など）は、エラーにする（読まずに通らない）。
 - 出力は `<path>:<line>: error: <rule-id>: <message>` の 1 行 1 件にする（`run_tests.py` の `error: ` の判定と揃える）。XML の規則は行番号が分からないため、`<xml>: error: <rule-id>: <POU 名>.<変数名>: <message>` とする。
 - 終了コードは、エラーがあれば 1、なければ 0。
@@ -221,10 +221,10 @@ CONTRIBUTING.md と AGENTS.md の規約のうち、機械的に判定できる�
 | `omron-p-prefix` | XML | エラー | 要素名が `p_` / `P_` で始まらない | CONTRIBUTING.md（オムロン環境） | 0 |
 | `varlen-array-inout` | XML | エラー | 可変長配列を `var_in_out` でだけ使う | CONTRIBUTING.md | 0 |
 | `no-struct-return` | XML | エラー | 関数の戻り値に構造体を使わない | CONTRIBUTING.md（オムロン環境） | 0 |
-| `keyence-names` | XML | 警告（基準値で管理）。D-1 の結論が出たらエラーにする | keyence を宣言したファイルで、1 文字の名前、`h` / `H` で始まり `_` を含まない名前、`^[rRtTcC]\d+$` の名前を使わない | CONTRIBUTING.md（キーエンス・三菱環境） | 55 |
+| `keyence-names` | XML | 警告（基準値で管理）。D-1 の結論が出たらエラーにする | keyence を宣言したファイルで、1 文字の名前、`h` / `H` で始まり `_` を含まない名前、`^[rRtTcC]\d+$` の名前を使わない | CONTRIBUTING.md（キーエンス・三菱環境） | 55（PR-3 の実装で数えると 54） |
 
 - `keyence-names` は、CONTRIBUTING.md の理由のとおりキーエンス（と三菱）環境の制約なので、keyence（または mitsubishi）を宣言したファイルのコンパイル結果にだけ当てる。omron だけのライブラリに当てると、既存の公開 API の引数名（`Math_floor` の `x` など）を変えることになり、名前付きの呼び出しを壊す。
-- ただし、keyence を宣言したファイルにも 55 件の違反があり、公開 API の引数を含む（2.5 節）。規則と宣言のどちらが正しいかが決まるまで（D-1）、`keyence-names` は警告にし、基準値の一覧（今の 55 件）で新しい違反を止める。
+- ただし、keyence を宣言したファイルにも 55 件（PR-3 の実装で数えると 54 件）の違反があり、公開 API の引数を含む（2.5 節）。規則と宣言のどちらが正しいかが決まるまで（D-1）、`keyence-names` は警告にし、基準値の一覧（PR-3 の実装で数えた 54 件）で新しい違反を止める。
 - 名前の規則は、XML の `Variable` 要素（引数・局所変数・外部変数を含む）と `Member` 要素に当てる。CONTRIBUTING.md の「要素名」が局所変数を含むかも、D-1 で確かめる。
 - PP30・PP23（コメント中のディレクティブ）は、コンパイルが止まるので規則にしない（2.3 節）。
 - エイリアス型（CONTRIBUTING.md で禁止）は、XML での表し方を PR-3 で確かめてから規則にする。
@@ -254,7 +254,7 @@ PR-3:
 1. `scripts/lint.py --xml-dir DIR` に XML の規則を実装する。POU は `Function` / `FunctionBlock` 要素、変数は `Variable` 要素、構造体のメンバーは `DataTypeDecl` の下の `Member` 要素から読む。
 2. JiecUnit の POU（`vendor/jiecunit` のソースで定義され、`src/` のソースで定義されていない名前と、`JiecTest_` で始まる名前）と、テストのプログラム（`Program` 要素）は対象外にする。
 3. `ci.yml` の `compile` ジョブで、`run_tests.py --compile-only --output-dir out` の後に `python scripts/lint.py --xml-dir out` を実行する（コンパイルを 2 回しない）。
-4. 既存のコードで実行する。エラーの規則の違反は今 0 件で、`keyence-names` の 55 件は基準値にする。D-1 の結論が出たら、規則か宣言（または名前）を直して、エラーに切り替える。公開 API の引数名を変える直し方は、名前付きの呼び出しを壊すので、次のメジャー版に回す。
+4. 既存のコードで実行する。エラーの規則の違反は今 0 件で、`keyence-names` の 55 件（PR-3 の実装で数えると 54 件）は基準値にする。D-1 の結論が出たら、規則か宣言（または名前）を直して、エラーに切り替える。公開 API の引数名を変える直し方は、名前付きの呼び出しを壊すので、次のメジャー版に回す。
 
 #### PR-1 の実装で計画から変えたこと
 
@@ -266,6 +266,20 @@ PR-1 は、ブランチ `feature/lint` で実装した（マージの前）。D-
 - `doc-language` は、`//` のコメントに加えて `(* *)` のコメントも見る（CONTRIBUTING.md は、すべてのコメントを英語と定めている）。基準値の項目は「ファイル: 最初の日本語の行」で、同じファイルに同じ行が複数あれば `#2` などを付ける。
 - 構文の解析に失敗したとき（閉じていないコメント・文字列・プラグマ、コードに残った `*)`）を、エラーの規則 `parse` にした。jiecc は入れ子のコメントを受け付けないので、入れ子は `parse` で検出する。
 - 基準値を作り直すオプションを `--reset-baseline` とした（`lint-baseline-reset` のラベルを付ける PR で使う）。
+
+#### PR-3 の実装で計画から変えたこと
+
+PR-3 は、ブランチ `feature/lint-xml`（`feature/run-tests` の上）で実装した（マージの前）。
+
+- XML の規則は `scripts/lint_xml.py` に分け、`lint.py --xml-dir` から呼ぶ。
+- エイリアス型は、XML の `DataTypeDecl` の `UserDefinedTypeSpec` が `xsi:type="DirectlyDerivedTypeSpec"` になると確かめたので、エラーの規則 `no-alias-type` にした（既存の違反は 0 件）。
+- `xml-missing` を規則にした。ヘッダーから予想される XML がない、または読めないときのエラーである（設計の「読まずに通らない」）。
+- 名前の規則は、全ターゲットの XML（keyence の XML を含む）に当てる。`keyence-names` だけは、keyence と mitsubishi の XML に当てる。
+- CONTRIBUTING.md は、`h` / `H` の規則と `^[rRtTcC]\d+$` の規則を「変数名」、1 文字の規則を「要素名」に当てている。そこで、構造体のメンバーには 1 文字の規則だけを当てる（container の `HashMap_*_Entry_t` のメンバー `hash` の 21 件は違反にしない）。
+- `keyence-names` の既存の違反は 54 件（1 文字 50 件、`hi` 4 件）で、2.5 節の 55 件（`h` で始まるもの 5 件）と 1 件違う。2.5 節の数え方は記録が残っていないため、差の理由は確かめていない。基準値は、実装した規則で数えた 54 件にした。
+- 基準値で、`--xml-dir` を付けない実行（CI の `lint` ジョブや、手元での `--update-baseline`）は、`keyence-names` の節を変えない。古い項目の通知（`note: ... no longer occurs`）は、`--xml-dir` を付けて、パスを指定せずに全体を検査したときだけ出す。
+- `scripts/lint_testdata/xml/` に、jiecc でコンパイルした XML を置く（jiecc のない `lint` ジョブで規則を試験するため）。`run-required` ジョブでは、jiecc でコンパイルし直して、置いた XML と同じ結果になることを確かめる（jiecc の XML の形が変わったことに気づくため）。
+- CI の `compile` ジョブは、コンパイルが失敗しても XML の検査を行う（`if: !cancelled()`）。失敗したファイルの XML は `xml-missing` として報告される。
 
 #### 完了の条件
 
