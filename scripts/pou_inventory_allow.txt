@@ -1,0 +1,43 @@
+# Public POUs (and template operations such as HashMap_*_copy) that may stay
+# without a direct test. scripts/pou_inventory.py --check fails when an
+# untested public POU is missing here, and when a line here is stale (the POU
+# no longer exists, or a test calls it now): remove the line then.
+#
+# Format: <POU name or template form> <reason>
+
+# Identity conversions used by the type conversion macros of sys_conv.iec.
+string_to_string Identity conversion used by the conversion macros of sys_conv.iec.
+udint_to_udint Identity conversion used by the conversion macros of sys_conv.iec.
+uint_to_uint Identity conversion used by the conversion macros of sys_conv.iec.
+
+# Internal helper with a public-looking name (roadmap D-9).
+hex_nibble Internal helper of hex.iec; to be renamed private_hex_nibble in the next major version (roadmap D-9).
+
+# Tests to be written in PR-7 of docs/roadmap.md.
+Array_bubblesort_dint PR-7: the dint version of a tested lreal function.
+Array_bubblesort_n_dint PR-7: the dint version of a tested lreal function.
+Array_copy_x_dint PR-7: the dint version of a tested lreal function.
+Array_isRegular2d_dint PR-7: the dint version of a tested lreal function.
+Array_isRegular2d_x_dint PR-7: the dint version of a tested lreal function.
+Array_isRegular_dint PR-7: the dint version of a tested lreal function.
+Array_mergesort_n_dint PR-7: the dint version of a tested lreal function.
+Array_quicksort_n_dint PR-7: the dint version of a tested lreal function.
+Console_print PR-7: test the print macro in test/test_sys_console.iec.
+MersenneTwister_next PR-7: the version with a number of bits.
+Xorshift32_next PR-7: the version with a number of bits.
+Stats_p_value_chi_square_right PR-7: compare with scipy.
+Stats_p_value_normal_two_tailed PR-7: compare with scipy.
+Stats_p_value_t_two_tailed PR-7: compare with scipy.
+coefficientOfVariation PR-7: basic statistics of stats.iec.
+geometricMean PR-7: basic statistics of stats.iec.
+harmonicMean PR-7: basic statistics of stats.iec.
+kurtosis PR-7: basic statistics of stats.iec.
+mean PR-7: basic statistics of stats.iec.
+median PR-7: basic statistics of stats.iec.
+sampleSize PR-7: basic statistics of stats.iec.
+sampleVariance PR-7: basic statistics of stats.iec.
+skewness PR-7: basic statistics of stats.iec.
+standardDeviation PR-7: basic statistics of stats.iec.
+standardError PR-7: basic statistics of stats.iec.
+sum PR-7: basic statistics of stats.iec.
+variance PR-7: basic statistics of stats.iec.

@@ -122,6 +122,21 @@ $ python scripts/lint.py --xml-dir out
 - CI の `compile` ジョブが、コンパイルの後にこの検査を行います。
 - ファイルやディレクトリを指定すると（例: `python scripts/lint.py --xml-dir out src/math`）、その下のファイルの XML だけを読みます。
 
+#### テストのない POU の検査
+
+公開の POU には、テストを書いてください。`scripts/pou_inventory.py` は、コンパイルした XML（omron）を読み、テストのプログラムから直接呼ばれていない公開の POU を一覧にします。
+
+```
+$ python scripts/run_tests.py --compile-only --output-dir out
+$ python scripts/pou_inventory.py --xml-dir out --check
+```
+
+- `src/` のエントリファイルの XML にある POU（`src/` が具体化したテンプレートの POU を含む）は、1 つずつテストが要ります。
+- テストでだけ具体化するテンプレート（container など）は、操作ごとにまとめます。`HashMap_*_copy` のどれか 1 つの具体化が呼ばれていれば、テストありです。操作の形は、テンプレートの名前を作るマクロ（`{#define _HASHMAP_COPY_(T) HashMap_@@T@@_copy}`）から求めます。
+- 名前に `private` または `_static_` を含む POU は、内部の POU なので対象外です。
+- テストを書かない理由がある POU は、`scripts/pou_inventory_allow.txt` に `<名前またはテンプレートの形> <理由>` の形で載せます。`--check` は、一覧にないテストなしの POU、どの分類にも当てはまらない POU（未分類）、理由のない行、古い行（POU がない、またはテストができた）があれば失敗します。テストを書いたら、一覧の行を消してください。
+- CI の `compile` ジョブが、XML の lint の後に `--check` を実行します。
+
 ### CI
 
 GitHub Actions の CI（`.github/workflows/ci.yml`）は、Windows と Linux の両方で、最新の Jiecc（Windows は [jiecc.zip](https://www.graviness.com/iec_61131-3/jiecc.zip)、Linux は [jiecc.tgz](https://www.graviness.com/iec_61131-3/jiecc.tgz)）を取得し、`--compile-only` と `--run-only` を別々のジョブで実行します。現在、全テストを実行する `run` ジョブは失敗しても CI を失敗にしません。`run-required` ジョブは、`scripts/jier_required.txt` のテストファイルを jier で実行し（[jier で必ず通すテスト](#jier-で必ず通すテスト)）、失敗すると CI を失敗にします。このジョブは、`scripts/run_tests.py` と `scripts/lint.py` の単体テストも、jiecc を使って実行します。`compile` ジョブは、コンパイルの後に、生成した XML を `python scripts/lint.py --xml-dir out` で検査します（[コンパイルした XML の検査](#コンパイルした-xml-の検査)）。`lint` ジョブは `scripts/lint.py` とその単体テストを実行します。

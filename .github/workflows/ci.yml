@@ -67,6 +67,7 @@ jobs:
         run: |
           python scripts/test_lint.py
           python scripts/test_check_pr_body.py
+          python scripts/test_pou_inventory.py
 
       - name: Lint
         run: python scripts/lint.py
@@ -110,6 +111,12 @@ jobs:
       - name: Lint the compiled XML
         if: ${{ !cancelled() }}
         run: python scripts/lint.py --xml-dir out
+
+      # Every public POU needs a test, unless scripts/pou_inventory_allow.txt
+      # lists it with a reason (scripts/pou_inventory.py).
+      - name: Check that the public POUs have tests
+        if: ${{ !cancelled() }}
+        run: python scripts/pou_inventory.py --xml-dir out --check
 
   # Runs the test files listed in scripts/jier_required.txt with jier. Unlike
   # the run job, a failure fails CI: every new test file must pass under jier.

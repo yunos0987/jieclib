@@ -24,6 +24,7 @@ JiecLib は、IEC 61131-3 ST 言語のライブラリです。コーディング
 - `scripts/run_tests.py` を変更したら、`python scripts/test_run_tests.py` を実行する。
 - `.iec` を変更したら、`python scripts/lint.py` を実行し、`Lint passed.` と表示されることを確認する。キーワード・標準関数・型の名前の小文字、doc プラグマの書き方（`(*{doc ...}*)`）などを検査する（[CONTRIBUTING.md](CONTRIBUTING.md#規約の検査lint)）。
 - 名前と型の規則（予約語・`p_` の接頭辞・可変長配列・構造体の戻り値・エイリアス型・POU 名の長さ・キーエンスの名前の制約）は、コンパイルした XML で検査する。`python scripts/run_tests.py --compile-only --output-dir out` の後に `python scripts/lint.py --xml-dir out` を実行する（CI の `compile` ジョブも行う）。
+- 公開の POU を追加したら、テストを書く。`python scripts/pou_inventory.py --xml-dir out --check`（`run_tests.py --compile-only --output-dir out` の後）が、テストのない公開の POU を検出する。テストを書いたら、`scripts/pou_inventory_allow.txt` からその行を消す。
 - 新しく書くコメントと doc プラグマは英語にし、テストには `// Fact:` を書く。既存の違反は `scripts/lint_baseline.json` に記録した分だけ許される。警告を通すために、この一覧に項目を足さない（CI が失敗にする）。直した警告は `python scripts/lint.py --update-baseline` で一覧から消す。
 
 ## 既知の落とし穴
