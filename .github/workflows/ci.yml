@@ -50,6 +50,27 @@ jobs:
               print("error: " + line)
           sys.exit(1 if bad else 0)
 
+  # Checks the coding rules that can be checked without jiecc
+  # (scripts/lint.py). A warning that is not in scripts/lint_baseline.json
+  # fails the job. The comparison of the baseline with the target branch is in
+  # pr-checks.yml, because it reruns when a label changes.
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.x"
+
+      - name: Test the lint and PR body scripts
+        run: |
+          python scripts/test_lint.py
+          python scripts/test_check_pr_body.py
+
+      - name: Lint
+        run: python scripts/lint.py
+
   # Compiles every library entry file in src/ and every test file in test/
   # for the targets named in their header comments. A failure fails CI.
   compile:
