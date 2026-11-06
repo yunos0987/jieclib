@@ -15,6 +15,12 @@
   - `ci.yml` の `lint`: `scripts/lint.py` とその単体テストを実行します。
   - `pr-checks.yml`（新しい workflow）の `lint-baseline`: Pull Request が `scripts/lint_baseline.json` に項目を足していたら失敗にします。規則を見直す Pull Request は、ラベル `lint-baseline-reset` で比較を省略します。
   - `pr-checks.yml` の `pr-body`: `src/` を変更した Pull Request の本文に L3 の結果が、keyence を宣言したファイルを変更した Pull Request の本文に L4 の結果が書かれていなければ失敗にします（`scripts/check_pr_body.py`）。宛先が `main` の Pull Request は対象外です。
+- `scripts/run_tests.py` を直し、拡張しました。
+  - 時間切れのときに、jiecc が起動した子のプロセスが残り、`run_tests.py` が終わらなくなる不具合を直しました。jiecc は、起動したプロセスが実際に処理する子のプロセスを起動するため、時間切れのときは、子を含むプロセスの木ごと終了させます。
+  - 既定の `--max-cycles` を 100000 から 2000 に下げました。jier は、テストが終わった後も指定した周期数まで回り続けるため、4.0.0 の「既知の問題」の、エラーで止まらない 29 ファイルは時間切れになっていました。2000 周期では、そのうち 28 ファイルが合格します。残りの `test/string_lib/test_string_lib.iec` は、jier の `find` の振る舞いのため終わりません。測定の結果は `docs/jier_cycles.md` にあります。
+  - `[========] Running N tests.` の数と、実行したテストの数が合わないとき（周期数が足りないとき）も、失敗と判定するようにしました。
+  - `--output-dir DIR`（生成した XML を残す）と `--paths-from FILE`（対象のパスと周期数をファイルから読む）を追加しました。
+- jier で必ず通すテストファイルの一覧 `scripts/jier_required.txt` と、CI の `run-required` ジョブを追加しました。一覧のテストが jier で失敗すると、CI が失敗します。新しく追加するテストファイルは、この一覧に載せます。
 - この節（`[Unreleased]`）を設けました。変更は Pull Request ごとにこの節へ書き、リリースのコミットで見出しを `[X.Y.Z] - 日付` に置き換えます。
 
 ## [4.0.0] - 2026-11-01

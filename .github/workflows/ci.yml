@@ -103,10 +103,57 @@ jobs:
           sys.exit(subprocess.call([sys.executable, "scripts/run_tests.py", "--compile-only",
                                     "--jiecc", os.environ["JIECC_EXE"]]))
 
-  # Runs the tests with the jier interpreter (jiecc --run). Many tests do not
-  # run under jier yet, so this job is informational: continue-on-error keeps
-  # a failure from failing CI. It becomes required once Jiecc and JiecLib
-  # support running all tests with jier.
+  # Runs the test files listed in scripts/jier_required.txt with jier. Unlike
+  # the run job, a failure fails CI: every new test file must pass under jier.
+  # Each line of the list gives the cycles the file needs, because jier keeps
+  # running until --max-cycles even after the tests have finished. The job
+  # also runs the unit tests of run_tests.py, including the check that a
+  # timeout kills the whole jiecc process tree on this OS.
+  run-required:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.x"
+
+      - uses: ./.github/actions/setup-jiecc
+
+      - name: Test run_tests.py
+        shell: python
+        run: |
+          import os
+          import subprocess
+          import sys
+
+          env = dict(os.environ, JIECC=os.environ["JIECC_EXE"])
+          sys.exit(subprocess.call([sys.executable, "scripts/test_run_tests.py"], env=env))
+
+      - name: Run the required tests with jier
+        shell: python
+        run: |
+          import os
+          import subprocess
+          import sys
+
+          sys.exit(subprocess.call([sys.executable, "scripts/run_tests.py", "--run-only",
+                                    "--paths-from", "scripts/jier_required.txt",
+                                    "--timeout", "300",
+                                    "--jiecc", os.environ["JIECC_EXE"]]))
+
+  # Runs all the tests with the jier interpreter (jiecc --run). Many tests do
+  # not run under jier yet, so this job is informational: continue-on-error
+  # keeps a failure from failing CI. It becomes required once Jiecc and
+  # JiecLib support running all tests with jier. New test files are checked
+  # by the run-required job instead.
   run:
     strategy:
       fail-fast: false

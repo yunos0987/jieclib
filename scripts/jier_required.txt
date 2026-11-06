@@ -1,0 +1,11 @@
+# Test files that must pass under jier (jiecc --run). CI runs them in the
+# run-required job:
+#   python scripts/run_tests.py --run-only --paths-from scripts/jier_required.txt --timeout 300
+#
+# One file per line, relative to the repository root with "/" as the
+# separator, followed by the number of jier cycles the file needs:
+#   test/math/test_floor_large.iec 1000
+# Measure the cycles as docs/jier_cycles.md describes. jier keeps running
+# until the given number of cycles, so do not give many more than needed.
+#
+# Add every new test file here (CONTRIBUTING.md, "テストの実行").

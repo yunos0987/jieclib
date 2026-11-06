@@ -54,8 +54,28 @@ $ python scripts/run_tests.py --jiecc /path/to/jiecc.exe
 - `--compile-only`: コンパイルだけを行います。
 - `--run-only`: テストの実行だけを行います。
 - `--jobs N`: 並列に実行する jiecc の数（既定: CPU 数）。
-- `--max-cycles N`: `jiecc --run` の最大スキャン回数。
-- `--timeout SEC`: jiecc 1 回あたりの制限時間（秒）。
+- `--max-cycles N`: `jiecc --run` の最大スキャン回数（既定: 2000。[jier の周期数](#jier-の周期数)）。
+- `--timeout SEC`: jiecc 1 回あたりの制限時間（秒）。時間を超えると、jiecc が起動した子のプロセスも含めて終了させ、失敗とします。
+- `--output-dir DIR`: 生成した XML を消さずに、`DIR/<ターゲット>/<ファイルのパス>.xml`（例: `DIR/omron/src/string_lib/string_lib.xml`）に残します。コンパイルに失敗したファイルの XML は残しません。`--run-only` とは一緒に使えません。
+- `--paths-from FILE`: 対象のパスを、ファイルから 1 行 1 項目で読みます（下記）。
+
+#### jier の周期数
+
+jier は、テストが終わった後も `--max-cycles` で指定した周期数まで回り続けます。そのため、実行時間は周期数でほぼ決まります（1,000 周期あたり数秒）。周期数が足りないと、集計行が出ないか、`[========] Running N tests.` の N と実行したテストの数が合わず、失敗と判定されます。ファイルごとに必要な周期数は [docs/jier_cycles.md](docs/jier_cycles.md) にあります。
+
+#### jier で必ず通すテスト
+
+新しく追加したテストファイルは、`scripts/jier_required.txt` に、必要な周期数と一緒に載せてください。CI の `run-required` ジョブが、Windows と Linux で、この一覧のファイルを jier で実行し、1 つでも失敗すると CI を失敗にします（全テストを実行する `run` ジョブは、参考扱いです）。
+
+```
+# <リポジトリからの相対パス> <周期数>
+test/math/test_floor_large.iec 1000
+```
+
+- パスの区切りは `/` にしてください。`\` を含む行、存在しないパス、同じパスの重複はエラーになります。テストを実行するとき（`--compile-only` を付けないとき）は、テストファイルを含まないパスもエラーになります。
+- 周期数は、[docs/jier_cycles.md](docs/jier_cycles.md) の方法で測った値にしてください。
+- 手元では `python scripts/run_tests.py --run-only --paths-from scripts/jier_required.txt` で確かめられます。
+- 既存のテストファイルの多くは、jier で通りません（CHANGELOG.md 4.0.0 の「既知の問題」）。既存のファイルにテストを足すときは、jier で通る新しいファイルに分けて、この一覧に載せてください。
 
 ### 規約の検査（lint）
 
@@ -77,7 +97,7 @@ $ python scripts/lint.py src/math test/math
 
 ### CI
 
-GitHub Actions の CI（`.github/workflows/ci.yml`）は、Windows と Linux の両方で、最新の Jiecc（Windows は [jiecc.zip](https://www.graviness.com/iec_61131-3/jiecc.zip)、Linux は [jiecc.tgz](https://www.graviness.com/iec_61131-3/jiecc.tgz)）を取得し、`--compile-only` と `--run-only` を別々のジョブで実行します。現在、テストの実行のジョブは失敗しても CI を失敗にしません。`lint` ジョブは `scripts/lint.py` とその単体テストを実行します。
+GitHub Actions の CI（`.github/workflows/ci.yml`）は、Windows と Linux の両方で、最新の Jiecc（Windows は [jiecc.zip](https://www.graviness.com/iec_61131-3/jiecc.zip)、Linux は [jiecc.tgz](https://www.graviness.com/iec_61131-3/jiecc.tgz)）を取得し、`--compile-only` と `--run-only` を別々のジョブで実行します。現在、全テストを実行する `run` ジョブは失敗しても CI を失敗にしません。`run-required` ジョブは、`scripts/jier_required.txt` のテストファイルを jier で実行し（[jier で必ず通すテスト](#jier-で必ず通すテスト)）、失敗すると CI を失敗にします。このジョブは `scripts/run_tests.py` の単体テスト（`scripts/test_run_tests.py`）も実行します。`lint` ジョブは `scripts/lint.py` とその単体テストを実行します。
 
 Pull Request では、`.github/workflows/pr-checks.yml` も実行します。本文やラベルを変えたときにも再実行されます。
 
