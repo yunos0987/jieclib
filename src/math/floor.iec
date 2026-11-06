@@ -7,8 +7,8 @@
 
 {#include <sys.iec>}
 
-{doc 与えられた値以下の最大の整数を返す（床関数）
-  floor(2.7) = 2.0, floor(-2.7) = -3.0}
+(*{doc 与えられた値以下の最大の整数を返す（床関数）
+  floor(2.7) = 2.0, floor(-2.7) = -3.0}*)
 function Math_floor: lreal
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
