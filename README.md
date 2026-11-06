@@ -671,7 +671,7 @@ $ cd jieclib
 $ python scripts/run_tests.py
 ```
 
-jiecc は、`--jiecc PATH`、環境変数 `JIECC`、`PATH` 上の `jiecc` の順に探します。オプションの詳細、コーディング規約、貢献の流れは [CONTRIBUTING.md](./CONTRIBUTING.md) を参照してください。
+jiecc は、`--jiecc PATH`、環境変数 `JIECC`、`PATH` 上の `jiecc` の順に探します。コーディング規約の検査は `python scripts/lint.py` で行えます（jiecc は不要です）。オプションの詳細、コーディング規約、貢献の流れは [CONTRIBUTING.md](./CONTRIBUTING.md) を参照してください。
 
 PLCメーカーのツールでテストを実行する場合は、次の手順に従います。
 

@@ -2,6 +2,21 @@
 
 このファイルは、3.4.0 以降の変更を記録します。それ以前の変更は、Git のタグ（`v1.2.0` 〜 `v3.2.0`）と GitHub のリリース・Pull Request（https://github.com/yunos0987/jieclib）を参照してください。
 
+## [Unreleased]
+
+### その他 / Other
+
+- `scripts/lint.py` を追加しました。CONTRIBUTING.md と AGENTS.md の規約のうち、ソースを読んで判定できるもの（キーワードなどの小文字、doc プラグマの書き方・引用符・有無、`continue` と `/* */` の禁止、コメントの英語、テストの `// Fact:`）を検査します。既存の警告（日本語のコメント・doc プラグマ 1,139 件、`// Fact:` のないテスト 273 件）は `scripts/lint_baseline.json` に一覧として記録し、一覧にない警告だけを失敗にします。`scripts/test_lint.py` がその単体テストです。
+- 規約に合わせて、既存のソースを直しました。動作は変わりません。
+  - 大文字のキーワードと真理値（`OR` 2 か所、`TRUE` 2 か所）と、大文字の標準関数の名前（`COS`・`SQRT`・`SIN`・`LN`・`EXP`・`ASIN` の 18 か所）を小文字にしました。
+  - doc プラグマの書き方を `(*{doc ...}*)` に揃えました（`{doc ...}`・`{doc: ...}`・`(*{doc: ...}*)` の 49 か所。6 ファイル）。生成される XML の `Documentation` は変わりません。
+- Pull Request のテンプレート（`.github/pull_request_template.md`）を追加しました。CI で確かめられない、Sysmac Studio のシミュレータ（L3）と KV Studio（L4）での実行の結果を書く欄があります。
+- CI に次のジョブを追加しました。
+  - `ci.yml` の `lint`: `scripts/lint.py` とその単体テストを実行します。
+  - `pr-checks.yml`（新しい workflow）の `lint-baseline`: Pull Request が `scripts/lint_baseline.json` に項目を足していたら失敗にします。規則を見直す Pull Request は、ラベル `lint-baseline-reset` で比較を省略します。
+  - `pr-checks.yml` の `pr-body`: `src/` を変更した Pull Request の本文に L3 の結果が、keyence を宣言したファイルを変更した Pull Request の本文に L4 の結果が書かれていなければ失敗にします（`scripts/check_pr_body.py`）。宛先が `main` の Pull Request は対象外です。
+- この節（`[Unreleased]`）を設けました。変更は Pull Request ごとにこの節へ書き、リリースのコミットで見出しを `[X.Y.Z] - 日付` に置き換えます。
+
 ## [4.0.0] - 2026-11-01
 
 ### 互換性に影響する変更 / Breaking changes

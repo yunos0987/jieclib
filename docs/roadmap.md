@@ -91,7 +91,7 @@ PR-1 は最初にマージする。CHANGELOG.md の `[Unreleased]` 節、PR の�
 
 - `jiecc --preprocess-only` は `-o` を無視して標準出力に書く。Windows では標準出力のエンコーディングが cp932 になるため、cp932 で表せない文字（`≈`・`²`・`–` など）を含むファイルは、`'cp932' codec can't encode character` のエラーで必ず失敗する。`PYTHONUTF8=1` と `PYTHONIOENCODING=utf-8` では回避できなかった。コンパイル（`-o` で XML を出力）はこの問題が起きない。このため、lint と POU の棚卸しは、前処理の出力ではなく、コンパイルした XML を読んで行う。
 - コンパイルした XML（名前空間 `www.iec.ch/public/TC65SC65BWG7TF10`）には、POU（`Function` / `FunctionBlock` / `Program`）、変数（`Variable`）、構造体のメンバー（`DataTypeDecl` の下の `Member`）、可変長配列（`VariableLength`）、ST の本体（`ST`）が入る。POU を定義したソースのファイル名は入らない。include したファイルの POU（`sys.iec` の `Console_*` など）は、それを include したすべての XML に入る。
-- PP29（doc プラグマのアポストロフィ）は、対になっていないアポストロフィ（例: `doesn't`）でだけ警告が出る。`'='` のように対になっていれば出ない。警告なので、コンパイルは通る。
+- PP29（doc プラグマの引用符）は、閉じていない引用符（例: `doesn't`）でだけ警告が出る。`'='` のように対になっていれば出ない。jiepp は doc プラグマの中の `'` と `"` の両方を文字列の始まりとして読み、文字列の中では `$` が次の 1 文字をエスケープする。文字列の外の `$'` はエスケープにならない（`$27` と書く）。警告なので、コンパイルは通る。doc プラグマの中の閉じていない `/*` は、エラー PP20 でコンパイルが止まる（PR-1 の実装時に確かめた）。
 - AGENTS.md の PP30 の例（`//   {#define NAME(...)`）は、Jiecc 9.2.0 ではエラー PP23 になり、コンパイルが止まる。L1 で必ず検出できるので、lint の規則にはしない。
 - jier で全 112 のテストファイルを実行すると（`run_tests.py --timeout 600`。`--max-cycles` は既定の 100000）、83 ファイルが CHANGELOG.md の記載どおりのエラーで止まった（`cannot marshal Python int ... LREAL` が 62、`shr` の `UNDEFINED_SYMBOL` が 15、`shl` が 6）。残りの 29 ファイルは、すべて 600 秒の制限を超えた。うち 23 ファイルは時間切れとして集計され、6 ファイル（`test/container/arraylist/test_arraylist.iec` など）は、次の不具合で `run_tests.py` が終わらず、集計されていない。合格したファイルは 0 件。
 - `run_tests.py` の時間切れの処理に不具合がある（Windows で確認）。jiecc.exe は、起動したプロセスが、実際に処理するプロセスを子として起動する 2 段の構成になっている。`subprocess.run(..., timeout=...)` は、時間切れのときに起動したプロセスだけを kill する。そのため、子のプロセスは残って動き続け、標準出力のパイプを開いたままにするので、`run_tests.py` は子が終わるまで待ち続ける。計測では、600 秒の制限を過ぎた 6 つの子のプロセスが、1 時間以上動き続けた。Linux で同じことが起きるか、CI の `run` ジョブ（Windows）がこれで `timeout-minutes: 120` まで止まっているかは、確かめていない。
@@ -128,7 +128,7 @@ CONTRIBUTING.md と AGENTS.md の規約のうち、機械的に判定できる�
 | 真理値のリテラルが大文字 | 2 | `src/array/sort_template.iec:338,351` の `while TRUE do` |
 | 標準関数の名前が大文字 | 18 | `COS` 5・`SQRT` 5・`SIN` 4・`LN` 2・`EXP` 1・`ASIN` 1（`linalg/`・`random/poisson_template.iec` など） |
 | 型の名前が大文字 | 0 | 大文字の `STRING` は約 100 行で使われているが、すべて `{#define STRING ...}`（14 ファイル、18 行）で定義したマクロ |
-| doc プラグマの対になっていないアポストロフィ（PP29） | 0 | 対になったアポストロフィ（`'='` など）は 6 か所あるが、警告は出ない |
+| doc プラグマの閉じていない引用符（PP29） | 0 | 対になったアポストロフィ（`'='` など）は 6 か所あるが、警告は出ない |
 | `src/` の POU の直前に doc プラグマがない | 0 | `test/` のヘルパー関数（`hashmap_dint.iec` の `Dint_hash_for_hashmap_test` など）だけに 23 件ある |
 | `continue` を使っている | 0 | |
 | `/* */` のコメント | 0 | |
@@ -139,14 +139,14 @@ doc プラグマの書き方は 4 通りある。
 
 | 書き方 | 出現数 | ファイル数 |
 |---|---|---|
-| `(*{doc ...}*)` | 1,194 | 111 |
-| `{doc ...}` | 37 | 5（`math/atan2.iec`・`math/floor.iec`・`string_lib/string_lib.iec`・`container/hashmap/hashmap_template.iec`・`sys_conv.iec`） |
+| `(*{doc ...}*)` | 1,196 | 111 |
+| `{doc ...}` | 35 | 4（`math/atan2.iec`・`math/floor.iec`・`string_lib/string_lib.iec`・`container/hashmap/hashmap_template.iec`） |
 | `{doc: ...}` | 13 | 2（`string_lib/string_lib.iec`・`string_lib/equivalence.iec`） |
 | `(*{doc: ...}*)` | 1 | 1（`encoding/base64.iec`） |
 
-`(*{doc ...}*)` 以外の書き方は、合わせて 51 か所、7 ファイルにある。
+`(*{doc ...}*)` 以外の書き方は、合わせて 49 か所、6 ファイルにある。`sys_conv.iec` のマクロの本体にある 2 か所（`(*${doc ...$}*)`）は、マクロの中でエスケープした `(*{doc ...}*)` の形で、正しい（最初の計測では `{doc ...}` と数えていた。PR-1 の実装時に直した）。
 
-doc プラグマの言語: CONTRIBUTING.md は「コメントや doc プラグマ内では、英語を使用すること」と定めているが、`src/` の doc プラグマ 1,245 か所のうち 890 か所（75 ファイル）が、ASCII 以外の文字（日本語）を含む。`//` のコメントも、`src/` の 75 か所（21 ファイル）と `test/` の 172 か所（20 ファイル）が日本語を含む。
+doc プラグマの言語: CONTRIBUTING.md は「コメントや doc プラグマ内では、英語を使用すること」と定めているが、`src/` の doc プラグマ 1,245 か所のうち 890 か所（75 ファイル）が、ASCII 以外の文字（日本語）を含む。`//` のコメントも、`src/` の 75 か所（21 ファイル）と `test/` の 172 か所（20 ファイル）が日本語を含む。`(* *)` のコメントは、`src/` の 2 か所（2 ファイル）が日本語を含む。
 
 名前の制約の違反件数（omron でコンパイルした XML の `Function` / `FunctionBlock` の `Variable` と、`Member`。テンプレートの具体化を含み、POU 名と変数名の組で重複を除く）:
 
@@ -208,10 +208,10 @@ CONTRIBUTING.md と AGENTS.md の規約のうち、機械的に判定できる�
 | ID | 層 | 重さ | 内容 | 根拠 | 既存の違反（2.5 節） |
 |---|---|---|---|---|---|
 | `keyword-case` | ソース | エラー | キーワード（`if`・`or` など）、真理値のリテラル（`true` / `false`）、基本型の名前（`lreal` など）が小文字である。標準関数の名前（`sin`・`exp` など）を含めるかは D-12。`{#define}` で定義したマクロの名前、コメント、文字列リテラル、doc プラグマの本文は対象外 | AGENTS.md | 4（D-12 で標準関数を含めるなら 22） |
-| `doc-apostrophe` | ソース | エラー | doc プラグマの中のアポストロフィが対になっている（対にならないと PP29 の警告） | AGENTS.md・2.3 節 | 0 |
+| `doc-apostrophe` | ソース | エラー | doc プラグマの中の引用符（`'`・`"`）が閉じている（閉じていないと PP29 の警告。判定は 2.3 節の jiepp の読み方に合わせる） | AGENTS.md・2.3 節 | 0 |
 | `doc-missing` | ソース | エラー | `src/` の POU の直前に doc プラグマがある。`test/` は対象外 | CONTRIBUTING.md「ドキュメント」 | 0 |
-| `doc-style` | ソース | エラー | doc プラグマを `(*{doc ...}*)` の形で書く（D-7） | 2.5 節 | 51 |
-| `doc-language` | ソース | 警告（基準値で管理） | doc プラグマと `//` のコメントに、ASCII 以外の文字を使わない | CONTRIBUTING.md「コーディングスタイル」 | doc プラグマ 890、コメント 247（D-10） |
+| `doc-style` | ソース | エラー | doc プラグマを `(*{doc ...}*)` の形で書く（D-7） | 2.5 節 | 49 |
+| `doc-language` | ソース | 警告（基準値で管理） | doc プラグマとコメント（`//`・`(* *)`）に、ASCII 以外の文字を使わない | CONTRIBUTING.md「コーディングスタイル」 | doc プラグマ 890、コメント 249（D-10） |
 | `no-continue` | ソース | エラー | `continue` を使わない | CONTRIBUTING.md（オムロン環境） | 0 |
 | `no-c-comment` | ソース | エラー | `/* */` のコメントを使わない | CONTRIBUTING.md | 0 |
 | `test-fact` | ソース | 警告（基準値で管理） | `TEST_S` / `TEST_M` の中に `// Fact:` がある | CONTRIBUTING.md「テスト」 | 273 |
@@ -238,7 +238,7 @@ PR-1:
 3. `scripts/test_lint.py`（`unittest`）を追加する。規則ごとに、違反する入力と違反しない入力を 1 つ以上用意する。入力は `scripts/lint_testdata/` に置く（`run_tests.py` の対象外なので、コンパイルされない。lint の既定の対象にも入らない）。
 4. 既存の違反を直す。
    - `keyword-case`: 4 か所（`OR` 2 個、`TRUE` 2 個）を小文字にする。D-12 で標準関数を含めると決めたら、18 か所も小文字にする。
-   - `doc-style`: D-7 で揃えると決めたら、51 か所（7 ファイル）を `(*{doc ...}*)` に書き換える。書き換えの前後で、全エントリファイルの XML の `Documentation` 要素が変わらないことを、スクリプトで比べて確かめる。
+   - `doc-style`: D-7 で揃えると決めたら、49 か所（6 ファイル）を `(*{doc ...}*)` に書き換える。書き換えの前後で、全エントリファイルの XML の `Documentation` 要素が変わらないことを、スクリプトで比べて確かめる。
    - 警告の規則（`doc-language`・`test-fact`）は直さず、今の警告の一覧を基準値にする。
 5. CHANGELOG.md に `[Unreleased]` 節を作る。CONTRIBUTING.md の「バージョン管理」の「変更中の節」を、`[Unreleased]` 節と書き直す。
 6. `.github/pull_request_template.md` を追加する（1.2 節の L3・L4 の欄と、1.3 節の確認の項目）。
@@ -255,6 +255,17 @@ PR-3:
 2. JiecUnit の POU（`vendor/jiecunit` のソースで定義され、`src/` のソースで定義されていない名前と、`JiecTest_` で始まる名前）と、テストのプログラム（`Program` 要素）は対象外にする。
 3. `ci.yml` の `compile` ジョブで、`run_tests.py --compile-only --output-dir out` の後に `python scripts/lint.py --xml-dir out` を実行する（コンパイルを 2 回しない）。
 4. 既存のコードで実行する。エラーの規則の違反は今 0 件で、`keyence-names` の 55 件は基準値にする。D-1 の結論が出たら、規則か宣言（または名前）を直して、エラーに切り替える。公開 API の引数名を変える直し方は、名前付きの呼び出しを壊すので、次のメジャー版に回す。
+
+#### PR-1 の実装で計画から変えたこと
+
+PR-1 は、ブランチ `feature/lint` で実装した（マージの前。D-7・D-12 は推奨案で実装し、それぞれ別のコミットにしたので、判断が変われば戻せる）。
+
+- `lint-baseline`（基準値の比較）と `pr-body` のジョブは、`ci.yml` ではなく、新しい workflow の `.github/workflows/pr-checks.yml` に置いた。`ci.yml` の `pull_request` に `edited`・`labeled`・`unlabeled` を足すと、本文やラベルを変えるたびに `compile`・`run` のジョブ（最長 60 分・120 分）も再実行されるため。`ci.yml` の `lint` ジョブは、`scripts/test_lint.py`・`scripts/test_check_pr_body.py`・`scripts/lint.py` を実行する。
+- PR の本文の検査は、`scripts/check_pr_body.py` にした（単体テストは `scripts/test_check_pr_body.py`）。ヘッダーのないファイルは、3.6 節の対応づけのうち、同じ対象の `src/` と `test/` の宣言の和集合を使う（テンプレートは keyence を宣言したエントリファイルからも include されるので、テストの宣言だけでは足りない）。
+- `doc-apostrophe` は、`'` だけでなく `"` も見る（2.3 節）。
+- `doc-language` は、`//` のコメントに加えて `(* *)` のコメントも見る（CONTRIBUTING.md は、すべてのコメントを英語と定めている）。基準値の項目は「ファイル: 最初の日本語の行」で、同じファイルに同じ行が複数あれば `#2` などを付ける。
+- 構文の解析に失敗したとき（閉じていないコメント・文字列・プラグマ、コードに残った `*)`）を、エラーの規則 `parse` にした。jiecc は入れ子のコメントを受け付けないので、入れ子は `parse` で検出する。
+- 基準値を作り直すオプションを `--reset-baseline` とした（`lint-baseline-reset` のラベルを付ける PR で使う）。
 
 #### 完了の条件
 
@@ -674,7 +685,7 @@ PR-1 ──┬──> PR-2 ──┬──> PR-3 ──> PR-4 ──> PR-7
 | D-4 | math の新しい関数の名前と引数名 | 3.4 節の表のとおり（キャメルケース、1 文字の引数名を使わない） | 既存の `Math_floor` / `Math_atan2` の名前の付け方と、命名規則に合わせる | PR-8 のマージの前 |
 | D-5 | 利用例のディレクトリ名 | `samples/` | JiecUnit と揃える | PR-11 のマージの前 |
 | D-6 | `Control_pid` を提供するか。提供するなら形式（並列形か標準形（ISA）か） | 提供する。並列形にする | NJ/NX の `PIDAT` があるが、他ベンダーでも同じ書き方で使えることに価値がある。並列形は係数の意味が分かりやすい | PR-14 の着手の前 |
-| D-7 | doc プラグマの書き方を `(*{doc ...}*)` に揃えるか | 揃える（7 ファイル、51 か所の書き換え） | 1,194 か所が `(*{doc ...}*)` で、揃えるのは小さい | PR-1 のマージの前 |
+| D-7 | doc プラグマの書き方を `(*{doc ...}*)` に揃えるか | 揃える（6 ファイル、49 か所の書き換え） | 1,196 か所が `(*{doc ...}*)` で、揃えるのは小さい | PR-1 のマージの前 |
 | D-8 | Release への XML の添付で、keyence 用の zip も作るか | 作る | 宣言したファイルだけが入る。宣言の意味（3.6 節）と合う | PR-15 のマージの前 |
 | D-9 | `hex_nibble`（`hex.iec` の内部の補助関数）の名前を `private_hex_nibble` に変えるか | 変える。ただし次のメジャー版で行う | 公開の名前に見えるが、内部用の補助関数である。名前を変えると、使っている利用者のプログラムが壊れる | 推奨案で進める（それまでは棚卸しの「テストなしと認めた POU」に置く） |
 | D-10 | doc プラグマとコメントの言語。CONTRIBUTING.md は英語と定めているが、`src/` の doc プラグマの 890 か所（75 ファイル）が日本語 | 規約（英語）は残す。新しいコードは英語で書き、既存の日本語は `doc-language` の警告の基準値で管理して、増やさない。既存の翻訳は、この計画では行わない | 既存を一度に翻訳するのは大きく、利用者への効果が小さい。規約を日本語に緩めると、英語の利用者が読めない | 推奨案で進める |

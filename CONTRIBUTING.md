@@ -21,9 +21,10 @@ JiecLib への貢献に関心を持っていただき、ありがとうござい
 
 1. `develop` ブランチから作業用のブランチを作る。
 2. 変更する。コミットは、目的が分かる最小の単位にする。
-3. `python scripts/run_tests.py` を実行し、`All checks passed.` と表示されることを確認する（[テストの実行](#テストの実行)）。
-4. Pull Request を作る。通常は `develop` を宛先にする。`main` への Pull Request は、`develop` からのリリースの取り込みに使う。
-5. リリースは、`main` のコミットにタグ `vX.Y.Z` を付けて行う（[バージョン管理](#バージョン管理)）。
+3. `python scripts/run_tests.py` を実行し、`All checks passed.` と表示されることを確認する。`python scripts/lint.py` を実行し、`Lint passed.` と表示されることを確認する（[テストの実行](#テストの実行)）。
+4. 利用者に関係する変更は、[CHANGELOG.md](CHANGELOG.md) の `[Unreleased]` 節に書く。
+5. Pull Request を作る。通常は `develop` を宛先にする。`main` への Pull Request は、`develop` からのリリースの取り込みに使う。本文は、テンプレート（`.github/pull_request_template.md`）の欄を埋める。`src/` を変更したときは Sysmac Studio のシミュレータでの実行（L3）の結果を、keyence を宣言したファイルを変更したときは KV Studio での実行（L4）の結果を書く（未実施なら理由を書く）。CI がこの欄の書式を確かめる。
+6. リリースは、`main` のコミットにタグ `vX.Y.Z` を付けて行う（[バージョン管理](#バージョン管理)）。
 
 ## テストの実行
 
@@ -56,7 +57,32 @@ $ python scripts/run_tests.py --jiecc /path/to/jiecc.exe
 - `--max-cycles N`: `jiecc --run` の最大スキャン回数。
 - `--timeout SEC`: jiecc 1 回あたりの制限時間（秒）。
 
-GitHub Actions の CI（`.github/workflows/ci.yml`）は、Windows と Linux の両方で、最新の Jiecc（Windows は [jiecc.zip](https://www.graviness.com/iec_61131-3/jiecc.zip)、Linux は [jiecc.tgz](https://www.graviness.com/iec_61131-3/jiecc.tgz)）を取得し、`--compile-only` と `--run-only` を別々のジョブで実行します。現在、テストの実行のジョブは失敗しても CI を失敗にしません。
+### 規約の検査（lint）
+
+`scripts/lint.py` は、[コーディング規約](#コーディング規約)と AGENTS.md の規約のうち、ソースを読んで判定できるものを検査します。jiecc は要りません。
+
+```
+$ python scripts/lint.py
+$ python scripts/lint.py src/math test/math
+```
+
+`src/`・`test/`（`samples/` があればそれも）の `.iec` を読み、違反を `<path>:<line>: error: <規則>: <説明>` の形で 1 行ずつ出力します。違反がなければ、最後に `Lint passed.` と表示されます。規則の一覧は `scripts/lint.py` の先頭のコメントにあります。
+
+- エラーの規則（キーワードなどを小文字で書く、doc プラグマを `(*{doc ...}*)` の形で書く、doc プラグマの引用符を対にする、`src/` の POU の直前に doc プラグマを書く、`continue` と `/* */` を使わない）は、1 件でもあれば失敗です。
+- 警告の規則（コメントと doc プラグマを英語で書く、テストに `// Fact:` を書く）は、既存の違反を `scripts/lint_baseline.json` に一覧として記録しています。一覧にない警告が出たら失敗です。新しく書くコードでは、警告も出さないでください。
+- 一覧の項目は、ファイルと、コメントの最初の日本語の行（またはテストの名前）です。行番号は含まないので、コードを動かしても変わりません。既存の日本語のコメントの、最初の日本語の行を書き換えると、新しい警告になります。そのときは英語に直してください。
+- 警告を直したら、`python scripts/lint.py --update-baseline` で一覧から消します（このオプションは、一覧の項目を消すだけで、足しません）。
+- 一覧に項目を足す変更は、CI（`pr-checks.yml` の `lint-baseline` ジョブ）が失敗にします。規則そのものを見直す Pull Request だけは、`python scripts/lint.py --reset-baseline` で一覧を作り直し、管理者がラベル `lint-baseline-reset` を付けます。本文に理由を書いてください。
+- `scripts/test_lint.py` は、`lint.py` の単体テストです。規則ごとの違反の例と違反しない例が `scripts/lint_testdata/` にあります。
+
+### CI
+
+GitHub Actions の CI（`.github/workflows/ci.yml`）は、Windows と Linux の両方で、最新の Jiecc（Windows は [jiecc.zip](https://www.graviness.com/iec_61131-3/jiecc.zip)、Linux は [jiecc.tgz](https://www.graviness.com/iec_61131-3/jiecc.tgz)）を取得し、`--compile-only` と `--run-only` を別々のジョブで実行します。現在、テストの実行のジョブは失敗しても CI を失敗にしません。`lint` ジョブは `scripts/lint.py` とその単体テストを実行します。
+
+Pull Request では、`.github/workflows/pr-checks.yml` も実行します。本文やラベルを変えたときにも再実行されます。
+
+- `lint-baseline`: `scripts/lint_baseline.json` に、宛先のブランチとの分岐点のコミットにない項目があれば失敗にします。ラベル `lint-baseline-reset` があれば省略します。
+- `pr-body`: 本文の L3・L4 の欄の書式を確かめます（`scripts/check_pr_body.py`）。宛先が `main` の Pull Request は対象外です。
 
 ## コーディング規約
 
@@ -256,7 +282,7 @@ end
 
 JiecLib のバージョンは、リポジトリルートの `VERSION` ファイルに `MAJOR.MINOR.PATCH`（例: `3.4.0`）の 1 行で記録します。バージョンを表すマクロはありません。Git のタグ（`vX.Y.Z`）は、`VERSION` と同じ番号を `main` のコミットに付けたものです。
 
-`VERSION` は、リリース専用のコミット（メッセージは `release vX.Y.Z`）でだけ更新します。機能追加・修正のコミットでは更新しません。同じコミットで、[CHANGELOG.md](CHANGELOG.md) の変更中の節の見出しを `[X.Y.Z] - 日付` に置き換えます。`develop` を `main` にマージした後、`main` のコミットにタグを付けます。
+`VERSION` は、リリース専用のコミット（メッセージは `release vX.Y.Z`）でだけ更新します。機能追加・修正のコミットでは更新しません。変更の内容は、Pull Request ごとに [CHANGELOG.md](CHANGELOG.md) の `[Unreleased]` 節に書いておきます。リリースのコミットで、`[Unreleased]` 節の見出しを `[X.Y.Z] - 日付` に置き換え、次の変更のために空の `[Unreleased]` 節を設けます。`develop` を `main` にマージした後、`main` のコミットにタグを付けます。
 
 ```
 $ git tag vX.Y.Z
