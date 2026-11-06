@@ -110,7 +110,7 @@ TEST_M(test_nextIntInRange_distribution)
 		MersenneTwister_init(mt, DIST_SEED_MT);
 		Xorshift32_init(xs, DIST_SEED_XS);
 		LCG_init(lcg, DIST_SEED_LCG);
-		LFSR32_init(lfsr, DIST_SEED_LFSR);
+		LFSR32_init(self:=lfsr, seed:=DIST_SEED_LFSR);
 		in_range := true;
 	end_if;
 		// Act
