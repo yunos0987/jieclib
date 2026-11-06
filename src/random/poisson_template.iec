@@ -47,10 +47,12 @@
 {#define Random_nextDouble        RANDOM_NEXT_DOUBLE(RandomGeneratorPrefix)}
 
 (*{doc Generates a Poisson distributed pseudo-random integer using Knuth&apos;s algorithm.
+One call takes about lambda + 1 random numbers, so lambda is limited to 500.
+(exp(-lambda) also underflows to 0 for lambda above about 745.)
 @inout self The generator state.
-@input lambda The expected number of occurrences (lambda > 0).
+@input lambda The expected number of occurrences (0 < lambda <= 500).
 @return A pseudo-random non-negative integer from the Poisson distribution.
-@error If lambda <= 0. }*)
+@error If lambda <= 0 or lambda > 500. }*)
 function Random_nextPoisson: dint
 	_PROLOGUE_OF_FUNCTION_()
 	var_in_out
@@ -58,7 +60,7 @@ function Random_nextPoisson: dint
 		self: RandomGeneratorType;
 	end
 	var_input
-		(*{doc The expected number of occurrences (lambda > 0).}*)
+		(*{doc The expected number of occurrences (0 < lambda <= 500).}*)
 		lambda: lreal;
 	end
 	var_temp
@@ -67,7 +69,7 @@ function Random_nextPoisson: dint
 		prod: lreal;
 		rand_val: lreal;
 	end
-	if lambda <= lreal#0.0 then
+	if (lambda <= lreal#0.0) or (lambda > lreal#500.0) then
 		eno := false;
 	else
 		exp_limit := exp(-lambda);

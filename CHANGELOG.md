@@ -7,6 +7,7 @@
 ### 修正 / Fixed
 
 - `Math_floor` が、絶対値が 2^63 以上の値で誤った値を返す不具合を直しました（例: `Math_floor(1.0e19)` が `-8.446744073709552e+18`、`Math_floor(1.0e300)` が `0.0` を返していました）。`lint` に変換して切り捨てていたため、`lint` の範囲を超える値であふれていました。絶対値が 2^52 以上の `lreal` は必ず整数なので、その値をそのまま返します。テストは `test/math/test_floor_large.iec` です。
+- `MersenneTwister_nextPoisson` と `Xorshift32_nextPoisson` は、`lambda` が 500 を超えると `eno := false` を返すようにしました。これまでは上限がなく、`lambda` が約 745 を超えると `exp(-lambda)` が 0 になり、`lambda` と関係のない値を返していました。また、1 回の呼び出しで約 `lambda + 1` 個の乱数を使うため、`lambda` が大きいとタスクの周期を圧迫します。
 
 ### その他 / Other
 
@@ -26,6 +27,8 @@
   - `--output-dir DIR`（生成した XML を残す）と `--paths-from FILE`（対象のパスと周期数をファイルから読む）を追加しました。
 - `scripts/lint.py` に `--xml-dir DIR` を追加しました。`run_tests.py --compile-only --output-dir DIR` でコンパイルした XML を読み、テンプレートが作る名前も含めて、名前と型の規則（`left` などの予約語、`p_` の接頭辞、可変長配列は `var_in_out` だけ、構造体を返す関数、エイリアス型、64 バイトを超える POU 名、キーエンスの名前の制約）を検査します（`scripts/lint_xml.py`）。既存のコードの違反は、キーエンスの名前の制約の 54 件（警告。`scripts/lint_baseline.json` に記録）だけです。CI の `compile` ジョブが、コンパイルの後にこの検査を行います。
 - テストのない公開の POU を検出する `scripts/pou_inventory.py` を追加しました。CI の `compile` ジョブが、コンパイルした XML で検査します。今テストのない 31 個（array の dint 版 8 個、stats の 16 個、random の 2 個、`Console_print`、`hex_nibble`、恒等変換 3 個）は、理由と一緒に `scripts/pou_inventory_allow.txt` に載せました。
+- 乱数の分布のテスト `test/random/test_random_distribution.iec` を追加しました。各生成器の `nextIntInRange`・`nextRealInRange`・`nextBernoulli`・`nextGaussian`・`nextExponential`・`nextPoisson` について、固定したシードで 10,000 個を生成し、標本平均・標本分散・出現回数（カイ二乗）が理論値の許容幅に収まることを確かめます。生成器が幅なしの `shl` / `shr` を使うため、このテストは jier では実行できません（PLC の環境で実行します）。
+- JiecUnit の `TEST_M`（複数の周期にわたるテスト）が jier で動くことを確かめるテスト `test/test_jiecunit_test_m.iec` を追加しました。
 - jier で必ず通すテストファイルの一覧 `scripts/jier_required.txt` と、CI の `run-required` ジョブを追加しました。一覧のテストが jier で失敗すると、CI が失敗します。新しく追加するテストファイルは、この一覧に載せます。
 - この節（`[Unreleased]`）を設けました。変更は Pull Request ごとにこの節へ書き、リリースのコミットで見出しを `[X.Y.Z] - 日付` に置き換えます。
 

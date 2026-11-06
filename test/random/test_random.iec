@@ -46,7 +46,14 @@ DEFINE_CONFIGURATION(
 		test_xorshift32_nextBernoulli,
 		test_xorshift32_nextGaussian,
 		test_xorshift32_nextExponential,
-		test_xorshift32_nextPoisson
+		test_xorshift32_nextPoisson,
+		test_nextIntInRange_distribution,
+		test_nextRealInRange_distribution,
+		test_nextBernoulli_distribution,
+		test_nextGaussian_distribution,
+		test_nextExponential_distribution,
+		test_nextPoisson_distribution,
+		test_nextPoisson_lambda_limit
 	)
 )
 {#undef _TEST_}
@@ -56,3 +63,4 @@ DEFINE_CONFIGURATION(
 {#include "test_lfsr32.iec"}
 {#include "test_mersenne_twister.iec"}
 {#include "test_xorshift32.iec"}
+{#include "test_random_distribution.iec"}

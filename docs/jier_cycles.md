@@ -74,6 +74,15 @@ CHANGELOG.md 4.0.0 の「既知の問題」と同じ内訳である。
 
 `test/string_lib/test_string_lib.iec` は、`test_String_remove` で止まり、1000 周期でも 900 秒で終わらない。`String_remove('abcdabcd', '', -1)`（空の文字列を削除する）で、`src/string_lib/string_lib.iec` の `String_remove` のループが終わらないためである。jier の `find(s, '')` は 0 以外を返す（`find('abc', '') = 0` を確かめるテストが jier で失敗する）。`String_remove` は、`find` が 0 を返すまでループする。PLC の環境の `find` が空の文字列に何を返すかは、確かめていない。
 
+## 追加したテストファイル
+
+`scripts/jier_required.txt` に載せたファイルの、必要な周期数（同じ方法で測った値）。
+
+| ファイル | 必要な周期数 | 一覧の値 |
+|---|---|---|
+| `test/math/test_floor_large.iec` | 1000 以下 | 1000 |
+| `test/test_jiecunit_test_m.iec` | 21（`TEST_M` が 20 周期を使う。20 では失敗する） | 1000 |
+
 ## 測り直すとき
 
 Jiecc の版が変わったとき、または jier で通るファイルが増えたときは、測り直してこのファイルを更新する。

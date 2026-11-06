@@ -546,7 +546,7 @@ IEC 61131-10 XML生成コマンド: `jiecc ./src/linalg/linalg.iec -I./src -o ./
 |---|---|---|
 | `nextGaussian(mean, sigma)` | SPC・工程変動シミュレーション | Box-Muller変換 |
 | `nextExponential(lambda)` | 故障間隔（MTBF）シミュレーション | 逆CDF: `-LN(U)/lambda` |
-| `nextPoisson(lambda)` | 不良数・イベント到着モデル | Knuthのアルゴリズム |
+| `nextPoisson(lambda)` | 不良数・イベント到着モデル | Knuthのアルゴリズム（`0 < lambda <= 500`。1 回に約 `lambda + 1` 個の乱数を使う） |
 
 ### [stats](./src/stats)
 
