@@ -28,3 +28,5 @@ test/math/test_fmod.iec 1000
 test/math/test_gcd.iec 1000
 test/math/test_lcm.iec 1000
 test/math/test_is_close.iec 1000
+test/hash/test_crc16.iec 1000
+test/hash/test_checksum.iec 1000

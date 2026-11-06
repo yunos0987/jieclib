@@ -7,6 +7,7 @@
 ### 追加 / Added
 
 - math に 13 個の関数を追加しました（1 関数 1 ファイル）。丸めの `Math_ceil`・`Math_trunc`・`Math_round`・`Math_roundHalfEven`・`Math_roundTo`、`Math_clamp`・`Math_lerp`・`Math_sign`・`Math_hypot`・`Math_fmod`、整数の `Math_gcd`・`Math_lcm`、比較の `Math_isClose` です。テストは `test/math/test_<名前>.iec` で、すべて jier で実行できます（`scripts/jier_required.txt` に載せました）。NaN と無限大を渡したときの結果は未定義です。
+- hash に CRC-16（`CRC16_modbus`・`CRC16_ccittFalse`・`CRC16_xmodem`・`CRC16_toHex`）とチェックサム（`Checksum_sum8`・`Checksum_xor8`・`Checksum_lrc`）を追加しました。Modbus RTU・シリアル通信の電文に使えます。`shl` / `shr` を使わないので、jier でもテストを実行できます（`test/hash/test_crc16.iec`・`test/hash/test_checksum.iec`）。
 
 ### 修正 / Fixed
 

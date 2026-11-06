@@ -556,6 +556,14 @@ Modbus RTU・シリアル通信・機器の電文でよく使う誤り検出の�
 1. `crc16.iec` と `checksum.iec`、テスト（`test/hash/test_crc16.iec`・`test/hash/test_checksum.iec`）を追加し、`test/hash/test_hash.iec` に登録し、`scripts/jier_required.txt` に載せる。
 2. README.md の hash の節に追加する。電文への付け方（下位バイトが先）を例で書く。
 
+#### PR-9 の実装の結果と、計画から変えたこと
+
+PR-9 は、ブランチ `feature/crc16`（`feature/math-functions` の上）で実装した（マージの前）。
+
+- ビットのずらしは、`shr` / `shl` ではなく、整数の割り算（`/ 2`）と掛け算（`* 2`・`* 256` と `mod 65536`）で行う。jier が幅なしの `shr` / `shl` を実行できないためで、これでテストを jier で実行でき、`scripts/jier_required.txt` に載せた（`test_crc16.iec`・`test_checksum.iec`）。
+- `offset` と `length` の範囲の判定（`CRC32_bytes` と同じ規則）は、内部の関数 `private_CRC16_range` にまとめ、チェックサムの 3 関数も使う。
+- 上の表の全期待値に加えて、`offset` の付いた配列（下限が 10）、`crc_init` での継続（3 種とも）、長さ 0（配列の末尾を含む）、範囲外のエラーを確かめる。jier で全部合格した。
+
 #### 完了の条件
 
 - 上の表の全期待値のテストが `run-required` ジョブで通り、L3 の結果が PR にある。

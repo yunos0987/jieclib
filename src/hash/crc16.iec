@@ -1,0 +1,265 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/hash/crc16.iec -I./src -o ./src/hash/crc16.xml -t omron
+ *)
+{#ifndef __HASH_CRC16_IEC__}
+{#define __HASH_CRC16_IEC__}
+
+{#include <sys.iec>}
+{#include <sys_conv.iec>}
+
+(*{doc Find the range of a byte array that offset and length select (the rule of CRC32_bytes).
+Internal to the library: crc16.iec and checksum.iec use it.
+@inout dat The byte array.
+@input offset The offset of the first byte from the lower bound of dat.
+@input length The number of bytes; -1 means up to the end of dat.
+@output first_index The index of the first byte.
+@output count The number of bytes (0 or more).
+@return true if the range is inside dat.}*)
+function private_CRC16_range: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The byte array.}*)
+		dat: array[*] of byte;
+	end
+	var_input
+		(*{doc The offset of the first byte.}*)
+		offset: dint;
+		(*{doc The number of bytes; -1 means up to the end of dat.}*)
+		length: dint;
+	end
+	var_output
+		(*{doc The index of the first byte.}*)
+		first_index: dint;
+		(*{doc The number of bytes.}*)
+		count: dint;
+	end
+	var_temp
+		lower_index, upper_index, last_index: dint;
+	end
+	lower_index := lower_bound(dat, 1);
+	upper_index := upper_bound(dat, 1);
+	first_index := lower_index + offset;
+	count := 0;
+	private_CRC16_range := false;
+	if length < -1 then
+		return;
+	end_if;
+	if length = 0 then
+		// An empty range may start just after the last element.
+		if (offset < 0) or (offset > (upper_index - lower_index + 1)) then
+			return;
+		end_if;
+	else
+		if length = -1 then
+			last_index := upper_index;
+		else
+			last_index := first_index + length - 1;
+		end_if;
+		if (first_index < lower_index) or (last_index < first_index) or (last_index > upper_index) then
+			return;
+		end_if;
+		count := last_index - first_index + 1;
+	end_if;
+	private_CRC16_range := true;
+end
+
+(*{doc Update a reflected CRC-16 (shifted to the right) with one byte.
+The shift is a division by 2, not shr, so that the function also runs under jier.
+@input crc The CRC so far.
+@input data_byte The next byte.
+@input poly The reflected polynomial (16#A001 for CRC-16/MODBUS).
+@return The updated CRC.}*)
+function private_CRC16_updateReflected: word
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc The CRC so far.}*)
+		crc: word;
+		(*{doc The next byte.}*)
+		data_byte: byte;
+		(*{doc The reflected polynomial.}*)
+		poly: word;
+	end
+	var_temp
+		value: word;
+		bit_index: dint;
+	end
+	value := crc xor byte_to_word(data_byte);
+	for bit_index := 0 to 7 do
+		if (value and word#16#0001) <> word#16#0000 then
+			value := dint_to_word(word_to_dint(value) / 2) xor poly;
+		else
+			value := dint_to_word(word_to_dint(value) / 2);
+		end_if;
+	end_for;
+	private_CRC16_updateReflected := value;
+end
+
+(*{doc Update a non-reflected CRC-16 (shifted to the left) with one byte.
+The shifts are multiplications by 256 and 2, not shl, so that the function also runs under jier.
+@input crc The CRC so far.
+@input data_byte The next byte.
+@input poly The polynomial (16#1021 for CRC-16/CCITT-FALSE and CRC-16/XMODEM).
+@return The updated CRC.}*)
+function private_CRC16_updateNormal: word
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc The CRC so far.}*)
+		crc: word;
+		(*{doc The next byte.}*)
+		data_byte: byte;
+		(*{doc The polynomial.}*)
+		poly: word;
+	end
+	var_temp
+		value: word;
+		bit_index: dint;
+	end
+	value := crc xor dint_to_word(byte_to_dint(data_byte) * 256);
+	for bit_index := 0 to 7 do
+		if (value and word#16#8000) <> word#16#0000 then
+			value := dint_to_word((word_to_dint(value) * 2) mod 65536) xor poly;
+		else
+			value := dint_to_word((word_to_dint(value) * 2) mod 65536);
+		end_if;
+	end_for;
+	private_CRC16_updateNormal := value;
+end
+
+(*{doc Return the CRC-16/MODBUS of a byte array (polynomial 16#8005 reflected, initial value 16#FFFF, no final XOR).
+The CRC of the ASCII text 123456789 is 16#4B37. In a Modbus RTU frame, append the low byte first:
+the CRC of 01 03 00 00 00 0A is 16#CDC5, so the frame ends with C5 CD.
+To continue over two arrays, pass the result for the first array as crc_init for the second.
+@inout dat The byte array.
+@input offset The offset of the first byte from the lower bound of dat. Default: 0.
+@input length The number of bytes; -1 means up to the end of dat. Default: -1.
+@input crc_init The initial value, or the CRC of the preceding bytes. Default: 16#FFFF.
+@return The CRC. For length = 0 it is crc_init.
+@error If offset or length selects bytes outside dat, or length < -1.}*)
+function CRC16_modbus: word
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The byte array.}*)
+		dat: array[*] of byte;
+	end
+	var_input
+		(*{doc The offset of the first byte. Default: 0.}*)
+		offset: dint := 0;
+		(*{doc The number of bytes; -1 means up to the end of dat. Default: -1.}*)
+		length: dint := -1;
+		(*{doc The initial value, or the CRC of the preceding bytes. Default: 16#FFFF.}*)
+		crc_init: word := word#16#FFFF;
+	end
+	var_temp
+		first_index, count, idx: dint;
+		crc: word;
+	end
+	if not private_CRC16_range(dat:=dat, offset:=offset, length:=length, first_index=>first_index, count=>count) then
+		eno := false;
+		return;
+	end_if;
+	crc := crc_init;
+	for idx := first_index to first_index + count - 1 do
+		crc := private_CRC16_updateReflected(crc:=crc, data_byte:=dat[idx], poly:=word#16#A001);
+	end_for;
+	CRC16_modbus := crc;
+end
+
+(*{doc Return the CRC-16/CCITT-FALSE of a byte array (polynomial 16#1021, not reflected, initial value 16#FFFF, no final XOR).
+The CRC of the ASCII text 123456789 is 16#29B1.
+To continue over two arrays, pass the result for the first array as crc_init for the second.
+@inout dat The byte array.
+@input offset The offset of the first byte from the lower bound of dat. Default: 0.
+@input length The number of bytes; -1 means up to the end of dat. Default: -1.
+@input crc_init The initial value, or the CRC of the preceding bytes. Default: 16#FFFF.
+@return The CRC. For length = 0 it is crc_init.
+@error If offset or length selects bytes outside dat, or length < -1.}*)
+function CRC16_ccittFalse: word
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The byte array.}*)
+		dat: array[*] of byte;
+	end
+	var_input
+		(*{doc The offset of the first byte. Default: 0.}*)
+		offset: dint := 0;
+		(*{doc The number of bytes; -1 means up to the end of dat. Default: -1.}*)
+		length: dint := -1;
+		(*{doc The initial value, or the CRC of the preceding bytes. Default: 16#FFFF.}*)
+		crc_init: word := word#16#FFFF;
+	end
+	var_temp
+		first_index, count, idx: dint;
+		crc: word;
+	end
+	if not private_CRC16_range(dat:=dat, offset:=offset, length:=length, first_index=>first_index, count=>count) then
+		eno := false;
+		return;
+	end_if;
+	crc := crc_init;
+	for idx := first_index to first_index + count - 1 do
+		crc := private_CRC16_updateNormal(crc:=crc, data_byte:=dat[idx], poly:=word#16#1021);
+	end_for;
+	CRC16_ccittFalse := crc;
+end
+
+(*{doc Return the CRC-16/XMODEM of a byte array (polynomial 16#1021, not reflected, initial value 16#0000, no final XOR).
+The CRC of the ASCII text 123456789 is 16#31C3.
+To continue over two arrays, pass the result for the first array as crc_init for the second.
+@inout dat The byte array.
+@input offset The offset of the first byte from the lower bound of dat. Default: 0.
+@input length The number of bytes; -1 means up to the end of dat. Default: -1.
+@input crc_init The initial value, or the CRC of the preceding bytes. Default: 16#0000.
+@return The CRC. For length = 0 it is crc_init.
+@error If offset or length selects bytes outside dat, or length < -1.}*)
+function CRC16_xmodem: word
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The byte array.}*)
+		dat: array[*] of byte;
+	end
+	var_input
+		(*{doc The offset of the first byte. Default: 0.}*)
+		offset: dint := 0;
+		(*{doc The number of bytes; -1 means up to the end of dat. Default: -1.}*)
+		length: dint := -1;
+		(*{doc The initial value, or the CRC of the preceding bytes. Default: 16#0000.}*)
+		crc_init: word := word#16#0000;
+	end
+	var_temp
+		first_index, count, idx: dint;
+		crc: word;
+	end
+	if not private_CRC16_range(dat:=dat, offset:=offset, length:=length, first_index=>first_index, count=>count) then
+		eno := false;
+		return;
+	end_if;
+	crc := crc_init;
+	for idx := first_index to first_index + count - 1 do
+		crc := private_CRC16_updateNormal(crc:=crc, data_byte:=dat[idx], poly:=word#16#1021);
+	end_for;
+	CRC16_xmodem := crc;
+end
+
+(*{doc Return a CRC-16 as 4 lowercase hexadecimal digits (as CRC32 does): 16#4B37 gives 4b37.
+@input crc The CRC.
+@return The 4 hexadecimal digits.}*)
+function CRC16_toHex: string[4 + 1]
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc The CRC.}*)
+		crc: word;
+	end
+	var_temp
+		HEX: array[0..15] of string[1 + 1] constant := [
+			'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'
+		];
+		value: dint;
+	end
+	value := word_to_dint(crc);
+	CRC16_toHex := concat(
+		concat(HEX[value / 4096], HEX[(value / 256) mod 16]),
+		concat(HEX[(value / 16) mod 16], HEX[value mod 16]));
+end
+
+{#endif}

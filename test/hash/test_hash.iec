@@ -22,7 +22,14 @@ DEFINE_CONFIGURATION(
 		test_SHA256_string,
 		test_SHA256_bytes,
 		test_SHA512_string,
-		test_SHA512_bytes
+		test_SHA512_bytes,
+		test_CRC16_modbus,
+		test_CRC16_ccittFalse,
+		test_CRC16_xmodem,
+		test_CRC16_toHex,
+		test_Checksum_sum8,
+		test_Checksum_xor8,
+		test_Checksum_lrc
 	)
 )
 {#undef _TEST_}
@@ -33,3 +40,5 @@ DEFINE_CONFIGURATION(
 {#include "test_sha1.iec"}
 {#include "test_sha256.iec"}
 {#include "test_sha512.iec"}
+{#include "test_crc16.iec"}
+{#include "test_checksum.iec"}

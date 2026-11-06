@@ -451,6 +451,19 @@ FIFO形式のリングバッファです。`overwrite=true` で初期化する�
 * **CRC32**（[crc32.iec](./src/hash/crc32.iec)）
   * `CRC32_string` / `CRC32_bytes`
   * IEC 61131-10 XML生成コマンド: `jiecc ./src/hash/crc32.iec -I./src -o ./src/hash/crc32.xml -t omron`
+* **CRC-16**（[crc16.iec](./src/hash/crc16.iec)）
+  * `CRC16_modbus`（CRC-16/MODBUS）/ `CRC16_ccittFalse`（CRC-16/CCITT-FALSE）/ `CRC16_xmodem`（CRC-16/XMODEM）: バイト配列の CRC を `word` で返します（`offset`/`length` 指定可。作業用の配列は要りません）。引数 `crc_init` に前の配列の結果を渡すと、2 つの配列にまたがる電文の CRC を続けて計算できます。
+  * `CRC16_toHex`: CRC を 4 桁の 16 進文字列（小文字）にします。
+  * Modbus RTU の電文には、CRC を下位バイト、上位バイトの順に付けます。例: 要求 `01 03 00 00 00 0A` の CRC は `16#CDC5` なので、電文は `01 03 00 00 00 0A C5 CD` です。
+    ```
+    crc := CRC16_modbus(dat:=frame, offset:=0, length:=6);
+    frame[6] := word_to_byte(crc and word#16#00FF);              // C5
+    frame[7] := dint_to_byte(word_to_dint(crc) / 256);           // CD
+    ```
+  * IEC 61131-10 XML生成コマンド: `jiecc ./src/hash/crc16.iec -I./src -o ./src/hash/crc16.xml -t omron`
+* **チェックサム**（[checksum.iec](./src/hash/checksum.iec)）
+  * `Checksum_sum8`（8 ビットの和）/ `Checksum_xor8`（全バイトの XOR）/ `Checksum_lrc`（Modbus ASCII の LRC。16 進文字を 2 進のバイトに戻した後のバイト列に使います）
+  * IEC 61131-10 XML生成コマンド: `jiecc ./src/hash/checksum.iec -I./src -o ./src/hash/checksum.xml -t omron`
 * **MD5**（[md5.iec](./src/hash/md5.iec)）
   * `MD5_string` / `MD5_bytes`
   * IEC 61131-10 XML生成コマンド: `jiecc ./src/hash/md5.iec -I./src -o ./src/hash/md5.xml -t omron`
