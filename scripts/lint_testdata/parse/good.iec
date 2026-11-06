@@ -1,0 +1,14 @@
+{#define LINT_CONST(name, value)
+	var_global constant
+		name: string := value; // A comment in a macro body.
+	end
+}
+
+(*{doc Return a value. Strings may contain escaped quotes and comment marks.}*)
+function Lint_parse_good: string
+	var_input
+		(*{doc An input value.}*)
+		value: dint;
+	end
+	Lint_parse_good := 'It$'s (* not a comment *) and {not a pragma}';
+end

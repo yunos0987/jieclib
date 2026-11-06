@@ -1,0 +1,10 @@
+(*{doc Return a path. A doc pragma may quote /* text */ as long as it is closed.}*)
+function Lint_no_c_comment_good: string
+	var_input
+		(*{doc An input value.}*)
+		value: dint;
+	end
+	(* A block comment can contain /* as text. *)
+	// A line comment can contain /* as text.
+	Lint_no_c_comment_good := '/* not a comment */';
+end

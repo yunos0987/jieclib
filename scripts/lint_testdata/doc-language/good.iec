@@ -1,0 +1,9 @@
+(*{doc Return a name. Non-ASCII text in a string literal is not a comment.}*)
+function Lint_doc_language_good: string
+	var_input
+		(*{doc An input value.}*)
+		value: dint;
+	end
+	// Return a fixed name.
+	Lint_doc_language_good := '名前';
+end

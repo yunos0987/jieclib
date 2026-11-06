@@ -1,0 +1,16 @@
+(*{doc Sum the positive values.}*)
+function Lint_no_continue_bad: dint
+	var_in_out
+		(*{doc The values.}*)
+		values: array[*] of dint;
+	end
+	var
+		index: dint;
+	end
+	for index := 0 to 9 do
+		if values[index] < 0 then
+			continue;
+		end_if;
+		Lint_no_continue_bad := Lint_no_continue_bad + values[index];
+	end_for;
+end

@@ -1,0 +1,10 @@
+TEST_S(test_lint_fact_bad1)
+	// Arrange
+	// Act/Assert
+	EXPECT_EQ(1, 1);
+END_TEST_S
+
+TEST_M(test_lint_fact_bad2)
+	// Fact is written without a colon.
+	EXPECT_EQ(2, 2);
+END_TEST_M

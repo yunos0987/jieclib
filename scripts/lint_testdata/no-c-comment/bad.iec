@@ -1,0 +1,9 @@
+(*{doc Return a value.}*)
+function Lint_no_c_comment_bad: dint
+	var_input
+		(*{doc An input value.}*)
+		value: dint;
+	end
+	/* A C style comment. */
+	Lint_no_c_comment_bad := value;
+end

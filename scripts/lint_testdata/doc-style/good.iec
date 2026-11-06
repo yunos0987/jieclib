@@ -1,0 +1,20 @@
+(*{doc A doc pragma in a comment.}*)
+function Lint_doc_style_good: dint
+	var_input
+		(*{doc An input value.}*)
+		value: dint;
+	end
+	Lint_doc_style_good := value;
+end
+
+{#define LINT_DOC_STYLE(dtype)
+	(*${doc A doc pragma escaped in a macro body.$}*)
+	function Lint_doc_style_@@dtype: dtype
+		var_input
+			(*${doc An input value.$}*)
+			value: dtype;
+		end
+		Lint_doc_style_@@dtype := value;
+	end
+}
+LINT_DOC_STYLE(lreal)

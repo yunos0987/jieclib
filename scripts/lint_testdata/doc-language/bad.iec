@@ -1,0 +1,10 @@
+(*{doc 値を返す。}*)
+function Lint_doc_language_bad: dint
+	var_input
+		(*{doc An input value.}*)
+		value: dint;
+	end
+	// 値をそのまま返す。
+	(* ブロックコメント *)
+	Lint_doc_language_bad := value;
+end

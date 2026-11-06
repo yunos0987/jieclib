@@ -1,0 +1,21 @@
+(*{doc Sum the positive values. Do not use continue.}*)
+function Lint_no_continue_good: dint
+	var_in_out
+		(*{doc The values.}*)
+		values: array[*] of dint;
+	end
+	var
+		index: dint;
+		continue_count: dint;
+		message: string;
+	end
+	// continue is not supported in the OMRON environment.
+	message := 'continue';
+	for index := 0 to 9 do
+		if values[index] >= 0 then
+			Lint_no_continue_good := Lint_no_continue_good + values[index];
+		else
+			continue_count := continue_count + 1;
+		end_if;
+	end_for;
+end
