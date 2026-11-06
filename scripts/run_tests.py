@@ -3,8 +3,9 @@
 """Compile and run the JiecLib sources and tests with jiecc.
 
 Compile phase:
-  - Every source entry file under src/ (a file whose header comment has a
-    "$ jiecc" command line) and every test file under test/ that contains
+  - Every source entry file under src/ and every example under samples/ (a
+    file whose header comment has a "$ jiecc" command line) and every test
+    file under test/ that contains
     DEFINE_CONFIGURATION is compiled for each target named by "-t <target>"
     on the "$ jiecc" lines of its header comment (OMRON when none is named).
   - Include paths are the repository root, src and vendor/jiecunit.
@@ -214,7 +215,9 @@ def _make_item(root, path, text):
 def _discover(root):
     # type: (str) -> list
     items = []
-    for top, kind in (('src', 'src'), ('test', 'test')):
+    # samples/ holds usage examples; like src/, a file is compiled when its
+    # header has a "$ jiecc" line.
+    for top, kind in (('src', 'src'), ('test', 'test'), ('samples', 'src')):
         base = os.path.join(root, top)
         for dirpath, dirnames, filenames in os.walk(base):
             dirnames.sort()

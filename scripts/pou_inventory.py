@@ -229,7 +229,8 @@ def build(root, xml_dir):
 
     found = {}  # name -> (in a src XML, first XML)
     for item in run_tests._discover(root):
-        if _TARGET not in item.targets:
+        # The examples in samples/ are not part of the library.
+        if _TARGET not in item.targets or item.name.startswith('samples/'):
             continue
         path = lint_xml.expected_xml(xml_dir, item.name, _TARGET)
         if not os.path.isfile(path):
@@ -244,7 +245,7 @@ def build(root, xml_dir):
             for pou in tree.iter(_NS + tag):
                 name = pou.get('name', '')
                 in_src, first = found.get(name, (False, path))
-                found[name] = (in_src or item.kind == 'src', first)
+                found[name] = (in_src or item.name.startswith('src/'), first)
         if item.kind == 'test':
             for program in tree.iter(_NS + 'Program'):
                 for st in program.iter(_NS + 'ST'):

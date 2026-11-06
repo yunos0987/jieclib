@@ -1,0 +1,63 @@
+(*
+ * Sample: keep the last 10 measured values with a ring buffer and average them.
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./samples/ringbuffer_recent_values/ringbuffer_recent_values.iec -I./src -o ./samples/ringbuffer_recent_values/ringbuffer_recent_values.xml -t omron
+ *)
+{#if _JIECC and (_JIECC_FULL_VER < 90200)}
+{#error JiecLib requires Jiecc 9.2.0 or later.}
+{#endif}
+
+// Make the ring buffer functions for lreal items: RingBuffer_lreal_init,
+// RingBuffer_lreal_enqueue and RingBuffer_lreal_dequeue. The state is
+// RingBuffer_t; the items are in an array that the program owns.
+{#define RingBufferItemType lreal}
+{#include <container/ringbuffer/ringbuffer_template.iec>}
+{#undef RingBufferItemType}
+
+{#define RECENT_COUNT 10}
+
+(*{doc Keep the last 10 values of a measurement and output their average.
+Set sample_now for one cycle to take the current value.}*)
+program RingBufferSample
+	var
+		(*{doc The measured value.}*)
+		measured: lreal;
+		(*{doc True for one cycle to take the current value.}*)
+		sample_now: bool;
+	end
+	var
+		(*{doc The average of the values kept (0 before the first value).}*)
+		recent_average: lreal;
+		(*{doc The number of values kept (up to 10).}*)
+		kept_count: dint;
+	end
+	var
+		state: RingBuffer_t;
+		items: array[0..RECENT_COUNT - 1] of lreal;
+		initialized: bool;
+		total: lreal;
+		idx: dint;
+	end
+	if not initialized then
+		// Overwrite mode: when the buffer is full, enqueue drops the oldest value.
+		RingBuffer_lreal_init(state, RECENT_COUNT, true);
+		initialized := true;
+	end_if;
+
+	if sample_now then
+		RingBuffer_lreal_enqueue(state, items, measured);
+	end_if;
+
+	// The kept values are items[(r_idx + k) mod buf_size] for k = 0 to
+	// w_idx - r_idx - 1, from the oldest to the newest.
+	kept_count := state.w_idx - state.r_idx;
+	total := 0.0;
+	for idx := state.r_idx to state.w_idx - 1 do
+		total := total + items[idx mod state.buf_size];
+	end_for;
+	if kept_count > 0 then
+		recent_average := total / dint_to_lreal(kept_count);
+	else
+		recent_average := 0.0;
+	end_if;
+end_program

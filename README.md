@@ -18,6 +18,7 @@
   - [stats](#stats)
   - [string\_lib](#string_lib)
   - [vector](#vector)
+- [利用例（samples）](#利用例samples)
 - [JiecLib開発者向け](#jieclib開発者向け)
   - [サブモジュール含むリポジトリのクローン方法](#サブモジュール含むリポジトリのクローン方法)
   - [JiecLibのテスト方法](#jieclibのテスト方法)
@@ -71,6 +72,8 @@ $ jiecc ./src/string_lib/string_lib.iec -I./src -o ./src/string_lib/string_lib.x
 ![string_lib.xmlインポート完了後の画面](./docs/screen_stringlib_import_completed.png)
 
 [string_lib](./src/string_lib/string_lib.iec) に含まれるPOU群（`String_charAt`、`String_lower` など）がインポートされます。
+
+テンプレート（container など）の具体化の仕方と、プログラムからの使い方は、[利用例（samples）](#利用例samples) を参照してください。
 
 ## JiecLibに含まれるライブラリ
 
@@ -670,6 +673,17 @@ IEC 61131-10 XML生成コマンド: `jiecc ./src/vector/vector.iec -I./src -o ./
   * `Vector_is_unit`: 単位ベクトル判定
 * **ユーティリティ**（[utils.iec](./src/vector/utils.iec)）
   * `Vector_utils_is_regular` / `Vector_utils_is_zero` / `Vector_utils_normalize`: 補助関数
+
+## 利用例（samples）
+
+[samples/](./samples) に、ライブラリの使い方を示すプログラムがあります。各ディレクトリの README.md に、目的・XML の生成コマンド・Sysmac Studio での使い方があります。CI は、すべての例をコンパイルし、規約を検査します。
+
+| 例 | 内容 |
+|---|---|
+| [hashmap_string_to_dint](./samples/hashmap_string_to_dint) | ハッシュマップのテンプレートの具体化（文字列のキーから dint の値）。部品の名前ごとの数を数える |
+| [ringbuffer_recent_values](./samples/ringbuffer_recent_values) | リングバッファで直近 10 個の測定値を保持し、平均を出す |
+| [random_process_variation](./samples/random_process_variation) | Mersenne Twister の正規分布で、工程の値の変動を模擬する |
+| [modbus_crc](./samples/modbus_crc) | CRC-16/MODBUS で、Modbus RTU の電文に CRC を付け、応答の CRC を確かめる |
 
 ## JiecLib開発者向け
 

@@ -627,6 +627,15 @@ PR-9 は、ブランチ `feature/crc16`（`feature/math-functions` の上）で�
 3. README.md の目次と「取り込む方法」から `samples/` へリンクする。
 4. PR-12・PR-14 は、それぞれの PR で `samples/moving_average/`・`samples/pid_loop/` を追加する（PR-13 の補間は、README.md の使用例で足りるので追加しない）。
 
+#### PR-11 の実装の結果と、計画から変えたこと
+
+PR-11 は、ブランチ `feature/samples`（`feature/crc16` の上）で実装した（マージの前）。PR-10 は作者の判断（D-1〜D-3）を待つので、先に PR-11 を実装した。
+
+- 各例は、1 つのプログラム（`program`）で、入力と出力を内部変数（`var`）にした。Sysmac Studio のプログラムは、入出力の引数を持たないためである。利用者は、ウォッチウィンドウやほかのプログラムから変数を設定する。
+- `scripts/pou_inventory.py` は、`samples/` の XML を読まない（利用例はライブラリではないので、テストを求めない）。lint（ソースと XML）は、`samples/` も検査する。
+- `modbus_crc` の電文の組み立てと応答の確認は、同じコードをテストに写して jier で実行し、`01 03 00 00 00 0A C5 CD` になることと、1 バイトを変えた応答を誤りと判定することを確かめた。ほかの 3 例は、コンパイルと lint だけで確かめた（L3 は作者が行う）。
+- 生成した XML（`samples/**/*.xml`）を `.gitignore` に加えた。
+
 #### 完了の条件
 
 - 全例が CI でコンパイルでき、lint を通り、README.md からたどれる。

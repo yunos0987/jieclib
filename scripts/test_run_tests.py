@@ -147,6 +147,13 @@ class PathsFileTest(unittest.TestCase):
         self.assertEqual([], errors)
         self.assertEqual(['src/a/a.iec'], [i.name for i in items])
 
+    def test_samples_with_a_header_are_discovered(self):
+        _write(self.root, 'samples/s/s.iec', '(*\n * $ jiecc ./s.iec -o ./s.xml -t omron\n *)\n')
+        _write(self.root, 'samples/s/part.iec', '// included by s.iec\n')
+        names = [i.name for i in run_tests._discover(self.root)]
+        self.assertIn('samples/s/s.iec', names)
+        self.assertNotIn('samples/s/part.iec', names)
+
     def test_missing_file(self):
         entries, errors = run_tests.read_paths_file(os.path.join(self.root, 'none.txt'))
         self.assertEqual([], entries)

@@ -1,0 +1,78 @@
+(*
+ * Sample: count parts by name with a hash map from string keys to dint values.
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./samples/hashmap_string_to_dint/hashmap_string_to_dint.iec -I./src -o ./samples/hashmap_string_to_dint/hashmap_string_to_dint.xml -t omron
+ *)
+{#if _JIECC and (_JIECC_FULL_VER < 90200)}
+{#error JiecLib requires Jiecc 9.2.0 or later.}
+{#endif}
+
+// The key functions of a string key.
+{#include <string_lib/equivalence.iec>}
+
+// Make a hash map type and its functions from the template. Every name that
+// the template makes contains HashMapName: the type HashMap_PartCount_t and
+// the functions HashMap_PartCount_init, HashMap_PartCount_upsert, ...
+// The name: one name per kind of map in a project.
+{#define HashMapName PartCount}
+// The number of slots. Keep the number of keys below 80% of it
+// (HashMapMaxLoadPermille, 800 by default); upsert fails when the map is full.
+{#define HashMapCapacity 64}
+// The key and value types. A string key needs a maximum length.
+{#define HashMapKeyType string[32 + 1]}
+{#define HashMapValueType dint}
+// How to compare and hash the keys (String_equals and String_hash of
+// string_lib/equivalence.iec for string keys).
+{#define HashMapKeyEqualsFunction String_equals}
+{#define HashMapKeyHashFunction String_hash}
+{#include <container/hashmap/hashmap_template.iec>}
+// Undefine the macros, so that another map can be made with other values.
+{#undef HashMapName}
+{#undef HashMapCapacity}
+{#undef HashMapKeyType}
+{#undef HashMapValueType}
+{#undef HashMapKeyEqualsFunction}
+{#undef HashMapKeyHashFunction}
+
+(*{doc Count the parts that pass a station by their name, and look up a count.
+Set part_name and pulse passed for one cycle when a part passes.}*)
+program HashMapSample
+	var
+		(*{doc The name of the part that passed.}*)
+		part_name: string[32 + 1];
+		(*{doc True for one cycle when a part passes.}*)
+		passed: bool;
+		(*{doc The name of the part whose count is shown in shown_count.}*)
+		shown_name: string[32 + 1];
+	end
+	var
+		(*{doc The count of shown_name (0 if it has not passed).}*)
+		shown_count: dint;
+		(*{doc True when a count could not be stored (the map is full). It stays true until a restart.}*)
+		map_full: bool;
+	end
+	var
+		counts: HashMap_PartCount_t;
+		initialized: bool;
+		current: dint;
+		replaced: bool;
+		ok: bool;
+	end
+	// Initialize the map once before using it.
+	if not initialized then
+		HashMap_PartCount_init(counts);
+		initialized := true;
+	end_if;
+
+	if passed then
+		// lookup leaves the value unchanged (and eno false) for a new key.
+		current := 0;
+		HashMap_PartCount_lookup(self:=counts, key:=part_name, value:=current, eno=>ok);
+		if not HashMap_PartCount_upsert(self:=counts, key:=part_name, value:=current + 1, replaced=>replaced) then
+			map_full := true;
+		end_if;
+	end_if;
+
+	shown_count := 0;
+	HashMap_PartCount_lookup(self:=counts, key:=shown_name, value:=shown_count, eno=>ok);
+end_program

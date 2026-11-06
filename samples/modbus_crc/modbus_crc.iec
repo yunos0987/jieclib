@@ -1,0 +1,60 @@
+(*
+ * Sample: build a Modbus RTU request with its CRC, and check the CRC of a response.
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./samples/modbus_crc/modbus_crc.iec -I./src -o ./samples/modbus_crc/modbus_crc.xml -t omron
+ *)
+{#if _JIECC and (_JIECC_FULL_VER < 90200)}
+{#error JiecLib requires Jiecc 9.2.0 or later.}
+{#endif}
+
+{#include <hash/crc16.iec>}
+
+(*{doc Build the request "read holding registers" (function 03) with its CRC,
+and check the CRC of a received response.
+The request for slave 1, address 0, 10 registers is 01 03 00 00 00 0A C5 CD:
+the CRC is 16#CDC5, and Modbus RTU sends its low byte first.}*)
+program ModbusCrcSample
+	var
+		(*{doc The slave address.}*)
+		slave: byte := byte#16#01;
+		(*{doc The first register address.}*)
+		address: word := word#16#0000;
+		(*{doc The number of registers.}*)
+		quantity: word := word#16#000A;
+		(*{doc The received response (the CRC in its last 2 bytes).}*)
+		response: array[0..255] of byte;
+		(*{doc The number of bytes received.}*)
+		response_length: dint;
+	end
+	var
+		(*{doc The request to send (8 bytes).}*)
+		request: array[0..7] of byte;
+		(*{doc True if the CRC of the response is right.}*)
+		response_ok: bool;
+	end
+	var
+		crc: word;
+		ok: bool;
+	end
+	// Build the request: slave, function, address and quantity (high byte first).
+	request[0] := slave;
+	request[1] := byte#16#03;
+	request[2] := dint_to_byte(word_to_dint(address) / 256);
+	request[3] := word_to_byte(address and word#16#00FF);
+	request[4] := dint_to_byte(word_to_dint(quantity) / 256);
+	request[5] := word_to_byte(quantity and word#16#00FF);
+	// Append the CRC of the first 6 bytes, low byte first.
+	crc := CRC16_modbus(dat:=request, offset:=0, length:=6);
+	request[6] := word_to_byte(crc and word#16#00FF);
+	request[7] := dint_to_byte(word_to_dint(crc) / 256);
+
+	// Check a response: the CRC of all bytes but the last 2 must equal the
+	// last 2 bytes (low byte first).
+	response_ok := false;
+	if (response_length >= 4) and (response_length <= 256) then
+		crc := CRC16_modbus(dat:=response, offset:=0, length:=response_length - 2, eno=>ok);
+		response_ok := ok
+			and (response[response_length - 2] = word_to_byte(crc and word#16#00FF))
+			and (response[response_length - 1] = dint_to_byte(word_to_dint(crc) / 256));
+	end_if;
+end_program
