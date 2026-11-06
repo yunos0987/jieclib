@@ -12,6 +12,7 @@
   - [container](#container)
   - [encoding](#encoding)
   - [hash](#hash)
+  - [interp](#interp)
   - [linalg](#linalg)
   - [math](#math)
   - [random](#random)
@@ -480,6 +481,29 @@ FIFO形式のリングバッファです。`overwrite=true` で初期化する�
 * **SHA-512**（[sha512.iec](./src/hash/sha512.iec)）
   * `SHA512_string` / `SHA512_bytes`
   * IEC 61131-10 XML生成コマンド: `jiecc ./src/hash/sha512.iec -I./src -o ./src/hash/sha512.xml -t omron`
+
+### [interp](./src/interp)
+
+補間テーブルのライブラリです（[interp.iec](./src/interp/interp.iec)）。テーブルは `var_in_out` の可変長配列で渡すので、定数のテーブルは変数に入れてから渡します。
+
+| 関数 | 説明 |
+|---|---|
+| `Interp_linear1d(x_table, y_table, x_value, count := -1, extrapolate := false)` | 折れ線の線形補間。`x_table` は使う点の範囲で狭義の昇順。`count` で先頭から使う点の数を決める（末尾を使わないテーブルのため。-1 は全要素）。範囲外は、`extrapolate` が偽なら端の値、真なら端の区間を延長する。1 回の走査（点の数に比例する時間）で、昇順の確認と区間の探索を行う |
+| `Interp_linear2d(x_axis, y_axis, table, x_value, y_value, x_count := -1, y_count := -1)` | 2 次元テーブルの双線形補間。`table[i, j]` が `(x_axis[i], y_axis[j])` の値。範囲外は端の値 |
+
+使用例（ヒーターの温度から出力の上限を決める）:
+
+```
+var
+	temps: array[0..3] of lreal := [0.0, 100.0, 200.0, 300.0];
+	limits: array[0..3] of lreal := [100.0, 80.0, 50.0, 20.0];
+	limit: lreal;
+end
+limit := Interp_linear1d(x_table:=temps, y_table:=limits, x_value:=current_temp);
+```
+
+* IEC 61131-10 XML生成コマンド: `jiecc ./src/interp/interp.iec -I./src -o ./src/interp/interp.xml -t omron`
+* NJ/NX の `ScaleTrans` は 2 点の直線変換です。この関数は多点の折れ線で、ほかのベンダーでも同じ書き方で使えます。
 
 ### [linalg](./src/linalg)
 

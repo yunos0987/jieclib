@@ -85,6 +85,7 @@ CHANGELOG.md 4.0.0 の「既知の問題」と同じ内訳である。
 | `test/array/test_array_dint.iec` | 1000 以下 | 1000 |
 | `test/stats/inference/tests/test_p_values.iec` | 1000 以下 | 1000 |
 | `test/test_sys_console.iec` | 1000 以下 | 1000 |
+| `test/interp/test_interp.iec` | 1000 以下 | 1000 |
 | `test/signal/test_signal.iec` | 1000 以下（`TEST_M` が 21 周期と 7 周期を使う） | 1000 |
 | `test/hash/test_crc16.iec`・`test/hash/test_checksum.iec` | 1000 以下 | 1000 |
 | `test/math/test_<名前>.iec`（PR-8 の 13 ファイル: trunc・ceil・round・round_half_even・round_to・clamp・lerp・sign・hypot・fmod・gcd・lcm・is_close） | 1000 以下 | 1000 |

@@ -687,6 +687,15 @@ PR-12 は、ブランチ `feature/signal`（`feature/samples` の上）で実装
 | `Interp_linear1d` | `function` | `x_table`・`y_table`（`var_in_out`、`array[*] of lreal`）と、使う点の数 `count: dint := -1`（-1 は配列の全要素）による折れ線の線形補間。PLC のテーブルは末尾を使わないことが多いので、`count` で使う範囲を決める。1 回の走査で、`x_table` の先頭 `count` 点が狭義の昇順であることの確認と、区間の探索を行う（O(count)。PLC のテーブルの大きさ（数十〜数百点）を想定し、点の数が大きいときの計算時間を doc プラグマに書く）。範囲外は引数 `extrapolate: bool` で、端の値で止めるか外挿するかを選ぶ。`var_in_out` なので、定数の配列はそのまま渡せない（変数に入れて渡す）ことを doc プラグマに書く |
 | `Interp_linear2d` | `function` | 2 次元テーブルの双線形補間。軸の点の数を引数で受け取る。範囲外は端の値で止める |
 
+#### PR-13 の実装の結果と、計画から変えたこと
+
+PR-13 は、ブランチ `feature/interp`（`feature/signal` の上）で実装した（マージの前）。
+
+- 2 つの関数は `src/interp/interp.iec` の 1 ファイルにまとめ、区間の探索と昇順の確認を内部の関数 `private_Interp_segment` で共通にした（1 回の走査）。
+- `Interp_linear1d` は、`x_table` と `y_table` の下限が違う場合と、`count` がどちらかの配列の要素数を超える場合も、エラーにする。`Interp_linear2d` は、軸の点の数を `x_count`・`y_count`（-1 は全要素）で受け取り、`table` の下限が軸の下限と違う場合をエラーにする。
+- テスト `test/interp/test_interp.iec` は、手で確かめられる値（折れ線の点と、双線形補間で正確に再現される `f(x, y) = 10x + y/10`）で、範囲内・点の上・範囲外（外挿の有無）・`count`・下限が 0 でない配列・エラーを確かめる。jier で通り、`scripts/jier_required.txt` に載せた。
+- 計画どおり、利用例は追加せず、README.md に使用例を書いた。
+
 #### PR-14: `src/control/`
 
 | POU | 種類 | 仕様 |

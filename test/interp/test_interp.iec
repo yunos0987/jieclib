@@ -1,0 +1,141 @@
+(*
+ * Tests of src/interp/ (roadmap PR-13).
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/interp/test_interp.iec -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/interp/test_interp.xml -t omron
+ *
+ * The tables are chosen so that the expected values can be checked by hand:
+ * the 1-dimensional table goes through (0, 0), (10, 100), (20, 150), (40, 250),
+ * and the 2-dimensional table holds f(x, y) = 10 x + y / 10, which bilinear
+ * interpolation reproduces exactly.
+ *)
+{#if _JIECC and (_JIECC_FULL_VER < 90200)}
+{#error JiecLib requires Jiecc 9.2.0 or later.}
+{#endif}
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <interp/interp.iec>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_Interp_linear1d,
+		test_Interp_linear2d
+	)
+)
+{#endif}
+
+{#define INTERP_EPS 1.0e-12}
+
+TEST_S(test_Interp_linear1d)
+	var
+		x_table: array[0..3] of lreal := [0.0, 10.0, 20.0, 40.0];
+		y_table: array[0..3] of lreal := [0.0, 100.0, 150.0, 250.0];
+		x_partial: array[0..4] of lreal := [0.0, 10.0, 20.0, 0.0, 0.0];
+		y_partial: array[0..4] of lreal := [0.0, 100.0, 150.0, 0.0, 0.0];
+		x_offset: array[5..7] of lreal := [0.0, 10.0, 20.0];
+		y_offset: array[5..7] of lreal := [0.0, 100.0, 150.0];
+		x_bad: array[0..2] of lreal := [0.0, 10.0, 10.0];
+		y_short: array[0..1] of lreal := [0.0, 1.0];
+		ok: bool;
+	end
+	// Fact: Inside the table the value is on the line between the two nearest points, also at the points.
+		// Arrange/Act/Assert
+	EXPECT_NEAR(50.0, Interp_linear1d(x_table:=x_table, y_table:=y_table, x_value:=5.0), INTERP_EPS);
+	EXPECT_NEAR(100.0, Interp_linear1d(x_table:=x_table, y_table:=y_table, x_value:=10.0), INTERP_EPS);
+	EXPECT_NEAR(125.0, Interp_linear1d(x_table:=x_table, y_table:=y_table, x_value:=15.0), INTERP_EPS);
+	EXPECT_NEAR(200.0, Interp_linear1d(x_table:=x_table, y_table:=y_table, x_value:=30.0), INTERP_EPS);
+	EXPECT_NEAR(0.0, Interp_linear1d(x_table:=x_table, y_table:=y_table, x_value:=0.0), INTERP_EPS);
+	EXPECT_NEAR(250.0, Interp_linear1d(x_table:=x_table, y_table:=y_table, x_value:=40.0), INTERP_EPS);
+
+	// Fact: Outside the table the end values are kept, or the end segments are extended with extrapolate.
+		// Arrange/Act/Assert
+	EXPECT_NEAR(0.0, Interp_linear1d(x_table:=x_table, y_table:=y_table, x_value:=-5.0), INTERP_EPS);
+	EXPECT_NEAR(250.0, Interp_linear1d(x_table:=x_table, y_table:=y_table, x_value:=50.0), INTERP_EPS);
+	EXPECT_NEAR(-50.0, Interp_linear1d(x_table:=x_table, y_table:=y_table, x_value:=-5.0, extrapolate:=true), INTERP_EPS);
+	EXPECT_NEAR(300.0, Interp_linear1d(x_table:=x_table, y_table:=y_table, x_value:=50.0, extrapolate:=true), INTERP_EPS);
+
+	// Fact: count uses only the first points, so unused entries at the end are ignored.
+		// Arrange/Act/Assert
+	EXPECT_NEAR(150.0, Interp_linear1d(x_table:=x_partial, y_table:=y_partial, x_value:=25.0, count:=3), INTERP_EPS);
+	EXPECT_NEAR(175.0, Interp_linear1d(x_table:=x_partial, y_table:=y_partial, x_value:=25.0, count:=3, extrapolate:=true), INTERP_EPS);
+
+	// Fact: Arrays that do not start at 0 work.
+		// Arrange/Act/Assert
+	EXPECT_NEAR(125.0, Interp_linear1d(x_table:=x_offset, y_table:=y_offset, x_value:=15.0), INTERP_EPS);
+
+	// Fact: Fewer than 2 points, a table that does not increase strictly, a count beyond an array, and different lower bounds are errors.
+		// Arrange
+		// Act
+	Interp_linear1d(x_table:=x_table, y_table:=y_table, x_value:=1.0, count:=1, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+		// Act
+	Interp_linear1d(x_table:=x_table, y_table:=y_table, x_value:=1.0, count:=0, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+		// Act
+	Interp_linear1d(x_table:=x_table, y_table:=y_table, x_value:=1.0, count:=-2, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+		// Act
+	Interp_linear1d(x_table:=x_bad, y_table:=y_table, x_value:=1.0, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+		// Act
+	Interp_linear1d(x_table:=x_table, y_table:=y_short, x_value:=1.0, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+		// Act
+	Interp_linear1d(x_table:=x_table, y_table:=y_table, x_value:=1.0, count:=5, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+		// Act
+	Interp_linear1d(x_table:=x_offset, y_table:=y_table, x_value:=1.0, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+END_TEST_S
+
+TEST_S(test_Interp_linear2d)
+	var
+		x_axis: array[0..1] of lreal := [0.0, 10.0];
+		y_axis: array[0..2] of lreal := [0.0, 100.0, 200.0];
+		// f(x, y) = 10 x + y / 10, flattened by rows (x).
+		table: array[0..1, 0..2] of lreal := [0.0, 10.0, 20.0, 100.0, 110.0, 120.0];
+		y_bad: array[0..2] of lreal := [0.0, 200.0, 100.0];
+		x_offset: array[1..2] of lreal := [0.0, 10.0];
+		ok: bool;
+	end
+	// Fact: Inside the table the value is the bilinear interpolation, which reproduces f(x, y) = 10 x + y / 10.
+		// Arrange/Act/Assert
+	EXPECT_NEAR(55.0, Interp_linear2d(x_axis:=x_axis, y_axis:=y_axis, table:=table, x_value:=5.0, y_value:=50.0), INTERP_EPS);
+	EXPECT_NEAR(65.0, Interp_linear2d(x_axis:=x_axis, y_axis:=y_axis, table:=table, x_value:=5.0, y_value:=150.0), INTERP_EPS);
+	EXPECT_NEAR(110.0, Interp_linear2d(x_axis:=x_axis, y_axis:=y_axis, table:=table, x_value:=10.0, y_value:=100.0), INTERP_EPS);
+
+	// Fact: Outside the table the coordinates are limited to it.
+		// Arrange/Act/Assert
+	EXPECT_NEAR(120.0, Interp_linear2d(x_axis:=x_axis, y_axis:=y_axis, table:=table, x_value:=20.0, y_value:=300.0), INTERP_EPS);
+	EXPECT_NEAR(0.0, Interp_linear2d(x_axis:=x_axis, y_axis:=y_axis, table:=table, x_value:=-1.0, y_value:=-1.0), INTERP_EPS);
+	EXPECT_NEAR(15.0, Interp_linear2d(x_axis:=x_axis, y_axis:=y_axis, table:=table, x_value:=-1.0, y_value:=150.0), INTERP_EPS);
+
+	// Fact: An axis that does not increase strictly, a count beyond the table or below 2, and different lower bounds are errors.
+		// Arrange
+		// Act
+	Interp_linear2d(x_axis:=x_axis, y_axis:=y_bad, table:=table, x_value:=1.0, y_value:=1.0, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+		// Act
+	Interp_linear2d(x_axis:=x_axis, y_axis:=y_axis, table:=table, x_value:=1.0, y_value:=1.0, y_count:=4, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+		// Act
+	Interp_linear2d(x_axis:=x_axis, y_axis:=y_axis, table:=table, x_value:=1.0, y_value:=1.0, x_count:=1, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+		// Act (the lower bound of x_offset is not the lower bound of the rows of table)
+	Interp_linear2d(x_axis:=x_offset, y_axis:=y_axis, table:=table, x_value:=1.0, y_value:=1.0, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+END_TEST_S

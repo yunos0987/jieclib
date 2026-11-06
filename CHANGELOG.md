@@ -10,6 +10,7 @@
 - hash に CRC-16（`CRC16_modbus`・`CRC16_ccittFalse`・`CRC16_xmodem`・`CRC16_toHex`）とチェックサム（`Checksum_sum8`・`Checksum_xor8`・`Checksum_lrc`）を追加しました。Modbus RTU・シリアル通信の電文に使えます。`shl` / `shr` を使わないので、jier でもテストを実行できます（`test/hash/test_crc16.iec`・`test/hash/test_checksum.iec`）。
 - ライブラリの使い方を示す利用例 `samples/` を追加しました（ハッシュマップの具体化、リングバッファ、乱数による工程の変動、Modbus RTU の CRC）。README.md の「利用例（samples）」から参照できます。`scripts/run_tests.py` は、`samples/` の、先頭コメントに `$ jiecc` の行があるファイルもコンパイルします。
 - 信号処理のライブラリ `src/signal/` を追加しました。`Signal_deadband`（不感帯）、`Signal_lowPass`（一次遅れ）、`Signal_rateLimiter`（変化率の上限）、`Signal_hysteresis`（ヒステリシス付き比較）と、テンプレートの移動平均（`moving_average_template.iec`）・メディアンフィルタ（`median_template.iec`）です。テスト `test/signal/test_signal.iec` は jier で実行でき、利用例 `samples/moving_average/` もあります。
+- 補間テーブルのライブラリ `src/interp/` を追加しました。`Interp_linear1d`（折れ線の線形補間。使う点の数・外挿の有無を指定できる）と `Interp_linear2d`（2 次元テーブルの双線形補間）です。テスト `test/interp/test_interp.iec` は jier で実行できます。
 
 ### 修正 / Fixed
 
