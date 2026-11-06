@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### 修正 / Fixed
+
+- `Math_floor` が、絶対値が 2^63 以上の値で誤った値を返す不具合を直しました（例: `Math_floor(1.0e19)` が `-8.446744073709552e+18`、`Math_floor(1.0e300)` が `0.0` を返していました）。`lint` に変換して切り捨てていたため、`lint` の範囲を超える値であふれていました。絶対値が 2^52 以上の `lreal` は必ず整数なので、その値をそのまま返します。テストは `test/math/test_floor_large.iec` です。
+
 ### その他 / Other
 
 - `scripts/lint.py` を追加しました。CONTRIBUTING.md と AGENTS.md の規約のうち、ソースを読んで判定できるもの（キーワードなどの小文字、doc プラグマの書き方・引用符・有無、`continue` と `/* */` の禁止、コメントの英語、テストの `// Fact:`）を検査します。既存の警告（日本語のコメント・doc プラグマ 1,139 件、`// Fact:` のないテスト 273 件）は `scripts/lint_baseline.json` に一覧として記録し、一覧にない警告だけを失敗にします。`scripts/test_lint.py` がその単体テストです。

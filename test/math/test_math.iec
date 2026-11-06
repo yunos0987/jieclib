@@ -14,7 +14,8 @@
 DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
 		test_atan2,
-		test_floor
+		test_floor,
+		test_floor_large
 	)
 )
 {#undef _TEST_}
@@ -22,3 +23,4 @@ DEFINE_CONFIGURATION(
 
 {#include "test_atan2.iec"}
 {#include "test_floor.iec"}
+{#include "test_floor_large.iec"}

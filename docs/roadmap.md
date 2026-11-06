@@ -381,7 +381,7 @@ PR-4 は、ブランチ `feature/pou-inventory`（`feature/lint-xml` の上）�
 
 1. `|x| >= 2^52`（`4503599627370496.0`）のときは、`x` をそのまま返す。この範囲の `lreal` は必ず整数なので、`trunc` を通す必要がない。
 2. テストを、jier で通る新しいテストファイル（`test/math/test_floor_large.iec`）に書き、`scripts/jier_required.txt` に載せる。既存の `test_floor.iec` は jier で確かめられない場合がある（2.3 節）。値は `±4.5e15`・`±9.0e18`・`±1.0e19`・`±1.0e300`、`2^52` ちょうどと、その前後の値。
-3. NaN と無限大は、この PR では扱わない。PR-8 の調査の後、PR-8 でテストを足す。
+3. NaN と無限大は、この PR では扱わない。PR-8 の調査の後、PR-8 でテストを足す。負の 0（`Math_floor(-0.0)` は、修正の前から +0.0 を返す。Python の `math.floor` は -0.0 を返す）も、PR-8 で扱う。
 
 #### PR-6: `TEST_M` の確認と、乱数の分布のテスト
 

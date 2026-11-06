@@ -9,3 +9,5 @@
 # until the given number of cycles, so do not give many more than needed.
 #
 # Add every new test file here (CONTRIBUTING.md, "テストの実行").
+
+test/math/test_floor_large.iec 1000

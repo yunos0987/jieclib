@@ -214,7 +214,6 @@
     "src/math/atan2.iec: X座標値",
     "src/math/atan2.iec: Y座標値",
     "src/math/atan2.iec: 未定義だが0を返す",
-    "src/math/floor.iec: 与えられた値以下の最大の整数を返す（床関数）",
     "src/stats/descriptive/arithmetic_mean.iec: dataの先頭n個を使用する。",
     "src/stats/descriptive/arithmetic_mean.iec: dataの先頭n個を使用する。 #2",
     "src/stats/descriptive/arithmetic_mean.iec: dataの先頭n個を使用する。 #3",
