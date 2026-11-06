@@ -9,6 +9,7 @@
 - [JiecLibに含まれるライブラリ](#jieclibに含まれるライブラリ)
   - [array](#array)
   - [bitset](#bitset)
+  - [control](#control)
   - [compress](#compress)
   - [container](#container)
   - [encoding](#encoding)
@@ -48,6 +49,7 @@ JiecLibは、<a href="https://www.graviness.com/iec_61131-3/">IEC 61131-3 ST言�
 | [bitset](./src/bitset) | omron |
 | [compress](./src/compress) | omron |
 | [container](./src/container) | keyence, omron |
+| [control](./src/control) | omron |
 | [encoding](./src/encoding) | omron |
 | [hash](./src/hash) | omron |
 | [interp](./src/interp) | omron |
@@ -465,6 +467,19 @@ FIFO形式のリングバッファです。`overwrite=true` で初期化する�
 
 テスト用XML生成コマンド: `jiecc ./test/container/ringbuffer/test_ringbuffer.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/container/ringbuffer/test_ringbuffer.xml -t omron`
 
+### [control](./src/control)
+
+制御のライブラリです（[control.iec](./src/control/control.iec)）。周期は引数 `sample_time`（秒）で受け取り、引数の誤りは `eno := false` で知らせます（出力と状態は前回のまま）。入力 `reset` が真のとき、状態を初期値に戻します。
+
+| POU | 種類 | 説明 |
+|---|---|---|
+| `Control_pid` | ファンクションブロック | 並列形の PID（`kp * e + ki * ∫e + kd * 微分`）。出力の上下限、アンチワインドアップ（上下限に達したら、その向きの積分を止める）、手動・自動の切替（切り替えても出力が飛ばない）、微分先行（測定値の微分）、不完全微分（時定数 `derivative_filter`） |
+| `Control_ramp` | ファンクションブロック | 目標値へ、毎秒 `rate` 以内の変化で近づける |
+
+* IEC 61131-10 XML生成コマンド: `jiecc ./src/control/control.iec -I./src -o ./src/control/control.xml -t omron`
+* 使い方は、[samples/pid_loop](./samples/pid_loop) を参照してください。
+* NJ/NX には、オートチューニング付きの 2 自由度 PID（`PIDAT`・`PIDAT_HeatCool`）と、多段のプログラムパターン（`AC_StepProgram`）があります。omron でしか使わない場合は、標準命令も検討してください。これらの POU は、簡素で、ベンダーをまたいで同じ書き方で使え、テストで振る舞いを確かめられます。
+
 ### [encoding](./src/encoding)
 
 エンコーディング関連ライブラリです。
@@ -767,6 +782,7 @@ IEC 61131-10 XML生成コマンド: `jiecc ./src/vector/vector.iec -I./src -o ./
 | [ringbuffer_recent_values](./samples/ringbuffer_recent_values) | リングバッファで直近 10 個の測定値を保持し、平均を出す |
 | [random_process_variation](./samples/random_process_variation) | Mersenne Twister の正規分布で、工程の値の変動を模擬する |
 | [moving_average](./samples/moving_average) | 移動平均・メディアンフィルタ・一次遅れで、測定値をなめらかにする |
+| [pid_loop](./samples/pid_loop) | PID 制御（`Control_pid`）とランプ（`Control_ramp`）で、模擬した一次遅れの対象を制御する |
 | [modbus_crc](./samples/modbus_crc) | CRC-16/MODBUS で、Modbus RTU の電文に CRC を付け、応答の CRC を確かめる |
 
 ## JiecLib開発者向け

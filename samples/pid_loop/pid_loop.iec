@@ -1,0 +1,58 @@
+(*
+ * Sample: control a simulated first-order process with Control_pid, and change the setpoint with a ramp.
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./samples/pid_loop/pid_loop.iec -I./src -o ./samples/pid_loop/pid_loop.xml -t omron
+ *)
+{#if _JIECC and (_JIECC_FULL_VER < 90200)}
+{#error JiecLib requires Jiecc 9.2.0 or later.}
+{#endif}
+
+{#include <control/control.iec>}
+{#include <signal/signal.iec>}
+
+(*{doc A PID loop on a simulated process: a first-order lag (Signal_lowPass) stands for the machine,
+so the loop can be tried on the simulator. The setpoint moves to target with Control_ramp.
+Replace the simulated process with the real input and output of the machine.}*)
+program PidLoopSample
+	var
+		(*{doc The target of the setpoint.}*)
+		target: lreal := 50.0;
+		(*{doc True for manual mode; the output is then manual_output.}*)
+		manual: bool;
+		(*{doc The output in manual mode (percent).}*)
+		manual_output: lreal;
+		(*{doc The period of the task in seconds.}*)
+		task_period: lreal := 0.01;
+	end
+	var
+		(*{doc The setpoint after the ramp.}*)
+		setpoint: lreal;
+		(*{doc The output of the controller (0 to 100 percent).}*)
+		output_percent: lreal;
+		(*{doc The simulated process value.}*)
+		process_value: lreal;
+	end
+	var
+		ramp: Control_ramp;
+		pid: Control_pid;
+		process: Signal_lowPass;
+		started: bool;
+		restart: bool;
+	end
+	// The blocks start in the first cycle.
+	restart := not started;
+	// The setpoint moves toward target by 10 units per second.
+	ramp(target_value:=target, rate:=10.0, initial_value:=0.0, sample_time:=task_period, reset:=restart);
+	setpoint := ramp.output_value;
+
+	// Parallel PID: output = kp * e + ki * integral(e) + kd * derivative of the process value.
+	pid(setpoint:=setpoint, process_value:=process_value, kp:=2.0, ki:=0.5, kd:=0.1, derivative_filter:=0.05,
+		output_min:=0.0, output_max:=100.0, sample_time:=task_period,
+		manual:=manual, manual_output:=manual_output, reset:=restart);
+	output_percent := pid.output_value;
+
+	// The simulated process: 100 percent gives 100 units, with a time constant of 5 s.
+	process(input_value:=output_percent, time_constant:=5.0, sample_time:=task_period, reset:=restart);
+	process_value := process.output_value;
+	started := true;
+end_program

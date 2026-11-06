@@ -32,3 +32,4 @@ test/hash/test_crc16.iec 1000
 test/hash/test_checksum.iec 1000
 test/signal/test_signal.iec 1000
 test/interp/test_interp.iec 1000
+test/control/test_control.iec 1000

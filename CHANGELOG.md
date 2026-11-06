@@ -12,6 +12,7 @@
 - 信号処理のライブラリ `src/signal/` を追加しました。`Signal_deadband`（不感帯）、`Signal_lowPass`（一次遅れ）、`Signal_rateLimiter`（変化率の上限）、`Signal_hysteresis`（ヒステリシス付き比較）と、テンプレートの移動平均（`moving_average_template.iec`）・メディアンフィルタ（`median_template.iec`）です。テスト `test/signal/test_signal.iec` は jier で実行でき、利用例 `samples/moving_average/` もあります。
 - 補間テーブルのライブラリ `src/interp/` を追加しました。`Interp_linear1d`（折れ線の線形補間。使う点の数・外挿の有無を指定できる）と `Interp_linear2d`（2 次元テーブルの双線形補間）です。テスト `test/interp/test_interp.iec` は jier で実行できます。
 - GitHub の Release を公開すると、`src/` の XML をターゲットごとの zip（`jieclib-X.Y.Z-omron.zip`・`jieclib-X.Y.Z-keyence.zip`）にして添付する workflow（`.github/workflows/release.yml`）を追加しました。Jiecc を用意しなくても、XML を取り込めます。zip には、使った Jiecc の版と取り込みの注意が入ります。
+- 制御のライブラリ `src/control/` を追加しました。`Control_pid`（並列形の PID。出力の上下限、アンチワインドアップ、手動・自動の切替、微分先行、不完全微分）と `Control_ramp`（ランプ）です。テスト `test/control/test_control.iec` は jier で実行でき、利用例 `samples/pid_loop/` もあります。
 
 ### 修正 / Fixed
 

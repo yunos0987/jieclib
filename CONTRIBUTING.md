@@ -100,7 +100,7 @@ $ python scripts/lint.py src/math test/math
 各 `.iec` の先頭コメントの `$ jiecc ... -t <ターゲット>` の行が、対応を宣言したターゲットです（[README.md の「対応ターゲット」](README.md#対応ターゲット)）。宣言は、そのターゲットの開発環境で確かめたものだけにします。新しいファイルは omron だけを宣言します。
 
 - `src/<名前>/` のエントリファイルと `test/<名前>/` のテストは、同じライブラリとして扱います（`src/` と `test/` の直下のファイルは `sys`）。ソースとテストで宣言が違うと、lint の `target-consistency` がエラーにします（パスを指定しない、全体の検査のとき）。ソースにヘッダーがないライブラリ（テンプレートだけのもの）は、テストのヘッダーを宣言とみなします。
-- 宣言を変えたら、`python scripts/target_table.py --update` で README.md の表を作り直します。CI の `lint` ジョブが、表とヘッダーの一致を確かめます（`--check`）。
+- 宣言を変えたとき、ライブラリを追加したときは、`python scripts/target_table.py --update` で README.md の表を作り直します。CI の `lint` ジョブが、表とヘッダーの一致を確かめます（`--check`）。
 - 開発環境で確かめた結果は、Pull Request の本文の L3・L4 の欄に書き、README.md の「開発環境で確かめた結果」の表も直します。
 
 #### コンパイルした XML の検査
