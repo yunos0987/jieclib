@@ -186,7 +186,7 @@ function Vector_angle_from_cross_product: lreal
 		return;
 	end_if;
 	
-	Vector_angle_from_cross_product := ASIN(cross_mag / (a_mag * b_mag));
+	Vector_angle_from_cross_product := asin(cross_mag / (a_mag * b_mag));
 end
 
 // Vector Relationship Tests

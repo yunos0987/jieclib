@@ -68,8 +68,8 @@ TEST_S(test_matrix_eigenvalue_compute)
 	EXPECT_NEAR(3.0, eigen6[1], EPS);
 	Matrix_eigenvalue_compute(a:=a7, eigenvalues:=eigen7);
 	EXPECT_NEAR(3.0, eigen7[0], EPS);
-	EXPECT_NEAR((9.0 - SQRT(5.0))/2.0, eigen7[1], EPS);
-	EXPECT_NEAR((9.0 + SQRT(5.0))/2.0, eigen7[2], EPS);
+	EXPECT_NEAR((9.0 - sqrt(5.0))/2.0, eigen7[1], EPS);
+	EXPECT_NEAR((9.0 + sqrt(5.0))/2.0, eigen7[2], EPS);
 	Matrix_eigenvalue_compute(a:=a8, eigenvalues:=eigen8);
 	EXPECT_NEAR(-1.0, eigen8[0], EPS);
 	EXPECT_NEAR(1.0, eigen8[1], EPS);
@@ -87,9 +87,9 @@ TEST_S(test_matrix_eigenvalue_compute)
 	EXPECT_NEAR(4.0, eigen11[3], EPS);
 	Matrix_eigenvalue_compute(a:=a12, eigenvalues:=eigen12);
 	EXPECT_NEAR(1.0, eigen12[0], EPS);
-	EXPECT_NEAR(3.0 - SQRT(2.0), eigen12[1], EPS);
+	EXPECT_NEAR(3.0 - sqrt(2.0), eigen12[1], EPS);
 	EXPECT_NEAR(3.0, eigen12[2], EPS);
-	EXPECT_NEAR(3.0 + SQRT(2.0), eigen12[3], EPS);
+	EXPECT_NEAR(3.0 + sqrt(2.0), eigen12[3], EPS);
 END_TEST_S
 
 {#undef EPS}

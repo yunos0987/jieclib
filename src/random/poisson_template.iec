@@ -70,7 +70,7 @@ function Random_nextPoisson: dint
 	if lambda <= lreal#0.0 then
 		eno := false;
 	else
-		exp_limit := EXP(-lambda);
+		exp_limit := exp(-lambda);
 		cnt := 0;
 		prod := lreal#1.0;
 		repeat

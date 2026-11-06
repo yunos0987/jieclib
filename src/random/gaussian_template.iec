@@ -75,7 +75,7 @@ function Random_nextGaussian: lreal
 		if u1 <= lreal#0.0 then
 			u1 := lreal#2.2204460492503e-16; // guard against log(0)
 		end_if;
-		Random_nextGaussian := SQRT(-lreal#2.0 * LN(u1)) * COS(lreal#2.0 * lreal#3.141592653589793 * u2) * sigma + mean;
+		Random_nextGaussian := sqrt(-lreal#2.0 * ln(u1)) * cos(lreal#2.0 * lreal#3.141592653589793 * u2) * sigma + mean;
 	end_if;
 end
 
