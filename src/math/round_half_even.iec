@@ -1,0 +1,47 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/math/round_half_even.iec -I./src -o ./src/math/round_half_even.xml -t omron
+ *)
+{#ifndef __MATH_ROUND_HALF_EVEN_IEC__}
+{#define __MATH_ROUND_HALF_EVEN_IEC__}
+
+{#include <sys.iec>}
+{#include <math/trunc.iec>}
+
+
+(*{doc Round to the nearest integer; a half is rounded to the even integer (round half to even).
+roundHalfEven(2.5) = 2.0, roundHalfEven(3.5) = 4.0, roundHalfEven(-2.5) = -2.0.
+The results for NaN and infinity are undefined (they cannot be made in the same way on every environment).
+@input value The value.
+@return The nearest integer, or the even one of the two nearest integers.}*)
+function Math_roundHalfEven: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc The value.}*)
+		value: lreal;
+	end
+	var_temp
+		truncated: lreal;
+		fraction: lreal;
+		away: lreal;
+	end
+	truncated := Math_trunc(value:=value);
+	fraction := abs(value - truncated);
+	if value < 0.0 then
+		away := truncated - 1.0;
+	else
+		away := truncated + 1.0;
+	end_if;
+	if fraction > 0.5 then
+		Math_roundHalfEven := away;
+	elsif fraction < 0.5 then
+		Math_roundHalfEven := truncated;
+	// A fraction of exactly 0.5 means abs(value) < 2^52, so truncated fits in lint.
+	elsif (lreal_to_lint(truncated) mod 2) = 0 then
+		Math_roundHalfEven := truncated;
+	else
+		Math_roundHalfEven := away;
+	end_if;
+end
+
+{#endif}

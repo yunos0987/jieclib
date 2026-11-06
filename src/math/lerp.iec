@@ -1,0 +1,37 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/math/lerp.iec -I./src -o ./src/math/lerp.xml -t omron
+ *)
+{#ifndef __MATH_LERP_IEC__}
+{#define __MATH_LERP_IEC__}
+
+{#include <sys.iec>}
+
+
+(*{doc Linear interpolation: start_value + (end_value - start_value) * ratio.
+lerp(10.0, 20.0, 0.25) = 12.5. ratio is not limited to 0 to 1 (it extrapolates).
+For ratio = 1.0 it returns end_value as it is: the formula can miss it because of rounding
+(lerp(1.0e20, 1.0, 1.0) would give 0.0).
+end_value - start_value must be a finite lreal; for values of opposite signs near the largest lreal it overflows.
+@input start_value The value for ratio = 0.
+@input end_value The value for ratio = 1.
+@input ratio The position between the two values.
+@return The interpolated value.}*)
+function Math_lerp: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc The value for ratio = 0.}*)
+		start_value: lreal;
+		(*{doc The value for ratio = 1.}*)
+		end_value: lreal;
+		(*{doc The position between the two values.}*)
+		ratio: lreal;
+	end
+	if ratio = 1.0 then
+		Math_lerp := end_value;
+	else
+		Math_lerp := start_value + (end_value - start_value) * ratio;
+	end_if;
+end
+
+{#endif}

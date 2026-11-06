@@ -15,3 +15,16 @@ test/test_jiecunit_test_m.iec 1000
 test/array/test_array_dint.iec 1000
 test/stats/inference/tests/test_p_values.iec 1000
 test/test_sys_console.iec 1000
+test/math/test_trunc.iec 1000
+test/math/test_ceil.iec 1000
+test/math/test_round.iec 1000
+test/math/test_round_half_even.iec 1000
+test/math/test_round_to.iec 1000
+test/math/test_clamp.iec 1000
+test/math/test_lerp.iec 1000
+test/math/test_sign.iec 1000
+test/math/test_hypot.iec 1000
+test/math/test_fmod.iec 1000
+test/math/test_gcd.iec 1000
+test/math/test_lcm.iec 1000
+test/math/test_is_close.iec 1000

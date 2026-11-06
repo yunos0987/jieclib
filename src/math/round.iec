@@ -1,0 +1,38 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/math/round.iec -I./src -o ./src/math/round.xml -t omron
+ *)
+{#ifndef __MATH_ROUND_IEC__}
+{#define __MATH_ROUND_IEC__}
+
+{#include <sys.iec>}
+{#include <math/trunc.iec>}
+
+
+(*{doc Round to the nearest integer; a half is rounded away from zero: round(2.5) = 3.0, round(-2.5) = -3.0.
+It compares the fraction with 0.5 instead of truncating value + 0.5, which gives 1.0 for 0.49999999999999994.
+The results for NaN and infinity are undefined (they cannot be made in the same way on every environment).
+@input value The value.
+@return The nearest integer.}*)
+function Math_round: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc The value.}*)
+		value: lreal;
+	end
+	var_temp
+		truncated: lreal;
+	end
+	truncated := Math_trunc(value:=value);
+	if abs(value - truncated) >= 0.5 then
+		if value < 0.0 then
+			Math_round := truncated - 1.0;
+		else
+			Math_round := truncated + 1.0;
+		end_if;
+	else
+		Math_round := truncated;
+	end_if;
+end
+
+{#endif}

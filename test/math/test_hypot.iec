@@ -1,0 +1,39 @@
+(*
+ * Test for Math_hypot
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/math/test_hypot.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/math/test_hypot.xml -t omron
+ *
+ * The expected values come from math.hypot of Python.
+ *)
+{#if _JIECC and (_JIECC_FULL_VER < 90200)}
+{#error JiecLib requires Jiecc 9.2.0 or later.}
+{#endif}
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <math/hypot.iec>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_hypot
+	)
+)
+{#endif}
+
+TEST_S(test_hypot)
+	// Fact: hypot is the length of the vector.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(5.0, Math_hypot(x_value:=3.0, y_value:=4.0));
+	EXPECT_EQ_LREAL(13.0, Math_hypot(x_value:=-5.0, y_value:=12.0));
+	EXPECT_EQ_LREAL(0.0, Math_hypot(x_value:=0.0, y_value:=0.0));
+	EXPECT_EQ_LREAL(7.0, Math_hypot(x_value:=0.0, y_value:=-7.0));
+
+	// Fact: Large and small values do not overflow or underflow.
+		// Arrange/Act/Assert
+	EXPECT_NEAR_REL(4.9999999999999995e+200, Math_hypot(x_value:=3e+200, y_value:=4e+200), 1.0e-15);
+	EXPECT_NEAR_REL(5e-200, Math_hypot(x_value:=3e-200, y_value:=4e-200), 1.0e-15);
+	EXPECT_NEAR_REL(1.4142135623730952e+300, Math_hypot(x_value:=1e+300, y_value:=1e+300), 1.0e-15);
+END_TEST_S

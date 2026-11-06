@@ -1,0 +1,57 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/math/lcm.iec -I./src -o ./src/math/lcm.xml -t omron
+ *)
+{#ifndef __MATH_LCM_IEC__}
+{#define __MATH_LCM_IEC__}
+
+{#include <sys.iec>}
+{#include <math/gcd.iec>}
+
+
+(*{doc Return the least common multiple of two integers. Negative values are taken as their absolute values.
+lcm(4, 6) = 12, lcm(-4, 6) = 12, lcm(0, 5) = 0.
+@input num_a The first integer.
+@input num_b The second integer.
+@return The least common multiple (not negative), or 0 if num_a or num_b is 0.
+@error If the result does not fit in lint, or num_a or num_b is the smallest lint.}*)
+function Math_lcm: lint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc The first integer.}*)
+		num_a: lint;
+		(*{doc The second integer.}*)
+		num_b: lint;
+	end
+	var_temp
+		ok: bool;
+		divisor: lint;
+		quotient: lint;
+		abs_b: lint;
+	end
+	divisor := Math_gcd(num_a:=num_a, num_b:=num_b, eno=>ok);
+	if not ok then
+		eno := false;
+		return;
+	end_if;
+	if divisor = lint#0 then
+		Math_lcm := lint#0;
+		return;
+	end_if;
+	// Not abs(): jier (jiecc --run) cannot run abs on an integer.
+	quotient := num_a / divisor;
+	if quotient < lint#0 then
+		quotient := -quotient;
+	end_if;
+	abs_b := num_b;
+	if abs_b < lint#0 then
+		abs_b := -abs_b;
+	end_if;
+	if (quotient <> lint#0) and (abs_b > lint#9223372036854775807 / quotient) then
+		eno := false;
+		return;
+	end_if;
+	Math_lcm := quotient * abs_b;
+end
+
+{#endif}

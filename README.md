@@ -503,6 +503,23 @@ IEC 61131-10 XML生成コマンド: `jiecc ./src/linalg/linalg.iec -I./src -o ./
 |---|---|---|
 | [Math_floor](./src/math/floor.iec) | 床関数（floor） | `jiecc ./src/math/floor.iec -I./src -o ./src/math/floor.xml -t omron` |
 | [Math_atan2](./src/math/atan2.iec) | 2引数アークタンジェント | `jiecc ./src/math/atan2.iec -I./src -o ./src/math/atan2.xml -t omron` |
+| [Math_ceil](./src/math/ceil.iec) | 天井関数（ceil） | `jiecc ./src/math/ceil.iec -I./src -o ./src/math/ceil.xml -t omron` |
+| [Math_trunc](./src/math/trunc.iec) | 0 方向への切り捨て | `jiecc ./src/math/trunc.iec -I./src -o ./src/math/trunc.xml -t omron` |
+| [Math_round](./src/math/round.iec) | 四捨五入（0.5 は 0 から遠い方へ） | `jiecc ./src/math/round.iec -I./src -o ./src/math/round.xml -t omron` |
+| [Math_roundHalfEven](./src/math/round_half_even.iec) | 偶数丸め（0.5 ちょうどは偶数の方へ） | `jiecc ./src/math/round_half_even.iec -I./src -o ./src/math/round_half_even.xml -t omron` |
+| [Math_roundTo](./src/math/round_to.iec) | 小数点以下 digits 桁への四捨五入（digits は -15〜15） | `jiecc ./src/math/round_to.iec -I./src -o ./src/math/round_to.xml -t omron` |
+| [Math_clamp](./src/math/clamp.iec) | 値を下限と上限の範囲に収める | `jiecc ./src/math/clamp.iec -I./src -o ./src/math/clamp.xml -t omron` |
+| [Math_lerp](./src/math/lerp.iec) | 線形補間 | `jiecc ./src/math/lerp.iec -I./src -o ./src/math/lerp.xml -t omron` |
+| [Math_sign](./src/math/sign.iec) | 符号（-1.0 / 0.0 / 1.0） | `jiecc ./src/math/sign.iec -I./src -o ./src/math/sign.xml -t omron` |
+| [Math_hypot](./src/math/hypot.iec) | `sqrt(x^2 + y^2)`（桁あふれしない） | `jiecc ./src/math/hypot.iec -I./src -o ./src/math/hypot.xml -t omron` |
+| [Math_fmod](./src/math/fmod.iec) | 浮動小数点の剰余（C の `fmod` と同じ値） | `jiecc ./src/math/fmod.iec -I./src -o ./src/math/fmod.xml -t omron` |
+| [Math_gcd](./src/math/gcd.iec) | 最大公約数（lint） | `jiecc ./src/math/gcd.iec -I./src -o ./src/math/gcd.xml -t omron` |
+| [Math_lcm](./src/math/lcm.iec) | 最小公倍数（lint） | `jiecc ./src/math/lcm.iec -I./src -o ./src/math/lcm.xml -t omron` |
+| [Math_isClose](./src/math/is_close.iec) | 2 つの値が近いか（Python の `math.isclose` と同じ判定） | `jiecc ./src/math/is_close.iec -I./src -o ./src/math/is_close.xml -t omron` |
+
+- NaN と無限大を渡したときの結果は未定義です（環境によって、NaN や無限大を同じ方法で作れないため）。
+- `Math_roundTo` は 2 進数で計算するので、2 進数で正確に表せない値は、見た目の 10 進数どおりには丸まりません（例: `Math_roundTo(1.015, 2)` は `1.015` が実際には `1.01499999999999990...` なので `1.01`）。
+- NJ/NX シリーズには、役割が重なる標準命令があります。`Round`・`TRUNC`・`RoundUp`（整数を返す。これらの関数は `lreal` を返し、整数の範囲を超える値でも使える）、`FMod` です。omron でしか使わない場合は、標準命令も検討してください。これらの関数は、ベンダーをまたいで同じ書き方で使えます。
 
 ### [random](./src/random)
 

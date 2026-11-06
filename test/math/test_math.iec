@@ -15,7 +15,20 @@ DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
 		test_atan2,
 		test_floor,
-		test_floor_large
+		test_floor_large,
+		test_trunc,
+		test_ceil,
+		test_round,
+		test_round_half_even,
+		test_round_to,
+		test_clamp,
+		test_lerp,
+		test_sign,
+		test_hypot,
+		test_fmod,
+		test_gcd,
+		test_lcm,
+		test_is_close
 	)
 )
 {#undef _TEST_}
@@ -24,3 +37,16 @@ DEFINE_CONFIGURATION(
 {#include "test_atan2.iec"}
 {#include "test_floor.iec"}
 {#include "test_floor_large.iec"}
+{#include "test_trunc.iec"}
+{#include "test_ceil.iec"}
+{#include "test_round.iec"}
+{#include "test_round_half_even.iec"}
+{#include "test_round_to.iec"}
+{#include "test_clamp.iec"}
+{#include "test_lerp.iec"}
+{#include "test_sign.iec"}
+{#include "test_hypot.iec"}
+{#include "test_fmod.iec"}
+{#include "test_gcd.iec"}
+{#include "test_lcm.iec"}
+{#include "test_is_close.iec"}

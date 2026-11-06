@@ -1,0 +1,52 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/math/gcd.iec -I./src -o ./src/math/gcd.xml -t omron
+ *)
+{#ifndef __MATH_GCD_IEC__}
+{#define __MATH_GCD_IEC__}
+
+{#include <sys.iec>}
+
+
+(*{doc Return the greatest common divisor of two integers. Negative values are taken as their absolute values.
+gcd(12, 18) = 6, gcd(-12, 18) = 6, gcd(0, 5) = 5, gcd(0, 0) = 0.
+@input num_a The first integer.
+@input num_b The second integer.
+@return The greatest common divisor (not negative).
+@error If num_a or num_b is the smallest lint (-9223372036854775808), whose absolute value does not fit in lint.}*)
+function Math_gcd: lint
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc The first integer.}*)
+		num_a: lint;
+		(*{doc The second integer.}*)
+		num_b: lint;
+	end
+	var_temp
+		larger: lint;
+		smaller: lint;
+		rest: lint;
+	end
+	// -9223372036854775807 - 1 is the smallest lint.
+	if (num_a = (lint#-9223372036854775807 - lint#1)) or (num_b = (lint#-9223372036854775807 - lint#1)) then
+		eno := false;
+		return;
+	end_if;
+	// Not abs(): jier (jiecc --run) cannot run abs on an integer.
+	larger := num_a;
+	if larger < lint#0 then
+		larger := -larger;
+	end_if;
+	smaller := num_b;
+	if smaller < lint#0 then
+		smaller := -smaller;
+	end_if;
+	while smaller <> lint#0 do
+		rest := larger mod smaller;
+		larger := smaller;
+		smaller := rest;
+	end_while;
+	Math_gcd := larger;
+end
+
+{#endif}

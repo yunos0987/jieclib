@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### 追加 / Added
+
+- math に 13 個の関数を追加しました（1 関数 1 ファイル）。丸めの `Math_ceil`・`Math_trunc`・`Math_round`・`Math_roundHalfEven`・`Math_roundTo`、`Math_clamp`・`Math_lerp`・`Math_sign`・`Math_hypot`・`Math_fmod`、整数の `Math_gcd`・`Math_lcm`、比較の `Math_isClose` です。テストは `test/math/test_<名前>.iec` で、すべて jier で実行できます（`scripts/jier_required.txt` に載せました）。NaN と無限大を渡したときの結果は未定義です。
+
 ### 修正 / Fixed
 
 - `Math_floor` が、絶対値が 2^63 以上の値で誤った値を返す不具合を直しました（例: `Math_floor(1.0e19)` が `-8.446744073709552e+18`、`Math_floor(1.0e300)` が `0.0` を返していました）。`lint` に変換して切り捨てていたため、`lint` の範囲を超える値であふれていました。絶対値が 2^52 以上の `lreal` は必ず整数なので、その値をそのまま返します。テストは `test/math/test_floor_large.iec` です。

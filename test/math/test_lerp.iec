@@ -1,0 +1,41 @@
+(*
+ * Test for Math_lerp
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/math/test_lerp.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/math/test_lerp.xml -t omron
+ *
+ * The expected values come from start_value + (end_value - start_value) * ratio.
+ *)
+{#if _JIECC and (_JIECC_FULL_VER < 90200)}
+{#error JiecLib requires Jiecc 9.2.0 or later.}
+{#endif}
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <math/lerp.iec>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_lerp
+	)
+)
+{#endif}
+
+TEST_S(test_lerp)
+	// Fact: lerp interpolates between the two values.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(10.0, Math_lerp(start_value:=10.0, end_value:=20.0, ratio:=0.0));
+	EXPECT_EQ_LREAL(12.5, Math_lerp(start_value:=10.0, end_value:=20.0, ratio:=0.25));
+	EXPECT_EQ_LREAL(15.0, Math_lerp(start_value:=10.0, end_value:=20.0, ratio:=0.5));
+
+	// Fact: lerp extrapolates outside 0 to 1.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(30.0, Math_lerp(start_value:=10.0, end_value:=20.0, ratio:=2.0));
+	EXPECT_EQ_LREAL(0.0, Math_lerp(start_value:=10.0, end_value:=20.0, ratio:=-1.0));
+
+	// Fact: ratio = 1 returns end_value exactly, even where the formula would not (1.0e20 + (1.0 - 1.0e20) * 1.0 = 0.0).
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(1.0, Math_lerp(start_value:=1e+20, end_value:=1.0, ratio:=1.0));
+END_TEST_S

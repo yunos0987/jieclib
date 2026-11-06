@@ -1,0 +1,58 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/math/round_to.iec -I./src -o ./src/math/round_to.xml -t omron
+ *)
+{#ifndef __MATH_ROUND_TO_IEC__}
+{#define __MATH_ROUND_TO_IEC__}
+
+{#include <sys.iec>}
+{#include <math/round.iec>}
+
+
+(*{doc Round to the given number of decimal digits; a half is rounded away from zero.
+roundTo(1.25, 1) = 1.3, roundTo(1234.0, -2) = 1200.0.
+For digits >= 0 it returns Math_round(value * 10^digits) / 10^digits, and for digits < 0 it returns
+Math_round(value / 10^-digits) * 10^-digits. The powers of 10 come from a table (1.0e0 to 1.0e15 are exact in lreal).
+A value that binary floating point cannot represent exactly may not round as its decimal form suggests:
+1.015 is 1.01499999999999990230..., and 1.015 * 100 = 101.49999999999999, so roundTo(1.015, 2) = 1.01.
+When the scaled value (value * 10^digits) is 2^52 or more in magnitude, value is returned as it is
+(it has no fraction at that scale, and the product could overflow): roundTo(1.0e300, 15) = 1.0e300.
+The results for NaN and infinity are undefined (they cannot be made in the same way on every environment).
+@input value The value.
+@input digits The number of decimal digits after the decimal point (-15 to 15). A negative value rounds to tens, hundreds, ...
+@return The rounded value.
+@error If digits is outside -15 to 15.}*)
+function Math_roundTo: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc The value.}*)
+		value: lreal;
+		(*{doc The number of decimal digits after the decimal point (-15 to 15).}*)
+		digits: dint;
+	end
+	var_temp constant
+		POWERS: array[0..15] of lreal := [1.0e0, 1.0e1, 1.0e2, 1.0e3, 1.0e4, 1.0e5, 1.0e6, 1.0e7,
+			1.0e8, 1.0e9, 1.0e10, 1.0e11, 1.0e12, 1.0e13, 1.0e14, 1.0e15];
+	end
+	if (digits < -15) or (digits > 15) then
+		eno := false;
+		return;
+	end_if;
+	// When the scaled value is 2^52 or more, it has no fraction to round, and
+	// value * 10^digits could overflow to infinity: return value as it is.
+	if digits >= 0 then
+		if abs(value) >= 4503599627370496.0 / POWERS[digits] then
+			Math_roundTo := value;
+		else
+			Math_roundTo := Math_round(value:=value * POWERS[digits]) / POWERS[digits];
+		end_if;
+	else
+		if abs(value) / POWERS[-digits] >= 4503599627370496.0 then
+			Math_roundTo := value;
+		else
+			Math_roundTo := Math_round(value:=value / POWERS[-digits]) * POWERS[-digits];
+		end_if;
+	end_if;
+end
+
+{#endif}

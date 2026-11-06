@@ -402,7 +402,7 @@ PR-6 は、ブランチ `feature/random-dist`（`feature/floor-large` の上）�
 
 - `TEST_M` の確認（`test/test_jiecunit_test_m.iec`）: jier では、20 周期にわたって変数を保ち、`CURRENT_CYCLE()` が 0 から数えることを確かめた。21 周期で合格し、20 周期では集計行が出ずに失敗する。`scripts/jier_required.txt` に載せた。Sysmac Studio のシミュレータでの確認（L3）は、まだ行っていない。PR-12・PR-14 の前に、作者が行う。
 - **分布のテストは jier で実行できない。** 4 つの生成器（`mersenne_twister.iec`・`xorshift32.iec`・`lcg.iec`・`lfsr32.iec`）は、どれも幅なしの `shl` / `shr` を使う（2.3 節）。そこで、1.2 節の L2 の例外（jier で通らないファイルは L3 の結果で代える）にあたる。`test/random/test_random_distribution.iec` は `jier_required.txt` に載せず、L3 で確かめる。
-- その代わりに、生成器と分布の関数を Python で再現し、同じシードでテストの統計量を求めた。再現は、既存のテストの参照値（MT のシード `0xCAFEBABE` の `nextDouble`、Xorshift32 のシード `0x92D68CA2` の `nextUint32` と `nextDouble`、LCG の `nextUint32`）と、MT19937 の標準の値（シード 5489 の最初の出力 3499211612）に一致した。16 通りすべてで、統計量は許容幅の半分以内だった（最大は Gaussian の分散の 0.46）。
+- その代わりに、生成器と分布の関数を Python で再現し、同じシードでテストの統計量を求めた。再現は、既存のテストの参照値（MT のシード `0xCAFEBABE` の `nextDouble`、Xorshift32 のシード `0x92D68CA2` の `nextUint32` と `nextDouble`、LCG の `nextUint32`）と、MT19937 の標準の値（シード 5489 の最初の出力 3499211612）に一致した。16 通りすべてで、統計量は許容幅の半分以内だった（最大は Gaussian の分散の 0.46）。さらに PR-7 で、`src/` の写しで生成器の `shr` / `shl` を `shr_dword` などに置き換え、その写しで jier を実行して、7 件のテストがすべて合格することを確かめた（約 14 分）。この実行で、`LFSR32_init` の呼び出しの誤りが見つかり、直した。
 - 対象は、計画の 6 つの API と、その API を持つ生成器の組（16 通り）。LFSR32 は `nextIntInRange` だけを持つ。
 - scipy は手元の環境になかった（外部の依存を増やさない）。カイ二乗分布の分位点は、正則化不完全ガンマ関数を Python の標準ライブラリで実装して求め、表の値（自由度 9 の上側 0.05・0.001 と下側 0.001）と一致することを確かめた。自由度 9 で、下側 1.0e-6 は 0.22838484007344917、上側 1.0e-6 は 44.81093787068782。
 - テストのパラメーター: N = 10,000（500 個 × 20 周期）、`nextIntInRange(0, 9)`、`nextRealInRange(-2, 6)`、`nextBernoulli(0.3)`、`nextGaussian(10, 2)`、`nextExponential(0.5)`、`nextPoisson(4)`。1 周期あたりの個数（500）は、シミュレータでの実行時間を測って見直す（L3）。
@@ -491,6 +491,17 @@ NaN と無限大を、各環境の ST で作れるか（`0.0 / 0.0` など）と
 5. 各関数のテストを、関数ごとのテストファイル（`test/math/test_<名前>.iec`）に書き、`test/math/test_math.iec` にまとめて登録し、`scripts/jier_required.txt` に載せる。期待値は Python の `math` モジュール（`roundTo` は上の定義）で求めてコメントに書く。境界値（0、負の 0、0.5 ちょうど、`2^52` 前後、`lint` の最大値・最小値）を必ず含める。`fmod` は `fmod(5.3, 0.1)`・`fmod(1.0e300, 3.0)`・`lreal` の最大値を割られる数にした場合・`|dividend| < |divisor|` の場合・非正規化数（例: 最小の非正規化数を m として `fmod(3m, 2m) = m`）を含める。期待値は Python の `math.fmod` で求め、実装の後に jier でも同じ値になることを確かめてコメントに残す。
 6. README.md の math の表に追加する。2.6 節の標準命令との違いも書く。
 7. 2〜4 は、1 つの PR が大きくなりすぎるなら、PR を分けてよい。
+
+#### PR-8 の実装の結果と、計画から変えたこと
+
+PR-8 は、ブランチ `feature/math-functions`（`feature/untested-pous` の上）で、1 つの PR にまとめて実装した（マージの前）。名前と引数名は D-4 の推奨案（上の表）のとおり。
+
+- 特殊な値の調査（jier だけ。Sysmac Studio のシミュレータと KV Studio は、この環境では調べられない）: `0.0 / 0.0` と `1.0 / 0.0` は、`DIVISION_BY_ZERO` のエラーで止まり、NaN も無限大も作れない。`1.0e308 * 10.0` は無限大になる。`sqrt(-1.0e308)`・`ln(0.0)`・`exp(1000.0)` は、NaN にも無限大にもならない値を返す。環境によって作り方が違う（少なくとも jier では 0 除算で作れない）ので、計画の 2 つ目の案にした。全関数の doc プラグマに「NaN と無限大の結果は未定義」と書き、テストしない。L3・L4 の環境で振る舞いを調べ直す余地はある。
+- ファイル名は、関数名をスネークケースにした（`Math_roundHalfEven` は `round_half_even.iec`）。
+- `Math_roundTo` で `digits` が負のときは、`10^digits`（`1.0e-2` など。2 進数で正確に表せない）を掛けるのではなく、`10^-digits` で割ってから丸め、`10^-digits` を掛ける。
+- `Math_gcd`・`Math_lcm` は、整数の `abs` を使わない（jier が、dint の `max` と同じく、整数の `abs` で `cannot marshal Python int ... LREAL` のエラーになるため）。`if` 文で符号を反転する。
+- `Math_fmod` のアルゴリズムは、実装の前に Python で同じ手順を書き、20 万組の乱数（指数 -300〜300）と計画の値で `math.fmod` と完全に一致することを確かめた。jier でも、計画の全部の値（`lreal` の最大値と最小の非正規化数を含む）が `math.fmod` と一致した。
+- 13 個のテストファイルはすべて jier で通り、`scripts/jier_required.txt` に載せた（1000 周期）。
 
 #### 完了の条件
 

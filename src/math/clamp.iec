@@ -1,0 +1,41 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/math/clamp.iec -I./src -o ./src/math/clamp.xml -t omron
+ *)
+{#ifndef __MATH_CLAMP_IEC__}
+{#define __MATH_CLAMP_IEC__}
+
+{#include <sys.iec>}
+
+
+(*{doc Limit the value to the range from lower to upper.
+clamp(5.0, 0.0, 3.0) = 3.0, clamp(-1.0, 0.0, 3.0) = 0.0, clamp(2.0, 0.0, 3.0) = 2.0.
+@input value The value.
+@input lower The lower limit.
+@input upper The upper limit. It must not be less than lower.
+@return lower if value < lower, upper if value > upper, value otherwise.
+@error If lower > upper.}*)
+function Math_clamp: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc The value.}*)
+		value: lreal;
+		(*{doc The lower limit.}*)
+		lower: lreal;
+		(*{doc The upper limit. It must not be less than lower.}*)
+		upper: lreal;
+	end
+	if lower > upper then
+		eno := false;
+		return;
+	end_if;
+	if value < lower then
+		Math_clamp := lower;
+	elsif value > upper then
+		Math_clamp := upper;
+	else
+		Math_clamp := value;
+	end_if;
+end
+
+{#endif}

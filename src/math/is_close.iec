@@ -1,0 +1,55 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/math/is_close.iec -I./src -o ./src/math/is_close.xml -t omron
+ *)
+{#ifndef __MATH_IS_CLOSE_IEC__}
+{#define __MATH_IS_CLOSE_IEC__}
+
+{#include <sys.iec>}
+
+
+(*{doc Tell whether two values are close, as math.isclose of Python:
+abs(value_a - value_b) <= max(rel_tol * max(abs(value_a), abs(value_b)), abs_tol).
+Equal values are always close. isClose(1.0, 1.0 + 1.0e-10) = true, isClose(0.0, 1.0e-10) = false
+(near 0, give abs_tol).
+For values of opposite signs near the largest lreal, value_a - value_b overflows, and the result is false.
+The results for NaN and infinity are undefined (they cannot be made in the same way on every environment).
+@input value_a The first value.
+@input value_b The second value.
+@input rel_tol The relative tolerance (0 or more). Default: 1.0e-9.
+@input abs_tol The absolute tolerance (0 or more). Default: 0.0.
+@return true if the values are close.
+@error If rel_tol < 0 or abs_tol < 0.}*)
+function Math_isClose: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc The first value.}*)
+		value_a: lreal;
+		(*{doc The second value.}*)
+		value_b: lreal;
+		(*{doc The relative tolerance (0 or more).}*)
+		rel_tol: lreal := 1.0e-9;
+		(*{doc The absolute tolerance (0 or more).}*)
+		abs_tol: lreal := 0.0;
+	end
+	var_temp
+		diff: lreal;
+		larger: lreal;
+	end
+	if (rel_tol < 0.0) or (abs_tol < 0.0) then
+		eno := false;
+		return;
+	end_if;
+	if value_a = value_b then
+		Math_isClose := true;
+		return;
+	end_if;
+	diff := abs(value_a - value_b);
+	larger := abs(value_a);
+	if abs(value_b) > larger then
+		larger := abs(value_b);
+	end_if;
+	Math_isClose := (diff <= rel_tol * larger) or (diff <= abs_tol);
+end
+
+{#endif}

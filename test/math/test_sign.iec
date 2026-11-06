@@ -1,0 +1,34 @@
+(*
+ * Test for Math_sign
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/math/test_sign.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/math/test_sign.xml -t omron
+ *
+ * The expected values come from the definition.
+ *)
+{#if _JIECC and (_JIECC_FULL_VER < 90200)}
+{#error JiecLib requires Jiecc 9.2.0 or later.}
+{#endif}
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <math/sign.iec>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_sign
+	)
+)
+{#endif}
+
+TEST_S(test_sign)
+	// Fact: sign is -1, 0 or 1.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(-1.0, Math_sign(value:=-3.0));
+	EXPECT_EQ_LREAL(0.0, Math_sign(value:=0.0));
+	EXPECT_EQ_LREAL(1.0, Math_sign(value:=2.5));
+	EXPECT_EQ_LREAL(1.0, Math_sign(value:=5e-324));
+	EXPECT_EQ_LREAL(-1.0, Math_sign(value:=-1.7976931348623157e+308));
+END_TEST_S
