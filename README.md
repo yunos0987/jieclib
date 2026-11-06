@@ -75,6 +75,8 @@ $ jiecc ./src/string_lib/string_lib.iec -I./src -o ./src/string_lib/string_lib.x
 
 [string_lib](./src/string_lib/string_lib.iec) に含まれるPOU群（`String_charAt`、`String_lower` など）がインポートされます。
 
+Jiecc を用意しない場合は、GitHub の [Releases](https://github.com/yunos0987/jieclib/releases) から、ターゲットごとの zip（`jieclib-X.Y.Z-omron.zip` など。4.1.0 以降）をダウンロードし、中の XML（例: `string_lib/string_lib.xml`）を取り込みます。各 XML は、そのライブラリが include するファイルの POU（`sys.iec` の `Console_*` など）も含むので、複数の XML を 1 つのプロジェクトに取り込むと、同じ POU が重なります。すでにある POU は、取り込みを省くか上書きしてください。テンプレートは zip に入っていません（マクロを選んで、Jiecc で具体化します）。
+
 テンプレート（container など）の具体化の仕方と、プログラムからの使い方は、[利用例（samples）](#利用例samples) を参照してください。
 
 ## JiecLibに含まれるライブラリ

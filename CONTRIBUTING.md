@@ -346,6 +346,8 @@ JiecLib のバージョンは、リポジトリルートの `VERSION` ファイ�
 
 `VERSION` は、リリース専用のコミット（メッセージは `release vX.Y.Z`）でだけ更新します。機能追加・修正のコミットでは更新しません。変更の内容は、Pull Request ごとに [CHANGELOG.md](CHANGELOG.md) の `[Unreleased]` 節に書いておきます。リリースのコミットで、`[Unreleased]` 節の見出しを `[X.Y.Z] - 日付` に置き換え、次の変更のために空の `[Unreleased]` 節を設けます。`develop` を `main` にマージした後、`main` のコミットにタグを付けます。
 
+GitHub で、そのタグの Release を公開すると、`.github/workflows/release.yml` が `src/` の XML を作り、ターゲットごとの zip（`jieclib-X.Y.Z-omron.zip`・`jieclib-X.Y.Z-keyence.zip`）を Release に添付します。zip には、使った Jiecc の版と取り込みの注意（`IMPORT_NOTES.txt`）が入ります。タグが `v` + `VERSION` と一致しないときは、何も添付せずに失敗します。添付をやり直すときは、Actions の画面から `Release XML` をタグを指定して実行します（`workflow_dispatch`）。
+
 ```
 $ git tag vX.Y.Z
 $ git push origin vX.Y.Z

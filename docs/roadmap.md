@@ -755,6 +755,16 @@ GitHub の Release は 8 件（`v4.0.0`・`v3.4.0` など）あり、添付フ�
 
 - CI の Jiecc は版を固定していない（最新版を取得する）。添付した XML がどの版で作られたかは、同梱したテキストで分かるようにする。版の固定そのものは、この計画の対象外。
 
+#### PR-15 の実装の結果と、計画から変えたこと
+
+PR-15 は、ブランチ `feature/release-xml`（`feature/interp` の上）で実装した（マージの前）。D-8 は推奨案（keyence の zip も作る）で実装した。
+
+- タグの確認と zip の作成は、`scripts/package_release.py`（`check-tag`・`package`）にまとめ、単体テスト `scripts/test_package_release.py` を CI の `lint` ジョブで実行する。workflow の手順に処理を書かないので、手元で試せる。
+- 手元（Windows）で、全 `src/` を `--output-dir` でコンパイルし、zip を作った。omron の zip は 115 個、keyence の zip は 9 個の XML と `IMPORT_NOTES.txt` を含み、パスは `src/` からの相対パスになった。`check-tag` は `v4.0.0`（`VERSION` と一致）で 0、`v0.0.0-test` で 1 を返した。
+- `upload-artifact`（v7.0.2）と `download-artifact`（v8.0.2）は、GitHub の API でタグのコミットの SHA を確かめて固定した。
+- **未実施:** フォークのリポジトリでの確認（成功と失敗の経路）。push が要るため、この作業では行っていない。XML の作成日時と改行が Windows と Linux で変わるかの確認も、Linux の Jiecc がこの環境にないため行っていない。workflow は Linux（`ubuntu-latest`）で XML を作る。
+- テンプレート（container・signal など）は zip に入れない（`src/` のエントリファイルだけをコンパイルするため）。取り込みの注意に、そのことを書いた。
+
 ## 4. 依存関係
 
 ```

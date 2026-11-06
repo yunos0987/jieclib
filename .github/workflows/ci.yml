@@ -68,6 +68,7 @@ jobs:
           python scripts/test_lint.py
           python scripts/test_check_pr_body.py
           python scripts/test_pou_inventory.py
+          python scripts/test_package_release.py
 
       - name: Lint
         run: python scripts/lint.py
