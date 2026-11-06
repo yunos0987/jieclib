@@ -1,0 +1,273 @@
+(*
+ * Tests of src/signal/ (roadmap PR-12).
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/signal/test_signal.iec -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/signal/test_signal.xml -t omron
+ *
+ * The expected values were computed in Python with the same formulas
+ * (statistics.fmean and statistics.median for the windows; the recurrence
+ * y := y + alpha * (x - y) with alpha = 0.1 / (0.9 + 0.1) for the low-pass
+ * filter, which gives 10 * (1 - 0.9^k) for a step of 10).
+ * The low-pass filter and the rate limiter are tested over cycles
+ * (TEST_M), as they run in a PLC task; the other blocks do not depend on
+ * time, and are called several times in one cycle.
+ *)
+{#if _JIECC and (_JIECC_FULL_VER < 90200)}
+{#error JiecLib requires Jiecc 9.2.0 or later.}
+{#endif}
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <signal/signal.iec>}
+
+{#define SignalMovingAverageName n5}
+{#define SignalMovingAverageCapacity 5}
+{#include <signal/moving_average_template.iec>}
+{#undef SignalMovingAverageName}
+{#undef SignalMovingAverageCapacity}
+
+{#define SignalMedianName n3}
+{#define SignalMedianCapacity 3}
+{#include <signal/median_template.iec>}
+{#undef SignalMedianName}
+{#undef SignalMedianCapacity}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_Signal_deadband,
+		test_Signal_lowPass,
+		test_Signal_rateLimiter,
+		test_Signal_hysteresis,
+		test_Signal_movingAverage,
+		test_Signal_median
+	)
+)
+{#endif}
+
+{#define SIGNAL_EPS 1.0e-12}
+
+TEST_S(test_Signal_deadband)
+	var
+		ok: bool;
+	end
+	// Fact: Inside the band the output is 0; outside it is the distance from the nearer limit.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(0.0, Signal_deadband(input_value:=1.0, lower:=-1.0, upper:=2.0));
+	EXPECT_EQ_LREAL(0.0, Signal_deadband(input_value:=2.0, lower:=-1.0, upper:=2.0));
+	EXPECT_EQ_LREAL(0.0, Signal_deadband(input_value:=-1.0, lower:=-1.0, upper:=2.0));
+	EXPECT_EQ_LREAL(3.0, Signal_deadband(input_value:=5.0, lower:=-1.0, upper:=2.0));
+	EXPECT_EQ_LREAL(-3.0, Signal_deadband(input_value:=-4.0, lower:=-1.0, upper:=2.0));
+
+	// Fact: lower > upper is an error.
+		// Arrange
+		// Act
+	EXPECT_EQ_LREAL(0.0, Signal_deadband(input_value:=5.0, lower:=2.0, upper:=1.0, eno=>ok));
+		// Assert
+	EXPECT_FALSE(ok);
+END_TEST_S
+
+TEST_M(test_Signal_lowPass)
+	var
+		filter: Signal_lowPass;
+		first_error: Signal_lowPass;
+	end
+	// Fact: After a step from 0 to 10, the output after k cycles is 10 * (1 - 0.9^k) for alpha = 0.1.
+		// Arrange/Act/Assert
+	if CURRENT_CYCLE() = 0 then
+		filter(input_value:=0.0, time_constant:=0.9, sample_time:=0.1, reset:=true);
+		EXPECT_EQ_LREAL(0.0, filter.output_value);
+
+		// Fact: A first call that is an error does not start the filter; the next valid call starts it from its input, even without reset.
+			// Arrange/Act
+		first_error(input_value:=7.0, time_constant:=-1.0, sample_time:=0.1, reset:=false);
+		EXPECT_FALSE(first_error.eno);
+		first_error(input_value:=4.0, time_constant:=0.9, sample_time:=0.1, reset:=false);
+			// Assert
+		EXPECT_TRUE(first_error.eno);
+		EXPECT_EQ_LREAL(4.0, first_error.output_value);
+	else
+		filter(input_value:=10.0, time_constant:=0.9, sample_time:=0.1, reset:=false);
+	end_if;
+	if CURRENT_CYCLE() = 1 then
+		EXPECT_NEAR(1.0, filter.output_value, SIGNAL_EPS);
+	elsif CURRENT_CYCLE() = 2 then
+		EXPECT_NEAR(1.9, filter.output_value, SIGNAL_EPS);
+	elsif CURRENT_CYCLE() = 20 then
+		EXPECT_NEAR(8.784233454094307, filter.output_value, SIGNAL_EPS);
+
+		// Fact: sample_time <= 0 is an error and keeps the output.
+			// Arrange/Act
+		filter(input_value:=0.0, time_constant:=0.9, sample_time:=0.0, reset:=false);
+			// Assert
+		EXPECT_FALSE(filter.eno);
+		EXPECT_NEAR(8.784233454094307, filter.output_value, SIGNAL_EPS);
+
+		// Fact: reset restarts the filter from the input.
+			// Arrange/Act
+		filter(input_value:=3.0, time_constant:=0.9, sample_time:=0.1, reset:=true);
+			// Assert
+		EXPECT_EQ_LREAL(3.0, filter.output_value);
+		EOT();
+	end_if;
+END_TEST_M
+
+TEST_M(test_Signal_rateLimiter)
+	var
+		limiter: Signal_rateLimiter;
+		first_error: Signal_rateLimiter;
+	end
+	// Fact: The output rises by at most rise_rate * sample_time = 0.5 and falls by at most fall_rate * sample_time = 0.2 per call.
+		// Arrange/Act/Assert
+	case CURRENT_CYCLE() of
+	0:
+		limiter(input_value:=0.0, rise_rate:=5.0, fall_rate:=2.0, sample_time:=0.1, reset:=true);
+		EXPECT_EQ_LREAL(0.0, limiter.output_value);
+
+		// Fact: Errors (sample_time <= 0, fall_rate < 0) do not start the limiter; the next valid call starts it from its input, even without reset.
+			// Arrange/Act
+		first_error(input_value:=7.0, rise_rate:=5.0, fall_rate:=2.0, sample_time:=0.0, reset:=false);
+		EXPECT_FALSE(first_error.eno);
+		first_error(input_value:=7.0, rise_rate:=5.0, fall_rate:=-2.0, sample_time:=0.1, reset:=false);
+		EXPECT_FALSE(first_error.eno);
+		first_error(input_value:=4.0, rise_rate:=5.0, fall_rate:=2.0, sample_time:=0.1, reset:=false);
+			// Assert
+		EXPECT_EQ_LREAL(4.0, first_error.output_value);
+	1, 2, 3, 4:
+		limiter(input_value:=1.7, rise_rate:=5.0, fall_rate:=2.0, sample_time:=0.1, reset:=false);
+		// 0.5, 1.0, 1.5, then 1.7 (the input is reached)
+		if CURRENT_CYCLE() < 4 then
+			EXPECT_NEAR(0.5 * dint_to_lreal(CURRENT_CYCLE()), limiter.output_value, SIGNAL_EPS);
+		else
+			EXPECT_NEAR(1.7, limiter.output_value, SIGNAL_EPS);
+		end_if;
+	5:
+		limiter(input_value:=1.0, rise_rate:=5.0, fall_rate:=2.0, sample_time:=0.1, reset:=false);
+		EXPECT_NEAR(1.5, limiter.output_value, SIGNAL_EPS);
+	6:
+		limiter(input_value:=1.0, rise_rate:=5.0, fall_rate:=2.0, sample_time:=0.1, reset:=false);
+		EXPECT_NEAR(1.3, limiter.output_value, SIGNAL_EPS);
+
+		// Fact: A negative rate is an error and keeps the output.
+			// Arrange/Act
+		limiter(input_value:=0.0, rise_rate:=-1.0, fall_rate:=2.0, sample_time:=0.1, reset:=false);
+			// Assert
+		EXPECT_FALSE(limiter.eno);
+		EXPECT_NEAR(1.3, limiter.output_value, SIGNAL_EPS);
+
+		// Fact: reset restarts the limiter from the input.
+			// Arrange/Act
+		limiter(input_value:=9.0, rise_rate:=5.0, fall_rate:=2.0, sample_time:=0.1, reset:=true);
+			// Assert
+		EXPECT_EQ_LREAL(9.0, limiter.output_value);
+		EOT();
+	end_case;
+END_TEST_M
+
+TEST_S(test_Signal_hysteresis)
+	var
+		comparator: Signal_hysteresis;
+	end
+	// Fact: The output turns on at on_threshold, stays on between the thresholds, and turns off at off_threshold.
+		// Arrange
+	comparator(input_value:=0.0, on_threshold:=10.0, off_threshold:=5.0, reset:=true);
+		// Act/Assert
+	EXPECT_FALSE(comparator.output_state);
+	comparator(input_value:=7.0, on_threshold:=10.0, off_threshold:=5.0, reset:=false);
+	EXPECT_FALSE(comparator.output_state);
+	comparator(input_value:=10.0, on_threshold:=10.0, off_threshold:=5.0, reset:=false);
+	EXPECT_TRUE(comparator.output_state);
+	comparator(input_value:=7.0, on_threshold:=10.0, off_threshold:=5.0, reset:=false);
+	EXPECT_TRUE(comparator.output_state);
+	comparator(input_value:=5.0, on_threshold:=10.0, off_threshold:=5.0, reset:=false);
+	EXPECT_FALSE(comparator.output_state);
+
+	// Fact: reset turns the output off.
+		// Arrange
+	comparator(input_value:=12.0, on_threshold:=10.0, off_threshold:=5.0, reset:=false);
+		// Act
+	comparator(input_value:=12.0, on_threshold:=10.0, off_threshold:=5.0, reset:=true);
+		// Assert
+	EXPECT_FALSE(comparator.output_state);
+
+	// Fact: off_threshold > on_threshold is an error and keeps the output.
+		// Arrange
+	comparator(input_value:=12.0, on_threshold:=10.0, off_threshold:=5.0, reset:=false);
+		// Act
+	comparator(input_value:=0.0, on_threshold:=1.0, off_threshold:=2.0, reset:=false);
+		// Assert
+	EXPECT_FALSE(comparator.eno);
+	EXPECT_TRUE(comparator.output_state);
+END_TEST_S
+
+TEST_S(test_Signal_movingAverage)
+	var
+		average: Signal_movingAverage_n5;
+	end
+	// Fact: Until 5 inputs are given, the output is the mean of the inputs so far; then of the last 5.
+		// Arrange/Act/Assert
+	average(input_value:=1.0, reset:=true);
+	EXPECT_NEAR(1.0, average.output_value, SIGNAL_EPS);
+	EXPECT_EQ_DINT(1, average.filled_count);
+	average(input_value:=5.0, reset:=false);
+	EXPECT_NEAR(3.0, average.output_value, SIGNAL_EPS);
+	average(input_value:=2.0, reset:=false);
+	EXPECT_NEAR(2.6666666666666665, average.output_value, SIGNAL_EPS);
+	average(input_value:=100.0, reset:=false);
+	EXPECT_NEAR(27.0, average.output_value, SIGNAL_EPS);
+	average(input_value:=3.0, reset:=false);
+	EXPECT_NEAR(22.2, average.output_value, SIGNAL_EPS);
+	EXPECT_EQ_DINT(5, average.filled_count);
+	average(input_value:=4.0, reset:=false);
+	EXPECT_NEAR(22.8, average.output_value, SIGNAL_EPS);
+	average(input_value:=2.0, reset:=false);
+	EXPECT_NEAR(22.2, average.output_value, SIGNAL_EPS);
+	EXPECT_EQ_DINT(5, average.filled_count);
+
+	// Fact: reset forgets the kept inputs.
+		// Arrange
+		// Act
+	average(input_value:=7.0, reset:=true);
+		// Assert
+	EXPECT_NEAR(7.0, average.output_value, SIGNAL_EPS);
+	EXPECT_EQ_DINT(1, average.filled_count);
+		// Act
+	average(input_value:=9.0, reset:=false);
+	average(input_value:=2.0, reset:=false);
+		// Assert
+	EXPECT_NEAR(6.0, average.output_value, SIGNAL_EPS);
+	EXPECT_EQ_DINT(3, average.filled_count);
+END_TEST_S
+
+TEST_S(test_Signal_median)
+	var
+		median: Signal_median_n3;
+	end
+	// Fact: The output is the median of the last 3 inputs, which removes a single spike (100).
+		// Arrange/Act/Assert
+	median(input_value:=1.0, reset:=true);
+	EXPECT_EQ_LREAL(1.0, median.output_value);
+	median(input_value:=5.0, reset:=false);
+	EXPECT_EQ_LREAL(3.0, median.output_value);
+	median(input_value:=2.0, reset:=false);
+	EXPECT_EQ_LREAL(2.0, median.output_value);
+	median(input_value:=100.0, reset:=false);
+	EXPECT_EQ_LREAL(5.0, median.output_value);
+	median(input_value:=3.0, reset:=false);
+	EXPECT_EQ_LREAL(3.0, median.output_value);
+	median(input_value:=4.0, reset:=false);
+	EXPECT_EQ_LREAL(4.0, median.output_value);
+	median(input_value:=2.0, reset:=false);
+	EXPECT_EQ_LREAL(3.0, median.output_value);
+	EXPECT_EQ_DINT(3, median.filled_count);
+
+	// Fact: reset forgets the kept inputs.
+		// Arrange
+		// Act
+	median(input_value:=50.0, reset:=true);
+	median(input_value:=10.0, reset:=false);
+		// Assert
+	EXPECT_EQ_LREAL(30.0, median.output_value);
+	EXPECT_EQ_DINT(2, median.filled_count);
+END_TEST_S

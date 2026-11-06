@@ -1,0 +1,181 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/signal/signal.iec -I./src -o ./src/signal/signal.xml -t omron
+ *)
+{#ifndef __SIGNAL_SIGNAL_IEC__}
+{#define __SIGNAL_SIGNAL_IEC__}
+
+{#if _JIECC and (_JIECC_FULL_VER < 90200)}
+{#error JiecLib requires Jiecc 9.2.0 or later.}
+{#endif}
+
+{#include <sys.iec>}
+
+(*{doc Dead band: return 0 inside the band from lower to upper, and the distance from the nearer limit outside it.
+deadband(5.0, -1.0, 2.0) = 3.0, deadband(-4.0, -1.0, 2.0) = -3.0, deadband(1.0, -1.0, 2.0) = 0.0.
+It has the same output as the Band instruction of NJ/NX, and also works on other vendors.
+@input input_value The value.
+@input lower The lower limit of the band.
+@input upper The upper limit of the band. It must not be less than lower.
+@return input_value - upper above the band, input_value - lower below it, 0.0 inside it.
+The results for NaN and infinity are undefined.
+@error If lower > upper (the result is then 0.0).}*)
+function Signal_deadband: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc The value.}*)
+		input_value: lreal;
+		(*{doc The lower limit of the band.}*)
+		lower: lreal;
+		(*{doc The upper limit of the band.}*)
+		upper: lreal;
+	end
+	if lower > upper then
+		eno := false;
+		return;
+	end_if;
+	if input_value > upper then
+		Signal_deadband := input_value - upper;
+	elsif input_value < lower then
+		Signal_deadband := input_value - lower;
+	else
+		Signal_deadband := 0.0;
+	end_if;
+end
+
+(*{doc First-order lag (low-pass filter): output := output + alpha * (input_value - output),
+with alpha = sample_time / (time_constant + sample_time).
+The first call after reset (and the very first call) sets the output to input_value.
+Call it once per sample, with the time between the samples in sample_time.
+@input input_value The input.
+@input time_constant The time constant in seconds (0 or more; 0 passes the input through).
+@input sample_time The time between two calls in seconds (more than 0).
+@input reset True to restart the filter from input_value.
+@output output_value The filtered value.
+The results for NaN and infinity are undefined.
+@error If sample_time <= 0 or time_constant < 0. The output and the state are then not changed (reset is ignored too).}*)
+function_block Signal_lowPass
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc The input.}*)
+		input_value: lreal;
+		(*{doc The time constant in seconds (0 or more).}*)
+		time_constant: lreal;
+		(*{doc The time between two calls in seconds (more than 0).}*)
+		sample_time: lreal;
+		(*{doc True to restart the filter from input_value.}*)
+		reset: bool;
+	end
+	var_output
+		(*{doc The filtered value.}*)
+		output_value: lreal;
+	end
+	var
+		started: bool;
+	end
+	if (sample_time <= 0.0) or (time_constant < 0.0) then
+		eno := false;
+		return;
+	end_if;
+	if reset or not started then
+		output_value := input_value;
+		started := true;
+		return;
+	end_if;
+	output_value := output_value + sample_time / (time_constant + sample_time) * (input_value - output_value);
+end_function_block
+
+(*{doc Rate limiter: the output follows the input, but changes by at most rise_rate per second upward
+and fall_rate per second downward. The first call after reset (and the very first call) sets the output to input_value.
+@input input_value The input.
+@input rise_rate The largest increase per second (0 or more).
+@input fall_rate The largest decrease per second (0 or more).
+@input sample_time The time between two calls in seconds (more than 0).
+@input reset True to restart from input_value.
+@output output_value The limited value.
+The results for NaN and infinity are undefined.
+@error If sample_time <= 0, rise_rate < 0 or fall_rate < 0. The output and the state are then not changed (reset is ignored too).}*)
+function_block Signal_rateLimiter
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc The input.}*)
+		input_value: lreal;
+		(*{doc The largest increase per second (0 or more).}*)
+		rise_rate: lreal;
+		(*{doc The largest decrease per second (0 or more).}*)
+		fall_rate: lreal;
+		(*{doc The time between two calls in seconds (more than 0).}*)
+		sample_time: lreal;
+		(*{doc True to restart from input_value.}*)
+		reset: bool;
+	end
+	var_output
+		(*{doc The limited value.}*)
+		output_value: lreal;
+	end
+	var
+		started: bool;
+	end
+	var_temp
+		max_rise: lreal;
+		max_fall: lreal;
+	end
+	if (sample_time <= 0.0) or (rise_rate < 0.0) or (fall_rate < 0.0) then
+		eno := false;
+		return;
+	end_if;
+	if reset or not started then
+		output_value := input_value;
+		started := true;
+		return;
+	end_if;
+	max_rise := rise_rate * sample_time;
+	max_fall := fall_rate * sample_time;
+	if input_value - output_value > max_rise then
+		output_value := output_value + max_rise;
+	elsif output_value - input_value > max_fall then
+		output_value := output_value - max_fall;
+	else
+		output_value := input_value;
+	end_if;
+end_function_block
+
+(*{doc Comparator with hysteresis: the output turns on when input_value reaches on_threshold,
+and turns off when input_value falls to off_threshold. Between the two, it keeps its state.
+@input input_value The input.
+@input on_threshold The value at or above which the output turns on.
+@input off_threshold The value at or below which the output turns off. It must not be greater than on_threshold.
+@input reset True to turn the output off.
+@output output_state The state.
+The results for NaN and infinity are undefined.
+@error If off_threshold > on_threshold. The output is then not changed (reset is ignored too).}*)
+function_block Signal_hysteresis
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc The input.}*)
+		input_value: lreal;
+		(*{doc The value at or above which the output turns on.}*)
+		on_threshold: lreal;
+		(*{doc The value at or below which the output turns off.}*)
+		off_threshold: lreal;
+		(*{doc True to turn the output off.}*)
+		reset: bool;
+	end
+	var_output
+		(*{doc The state.}*)
+		output_state: bool;
+	end
+	if off_threshold > on_threshold then
+		eno := false;
+		return;
+	end_if;
+	if reset then
+		output_state := false;
+	elsif input_value >= on_threshold then
+		output_state := true;
+	elsif input_value <= off_threshold then
+		output_state := false;
+	end_if;
+end_function_block
+
+{#endif}

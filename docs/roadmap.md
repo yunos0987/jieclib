@@ -668,6 +668,18 @@ FA の制御プログラムで毎回書かれがちな部品を、テスト付�
 | `Signal_rateLimiter` | `function_block` | 変化率の上限（上昇・下降を別に指定） |
 | `Signal_hysteresis` | `function_block` | オン・オフの閾値を別に持つ比較 |
 
+#### PR-12 の実装の結果と、計画から変えたこと
+
+PR-12 は、ブランチ `feature/signal`（`feature/samples` の上）で実装した（マージの前）。
+
+- ファイルは、`src/signal/signal.iec`（関数 1 個とファンクションブロック 3 個。ヘッダーのあるエントリファイル）と、テンプレート 2 個（`moving_average_template.iec`・`median_template.iec`）。テンプレートが作る名前は `Signal_movingAverage_<名前>`・`Signal_median_<名前>`（array のテンプレートと同じく、名前を末尾に付ける）。
+- ファンクションブロックは、関数と同じく `_PROLOGUE_OF_FUNCTION_()` で `en` / `eno` を宣言する（`src/` で初めてのファンクションブロック）。
+- 容量の誤り（移動平均の 0 以下、メディアンの偶数）は、実行時の `eno` ではなく、`{#error}` でコンパイルを止める。容量はマクロなので、コンパイルの時点で分かる。jiecc でエラーになることを確かめた。
+- `Signal_lowPass`・`Signal_rateLimiter` は、`reset` の直後（と最初の呼び出し）に出力を入力に合わせる。
+- 移動平均は、呼び出しのたびに保持している値の和を計算し直す（丸め誤差がたまらない）。メディアンは、保持している値を挿入ソートで並べる。
+- テストは `test/signal/test_signal.iec` の 1 ファイル（6 個）。`Signal_lowPass` と `Signal_rateLimiter` は `TEST_M` で周期を進めて確かめ、時間に依存しないほかの 4 個は、1 周期の中で何度も呼んで確かめる。jier で通り、`scripts/jier_required.txt` に載せた。
+- 利用例 `samples/moving_average/` を追加した。
+
 #### PR-13: `src/interp/`
 
 | POU | 種類 | 仕様 |

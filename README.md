@@ -15,6 +15,7 @@
   - [linalg](#linalg)
   - [math](#math)
   - [random](#random)
+  - [signal](#signal)
   - [stats](#stats)
   - [string\_lib](#string_lib)
   - [vector](#vector)
@@ -581,6 +582,22 @@ IEC 61131-10 XML生成コマンド: `jiecc ./src/linalg/linalg.iec -I./src -o ./
 | `nextExponential(lambda)` | 故障間隔（MTBF）シミュレーション | 逆CDF: `-LN(U)/lambda` |
 | `nextPoisson(lambda)` | 不良数・イベント到着モデル | Knuthのアルゴリズム（`0 < lambda <= 500`。1 回に約 `lambda + 1` 個の乱数を使う） |
 
+### [signal](./src/signal)
+
+信号処理（フィルタ・比較）のライブラリです。状態を持つものはファンクションブロックで、周期に依存するものは周期（秒）を引数 `sample_time` で受け取ります。引数の誤りは `eno := false` で知らせ、ファンクションブロックは前回の出力と状態を保ちます。入力 `reset` が真のとき、状態を初期値に戻します。
+
+| POU | 種類 | 説明 |
+|---|---|---|
+| `Signal_deadband` | 関数 | 不感帯（範囲内は 0、範囲外は近い方の境界からの差）。NJ/NX の `Band` と同じ出力 |
+| `Signal_lowPass` | ファンクションブロック | 一次遅れ（`alpha = sample_time / (time_constant + sample_time)`） |
+| `Signal_rateLimiter` | ファンクションブロック | 変化率の上限（上昇・下降を別に指定） |
+| `Signal_hysteresis` | ファンクションブロック | オン・オフの閾値を別に持つ比較 |
+| `Signal_movingAverage_<名前>` | テンプレート（[moving_average_template.iec](./src/signal/moving_average_template.iec)） | 単純移動平均。容量はマクロ `SignalMovingAverageCapacity` |
+| `Signal_median_<名前>` | テンプレート（[median_template.iec](./src/signal/median_template.iec)） | メディアンフィルタ。容量はマクロ `SignalMedianCapacity`（奇数） |
+
+* IEC 61131-10 XML生成コマンド: `jiecc ./src/signal/signal.iec -I./src -o ./src/signal/signal.xml -t omron`
+* テンプレートの使い方は、[samples/moving_average](./samples/moving_average) を参照してください。
+
 ### [stats](./src/stats)
 
 統計ライブラリです。
@@ -683,6 +700,7 @@ IEC 61131-10 XML生成コマンド: `jiecc ./src/vector/vector.iec -I./src -o ./
 | [hashmap_string_to_dint](./samples/hashmap_string_to_dint) | ハッシュマップのテンプレートの具体化（文字列のキーから dint の値）。部品の名前ごとの数を数える |
 | [ringbuffer_recent_values](./samples/ringbuffer_recent_values) | リングバッファで直近 10 個の測定値を保持し、平均を出す |
 | [random_process_variation](./samples/random_process_variation) | Mersenne Twister の正規分布で、工程の値の変動を模擬する |
+| [moving_average](./samples/moving_average) | 移動平均・メディアンフィルタ・一次遅れで、測定値をなめらかにする |
 | [modbus_crc](./samples/modbus_crc) | CRC-16/MODBUS で、Modbus RTU の電文に CRC を付け、応答の CRC を確かめる |
 
 ## JiecLib開発者向け
