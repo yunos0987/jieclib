@@ -9,6 +9,8 @@
 - `Math_floor` が、絶対値が 2^63 以上の値で誤った値を返す不具合を直しました（例: `Math_floor(1.0e19)` が `-8.446744073709552e+18`、`Math_floor(1.0e300)` が `0.0` を返していました）。`lint` に変換して切り捨てていたため、`lint` の範囲を超える値であふれていました。絶対値が 2^52 以上の `lreal` は必ず整数なので、その値をそのまま返します。テストは `test/math/test_floor_large.iec` です。
 - `MersenneTwister_nextPoisson` と `Xorshift32_nextPoisson` は、`lambda` が 500 を超えると `eno := false` を返すようにしました。これまでは上限がなく、`lambda` が約 745 を超えると `exp(-lambda)` が 0 になり、`lambda` と関係のない値を返していました。また、1 回の呼び出しで約 `lambda + 1` 個の乱数を使うため、`lambda` が大きいとタスクの周期を圧迫します。
 
+- `MersenneTwister_next` と `Xorshift32_next` は、`bits` が 1〜32 の範囲外のとき `eno := false` を返すようにしました。生成器の状態は変えません。これまでは範囲を確かめずに `shr(x, 32 - bits)` を計算していました。
+
 ### その他 / Other
 
 - `scripts/lint.py` を追加しました。CONTRIBUTING.md と AGENTS.md の規約のうち、ソースを読んで判定できるもの（キーワードなどの小文字、doc プラグマの書き方・引用符・有無、`continue` と `/* */` の禁止、コメントの英語、テストの `// Fact:`）を検査します。既存の警告（日本語のコメント・doc プラグマ 1,139 件、`// Fact:` のないテスト 273 件）は `scripts/lint_baseline.json` に一覧として記録し、一覧にない警告だけを失敗にします。`scripts/test_lint.py` がその単体テストです。
@@ -29,6 +31,7 @@
 - テストのない公開の POU を検出する `scripts/pou_inventory.py` を追加しました。CI の `compile` ジョブが、コンパイルした XML で検査します。今テストのない 31 個（array の dint 版 8 個、stats の 16 個、random の 2 個、`Console_print`、`hex_nibble`、恒等変換 3 個）は、理由と一緒に `scripts/pou_inventory_allow.txt` に載せました。
 - 乱数の分布のテスト `test/random/test_random_distribution.iec` を追加しました。各生成器の `nextIntInRange`・`nextRealInRange`・`nextBernoulli`・`nextGaussian`・`nextExponential`・`nextPoisson` について、固定したシードで 10,000 個を生成し、標本平均・標本分散・出現回数（カイ二乗）が理論値の許容幅に収まることを確かめます。生成器が幅なしの `shl` / `shr` を使うため、このテストは jier では実行できません（PLC の環境で実行します）。
 - JiecUnit の `TEST_M`（複数の周期にわたるテスト）が jier で動くことを確かめるテスト `test/test_jiecunit_test_m.iec` を追加しました。
+- テストのなかった公開の POU のテストを追加しました（array の dint 版 8 個、`stats.iec` の基本統計 13 個、`Stats_p_value_*` 3 個、`next(bits)` 2 個、`Console_print`）。`scripts/pou_inventory_allow.txt` に残るのは、内部の補助関数 `hex_nibble` と恒等変換 3 個だけです。
 - jier で必ず通すテストファイルの一覧 `scripts/jier_required.txt` と、CI の `run-required` ジョブを追加しました。一覧のテストが jier で失敗すると、CI が失敗します。新しく追加するテストファイルは、この一覧に載せます。
 - この節（`[Unreleased]`）を設けました。変更は Pull Request ごとにこの節へ書き、リリースのコミットで見出しを `[X.Y.Z] - 日付` に置き換えます。
 

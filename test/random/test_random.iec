@@ -53,7 +53,9 @@ DEFINE_CONFIGURATION(
 		test_nextGaussian_distribution,
 		test_nextExponential_distribution,
 		test_nextPoisson_distribution,
-		test_nextPoisson_lambda_limit
+		test_nextPoisson_lambda_limit,
+		test_MersenneTwister_next_bits,
+		test_Xorshift32_next_bits
 	)
 )
 {#undef _TEST_}
@@ -64,3 +66,4 @@ DEFINE_CONFIGURATION(
 {#include "test_mersenne_twister.iec"}
 {#include "test_xorshift32.iec"}
 {#include "test_random_distribution.iec"}
+{#include "test_random_bits.iec"}

@@ -1,0 +1,83 @@
+(*
+ * Tests of the dint versions of Array_isRegular, Array_isRegular2d and
+ * Array_isRegular2d_x (roadmap PR-7). They check the facts of the lreal
+ * tests in test_array.iec with dint arrays.
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/array/test_array_isregular_dint.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/array/test_array_isregular_dint.xml -t omron
+ *
+ * Array_isRegular uses max on dint, which jier (jiecc --run) does not
+ * support, so this test runs on the PLC environments only.
+ *)
+{#if _JIECC and (_JIECC_FULL_VER < 90200)}
+{#error JiecLib requires Jiecc 9.2.0 or later.}
+{#endif}
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <array/array.iec>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_array_isRegular_dint,
+		test_array_isRegular2d_dint,
+		test_array_isRegular2d_x_dint
+	)
+)
+
+{#endif}
+
+TEST_S(test_array_isRegular_dint)
+	var
+		x_regular: array[0..4] of dint;
+		x_regular_one: array[0..0] of dint;
+		x_nonregular: array[1..5] of dint;
+	end
+	// Fact: A 1-D array starting at index 0 is regular and returns its element count.
+		// Arrange/Act/Assert
+	EXPECT_EQ_DINT(5, Array_isRegular_dint(x_regular));
+	EXPECT_EQ_DINT(1, Array_isRegular_dint(x_regular_one));
+
+	// Fact: A 1-D array with a non-zero lower bound is non-regular and returns 0.
+		// Arrange/Act/Assert
+	EXPECT_EQ_DINT(0, Array_isRegular_dint(x_nonregular));
+END_TEST_S
+
+TEST_S(test_array_isRegular2d_dint)
+	var
+		x_regular: array[0..1, 0..2] of dint;
+		x_nonregular_lb1: array[1..2, 0..1] of dint;
+		x_nonregular_lb2: array[0..1, 2..3] of dint;
+	end
+	// Fact: A regular 2D array returns its total element count.
+		// Arrange/Act/Assert
+	EXPECT_EQ_DINT(6, Array_isRegular2d_dint(x_regular));
+
+	// Fact: A 2D array with a non-zero lower bound in either dimension returns 0.
+		// Arrange/Act/Assert
+	EXPECT_EQ_DINT(0, Array_isRegular2d_dint(x_nonregular_lb1));
+	EXPECT_EQ_DINT(0, Array_isRegular2d_dint(x_nonregular_lb2));
+END_TEST_S
+
+TEST_S(test_array_isRegular2d_x_dint)
+	var
+		x_regular: array[0..1, 0..2] of dint;
+		x_nonregular_lb1: array[1..2, 0..2] of dint;
+	end
+	// Fact: For a regular 2D array, dim=1 returns the row count and dim=2 the column count.
+		// Arrange/Act/Assert
+	EXPECT_EQ_DINT(2, Array_isRegular2d_x_dint(x_regular, 1));
+	EXPECT_EQ_DINT(3, Array_isRegular2d_x_dint(x_regular, 2));
+
+	// Fact: A dimension with a non-zero lower bound returns 0, and the other dimension its count.
+		// Arrange/Act/Assert
+	EXPECT_EQ_DINT(0, Array_isRegular2d_x_dint(x_nonregular_lb1, 1));
+	EXPECT_EQ_DINT(3, Array_isRegular2d_x_dint(x_nonregular_lb1, 2));
+
+	// Fact: Out-of-range dim values return 0.
+		// Arrange/Act/Assert
+	EXPECT_EQ_DINT(0, Array_isRegular2d_x_dint(x_regular, 0));
+	EXPECT_EQ_DINT(0, Array_isRegular2d_x_dint(x_regular, 3));
+END_TEST_S

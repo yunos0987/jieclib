@@ -1,0 +1,103 @@
+(*
+ * Tests of the p-value functions of src/stats/inference/tests/test_core.iec
+ * (roadmap PR-7).
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/inference/tests/test_p_values.iec -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/stats/inference/tests/test_p_values.xml -t omron
+ *
+ * The expected values are the p-values of scipy.stats, computed in Python
+ * with the standard library (scipy was not available):
+ *   - normal: math.erfc(abs(z) / sqrt(2))
+ *   - t: the regularized incomplete beta function I_{df / (df + t^2)}(df / 2, 1 / 2)
+ *   - chi-square: the regularized upper incomplete gamma function Q(df / 2, x / 2)
+ * The implementations reproduce the known values p = 0.05 at z = 1.959964,
+ * t = 2.228139 (df 10) and x = 3.841459 (df 1). As CONTRIBUTING.md asks,
+ * p-values of 1.0e-3 or more are checked with EXPECT_NEAR within 1.0e-4;
+ * smaller p-values are checked with EXPECT_NEAR_REL, because an absolute
+ * error of 1.0e-4 would accept a wrong small p-value.
+ *)
+{#if _JIECC and (_JIECC_FULL_VER < 90200)}
+{#error JiecLib requires Jiecc 9.2.0 or later.}
+{#endif}
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <stats/inference/tests/test_core.iec>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_Stats_p_value_normal_two_tailed,
+		test_Stats_p_value_t_two_tailed,
+		test_Stats_p_value_chi_square_right
+	)
+)
+{#endif}
+
+TEST_S(test_Stats_p_value_normal_two_tailed)
+	// Fact: The two-tailed p-value of the standard normal distribution agrees with scipy.
+		// Arrange/Act/Assert
+	EXPECT_NEAR(1.0, Stats_p_value_normal_two_tailed(z:=0.0), 1.0e-4);
+	EXPECT_NEAR(0.31731050786291415, Stats_p_value_normal_two_tailed(z:=1.0), 1.0e-4);
+	EXPECT_NEAR(0.0026997960632601918, Stats_p_value_normal_two_tailed(z:=3.0), 1.0e-4);
+
+	// Fact: The p-value is symmetric in the sign of z.
+		// Arrange/Act/Assert
+	EXPECT_NEAR(0.04999579029644087, Stats_p_value_normal_two_tailed(z:=-1.96), 1.0e-4);
+	EXPECT_NEAR(0.04999579029644087, Stats_p_value_normal_two_tailed(z:=1.96), 1.0e-4);
+
+	// Fact: A small p-value agrees in relative terms.
+		// Arrange/Act/Assert
+	EXPECT_NEAR_REL(6.795346249460124e-06, Stats_p_value_normal_two_tailed(z:=4.5), 1.0e-3);
+END_TEST_S
+
+TEST_S(test_Stats_p_value_t_two_tailed)
+	var
+		ok: bool;
+	end
+	// Fact: The two-tailed p-value of the t distribution agrees with scipy.
+		// Arrange/Act/Assert
+	EXPECT_NEAR(1.0, Stats_p_value_t_two_tailed(t:=0.0, df:=5.0), 1.0e-4);
+	EXPECT_NEAR(0.07338803477074045, Stats_p_value_t_two_tailed(t:=2.0, df:=10.0), 1.0e-4);
+	EXPECT_NEAR(0.07338803477074045, Stats_p_value_t_two_tailed(t:=-2.0, df:=10.0), 1.0e-4);
+	EXPECT_NEAR(0.23058386524482302, Stats_p_value_t_two_tailed(t:=1.5, df:=3.0), 1.0e-4);
+
+	// Fact: A small p-value agrees in relative terms.
+		// Arrange/Act/Assert
+	EXPECT_NEAR_REL(6.8730285795422e-05, Stats_p_value_t_two_tailed(t:=5.0, df:=20.0), 1.0e-3);
+
+	// Fact: A non-positive degree of freedom is an error.
+		// Arrange
+		// Act
+	Stats_p_value_t_two_tailed(t:=1.0, df:=0.0, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+END_TEST_S
+
+TEST_S(test_Stats_p_value_chi_square_right)
+	var
+		ok: bool;
+	end
+	// Fact: The right-tail p-value of the chi-square distribution agrees with scipy.
+		// Arrange/Act/Assert
+	EXPECT_NEAR(1.0, Stats_p_value_chi_square_right(chi_sq:=0.0, df:=3.0), 1.0e-4);
+	EXPECT_NEAR(0.050043521248705085, Stats_p_value_chi_square_right(chi_sq:=3.84, df:=1.0), 1.0e-4);
+	EXPECT_NEAR(0.13588822540043327, Stats_p_value_chi_square_right(chi_sq:=7.0, df:=4.0), 1.0e-4);
+	EXPECT_NEAR(0.05000961862240545, Stats_p_value_chi_square_right(chi_sq:=11.07, df:=5.0), 1.0e-4);
+
+	// Fact: A small p-value agrees in relative terms.
+		// Arrange/Act/Assert
+	EXPECT_NEAR_REL(1.4748581038443052e-05, Stats_p_value_chi_square_right(chi_sq:=30.0, df:=5.0), 1.0e-3);
+
+	// Fact: A non-positive degree of freedom or a negative statistic is an error.
+		// Arrange
+		// Act
+	Stats_p_value_chi_square_right(chi_sq:=1.0, df:=0.0, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+		// Act
+	Stats_p_value_chi_square_right(chi_sq:=-1.0, df:=2.0, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+END_TEST_S

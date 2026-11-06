@@ -1,0 +1,247 @@
+(*
+ * Tests of the dint versions of the array functions whose lreal versions
+ * are tested in test_array_sort.iec and test_array_copy.iec (roadmap PR-7).
+ * They check the same facts with dint values.
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/array/test_array_dint.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/array/test_array_dint.xml -t omron
+ *)
+{#if _JIECC and (_JIECC_FULL_VER < 90200)}
+{#error JiecLib requires Jiecc 9.2.0 or later.}
+{#endif}
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <array/array.iec>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_array_bubblesort_dint,
+		test_array_bubblesort_n_dint,
+		test_array_mergesort_n_dint,
+		test_array_quicksort_n_dint,
+		test_array_copy_x_dint
+	)
+)
+
+{#endif}
+
+TEST_S(test_array_bubblesort_dint)
+	var
+		index: dint;
+		x_5: array[0..4] of dint := [3, 2, 7, 2, 1];
+		y_5: array[0..4] of dint := [1, 2, 2, 3, 7];
+		x_5_reverse: array[5..9] of dint := [3, 2, 7, 2, 1];
+		y_5_reverse: array[5..9] of dint := [7, 3, 2, 2, 1];
+		x_2: array[0..1] of dint := [-2, -3];
+		y_2: array[0..1] of dint := [-3, -2];
+		x_1: array[100..100] of dint := [2];
+	end
+	// Fact: Ascending bubble sort orders dint values from the smallest.
+		// Arrange
+		// Act
+	Array_bubblesort_dint(x_5, true);
+		// Assert
+	for index := 0 to 4 by 1 do EXPECT_EQ_DINT(y_5[index], x_5[index]); end_for;
+
+	// Fact: Descending bubble sort works on an offset array.
+		// Arrange
+		// Act
+	Array_bubblesort_dint(x_5_reverse, false);
+		// Assert
+	for index := 5 to 9 by 1 do EXPECT_EQ_DINT(y_5_reverse[index], x_5_reverse[index]); end_for;
+
+	// Fact: Negative values are sorted, and a 1-element array is unchanged.
+		// Arrange
+		// Act
+	Array_bubblesort_dint(x_2, true);
+	Array_bubblesort_dint(x_1, true);
+		// Assert
+	for index := 0 to 1 by 1 do EXPECT_EQ_DINT(y_2[index], x_2[index]); end_for;
+	EXPECT_EQ_DINT(2, x_1[100]);
+END_TEST_S
+
+TEST_S(test_array_bubblesort_n_dint)
+	var
+		result_eno: bool;
+		x_4_m1: array[5..8] of dint := [2, 1, 3, 2];
+		x_4_2: array[5..8] of dint := [2, 1, 3, 2];
+		x_4_0: array[5..8] of dint := [2, 1, 3, 2];
+		x_4_reverse: array[10..13] of dint := [2, 1, 3, 2];
+		x_3: array[3..5] of dint := [2, 1, 3];
+	end
+	// Fact: n=-1 sorts all elements ascending.
+		// Arrange
+		// Act
+	Array_bubblesort_n_dint(self:=x_4_m1, ascending:=true, n:=-1);
+		// Assert
+	EXPECT_EQ_DINT(1, x_4_m1[5]);
+	EXPECT_EQ_DINT(2, x_4_m1[6]);
+	EXPECT_EQ_DINT(2, x_4_m1[7]);
+	EXPECT_EQ_DINT(3, x_4_m1[8]);
+
+	// Fact: n=2 sorts only the first 2 elements; the others are unchanged.
+		// Arrange
+		// Act
+	Array_bubblesort_n_dint(self:=x_4_2, ascending:=true, n:=2);
+		// Assert
+	EXPECT_EQ_DINT(1, x_4_2[5]);
+	EXPECT_EQ_DINT(2, x_4_2[6]);
+	EXPECT_EQ_DINT(3, x_4_2[7]);
+	EXPECT_EQ_DINT(2, x_4_2[8]);
+
+	// Fact: n=0 leaves the array unchanged.
+		// Arrange
+		// Act
+	Array_bubblesort_n_dint(self:=x_4_0, ascending:=true, n:=0);
+		// Assert
+	EXPECT_EQ_DINT(2, x_4_0[5]);
+	EXPECT_EQ_DINT(1, x_4_0[6]);
+	EXPECT_EQ_DINT(3, x_4_0[7]);
+	EXPECT_EQ_DINT(2, x_4_0[8]);
+
+	// Fact: n=3 descending sorts the first 3 elements; the last is unchanged.
+		// Arrange
+		// Act
+	Array_bubblesort_n_dint(self:=x_4_reverse, ascending:=false, n:=3);
+		// Assert
+	EXPECT_EQ_DINT(3, x_4_reverse[10]);
+	EXPECT_EQ_DINT(2, x_4_reverse[11]);
+	EXPECT_EQ_DINT(1, x_4_reverse[12]);
+	EXPECT_EQ_DINT(2, x_4_reverse[13]);
+
+	// Fact: n larger than the array returns an error.
+		// Arrange
+		// Act
+	Array_bubblesort_n_dint(self:=x_3, ascending:=true, n:=4, eno=>result_eno);
+		// Assert
+	EXPECT_FALSE(result_eno);
+END_TEST_S
+
+TEST_S(test_array_mergesort_n_dint)
+	var
+		result_eno: bool;
+		x_4_m1: array[5..8] of dint := [2, 1, 3, 2];
+		x_4_2: array[5..8] of dint := [2, 1, 3, 2];
+		x_4_reverse: array[10..13] of dint := [2, 1, 3, 2];
+		x_3: array[3..5] of dint := [2, 1, 3];
+		work: array[0..3] of dint;
+	end
+	// Fact: n=-1 sorts all elements ascending.
+		// Arrange
+		// Act
+	Array_mergesort_n_dint(self:=x_4_m1, ascending:=true, n:=-1, work:=work);
+		// Assert
+	EXPECT_EQ_DINT(1, x_4_m1[5]);
+	EXPECT_EQ_DINT(2, x_4_m1[6]);
+	EXPECT_EQ_DINT(2, x_4_m1[7]);
+	EXPECT_EQ_DINT(3, x_4_m1[8]);
+
+	// Fact: n=2 sorts only the first 2 elements; the others are unchanged.
+		// Arrange
+		// Act
+	Array_mergesort_n_dint(self:=x_4_2, ascending:=true, n:=2, work:=work);
+		// Assert
+	EXPECT_EQ_DINT(1, x_4_2[5]);
+	EXPECT_EQ_DINT(2, x_4_2[6]);
+	EXPECT_EQ_DINT(3, x_4_2[7]);
+	EXPECT_EQ_DINT(2, x_4_2[8]);
+
+	// Fact: n=3 descending sorts the first 3 elements; the last is unchanged.
+		// Arrange
+		// Act
+	Array_mergesort_n_dint(self:=x_4_reverse, ascending:=false, n:=3, work:=work);
+		// Assert
+	EXPECT_EQ_DINT(3, x_4_reverse[10]);
+	EXPECT_EQ_DINT(2, x_4_reverse[11]);
+	EXPECT_EQ_DINT(1, x_4_reverse[12]);
+	EXPECT_EQ_DINT(2, x_4_reverse[13]);
+
+	// Fact: n larger than the array returns an error.
+		// Arrange
+		// Act
+	Array_mergesort_n_dint(self:=x_3, ascending:=true, n:=4, work:=work, eno=>result_eno);
+		// Assert
+	EXPECT_FALSE(result_eno);
+END_TEST_S
+
+TEST_S(test_array_quicksort_n_dint)
+	var
+		result_eno: bool;
+		x_4_m1: array[5..8] of dint := [2, 1, 3, 2];
+		x_4_2: array[5..8] of dint := [2, 1, 3, 2];
+		x_4_reverse: array[10..13] of dint := [2, 1, 3, 2];
+		x_3: array[3..5] of dint := [2, 1, 3];
+	end
+	// Fact: n=-1 sorts all elements ascending.
+		// Arrange
+		// Act
+	Array_quicksort_n_dint(self:=x_4_m1, ascending:=true, n:=-1);
+		// Assert
+	EXPECT_EQ_DINT(1, x_4_m1[5]);
+	EXPECT_EQ_DINT(2, x_4_m1[6]);
+	EXPECT_EQ_DINT(2, x_4_m1[7]);
+	EXPECT_EQ_DINT(3, x_4_m1[8]);
+
+	// Fact: n=2 sorts only the first 2 elements; the others are unchanged.
+		// Arrange
+		// Act
+	Array_quicksort_n_dint(self:=x_4_2, ascending:=true, n:=2);
+		// Assert
+	EXPECT_EQ_DINT(1, x_4_2[5]);
+	EXPECT_EQ_DINT(2, x_4_2[6]);
+	EXPECT_EQ_DINT(3, x_4_2[7]);
+	EXPECT_EQ_DINT(2, x_4_2[8]);
+
+	// Fact: n=3 descending sorts the first 3 elements; the last is unchanged.
+		// Arrange
+		// Act
+	Array_quicksort_n_dint(self:=x_4_reverse, ascending:=false, n:=3);
+		// Assert
+	EXPECT_EQ_DINT(3, x_4_reverse[10]);
+	EXPECT_EQ_DINT(2, x_4_reverse[11]);
+	EXPECT_EQ_DINT(1, x_4_reverse[12]);
+	EXPECT_EQ_DINT(2, x_4_reverse[13]);
+
+	// Fact: n larger than the array returns an error.
+		// Arrange
+		// Act
+	Array_quicksort_n_dint(self:=x_3, ascending:=true, n:=4, eno=>result_eno);
+		// Assert
+	EXPECT_FALSE(result_eno);
+END_TEST_S
+
+TEST_S(test_array_copy_x_dint)
+	var
+		copied: dint;
+		result_eno: bool;
+		x_5: array[0..4] of dint := [1, 2, 3, 5, 7];
+		y_5: array[0..4] of dint := [-1, -1, -1, -1, -1];
+		x_offset: array[3..7] of dint := [1, 2, 3, 5, 7];
+		y_offset: array[2..6] of dint := [-1, -1, -1, -1, -1];
+	end
+	// Fact: n=2 copies 2 elements from src_index to dst_index; the other elements are unchanged.
+		// Arrange
+		// Act
+	copied := Array_copy_x_dint(src:=x_5, src_index:=1, dst:=y_5, dst_index:=2, n:=2);
+		// Assert
+	EXPECT_EQ_DINT(2, copied);
+	EXPECT_EQ_DINT(-1, y_5[0]);
+	EXPECT_EQ_DINT(-1, y_5[1]);
+	EXPECT_EQ_DINT(2, y_5[2]);
+	EXPECT_EQ_DINT(3, y_5[3]);
+	EXPECT_EQ_DINT(-1, y_5[4]);
+
+	// Fact: An index below the lower bound of src or dst returns an error.
+		// Arrange
+		// Act
+	copied := Array_copy_x_dint(src:=x_offset, src_index:=2, dst:=y_offset, dst_index:=2, n:=1, eno=>result_eno);
+		// Assert
+	EXPECT_FALSE(result_eno);
+		// Act
+	copied := Array_copy_x_dint(src:=x_offset, src_index:=3, dst:=y_offset, dst_index:=1, n:=1, eno=>result_eno);
+		// Assert
+	EXPECT_FALSE(result_eno);
+END_TEST_S

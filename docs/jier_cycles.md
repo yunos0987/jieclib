@@ -82,6 +82,9 @@ CHANGELOG.md 4.0.0 の「既知の問題」と同じ内訳である。
 |---|---|---|
 | `test/math/test_floor_large.iec` | 1000 以下 | 1000 |
 | `test/test_jiecunit_test_m.iec` | 21（`TEST_M` が 20 周期を使う。20 では失敗する） | 1000 |
+| `test/array/test_array_dint.iec` | 1000 以下 | 1000 |
+| `test/stats/inference/tests/test_p_values.iec` | 1000 以下 | 1000 |
+| `test/test_sys_console.iec` | 1000 以下 | 1000 |
 
 ## 測り直すとき
 

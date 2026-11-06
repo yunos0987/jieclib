@@ -420,6 +420,25 @@ PR-6 は、ブランチ `feature/random-dist`（`feature/floor-large` の上）�
 3. テストの書き方は規約（`// Fact:`・AAA 形式）に従う。期待値は Python（標準ライブラリ、numpy・scipy）で求め、求め方をコメントに書く。
 4. 既存のテストを規約の書き方に揃える作業は、別の PR にする（`test-fact` の警告の基準値を下げて進み具合を測る）。
 
+#### PR-7 の実装の結果と、計画から変えたこと
+
+PR-7 は、ブランチ `feature/untested-pous`（`feature/random-dist` の上）で、1 つの PR にまとめて実装した（マージの前）。`scripts/pou_inventory_allow.txt` に残るのは、`hex_nibble`（D-9）と恒等変換 3 個だけになった。
+
+| ファイル | 対象 | jier |
+|---|---|---|
+| `test/array/test_array_dint.iec` | dint 版のソート 4 個とコピー 1 個 | 通る（`jier_required.txt` に載せた） |
+| `test/array/test_array_isregular_dint.iec` | dint 版の正規性の判定 3 個 | 通らない（`Array_isRegular` が dint の `max` を使う） |
+| `test/random/test_random_bits.iec` | `MersenneTwister_next(bits)`・`Xorshift32_next(bits)` | 通らない（幅なしの `shl` / `shr`） |
+| `test/stats/test_stats_basic.iec` | `stats.iec` の基本統計 13 個 | 通らない（`Array_isRegular` の `max`） |
+| `test/stats/inference/tests/test_p_values.iec` | `Stats_p_value_*` の 3 個 | 通る（載せた） |
+| `test/test_sys_console.iec` | `Console_print` | 通る（載せた） |
+
+- jier で通らない 3 ファイルは、1.2 節の例外として L3 で確かめる。ただし、手元の確認として、`src/` の写しで `Array_isRegular` の `max` を `if` 文に、random の `shr` / `shl` を型付きの `shr_dword` などに置き換え、その写しで jier を実行して、3 ファイルとも合格することを確かめた（リポジトリの `src/` は変えていない）。同じ方法で、PR-6 の `test_random_distribution.iec` も実行した。その実行で、`LFSR32_init` を仮引数なしで呼び、省略できる引数（`poly`）を省いていた誤りが見つかったので、仮引数付きの呼び出しに直した。
+- `stats.iec` の基本統計は、計画の 8 個に PR-4 で見つかった 5 個（`mean`・`sum`・`variance`・`skewness`・`kurtosis`）を加えた 13 個。それぞれ、呼び出している `Stats_*` 関数と同じ値になることと、Python の値に一致することを確かめる。歪度と尖度の式（scipy の `bias=False`）は、既存のテストの期待値を再現することを確かめた。
+- p 値の期待値は、scipy がないので、標準ライブラリで正則化不完全ベータ関数（t 分布）と正則化不完全ガンマ関数（カイ二乗分布）を実装して求めた。既知の値（z = 1.959964、t = 2.228139（自由度 10）、x = 3.841459（自由度 1）で p = 0.05）を再現する。
+- `next(bits)` は、`bits` が 1〜32 の範囲外のとき `eno := false` を返し、生成器の状態を変えないようにした。
+- `Console_print` は、`print` マクロ（グローバルのコンソールに書く）ではなく、ローカルの `Console_t` に対して直接呼んで確かめた。グローバルのコンソールには JiecUnit もテストの経過を書くので、行の位置が前のテストの出力で変わり、期待値を決められないためである。
+
 #### 完了の条件
 
 - PR-4: `pou_inventory.py --check` が CI で通る。テストのない POU・未分類の POU・理由のない行・古い行のそれぞれを 1 つ足したとき、`--check` が失敗することを確かめる。

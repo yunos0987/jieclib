@@ -12,3 +12,6 @@
 
 test/math/test_floor_large.iec 1000
 test/test_jiecunit_test_m.iec 1000
+test/array/test_array_dint.iec 1000
+test/stats/inference/tests/test_p_values.iec 1000
+test/test_sys_console.iec 1000

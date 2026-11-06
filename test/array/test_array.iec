@@ -46,7 +46,15 @@ DEFINE_CONFIGURATION(
 		test_array_mergesort_n,
 		test_array_quicksort,
 		test_array_quicksort_offset,
-		test_array_quicksort_n
+		test_array_quicksort_n,
+		test_array_bubblesort_dint,
+		test_array_bubblesort_n_dint,
+		test_array_mergesort_n_dint,
+		test_array_quicksort_n_dint,
+		test_array_copy_x_dint,
+		test_array_isRegular_dint,
+		test_array_isRegular2d_dint,
+		test_array_isRegular2d_x_dint
 	)
 )
 {#undef _TEST_}
@@ -196,3 +204,5 @@ END_TEST_S
 {#include "test_array_rotate.iec"}
 {#include "test_array_search.iec"}
 {#include "test_array_sort.iec"}
+{#include "test_array_dint.iec"}
+{#include "test_array_isregular_dint.iec"}
