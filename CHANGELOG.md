@@ -23,6 +23,7 @@
 
 ### その他 / Other
 
+- `scripts/run_tests.py` は、`jiecc --help` に `--allow-narrowing` があれば（Jiecc 9.4.0 以降）、`jiecc --run` にそれを付けます。Jiecc 9.4.0 から jier は型の不一致で止まり、OMRON の `LEN` の戻り値 UINT を変換する `uint_to_dint(len(s))` が、jier の `len`（DINT）では縮小になって `string_lib` を使う 12 ファイルが止まっていました。それより前の Jiecc では何も付けません。
 - 対応ターゲットの宣言を整理しました。ソースとテストで食い違っていた `keyence` の宣言を外しました（`src/array/array.iec`・`src/array/sort.iec`、`test/math/test_floor.iec`・`test/math/test_atan2.iec`、`test/test_sys.iec`・`test/test_sys_conv.iec`）。KV Studio で確かめた記録がないためです。確かめた後で、ソースとテストの両方に宣言を戻します。CI は、これらを keyence ではコンパイルしなくなります。
 - README.md に「対応ターゲット」の節を設け、ライブラリごとの宣言の表（`scripts/target_table.py` で作り、CI が一致を確かめる）と、開発環境で確かめた結果の表を載せました。三菱電機（mitsubishi）には対応しないことを明記しました。
 - lint に `target-consistency`（同じライブラリのソースとテストで、宣言したターゲットが同じ）を追加しました。

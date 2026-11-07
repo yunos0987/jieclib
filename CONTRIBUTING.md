@@ -56,6 +56,7 @@ $ python scripts/run_tests.py --jiecc /path/to/jiecc.exe
 - `--jobs N`: 並列に実行する jiecc の数（既定: CPU 数）。
 - `--max-cycles N`: `jiecc --run` の最大スキャン回数（既定: 2000。[jier の周期数](#jier-の周期数)）。
 - `--timeout SEC`: jiecc 1 回あたりの制限時間（秒）。時間を超えると、jiecc が起動した子のプロセスも含めて終了させ、失敗とします。
+- テストの実行では、`jiecc --help` に `--allow-narrowing` があれば（Jiecc 9.4.0 以降）、`jiecc --run` にそれを付けます。Jiecc 9.4.0 から jier は型の不一致で止まり（`--type-check` の既定が `fail`）、OMRON の `LEN` の戻り値 UINT を変換する `uint_to_dint(len(s))` は、jier の `len` が DINT を返すため、DINT から UINT への縮小になります。`--allow-narrowing` は、同じ族の中の縮小を警告に戻します。
 - `--output-dir DIR`: 生成した XML を消さずに、`DIR/<ターゲット>/<ファイルのパス>.xml`（例: `DIR/omron/src/string_lib/string_lib.xml`）に残します。コンパイルに失敗したファイルの XML は残しません。`--run-only` とは一緒に使えません。
 - `--paths-from FILE`: 対象のパスを、ファイルから 1 行 1 項目で読みます（下記）。
 

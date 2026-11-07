@@ -20,7 +20,11 @@ Compile phase:
 
 Run phase:
   - Every test file is interpreted with the jier interpreter
-    (`jiecc --run ... -D_TEST_ --max-cycles N`).
+    (`jiecc --run ... -D_TEST_ --max-cycles N`). When `jiecc --help` lists
+    --allow-narrowing (Jiecc 9.4.0 and later), it is added: the sources
+    convert the UINT that the OMRON LEN returns with `uint_to_dint(len(s))`,
+    and jier's len returns a DINT, so without it jier stops at that
+    narrowing (its --type-check defaults to fail).
   - jiecc's exit code does not reflect test failures in --run mode, so the
     result is judged from the JiecUnit lines on stdout. A run passes only
     when the summary is printed, the number of tests in the summary equals
@@ -368,6 +372,32 @@ def _common_args(root, item):
     return args
 
 
+# jier (jiecc --run) stops at a type mismatch by default since Jiecc 9.4.0
+# (--type-check=fail). The OMRON LEN returns a UINT, so the sources write
+# `uint_to_dint(len(s))`; jier's own len returns a DINT, which makes that
+# argument a DINT -> UINT narrowing. --allow-narrowing turns a narrowing
+# inside one family (integer -> integer) back into a warning. Older jiecc
+# does not know the option, so it is passed only when `jiecc --help` lists
+# it.
+_RUN_OPTIONS_IF_SUPPORTED = ['--allow-narrowing']
+
+
+def run_options_from_help(help_output):
+    # type: (str) -> list
+    """The options of _RUN_OPTIONS_IF_SUPPORTED that *help_output* (the text
+    of `jiecc --help`) mentions, in that order."""
+    return [option for option in _RUN_OPTIONS_IF_SUPPORTED if option in help_output]
+
+
+def probe_run_options(jiecc, root, timeout):
+    # type: (str, str, int) -> list
+    """run_options_from_help() of the installed jiecc; [] when --help fails."""
+    code, output = _execute([jiecc, '--help'], root, timeout)
+    if code is None:
+        return []
+    return run_options_from_help(output)
+
+
 # The processes that are running, so that an interrupted run can kill them.
 # After _stopping is set, no new process is started.
 _live_lock = threading.Lock()
@@ -571,11 +601,12 @@ def judge_run_output(output):
     return True, ['{} ran, {} passed, {} skipped'.format(ran, passed, skipped)]
 
 
-def run_item(jiecc, root, item, max_cycles, timeout):
-    # type: (str, str, Item, int, int) -> tuple
-    """Return (ok, detail lines). The exit code of jiecc --run is not used."""
+def run_item(jiecc, root, item, max_cycles, timeout, run_options=()):
+    # type: (str, str, Item, int, int, tuple) -> tuple
+    """Return (ok, detail lines). The exit code of jiecc --run is not used.
+    *run_options* (probe_run_options()) are jiecc options added to every run."""
     cmd = ([jiecc, '--run', item.path] + _common_args(root, item)
-           + ['--max-cycles', str(max_cycles)])
+           + ['--max-cycles', str(max_cycles)] + list(run_options))
     code, output = _execute(cmd, root, timeout)
     if code is None:
         return False, [output]
@@ -670,6 +701,7 @@ def main(argv=None):
             return 2
 
     jiecc = _resolve_jiecc(args.jiecc)
+    run_options = [] if args.compile_only else probe_run_options(jiecc, root, args.timeout)
 
     tasks = []
     if not args.run_only:
@@ -696,7 +728,7 @@ def main(argv=None):
                                                 args.timeout, keep)
         else:
             ok, detail = run_item(jiecc, root, item, cycles.get(item.name, args.max_cycles),
-                                  args.timeout)
+                                  args.timeout, run_options)
             warnings = []
         return task, ok, detail, warnings
 

@@ -219,6 +219,47 @@ _TREE_SCRIPT = textwrap.dedent('''\
     ''')
 
 
+class RunOptionsTest(unittest.TestCase):
+
+    def test_allow_narrowing_is_passed_when_help_lists_it(self):
+        help_text = 'usage: jiecc ...\n  --allow-narrowing  under fail, ...\n'
+        self.assertEqual(['--allow-narrowing'], run_tests.run_options_from_help(help_text))
+
+    def test_nothing_is_passed_when_help_does_not_list_it(self):
+        self.assertEqual([], run_tests.run_options_from_help('usage: jiecc ...\n  --run\n'))
+        self.assertEqual([], run_tests.run_options_from_help(''))
+
+    def test_run_item_appends_the_options(self):
+        item = run_tests.Item('x', os.path.join('test', 'x', 'x.iec'), 'test', ['omron'])
+        seen = []
+
+        def fake_execute(cmd, cwd, timeout):
+            seen.append(cmd)
+            return None, 'not run'
+
+        original = run_tests._execute
+        run_tests._execute = fake_execute
+        try:
+            run_tests.run_item('jiecc', _HERE, item, 5, 1, ['--allow-narrowing'])
+            run_tests.run_item('jiecc', _HERE, item, 5, 1)
+        finally:
+            run_tests._execute = original
+        self.assertEqual('--allow-narrowing', seen[0][-1])
+        self.assertEqual(['--max-cycles', '5'], seen[0][-3:-1])
+        self.assertEqual(['--max-cycles', '5'], seen[1][-2:])
+
+    def test_a_failed_help_gives_no_options(self):
+        self.assertEqual([], run_tests.probe_run_options(
+            os.path.join(_HERE, 'no_such_jiecc.exe'), _HERE, 5))
+
+    @unittest.skipIf(_JIECC is None, 'jiecc is not found')
+    def test_the_installed_jiecc_is_probed(self):
+        code, output = run_tests._execute([_JIECC, '--help'], _HERE, 60)
+        self.assertEqual(0, code)
+        self.assertEqual(run_tests.run_options_from_help(output),
+                         run_tests.probe_run_options(_JIECC, _HERE, 60))
+
+
 class TimeoutTest(unittest.TestCase):
 
     def test_timeout_kills_the_process_tree(self):
