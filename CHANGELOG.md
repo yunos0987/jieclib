@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [5.0.0] - 2026-11-08
+
 ### 互換性に影響する変更 / Breaking changes
 
 - 必要な Jiecc を 9.2.0 以降から 9.4.0 以降に変更しました。Jiecc 9.4.0 未満では、`src/sys.iec` の `{#error}` で前処理が止まります（`JiecLib requires Jiecc 9.4.0 or later.`）。`src/`・`test/`・`samples/` の 47 ファイルにあった同じ版の確認は、どれも `src/sys.iec` を取り込むので、取り除きました。
