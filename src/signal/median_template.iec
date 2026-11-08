@@ -89,7 +89,12 @@ function_block Signal_median
 	for idx := 0 to filled_count - 1 do
 		value := kept[idx];
 		pos := idx;
-		while (pos > 0) and (sorted[pos - 1] > value) do
+		// pos is checked before sorted[pos - 1] is read: ST does not guarantee
+		// that and skips its right operand.
+		while pos > 0 do
+			if sorted[pos - 1] <= value then
+				exit;
+			end_if;
 			sorted[pos] := sorted[pos - 1];
 			pos := pos - 1;
 		end_while;

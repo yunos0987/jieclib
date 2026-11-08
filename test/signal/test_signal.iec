@@ -35,6 +35,7 @@ DEFINE_CONFIGURATION(
 	_JIEC_TESTNAMES_LIST_(
 		test_Signal_deadband,
 		test_Signal_lowPass,
+		test_Signal_lowPass_pass_through,
 		test_Signal_rateLimiter,
 		test_Signal_hysteresis,
 		test_Signal_movingAverage,
@@ -63,6 +64,20 @@ TEST_S(test_Signal_deadband)
 	EXPECT_EQ_LREAL(0.0, Signal_deadband(input_value:=5.0, lower:=2.0, upper:=1.0, eno=>ok));
 		// Assert
 	EXPECT_FALSE(ok);
+END_TEST_S
+
+TEST_S(test_Signal_lowPass_pass_through)
+	var
+		filter: Signal_lowPass;
+	end
+	// Fact: time_constant = 0 passes the input through exactly, even after a large value (1e20 + (1 - 1e20) would give 0).
+		// Arrange
+	filter(input_value:=1.0e20, time_constant:=0.0, sample_time:=1.0, reset:=true);
+		// Act
+	filter(input_value:=1.0, time_constant:=0.0, sample_time:=1.0, reset:=false);
+		// Assert
+	EXPECT_TRUE(filter.eno);
+	EXPECT_EQ_LREAL(1.0, filter.output_value);
 END_TEST_S
 
 TEST_M(test_Signal_lowPass)

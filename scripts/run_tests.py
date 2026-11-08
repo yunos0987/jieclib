@@ -232,8 +232,14 @@ def _included_tests(path, text):
 
 def _make_item(root, path, text):
     # type: (str, str, str) -> Item
-    rel = os.path.relpath(path, root)
-    in_repo = not (rel.startswith('..') or os.path.isabs(rel))
+    try:
+        rel = os.path.relpath(path, root)
+    except ValueError:
+        # On Windows, a path on another drive than the repository has no
+        # relative path (for example a temporary file on C: when the
+        # repository is on D:, as on GitHub Actions).
+        rel = None
+    in_repo = rel is not None and not (rel.startswith('..') or os.path.isabs(rel))
     if in_repo:
         name = rel.replace(os.sep, '/')
         arg = name

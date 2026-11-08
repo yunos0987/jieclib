@@ -78,6 +78,11 @@ function_block Signal_lowPass
 		started := true;
 		return;
 	end_if;
+	if time_constant = 0.0 then
+		// Pass through exactly: output + (input - output) can lose input to rounding.
+		output_value := input_value;
+		return;
+	end_if;
 	output_value := output_value + sample_time / (time_constant + sample_time) * (input_value - output_value);
 end_function_block
 

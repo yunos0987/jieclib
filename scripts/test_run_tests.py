@@ -164,6 +164,23 @@ class DiscoverTest(unittest.TestCase):
         self.assertIn('samples/s/s.iec', names)
         self.assertNotIn('samples/s/part.iec', names)
 
+    def test_a_file_on_another_drive_is_outside_the_repository(self):
+        # os.path.relpath raises ValueError on Windows when the two paths are
+        # on different drives (the repository on D: and a temporary file on C:).
+        path = _write(self.root, 'other/x.iec', 'DEFINE_CONFIGURATION()\nTEST_S(test_x)\nEND_TEST_S\n')
+
+        def relpath(p, start=None):
+            raise ValueError("path is on mount 'C:', start on mount 'D:'")
+        original = run_tests.os.path.relpath
+        run_tests.os.path.relpath = relpath
+        try:
+            item = run_tests._make_item(os.path.join(self.root, 'repo'), path, run_tests._read_text(path))
+        finally:
+            run_tests.os.path.relpath = original
+        self.assertFalse(item.in_repo)
+        self.assertEqual(path, item.name)
+        self.assertEqual('test', item.kind)
+
     def _write_aggregate(self):
         _write(self.root, 'test/c/a/test_a.iec', 'DEFINE_CONFIGURATION()\nTEST_S(test_a)\nEND_TEST_S\n')
         _write(self.root, 'test/c/b/test_b.iec', 'DEFINE_CONFIGURATION()\nTEST_S(test_b)\nEND_TEST_S\n')

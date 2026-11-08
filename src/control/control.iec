@@ -11,8 +11,8 @@
 - The derivative is taken on the process value, not on the error, so that a change of the setpoint does not kick the output
   (derivative on measurement). It is filtered with the time constant derivative_filter (an incomplete derivative);
   0 means no filter.
-- The output is limited to output_min .. output_max. While the output is at a limit, the integral does not grow
-  further in that direction (anti-windup by conditional integration).
+- The output is limited to output_min .. output_max. The integral grows at most until the output reaches a limit,
+  and not further in that direction while it stays there (anti-windup by conditional integration).
 - In manual mode (manual = true) the output is manual_output (limited), and the integral follows it, so that the
   output does not jump when the mode returns to automatic (bumpless transfer).
 - The first call after reset (and the very first call) starts from the current process value with an empty integral.
@@ -83,6 +83,7 @@ function_block Control_pid
 		raw_derivative: lreal;
 		next_integral: lreal;
 		unlimited: lreal;
+		headroom_integral: lreal;
 	end
 	if (sample_time <= 0.0) or (kp < 0.0) or (ki < 0.0) or (kd < 0.0) or (derivative_filter < 0.0)
 			or (output_min > output_max) then
@@ -115,8 +116,20 @@ function_block Control_pid
 	else
 		next_integral := integral_term + ki * error_value * sample_time;
 		unlimited := proportional_term + next_integral + derivative_term;
-		// Conditional integration: do not integrate further into a limit.
-		if not (((unlimited > output_max) and (error_value > 0.0)) or ((unlimited < output_min) and (error_value < 0.0))) then
+		// Conditional integration: integrate up to the limit, but not beyond it.
+		// A step that would cross a limit integrates only the headroom that is left,
+		// so that the output can still reach the limit.
+		if (unlimited > output_max) and (error_value > 0.0) then
+			headroom_integral := output_max - proportional_term - derivative_term;
+			if headroom_integral > integral_term then
+				integral_term := headroom_integral;
+			end_if;
+		elsif (unlimited < output_min) and (error_value < 0.0) then
+			headroom_integral := output_min - proportional_term - derivative_term;
+			if headroom_integral < integral_term then
+				integral_term := headroom_integral;
+			end_if;
+		else
 			integral_term := next_integral;
 		end_if;
 		output_value := proportional_term + integral_term + derivative_term;

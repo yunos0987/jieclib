@@ -40,7 +40,12 @@ function Math_lcm: lint
 	end_if;
 	quotient := abs(num_a / divisor);
 	abs_b := abs(num_b);
-	if (quotient <> lint#0) and (abs_b > lint#9223372036854775807 / quotient) then
+	// Separate checks: ST does not guarantee that and skips its right operand.
+	if quotient = lint#0 then
+		Math_lcm := lint#0;
+		return;
+	end_if;
+	if abs_b > lint#9223372036854775807 / quotient then
 		eno := false;
 		return;
 	end_if;

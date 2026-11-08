@@ -23,6 +23,7 @@ DEFINE_CONFIGURATION(
 		test_Control_pid_anti_windup,
 		test_Control_pid_bumpless,
 		test_Control_pid_fixed_process,
+		test_Control_pid_integral_headroom,
 		test_Control_pid_errors,
 		test_Control_ramp
 	)
@@ -167,6 +168,34 @@ TEST_S(test_Control_pid_fixed_process)
 		output_min:=0.0, output_max:=10.0, sample_time:=0.1, manual:=false, manual_output:=3.0, reset:=false);
 		// Assert (3.0 + 1.0 * 0.5 * 0.1)
 	EXPECT_NEAR(3.05, pid.output_value, CONTROL_EPS);
+END_TEST_S
+
+TEST_S(test_Control_pid_integral_headroom)
+	var
+		pid: Control_pid;
+	end
+	// Fact: A step of the integral that would cross the upper limit integrates up to the limit, so the output reaches it.
+		// Arrange (kp = kd = 0, ki = 1, error 1, sample time 1: one step adds 1, the headroom is 0.5)
+	pid(setpoint:=1.0, process_value:=0.0, kp:=0.0, ki:=1.0, kd:=0.0, derivative_filter:=0.0,
+		output_min:=0.0, output_max:=0.5, sample_time:=1.0, manual:=false, manual_output:=0.0, reset:=true);
+		// Assert
+	EXPECT_EQ_LREAL(0.5, pid.output_value);
+	EXPECT_TRUE(pid.saturated);
+		// Act (the error stays positive: the integral does not grow beyond the limit)
+	pid(setpoint:=1.0, process_value:=0.0, kp:=0.0, ki:=1.0, kd:=0.0, derivative_filter:=0.0,
+		output_min:=0.0, output_max:=0.5, sample_time:=1.0, manual:=false, manual_output:=0.0, reset:=false);
+	EXPECT_EQ_LREAL(0.5, pid.output_value);
+
+	// Fact: The same holds for the lower limit: a step below it integrates down to the limit.
+		// Arrange/Act (error -1: the integral 0.5 would become -0.5, below the limit 0)
+	pid(setpoint:=-1.0, process_value:=0.0, kp:=0.0, ki:=1.0, kd:=0.0, derivative_filter:=0.0,
+		output_min:=0.0, output_max:=0.5, sample_time:=1.0, manual:=false, manual_output:=0.0, reset:=false);
+		// Assert
+	EXPECT_EQ_LREAL(0.0, pid.output_value);
+		// Act (the error turns positive: the output leaves the lower limit at once)
+	pid(setpoint:=0.25, process_value:=0.0, kp:=0.0, ki:=1.0, kd:=0.0, derivative_filter:=0.0,
+		output_min:=0.0, output_max:=0.5, sample_time:=1.0, manual:=false, manual_output:=0.0, reset:=false);
+	EXPECT_EQ_LREAL(0.25, pid.output_value);
 END_TEST_S
 
 TEST_S(test_Control_pid_errors)

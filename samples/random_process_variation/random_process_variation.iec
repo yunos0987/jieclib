@@ -27,6 +27,7 @@ program RandomSample
 		generator: MersenneTwister_t;
 		initialized: bool;
 		ok: bool;
+		next_value: lreal;
 	end
 	if not initialized then
 		// A fixed seed gives the same sequence after every restart, which makes
@@ -36,6 +37,9 @@ program RandomSample
 	end_if;
 
 	// nextGaussian returns eno = false for a negative sigma; keep the last value then.
-	process_value := MersenneTwister_nextGaussian(self:=generator, mean:=target, sigma:=variation, eno=>ok);
+	next_value := MersenneTwister_nextGaussian(self:=generator, mean:=target, sigma:=variation, eno=>ok);
+	if ok then
+		process_value := next_value;
+	end_if;
 	defect := MersenneTwister_nextBernoulli(self:=generator, prob:=defect_rate);
 end_program
