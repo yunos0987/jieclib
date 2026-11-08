@@ -19,9 +19,9 @@ JiecLib は、IEC 61131-3 ST 言語のライブラリです。コーディング
 - 変更したファイルだけを確認する場合は、ファイルやディレクトリを指定する（例: `python scripts/run_tests.py src/math test/math`）。コンパイルだけなら `--compile-only`、テストの実行だけなら `--run-only` を付ける。
 - jiecc は、`--jiecc PATH`、環境変数 `JIECC`、`PATH` 上の `jiecc` の順に探す。
 - `scripts/run_tests.py` は、`jiecc --help` に `--allow-narrowing` があれば（Jiecc 9.4.0 以降）それを `jiecc --run` に付ける。手動で jier を走らせるときも付ける（jier の `len` は DINT を返すので、OMRON の UINT を変換する `uint_to_dint(len(s))` が縮小になり、既定では止まる）。
-- `jiecc --run` の終了コードは、テストの失敗を反映しない。テストの合否は標準出力の集計行から判定する（`scripts/run_tests.py` が行う）。
+- JiecUnit v7.0.0 は、テストが終わると jier を `halt` で止める。`jiecc --run` の終了コードは、全テストが合格なら 0、失敗があれば 1 になる。`scripts/run_tests.py` は、終了コードと標準出力の集計行の両方で合否を判定する。
 - `jiecc` の終了コードが 0 でも、出力に `error:` の行があれば失敗とみなす。手動でコンパイルや実行をした場合も、この行を確認する。
-- 新しく追加したテストファイルは、jier で通し、必要な周期数と一緒に `scripts/jier_required.txt` に載せる（CI の `run-required` ジョブが必ず通す）。周期数は [docs/jier_cycles.md](docs/jier_cycles.md) の方法で測る。既存のテストファイルの多くは jier で通らないので、既存のファイルにテストを足すときは、新しいファイルに分ける。
+- すべてのテストファイルは jier で通す（CI の `run` ジョブが、全テストを jier で実行し、1 つでも失敗すると CI を失敗にする）。ライブラリのテストを 1 つにまとめるファイル（自分では `TEST_S` / `TEST_M` を定義せず、テストファイルを `{#include "..."}` するだけ。例: `test/container/test_container.iec`）は、まとめるファイルも実行するときは jier で実行しない（`SKIP run` と表示する）。新しいテストは、まとめるファイルではなく個別のテストファイルに書く。
 - `scripts/run_tests.py` を変更したら、`python scripts/test_run_tests.py` を実行する。
 - `.iec` を変更したら、`python scripts/lint.py` を実行し、`Lint passed.` と表示されることを確認する。キーワード・標準関数・型の名前の小文字、doc プラグマの書き方（`(*{doc ...}*)`）などを検査する（[CONTRIBUTING.md](CONTRIBUTING.md#規約の検査lint)）。
 - 名前と型の規則（予約語・`p_` の接頭辞・可変長配列・構造体の戻り値・エイリアス型・POU 名の長さ・キーエンスの名前の制約）は、コンパイルした XML で検査する。`python scripts/run_tests.py --compile-only --output-dir out` の後に `python scripts/lint.py --xml-dir out` を実行する（CI の `compile` ジョブも行う）。
@@ -31,7 +31,8 @@ JiecLib は、IEC 61131-3 ST 言語のライブラリです。コーディング
 
 ## 既知の落とし穴
 
-- jier（`jiecc --run`）は、テストが終わった後も `--max-cycles` の周期数まで回り続ける。実行時間は周期数でほぼ決まる（1,000 周期あたり数秒）ので、周期数を必要以上に大きくしない。周期数が足りないと、集計行が出ないか、テストの数が合わずに失敗と判定される。`TEST_M`（複数の周期にわたるテスト）を使うファイルは、使う周期数を足した値を `scripts/jier_required.txt` の行に書く。
+- `scripts/run_tests.py` の `--max-cycles`（既定 2000）は、`halt` に届かないテストを止めるための上限である。`TEST_M`（複数の周期にわたるテスト）が使う周期数の合計がこれを超えると、集計行が出ずに失敗と判定される。1 周期の中で終わらない処理（無限ループなど）は、`--timeout`（既定 300 秒）で止まり、失敗になる。
+- 1 つのテストファイルは、jier で単独で実行して 60 秒以内に終わるようにする（全件を並列で実行すると 2〜3 倍かかる。`--timeout` の既定 300 秒を超えると失敗になる）。`scripts/run_tests.py` は、run の行に各ファイルの秒数（`[12.3 s]`）を出す。60 秒を超えるファイルは、`{#ifdef _JIER}` で jier のときだけ処理を減らす（例: `test/random/test_random_distribution.iec` の標本の数。許容幅は減らした数で計算し直す）。PLC のターゲットでの処理は変えない。
 - jier（`jiecc --run`）は、関数を呼び出す位置より前にその関数が定義されている必要がある。後ろで定義した関数を呼ぶと `UNDEFINED_SYMBOL` になる。定義の順序を入れ替えて対処する。前方宣言は、PLC メーカーの環境が対応していないので使わない。
 - `//` で始まるコメント行の最初の語が `{#` の場合（例: `//   {#define NAME(...)`）、jiepp はそれをディレクティブとして解釈する。Jiecc 8.0.0（jiepp 1.0.0）ではエラー（PP30）になる。コメントの中にディレクティブの例を書くときは、`{` を付けない（`#define NAME(...)`）。
 - Jiecc 9.2.0 以降では、POU の本体直下に ST の文を `{st}` / `{end}` なしで書く。POU の見出し（名前・戻り型など）の直後の行が `(`、`[`、`+`、`-`、文字列リテラルで始まる文だと、見出しの続きとして読まれる。その場合は、見出しの末尾に `;` を付ける。

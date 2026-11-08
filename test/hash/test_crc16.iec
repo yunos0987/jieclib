@@ -9,9 +9,6 @@
  * 16#31C3, and CRC-16/MODBUS of the Modbus RTU request 01 03 00 00 00 0A
  * is 16#CDC5 (the frame ends with C5 CD, the low byte first).
  *)
-{#if _JIECC and (_JIECC_FULL_VER < 90200)}
-{#error JiecLib requires Jiecc 9.2.0 or later.}
-{#endif}
 {#include <jiecunit.iec>}
 {#if _JIECUNIT and (_JIECUNIT_VER < 402)}
 	{#error This test requires JiecUnit 4.2 or later.}

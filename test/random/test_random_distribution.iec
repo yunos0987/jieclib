@@ -22,12 +22,18 @@
  * The tests were also simulated in Python with the same generators and
  * seeds; every statistic was within 0.5 of its tolerance.
  *
- * The generators use shr and shl without a width, which jier (jiecc --run)
- * does not support, so these tests run on the PLC environments only.
+ * Under jier (jiecc --run, _JIER defined) the generators are slow (about
+ * 26 s per 500 draws of every test, 2026-11-08, Jiecc 9.4.0; 10000 draws
+ * took 669 s), so each test draws N = 200 numbers, 10 per cycle over the
+ * same 20 cycles; test_random.iec, which includes this file, then ends
+ * within 60 s. The tolerances use the same formulas and the same 5 sigma
+ * and 1.0e-6 levels with N = 200 (computed with math.sqrt of the Python
+ * standard library); the chi-square bounds do not depend on N (df 9;
+ * expected count 20). With N = 200 the variance tolerance of the
+ * exponential distribution equals the variance, so under jier that check
+ * only bounds the variance from above. On the PLC targets N stays 10000
+ * and the literals are those of the formulas with N = 10000.
  *)
-{#if _JIECC and (_JIECC_FULL_VER < 90200)}
-{#error JiecLib requires Jiecc 9.2.0 or later.}
-{#endif}
 {#include <jiecunit.iec>}
 {#if _JIECUNIT and (_JIECUNIT_VER < 402)}
 	{#error This test requires JiecUnit 4.2 or later.}
@@ -52,12 +58,43 @@ DEFINE_CONFIGURATION(
 )
 {#endif}
 
-// N = DIST_PER_CYCLE * (DIST_LAST_CYCLE + 1) = 500 * 20. The expected count
-// 1000 of DistTest_chiSquare10 and every tolerance below assume N = 10000;
+// N = DIST_PER_CYCLE * (DIST_LAST_CYCLE + 1). DIST_N, the expected count of
+// DistTest_chiSquare10 (N / 10) and every DIST_TOL_ tolerance depend on N;
 // change them together.
+{#ifdef _JIER}
+// N = 10 * 20 = 200 under jier (see the header comment).
+{#define DIST_PER_CYCLE 10}
+{#define DIST_N 200.0}
+{#define DIST_EXPECTED_COUNT 20.0}
+// 5 sqrt(64 / 12) / sqrt(200) and 5 (64 / 12) sqrt(0.8 / 200)
+{#define DIST_TOL_REAL_MEAN 0.8164965809277259}
+{#define DIST_TOL_REAL_VAR 1.6865480854231354}
+// 200 * 0.3 +- 5 sqrt(200 * 0.3 * 0.7)
+{#define DIST_BERNOULLI_MEAN 60.0}
+{#define DIST_TOL_BERNOULLI 32.4037034920393}
+// mean: 5 * 2 / sqrt(200); variance: 5 * 4 sqrt(2 / 200), 5 * 4 sqrt(8 / 200), 5 * 4 sqrt(2.25 / 200)
+{#define DIST_TOL_MEAN_SD2 0.7071067811865475}
+{#define DIST_TOL_GAUSSIAN_VAR 2.0}
+{#define DIST_TOL_EXPONENTIAL_VAR 4.0}
+{#define DIST_TOL_POISSON_VAR 2.1213203435596424}
+{#else}
+// N = 500 * 20 = 10000 on the PLC targets.
 {#define DIST_PER_CYCLE 500}
-{#define DIST_LAST_CYCLE 19}
 {#define DIST_N 10000.0}
+{#define DIST_EXPECTED_COUNT 1000.0}
+// 5 sqrt(64 / 12) / 100 and 5 (64 / 12) sqrt(0.8 / 10000)
+{#define DIST_TOL_REAL_MEAN 0.11547005383792515}
+{#define DIST_TOL_REAL_VAR 0.23851391759997756}
+// 3000 +- 5 sqrt(10000 * 0.3 * 0.7)
+{#define DIST_BERNOULLI_MEAN 3000.0}
+{#define DIST_TOL_BERNOULLI 229.128784747792}
+// mean: 5 * 2 / 100; variance: 5 * 4 sqrt(2 / 10000), 5 * 4 sqrt(8 / 10000), 5 * 4 sqrt(2.25 / 10000)
+{#define DIST_TOL_MEAN_SD2 0.1}
+{#define DIST_TOL_GAUSSIAN_VAR 0.282842712474619}
+{#define DIST_TOL_EXPONENTIAL_VAR 0.565685424949238}
+{#define DIST_TOL_POISSON_VAR 0.3}
+{#endif}
+{#define DIST_LAST_CYCLE 19}
 
 // The seeds of the generators.
 {#define DIST_SEED_MT dword#16#CAFEBABE}
@@ -65,7 +102,7 @@ DEFINE_CONFIGURATION(
 {#define DIST_SEED_LCG udint#12345}
 {#define DIST_SEED_LFSR dword#16#ACE1ACE1}
 
-(*{doc Return the chi-square statistic of 10 counts of N = 10000 draws (expected count 1000 each).}*)
+(*{doc Return the chi-square statistic of 10 counts of N draws (expected count N / 10 each).}*)
 function DistTest_chiSquare10: lreal
 	var_in_out
 		(*{doc The counts of the values 0 to 9.}*)
@@ -77,12 +114,12 @@ function DistTest_chiSquare10: lreal
 	end
 	DistTest_chiSquare10 := 0.0;
 	for idx := 0 to 9 do
-		diff := dint_to_lreal(counts[idx]) - 1000.0;
-		DistTest_chiSquare10 := DistTest_chiSquare10 + diff * diff / 1000.0;
+		diff := dint_to_lreal(counts[idx]) - DIST_EXPECTED_COUNT;
+		DistTest_chiSquare10 := DistTest_chiSquare10 + diff * diff / DIST_EXPECTED_COUNT;
 	end_for;
 end_function
 
-(*{doc Return the sample variance of N = 10000 values from their sum and sum of squares.}*)
+(*{doc Return the sample variance of N values from their sum and sum of squares.}*)
 function DistTest_variance: lreal
 	var_input
 		(*{doc The sum of the values.}*)
@@ -186,14 +223,14 @@ TEST_M(test_nextRealInRange_distribution)
 	end_for;
 		// Assert
 	if CURRENT_CYCLE() = DIST_LAST_CYCLE then
-		// variance 64 / 12; mean: 5 sqrt(64 / 12) / 100; variance: 5 (64 / 12) sqrt(0.8 / 10000)
+		// variance 64 / 12; the tolerances are DIST_TOL_REAL_MEAN and DIST_TOL_REAL_VAR
 		EXPECT_TRUE(in_range);
-		EXPECT_NEAR(2.0, mt_sum / DIST_N, 0.11547005383792515);
-		EXPECT_NEAR(5.333333333333333, DistTest_variance(mt_sum, mt_sum_sq), 0.23851391759997756);
-		EXPECT_NEAR(2.0, xs_sum / DIST_N, 0.11547005383792515);
-		EXPECT_NEAR(5.333333333333333, DistTest_variance(xs_sum, xs_sum_sq), 0.23851391759997756);
-		EXPECT_NEAR(2.0, lcg_sum / DIST_N, 0.11547005383792515);
-		EXPECT_NEAR(5.333333333333333, DistTest_variance(lcg_sum, lcg_sum_sq), 0.23851391759997756);
+		EXPECT_NEAR(2.0, mt_sum / DIST_N, DIST_TOL_REAL_MEAN);
+		EXPECT_NEAR(5.333333333333333, DistTest_variance(mt_sum, mt_sum_sq), DIST_TOL_REAL_VAR);
+		EXPECT_NEAR(2.0, xs_sum / DIST_N, DIST_TOL_REAL_MEAN);
+		EXPECT_NEAR(5.333333333333333, DistTest_variance(xs_sum, xs_sum_sq), DIST_TOL_REAL_VAR);
+		EXPECT_NEAR(2.0, lcg_sum / DIST_N, DIST_TOL_REAL_MEAN);
+		EXPECT_NEAR(5.333333333333333, DistTest_variance(lcg_sum, lcg_sum_sq), DIST_TOL_REAL_VAR);
 		EOT();
 	end_if;
 END_TEST_M
@@ -227,10 +264,10 @@ TEST_M(test_nextBernoulli_distribution)
 	end_for;
 		// Assert
 	if CURRENT_CYCLE() = DIST_LAST_CYCLE then
-		// 3000 +- 5 sqrt(10000 * 0.3 * 0.7)
-		EXPECT_NEAR(3000.0, dint_to_lreal(mt_true), 229.128784747792);
-		EXPECT_NEAR(3000.0, dint_to_lreal(xs_true), 229.128784747792);
-		EXPECT_NEAR(3000.0, dint_to_lreal(lcg_true), 229.128784747792);
+		// N * 0.3 +- 5 sqrt(N * 0.3 * 0.7)
+		EXPECT_NEAR(DIST_BERNOULLI_MEAN, dint_to_lreal(mt_true), DIST_TOL_BERNOULLI);
+		EXPECT_NEAR(DIST_BERNOULLI_MEAN, dint_to_lreal(xs_true), DIST_TOL_BERNOULLI);
+		EXPECT_NEAR(DIST_BERNOULLI_MEAN, dint_to_lreal(lcg_true), DIST_TOL_BERNOULLI);
 		EOT();
 	end_if;
 END_TEST_M
@@ -260,11 +297,11 @@ TEST_M(test_nextGaussian_distribution)
 	end_for;
 		// Assert
 	if CURRENT_CYCLE() = DIST_LAST_CYCLE then
-		// mean: 5 * 2 / 100; variance: 5 * 4 sqrt(2 / 10000)
-		EXPECT_NEAR(10.0, mt_sum / DIST_N, 0.1);
-		EXPECT_NEAR(4.0, DistTest_variance(mt_sum, mt_sum_sq), 0.282842712474619);
-		EXPECT_NEAR(10.0, xs_sum / DIST_N, 0.1);
-		EXPECT_NEAR(4.0, DistTest_variance(xs_sum, xs_sum_sq), 0.282842712474619);
+		// mean: 5 * 2 / sqrt(N); variance: 5 * 4 sqrt(2 / N)
+		EXPECT_NEAR(10.0, mt_sum / DIST_N, DIST_TOL_MEAN_SD2);
+		EXPECT_NEAR(4.0, DistTest_variance(mt_sum, mt_sum_sq), DIST_TOL_GAUSSIAN_VAR);
+		EXPECT_NEAR(10.0, xs_sum / DIST_N, DIST_TOL_MEAN_SD2);
+		EXPECT_NEAR(4.0, DistTest_variance(xs_sum, xs_sum_sq), DIST_TOL_GAUSSIAN_VAR);
 		EOT();
 	end_if;
 END_TEST_M
@@ -294,11 +331,11 @@ TEST_M(test_nextExponential_distribution)
 	end_for;
 		// Assert
 	if CURRENT_CYCLE() = DIST_LAST_CYCLE then
-		// mean: 5 * 2 / 100; variance: 5 * 4 sqrt(8 / 10000)
-		EXPECT_NEAR(2.0, mt_sum / DIST_N, 0.1);
-		EXPECT_NEAR(4.0, DistTest_variance(mt_sum, mt_sum_sq), 0.565685424949238);
-		EXPECT_NEAR(2.0, xs_sum / DIST_N, 0.1);
-		EXPECT_NEAR(4.0, DistTest_variance(xs_sum, xs_sum_sq), 0.565685424949238);
+		// mean: 5 * 2 / sqrt(N); variance: 5 * 4 sqrt(8 / N)
+		EXPECT_NEAR(2.0, mt_sum / DIST_N, DIST_TOL_MEAN_SD2);
+		EXPECT_NEAR(4.0, DistTest_variance(mt_sum, mt_sum_sq), DIST_TOL_EXPONENTIAL_VAR);
+		EXPECT_NEAR(2.0, xs_sum / DIST_N, DIST_TOL_MEAN_SD2);
+		EXPECT_NEAR(4.0, DistTest_variance(xs_sum, xs_sum_sq), DIST_TOL_EXPONENTIAL_VAR);
 		EOT();
 	end_if;
 END_TEST_M
@@ -328,11 +365,11 @@ TEST_M(test_nextPoisson_distribution)
 	end_for;
 		// Assert
 	if CURRENT_CYCLE() = DIST_LAST_CYCLE then
-		// mean: 5 * 2 / 100; variance: 5 * 4 sqrt(2.25 / 10000)
-		EXPECT_NEAR(4.0, mt_sum / DIST_N, 0.1);
-		EXPECT_NEAR(4.0, DistTest_variance(mt_sum, mt_sum_sq), 0.3);
-		EXPECT_NEAR(4.0, xs_sum / DIST_N, 0.1);
-		EXPECT_NEAR(4.0, DistTest_variance(xs_sum, xs_sum_sq), 0.3);
+		// mean: 5 * 2 / sqrt(N); variance: 5 * 4 sqrt(2.25 / N)
+		EXPECT_NEAR(4.0, mt_sum / DIST_N, DIST_TOL_MEAN_SD2);
+		EXPECT_NEAR(4.0, DistTest_variance(mt_sum, mt_sum_sq), DIST_TOL_POISSON_VAR);
+		EXPECT_NEAR(4.0, xs_sum / DIST_N, DIST_TOL_MEAN_SD2);
+		EXPECT_NEAR(4.0, DistTest_variance(xs_sum, xs_sum_sq), DIST_TOL_POISSON_VAR);
 		EOT();
 	end_if;
 END_TEST_M

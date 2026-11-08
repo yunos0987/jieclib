@@ -5,7 +5,7 @@
 ## 確認したこと
 
 - [ ] `python scripts/run_tests.py --compile-only` が `All checks passed.` で終わった（L1）
-- [ ] 追加・変更したテストを jier で実行した結果を書いた（L2。jier で通らないファイルは、その旨と L3 の結果で代える）
+- [ ] 追加・変更したテストを jier で実行した結果を書いた（L2）
 - [ ] `python scripts/lint.py` が `Lint passed.` で終わった
 - [ ] CHANGELOG.md の `[Unreleased]` 節に変更を書いた（利用者に関係しない変更は不要）
 - [ ] README.md・CONTRIBUTING.md・AGENTS.md に、必要な追記をした

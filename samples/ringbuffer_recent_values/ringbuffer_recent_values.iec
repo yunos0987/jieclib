@@ -3,9 +3,6 @@
  * $ cd <JiecLib Project Root>
  * $ jiecc ./samples/ringbuffer_recent_values/ringbuffer_recent_values.iec -I./src -o ./samples/ringbuffer_recent_values/ringbuffer_recent_values.xml -t omron
  *)
-{#if _JIECC and (_JIECC_FULL_VER < 90200)}
-{#error JiecLib requires Jiecc 9.2.0 or later.}
-{#endif}
 
 // Make the ring buffer functions for lreal items: RingBuffer_lreal_init,
 // RingBuffer_lreal_enqueue and RingBuffer_lreal_dequeue. The state is

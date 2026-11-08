@@ -1,8 +1,8 @@
 {#ifndef __SYS_IEC__}
 {#define __SYS_IEC__}
 
-{#if _JIECC and (_JIECC_FULL_VER < 90200)}
-{#error JiecLib requires Jiecc 9.2.0 or later.}
+{#if _JIECC and (_JIECC_FULL_VER < 90400)}
+{#error JiecLib requires Jiecc 9.4.0 or later.}
 {#endif}
 
 // note: This program does not fully support Mitsubishi, especially the handling of VAR_IN_OUT parameters in functions.
@@ -191,7 +191,7 @@ function Console_print: bool
 		(*{doc The text to append to the current row.}*)
 		txt: string[STRING_MAX_SIZE];
 	end
-{#if _JIER}
+{#ifdef _JIER}
 	PRINT(txt);
 {#endif}
 	self.rows[self.row_index] := jiec_concat(self.rows[self.row_index], txt);
@@ -209,7 +209,7 @@ function Console_puts: dint
 		(*{doc The line to print.}*)
 		line: string[STRING_MAX_SIZE];
 	end
-{#if _JIER}
+{#ifdef _JIER}
 	PUTS(line);
 {#endif}
 	self.rows[self.row_index] := line;

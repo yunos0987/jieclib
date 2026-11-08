@@ -5,10 +5,6 @@
 {#ifndef __INTERP_INTERP_IEC__}
 {#define __INTERP_INTERP_IEC__}
 
-{#if _JIECC and (_JIECC_FULL_VER < 90200)}
-{#error JiecLib requires Jiecc 9.2.0 or later.}
-{#endif}
-
 {#include <sys.iec>}
 
 (*{doc Find the segment of a strictly increasing axis that contains a value.

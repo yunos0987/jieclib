@@ -5,10 +5,6 @@
 {#ifndef __STATS_STATS_IEC__}
 {#define __STATS_STATS_IEC__}
 
-{#if _JIECC and (_JIECC_FULL_VER < 90200)}
-{#error JiecLib requires Jiecc 9.2.0 or later.}
-{#endif}
-
 {#include <sys.iec>}
 
 {#include "descriptive/arithmetic_mean.iec"}

@@ -3,9 +3,6 @@
  * $ cd <JiecLib Project Root>
  * $ jiecc ./samples/random_process_variation/random_process_variation.iec -I./src -o ./samples/random_process_variation/random_process_variation.xml -t omron
  *)
-{#if _JIECC and (_JIECC_FULL_VER < 90200)}
-{#error JiecLib requires Jiecc 9.2.0 or later.}
-{#endif}
 
 {#include <random/mersenne_twister.iec>}
 

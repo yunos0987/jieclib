@@ -4,9 +4,14 @@
 
 ## [Unreleased]
 
+### 互換性に影響する変更 / Breaking changes
+
+- 必要な Jiecc を 9.2.0 以降から 9.4.0 以降に変更しました。Jiecc 9.4.0 未満では、`src/sys.iec` の `{#error}` で前処理が止まります（`JiecLib requires Jiecc 9.4.0 or later.`）。`src/`・`test/`・`samples/` の 47 ファイルにあった同じ版の確認は、どれも `src/sys.iec` を取り込むので、取り除きました。
+- サブモジュール `vendor/jiecunit` を JiecUnit v6.0.0 から v7.0.0 に更新しました。JiecUnit v7.0.0 は Jiecc 9.4.0 以降を必要とします。jier（`jiecc --run`）では、テストが終わると `halt` でスキャンを止めるので、`--max-cycles` まで回り続けなくなり、終了コードがテストの結果を反映します（全テストが合格なら 0、失敗があれば 1）。
+
 ### 追加 / Added
 
-- math に 13 個の関数を追加しました（1 関数 1 ファイル）。丸めの `Math_ceil`・`Math_trunc`・`Math_round`・`Math_roundHalfEven`・`Math_roundTo`、`Math_clamp`・`Math_lerp`・`Math_sign`・`Math_hypot`・`Math_fmod`、整数の `Math_gcd`・`Math_lcm`、比較の `Math_isClose` です。テストは `test/math/test_<名前>.iec` で、すべて jier で実行できます（`scripts/jier_required.txt` に載せました）。NaN と無限大を渡したときの結果は未定義です。
+- math に 13 個の関数を追加しました（1 関数 1 ファイル）。丸めの `Math_ceil`・`Math_trunc`・`Math_round`・`Math_roundHalfEven`・`Math_roundTo`、`Math_clamp`・`Math_lerp`・`Math_sign`・`Math_hypot`・`Math_fmod`、整数の `Math_gcd`・`Math_lcm`、比較の `Math_isClose` です。テストは `test/math/test_<名前>.iec` で、すべて jier で実行できます。NaN と無限大を渡したときの結果は未定義です。
 - hash に CRC-16（`CRC16_modbus`・`CRC16_ccittFalse`・`CRC16_xmodem`・`CRC16_toHex`）とチェックサム（`Checksum_sum8`・`Checksum_xor8`・`Checksum_lrc`）を追加しました。Modbus RTU・シリアル通信の電文に使えます。テスト（`test/hash/test_crc16.iec`・`test/hash/test_checksum.iec`）は jier で実行できます。
 - ライブラリの使い方を示す利用例 `samples/` を追加しました（ハッシュマップの具体化、リングバッファ、乱数による工程の変動、Modbus RTU の CRC）。README.md の「利用例（samples）」から参照できます。`scripts/run_tests.py` は、`samples/` の、先頭コメントに `$ jiecc` の行があるファイルもコンパイルします。
 - 信号処理のライブラリ `src/signal/` を追加しました。`Signal_deadband`（不感帯）、`Signal_lowPass`（一次遅れ）、`Signal_rateLimiter`（変化率の上限）、`Signal_hysteresis`（ヒステリシス付き比較）と、テンプレートの移動平均（`moving_average_template.iec`）・メディアンフィルタ（`median_template.iec`）です。テスト `test/signal/test_signal.iec` は jier で実行でき、利用例 `samples/moving_average/` もあります。
@@ -25,6 +30,13 @@
 
 ### その他 / Other
 
+- JiecUnit v7.0.0 でテストが jier を止めるようになったので、`scripts/run_tests.py` と CI を次のように変えました。
+  - テストの実行は、標準出力の集計行に加えて `jiecc --run` の終了コードも見て、0 以外なら失敗にします。
+  - ライブラリのテストを 1 つにまとめるファイル（`test/container/test_container.iec` など 9 ファイル。自分ではテストを定義せず、テストファイルを読み込むだけ）は、まとめるファイルがすべて実行の対象にあるとき、jier では実行しません（コンパイルはします）。同じテストを 2 回実行していたためで、全テストの実行時間が短くなります。
+  - 既定の `--timeout` を 1800 秒から 300 秒に下げました。1 周期の中で終わらないテストは、この時間で止めて失敗にします。テストの実行の行に、ファイルごとにかかった秒数（`[12.3 s]`）を表示します。1 つのテストファイルは、jier で単独で実行して 60 秒以内に終わるようにします。`--max-cycles`（既定 2000）は、`halt` に届かないテストを止めるための上限として残しました。
+  - jier で必ず通すテストファイルとその周期数の一覧、それを読むオプション、周期数の測定の記録を削除しました。どれもこの版で追加したもので、リリースしていません。
+  - CI の `run-required` ジョブと、参考扱い（`continue-on-error`）だった `run` ジョブを、1 つの `run` ジョブにまとめました。全テストを jier で実行し（1 ファイルあたり `--timeout 300`）、1 つでも失敗すると CI を失敗にします。`scripts/run_tests.py` と `scripts/lint.py` の単体テストも、このジョブが jiecc を使って実行します。
+- `src/sys.iec` の `{#if _JIER}` を `{#ifdef _JIER}` に変えました。`-Wundef` を付けても、jier 以外のターゲットで `_JIER` が未定義である旨の警告（`PP54`）が出ません。
 - `scripts/run_tests.py` は、`jiecc --help` に `--allow-narrowing` があれば（Jiecc 9.4.0 以降）、`jiecc --run` にそれを付けます。Jiecc 9.4.0 から jier は型の不一致で止まり、OMRON の `LEN` の戻り値 UINT を変換する `uint_to_dint(len(s))` が、jier の `len`（DINT）では縮小になって `string_lib` を使う 12 ファイルが止まっていました。それより前の Jiecc では何も付けません。
 - 対応ターゲットの宣言を整理しました。ソースとテストで食い違っていた `keyence` の宣言を外しました（`src/array/array.iec`・`src/array/sort.iec`、`test/math/test_floor.iec`・`test/math/test_atan2.iec`、`test/test_sys.iec`・`test/test_sys_conv.iec`）。KV Studio で確かめた記録がないためです。確かめた後で、ソースとテストの両方に宣言を戻します。CI は、これらを keyence ではコンパイルしなくなります。
 - README.md に「対応ターゲット」の節を設け、ライブラリごとの宣言の表（`scripts/target_table.py` で作り、CI が一致を確かめる）と、開発環境で確かめた結果の表を載せました。三菱電機（mitsubishi）には対応しないことを明記しました。
@@ -40,15 +52,14 @@
   - `pr-checks.yml` の `pr-body`: `src/` を変更した Pull Request の本文に L3 の結果が、keyence を宣言したファイルを変更した Pull Request の本文に L4 の結果が書かれていなければ失敗にします（`scripts/check_pr_body.py`）。宛先が `main` の Pull Request は対象外です。
 - `scripts/run_tests.py` を直し、拡張しました。
   - 時間切れのときに、jiecc が起動した子のプロセスが残り、`run_tests.py` が終わらなくなる不具合を直しました。jiecc は、起動したプロセスが実際に処理する子のプロセスを起動するため、時間切れのときは、子を含むプロセスの木ごと終了させます。
-  - 既定の `--max-cycles` を 100000 から 2000 に下げました。jier は、テストが終わった後も指定した周期数まで回り続けるため、4.0.0 の「既知の問題」の、エラーで止まらない 29 ファイルは時間切れになっていました。2000 周期では、そのうち 28 ファイルが合格します。残りの `test/string_lib/test_string_lib.iec` は、jier の `find` の振る舞いのため終わりません。測定の結果は `docs/jier_cycles.md` にあります。
+  - 既定の `--max-cycles` を 100000 から 2000 に下げました。JiecUnit v7.0.0 ではテストが終わると jier が止まるので、`--max-cycles` は `halt` に届かないテストを止めるための上限です。
   - `[========] Running N tests.` の数と、実行したテストの数が合わないとき（周期数が足りないとき）も、失敗と判定するようにしました。
-  - `--output-dir DIR`（生成した XML を残す）と `--paths-from FILE`（対象のパスと周期数をファイルから読む）を追加しました。
+  - `--output-dir DIR`（生成した XML を残す）を追加しました。
 - `scripts/lint.py` に `--xml-dir DIR` を追加しました。`run_tests.py --compile-only --output-dir DIR` でコンパイルした XML を読み、テンプレートが作る名前も含めて、名前と型の規則（`left` などの予約語、`p_` の接頭辞、可変長配列は `var_in_out` だけ、構造体を返す関数、エイリアス型、64 バイトを超える POU 名、キーエンスの名前の制約）を検査します（`scripts/lint_xml.py`）。既存のコードの違反は、キーエンスの名前の制約の 54 件（警告。`scripts/lint_baseline.json` に記録）だけです。CI の `compile` ジョブが、コンパイルの後にこの検査を行います。
 - テストのない公開の POU を検出する `scripts/pou_inventory.py` を追加しました。CI の `compile` ジョブが、コンパイルした XML で検査します。今テストのない 31 個（array の dint 版 8 個、stats の 16 個、random の 2 個、`Console_print`、`hex_nibble`、恒等変換 3 個）は、理由と一緒に `scripts/pou_inventory_allow.txt` に載せました。
-- 乱数の分布のテスト `test/random/test_random_distribution.iec` を追加しました。各生成器の `nextIntInRange`・`nextRealInRange`・`nextBernoulli`・`nextGaussian`・`nextExponential`・`nextPoisson` について、固定したシードで 10,000 個を生成し、標本平均・標本分散・出現回数（カイ二乗）が理論値の許容幅に収まることを確かめます。生成器が幅なしの `shl` / `shr` を使うため、このテストは jier では実行できません（PLC の環境で実行します）。
+- 乱数の分布のテスト `test/random/test_random_distribution.iec` を追加しました。各生成器の `nextIntInRange`・`nextRealInRange`・`nextBernoulli`・`nextGaussian`・`nextExponential`・`nextPoisson` について、固定したシードで 10,000 個を生成し、標本平均・標本分散・出現回数（カイ二乗）が理論値の許容幅に収まることを確かめます。このテストは jier でも実行できます。jier では 10,000 個で 669 秒かかるため、`_JIER` のときだけ 200 個にし、許容幅を同じ式（同じ 5 シグマ・1.0e-6 の水準）で計算し直しています。PLC のターゲットでは 10,000 個のままです。
 - JiecUnit の `TEST_M`（複数の周期にわたるテスト）が jier で動くことを確かめるテスト `test/test_jiecunit_test_m.iec` を追加しました。
 - テストのなかった公開の POU のテストを追加しました（array の dint 版 8 個、`stats.iec` の基本統計 13 個、`Stats_p_value_*` 3 個、`next(bits)` 2 個、`Console_print`）。`scripts/pou_inventory_allow.txt` に残るのは、内部の補助関数 `hex_nibble` と恒等変換 3 個だけです。
-- jier で必ず通すテストファイルの一覧 `scripts/jier_required.txt` と、CI の `run-required` ジョブを追加しました。一覧のテストが jier で失敗すると、CI が失敗します。新しく追加するテストファイルは、この一覧に載せます。
 - この節（`[Unreleased]`）を設けました。変更は Pull Request ごとにこの節へ書き、リリースのコミットで見出しを `[X.Y.Z] - 日付` に置き換えます。
 
 ## [4.0.0] - 2026-11-01

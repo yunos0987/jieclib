@@ -3,9 +3,6 @@
  * $ cd <JiecLib Project Root>
  * $ jiecc ./samples/moving_average/moving_average.iec -I./src -o ./samples/moving_average/moving_average.xml -t omron
  *)
-{#if _JIECC and (_JIECC_FULL_VER < 90200)}
-{#error JiecLib requires Jiecc 9.2.0 or later.}
-{#endif}
 
 // Make a moving average of the last 10 inputs: the function block
 // Signal_movingAverage_n10. The name and the capacity are macros, so that

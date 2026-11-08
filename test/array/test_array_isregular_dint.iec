@@ -8,9 +8,6 @@
  * Array_isRegular uses max on dint, which jier (jiecc --run) does not
  * support, so this test runs on the PLC environments only.
  *)
-{#if _JIECC and (_JIECC_FULL_VER < 90200)}
-{#error JiecLib requires Jiecc 9.2.0 or later.}
-{#endif}
 {#include <jiecunit.iec>}
 {#if _JIECUNIT and (_JIECUNIT_VER < 402)}
 	{#error This test requires JiecUnit 4.2 or later.}

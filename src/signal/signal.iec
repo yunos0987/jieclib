@@ -5,10 +5,6 @@
 {#ifndef __SIGNAL_SIGNAL_IEC__}
 {#define __SIGNAL_SIGNAL_IEC__}
 
-{#if _JIECC and (_JIECC_FULL_VER < 90200)}
-{#error JiecLib requires Jiecc 9.2.0 or later.}
-{#endif}
-
 {#include <sys.iec>}
 
 (*{doc Dead band: return 0 inside the band from lower to upper, and the distance from the nearer limit outside it.

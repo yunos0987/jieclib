@@ -7,9 +7,6 @@
  * 123456789: sum(data) % 256 = 16#DD, the XOR of the bytes = 16#31,
  * and (-sum(data)) % 256 = 16#23.
  *)
-{#if _JIECC and (_JIECC_FULL_VER < 90200)}
-{#error JiecLib requires Jiecc 9.2.0 or later.}
-{#endif}
 {#include <jiecunit.iec>}
 {#if _JIECUNIT and (_JIECUNIT_VER < 402)}
 	{#error This test requires JiecUnit 4.2 or later.}

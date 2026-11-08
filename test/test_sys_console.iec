@@ -3,9 +3,6 @@
  * $ cd <JiecLib Project Root>
  * $ jiecc ./test/test_sys_console.iec -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/test_sys_console.xml -t omron
  *)
-{#if _JIECC and (_JIECC_FULL_VER < 90200)}
-{#error JiecLib requires Jiecc 9.2.0 or later.}
-{#endif}
 {#include <jiecunit.iec>}
 {#if _JIECUNIT and (_JIECUNIT_VER < 402)}
 	{#error This test requires JiecUnit 4.2 or later.}

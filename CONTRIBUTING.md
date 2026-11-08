@@ -38,7 +38,8 @@ $ python scripts/run_tests.py
 `scripts/run_tests.py` は、次の 2 つを行います。
 
 - コンパイル: `src/` のライブラリと `samples/` の利用例（先頭コメントに `$ jiecc` のコマンド行があるファイル）と、`test/` のテスト（`DEFINE_CONFIGURATION` を含むファイル）を、先頭コメントの `-t` に書かれたターゲット（書かれていなければ `omron`）でコンパイルします。生成した XML は一時ディレクトリに出力し、終了時に削除します。
-- 実行: `test/` のテストを、jier（`jiecc --run`）で実行します。`jiecc --run` の終了コードはテストの失敗を反映しないため、JiecUnit の集計行（`[========] N tests ran.` など）から合否を判定します。
+- 実行: `test/` のテストを、jier（`jiecc --run`）で実行します。JiecUnit v7.0.0 は、テストが終わると `halt` で jier を止めるので、`jiecc --run` は `--max-cycles` を待たずに終わり、終了コードはテストの結果を反映します（全テストが合格なら 0、失敗があれば 1）。終了コードが 0 で、JiecUnit の集計行（`[========] N tests ran.` など）が全テストの合格を示すときだけ、合格とします。
+- 実行の例外: ライブラリのテストを 1 つにまとめるファイル（自分では `TEST_S` / `TEST_M` を定義せず、テストファイルを `{#include "..."}` するだけのファイル。例: `test/container/test_container.iec`）は、まとめるファイルがすべて実行の対象にあるとき、コンパイルだけを行い、jier では実行しません（同じテストを 2 回実行しないため）。`SKIP run` の行に表示します。そのファイルだけを指定したときは実行します。PLC の環境で、全テストを一度に取り込むときに使います。
 
 どちらも、`jiecc` の出力に `error:` の行があれば失敗とみなします。すべて成功すると、最後に `All checks passed.` と表示されます。
 
@@ -54,29 +55,14 @@ $ python scripts/run_tests.py --jiecc /path/to/jiecc.exe
 - `--compile-only`: コンパイルだけを行います。
 - `--run-only`: テストの実行だけを行います。
 - `--jobs N`: 並列に実行する jiecc の数（既定: CPU 数）。
-- `--max-cycles N`: `jiecc --run` の最大スキャン回数（既定: 2000。[jier の周期数](#jier-の周期数)）。
-- `--timeout SEC`: jiecc 1 回あたりの制限時間（秒）。時間を超えると、jiecc が起動した子のプロセスも含めて終了させ、失敗とします。
+- `--max-cycles N`: `jiecc --run` の最大スキャン回数（既定: 2000）。`halt` に届かないテストを止めるための上限です。上限で止まると集計行が出ないので、失敗と判定されます。`TEST_M`（複数の周期にわたるテスト）の周期数の合計がこれを超えるファイルは、大きな値を指定してください。
+- `--timeout SEC`: jiecc 1 回あたりの制限時間（秒。既定: 300）。時間を超えると（1 周期の中で終わらない処理など）、jiecc が起動した子のプロセスも含めて終了させ、失敗とします。テストの実行の行には、ファイルごとにかかった秒数（`[12.3 s]`）を表示します。
 - テストの実行では、`jiecc --help` に `--allow-narrowing` があれば（Jiecc 9.4.0 以降）、`jiecc --run` にそれを付けます。Jiecc 9.4.0 から jier は型の不一致で止まり（`--type-check` の既定が `fail`）、OMRON の `LEN` の戻り値 UINT を変換する `uint_to_dint(len(s))` は、jier の `len` が DINT を返すため、DINT から UINT への縮小になります。`--allow-narrowing` は、同じ族の中の縮小を警告に戻します。
 - `--output-dir DIR`: 生成した XML を消さずに、`DIR/<ターゲット>/<ファイルのパス>.xml`（例: `DIR/omron/src/string_lib/string_lib.xml`）に残します。コンパイルに失敗したファイルの XML は残しません。`--run-only` とは一緒に使えません。
-- `--paths-from FILE`: 対象のパスを、ファイルから 1 行 1 項目で読みます（下記）。
 
-#### jier の周期数
+すべてのテストファイルは、jier で通るようにしてください。CI の `run` ジョブが、Windows と Linux で全テストを jier で実行し、1 つでも失敗すると CI を失敗にします。
 
-jier は、テストが終わった後も `--max-cycles` で指定した周期数まで回り続けます。そのため、実行時間は周期数でほぼ決まります（1,000 周期あたり数秒）。周期数が足りないと、集計行が出ないか、`[========] Running N tests.` の N と実行したテストの数が合わず、失敗と判定されます。ファイルごとに必要な周期数は [docs/jier_cycles.md](docs/jier_cycles.md) にあります。
-
-#### jier で必ず通すテスト
-
-新しく追加したテストファイルは、`scripts/jier_required.txt` に、必要な周期数と一緒に載せてください。CI の `run-required` ジョブが、Windows と Linux で、この一覧のファイルを jier で実行し、1 つでも失敗すると CI を失敗にします（全テストを実行する `run` ジョブは、参考扱いです）。
-
-```
-# <リポジトリからの相対パス> <周期数>
-test/math/test_floor_large.iec 1000
-```
-
-- パスの区切りは `/` にしてください。`\` を含む行、存在しないパス、同じパスの重複はエラーになります。テストを実行するとき（`--compile-only` を付けないとき）は、テストファイルを含まないパスもエラーになります。
-- 周期数は、[docs/jier_cycles.md](docs/jier_cycles.md) の方法で測った値にしてください。
-- 手元では `python scripts/run_tests.py --run-only --paths-from scripts/jier_required.txt` で確かめられます。
-- 既存のテストファイルの多くは、jier で通りません（CHANGELOG.md 4.0.0 の「既知の問題」）。既存のファイルにテストを足すときは、jier で通る新しいファイルに分けて、この一覧に載せてください。
+1 つのテストファイルは、jier で単独で実行して 60 秒以内に終わるようにしてください（全件を並列で実行すると 2〜3 倍かかります。`--timeout` の既定の 300 秒を超えると失敗します）。jier は PLC より遅いので、60 秒を超えるファイルは、`{#ifdef _JIER}` で jier のときだけ繰り返しの回数や標本の数を減らします。標本の数に依存する許容幅は、減らした数で計算し直し、計算の方法をコメントに書いてください（例: `test/random/test_random_distribution.iec`）。PLC のターゲットでの処理は変えません。
 
 ### 規約の検査（lint）
 
@@ -148,7 +134,7 @@ $ python scripts/pou_inventory.py --xml-dir out --check
 
 ### CI
 
-GitHub Actions の CI（`.github/workflows/ci.yml`）は、Windows と Linux の両方で、最新の Jiecc（Windows は [jiecc.zip](https://www.graviness.com/iec_61131-3/jiecc.zip)、Linux は [jiecc.tgz](https://www.graviness.com/iec_61131-3/jiecc.tgz)）を取得し、`--compile-only` と `--run-only` を別々のジョブで実行します。現在、全テストを実行する `run` ジョブは失敗しても CI を失敗にしません。`run-required` ジョブは、`scripts/jier_required.txt` のテストファイルを jier で実行し（[jier で必ず通すテスト](#jier-で必ず通すテスト)）、失敗すると CI を失敗にします。このジョブは、`scripts/run_tests.py` と `scripts/lint.py` の単体テストも、jiecc を使って実行します。`compile` ジョブは、コンパイルの後に、生成した XML を `python scripts/lint.py --xml-dir out` で検査します（[コンパイルした XML の検査](#コンパイルした-xml-の検査)）。`lint` ジョブは `scripts/lint.py` とその単体テストを実行します。
+GitHub Actions の CI（`.github/workflows/ci.yml`）は、Windows と Linux の両方で、最新の Jiecc（Windows は [jiecc.zip](https://www.graviness.com/iec_61131-3/jiecc.zip)、Linux は [jiecc.tgz](https://www.graviness.com/iec_61131-3/jiecc.tgz)）を取得し、`--compile-only` と `--run-only` を別々のジョブで実行します。`run` ジョブは、全テストを jier で実行し（1 ファイルあたり `--timeout 300`）、1 つでも失敗すると CI を失敗にします。このジョブは、`scripts/run_tests.py` と `scripts/lint.py` の単体テストも、jiecc を使って実行します。`compile` ジョブは、コンパイルの後に、生成した XML を `python scripts/lint.py --xml-dir out` で検査します（[コンパイルした XML の検査](#コンパイルした-xml-の検査)）。`lint` ジョブは `scripts/lint.py` とその単体テストを実行します。
 
 Pull Request では、`.github/workflows/pr-checks.yml` も実行します。本文やラベルを変えたときにも再実行されます。
 

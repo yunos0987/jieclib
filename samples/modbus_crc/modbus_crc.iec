@@ -3,9 +3,6 @@
  * $ cd <JiecLib Project Root>
  * $ jiecc ./samples/modbus_crc/modbus_crc.iec -I./src -o ./samples/modbus_crc/modbus_crc.xml -t omron
  *)
-{#if _JIECC and (_JIECC_FULL_VER < 90200)}
-{#error JiecLib requires Jiecc 9.2.0 or later.}
-{#endif}
 
 {#include <hash/crc16.iec>}
 

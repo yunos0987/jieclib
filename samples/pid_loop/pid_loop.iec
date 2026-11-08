@@ -3,9 +3,6 @@
  * $ cd <JiecLib Project Root>
  * $ jiecc ./samples/pid_loop/pid_loop.iec -I./src -o ./samples/pid_loop/pid_loop.xml -t omron
  *)
-{#if _JIECC and (_JIECC_FULL_VER < 90200)}
-{#error JiecLib requires Jiecc 9.2.0 or later.}
-{#endif}
 
 {#include <control/control.iec>}
 {#include <signal/signal.iec>}

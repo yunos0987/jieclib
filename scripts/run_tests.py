@@ -25,32 +25,29 @@ Run phase:
     convert the UINT that the OMRON LEN returns with `uint_to_dint(len(s))`,
     and jier's len returns a DINT, so without it jier stops at that
     narrowing (its --type-check defaults to fail).
-  - jiecc's exit code does not reflect test failures in --run mode, so the
-    result is judged from the JiecUnit lines on stdout. A run passes only
-    when the summary is printed, the number of tests in the summary equals
-    the number in the "[========] Running N tests." line, no "[ FAILED ]" or
-    "[  ERROR ]" line is printed, and no "error: " or "InterpreterFault" line
-    is printed.
-  - jier keeps running until --max-cycles cycles even after the tests have
-    finished, so the run time is set by the number of cycles. When the
-    cycles are too few, the summary is not printed or counts fewer tests, and
-    the run fails.
+  - Since JiecUnit v7.0.0, JiecUnitMain calls halt after it prints the
+    summary, so `jiecc --run` ends as soon as the tests have finished, and
+    its exit code is 0 when all tests pass and 1 otherwise. A run passes only
+    when jiecc exits with 0, the summary is printed, the number of tests in
+    the summary equals the number in the "[========] Running N tests." line,
+    no "[ FAILED ]" or "[  ERROR ]" line is printed, and no "error: " or
+    "InterpreterFault" line is printed.
+  - The result line of each run shows its elapsed seconds ("[12.3 s]"). A
+    test file should finish within 60 s under jier; a slower one reduces
+    its work under {#ifdef _JIER}.
+  - An aggregate test file (no TEST_S / TEST_M of its own; it includes test
+    files with {#include "..."}, such as test/container/test_container.iec)
+    is compiled but not run when every test file it includes is run too;
+    a "SKIP run" line names it. Given alone, it is run.
+  - --max-cycles is a safety cap for a program that never reaches the halt.
+    When jier stops at the cap, the summary is not printed or counts fewer
+    tests, and the run fails.
 
 Timeout:
-  - jiecc.exe starts a child process that does the work. When a run takes
-    longer than --timeout seconds, the whole process tree is killed
-    (taskkill /T on Windows, the process group elsewhere), and the check
-    fails.
-
-Paths file (--paths-from FILE):
-  - One path per line, relative to the repository root, with "/" as the
-    separator; optionally followed by the number of cycles for that path
-    ("test/math/test_floor_large.iec 1000"). Lines starting with "#" and
-    empty lines are ignored.
-  - A missing file, a path that does not exist, a line with "\\", a
-    duplicated path, or (when running) a path that selects no test file is
-    an error (exit code 2). A file without any path is "nothing to check"
-    and exits with 0. scripts/jier_required.txt is such a file.
+  - jiecc.exe starts a child process that does the work. When a compile or
+    a run takes longer than --timeout seconds (for example a test that never
+    finishes a cycle), the whole process tree is killed (taskkill /T on
+    Windows, the process group elsewhere), and the check fails.
 
 The jiecc executable is looked up in this order: --jiecc PATH, the JIECC
 environment variable, then jiecc on PATH.
@@ -61,7 +58,6 @@ Usage:
   python scripts/run_tests.py --compile-only
   python scripts/run_tests.py --compile-only --output-dir out src/string_lib
   python scripts/run_tests.py --run-only test/math/test_floor.iec
-  python scripts/run_tests.py --run-only --paths-from scripts/jier_required.txt
   python scripts/run_tests.py src/array test/array --jobs 4
 """
 import argparse
@@ -74,11 +70,17 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 
 _DEFAULT_TARGET = 'omron'
-# Twice the largest number of cycles a test file needs (docs/jier_cycles.md).
+# A safety cap: the tests halt jier when they have finished (JiecUnit v7.0.0).
 _DEFAULT_MAX_CYCLES = 2000
-_DEFAULT_TIMEOUT = 1800
+# Kills a compile or run that does not end (for example a loop that never
+# finishes a cycle). A test file should take 60 s or less under jier when run
+# alone (AGENTS.md); with --jobs equal to the CPU count, a run takes 2 to 3
+# times as long as alone, so the limit is well above 60 s. The run line of
+# each test file shows its seconds.
+_DEFAULT_TIMEOUT = 300
 # Seconds to wait for the output pipe to close after the process tree is killed.
 _DRAIN_TIMEOUT = 30
 
@@ -189,16 +191,43 @@ class Item(object):
     name is the repository-relative path with "/" (or the given path for a
     file outside the repository), path is the argument passed to jiecc, kind
     is 'src' or 'test', and in_repo tells whether the file is in the
-    repository.
+    repository. included_tests lists the normalized absolute paths of the
+    test files that an aggregate test file includes (see _included_tests);
+    it is empty for any other file.
     """
 
-    def __init__(self, name, path, kind, targets, in_repo=True):
-        # type: (str, str, str, list, bool) -> None
+    def __init__(self, name, path, kind, targets, in_repo=True, included_tests=()):
+        # type: (str, str, str, list, bool, tuple) -> None
         self.name = name
         self.path = path
         self.kind = kind
         self.targets = targets
         self.in_repo = in_repo
+        self.included_tests = tuple(included_tests)
+
+
+_RE_TEST_DEFINITION = re.compile(r'^\s*TEST_[SM]\(', re.MULTILINE)
+_RE_LOCAL_INCLUDE = re.compile(r'^\s*\{#include\s+"([^"]+)"\}', re.MULTILINE)
+
+
+def _included_tests(path, text):
+    # type: (str, str) -> list
+    """Return the test files that an aggregate test file includes.
+
+    An aggregate test file (for example test/container/test_container.iec)
+    defines no TEST_S / TEST_M of its own and includes, with
+    {#include "..."}, test files that contain DEFINE_CONFIGURATION. The
+    result holds their normalized absolute paths; it is empty for a file
+    that defines a test or includes no test file.
+    """
+    if _RE_TEST_DEFINITION.search(text):
+        return []
+    found = []
+    for rel in _RE_LOCAL_INCLUDE.findall(text):
+        included = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(path)), rel))
+        if os.path.isfile(included) and 'DEFINE_CONFIGURATION' in _read_text(included):
+            found.append(os.path.normcase(included))
+    return found
 
 
 def _make_item(root, path, text):
@@ -213,7 +242,8 @@ def _make_item(root, path, text):
         arg = _native_path(path)
     kind = 'test' if 'DEFINE_CONFIGURATION' in text else 'src'
     targets = _header_targets(text) or [_DEFAULT_TARGET]
-    return Item(name, arg, kind, targets, in_repo)
+    included = _included_tests(path, text) if kind == 'test' else []
+    return Item(name, arg, kind, targets, in_repo, included)
 
 
 def _discover(root):
@@ -238,10 +268,10 @@ def _discover(root):
     return items
 
 
-def _select_one(root, by_path, raw, path):
-    # type: (str, dict, str, str) -> tuple
+def _select_one(root, by_path, raw):
+    # type: (str, dict, str) -> tuple
     """Return (items selected by one path, error or None)."""
-    path = os.path.abspath(path)
+    path = os.path.abspath(raw)
     key = os.path.normcase(path)
     if os.path.isdir(path):
         prefix = key.rstrip(os.sep) + os.sep
@@ -273,95 +303,13 @@ def _select(root, items, filters):
     selected = []
     errors = []
     for raw in filters:
-        matched, error = _select_one(root, by_path, raw, raw)
+        matched, error = _select_one(root, by_path, raw)
         if error:
             errors.append(error)
         for item in matched:
             if item not in selected:
                 selected.append(item)
     return selected, errors
-
-
-def read_paths_file(path):
-    # type: (str) -> tuple
-    """Read a --paths-from file. Return ([(path, cycles or None, line number)], errors)."""
-    try:
-        # A BOM (added by some Windows editors) must not turn the first line
-        # into something other than a comment.
-        text = _read_text(path).lstrip('\ufeff')
-    except (IOError, OSError) as e:
-        return [], ['{}: cannot read the file: {}'.format(path, e)]
-    entries = []
-    errors = []
-    seen = {}
-    for number, line in enumerate(text.splitlines(), 1):
-        stripped = line.strip()
-        if not stripped or stripped.startswith('#'):
-            continue
-        where = '{}:{}'.format(path, number)
-        if '\\' in stripped:
-            errors.append('{}: use "/" as the path separator, not "\\"'.format(where))
-            continue
-        fields = stripped.split()
-        if len(fields) > 2:
-            errors.append('{}: expected "<path> [<max-cycles>]"'.format(where))
-            continue
-        cycles = None
-        if len(fields) == 2:
-            if not fields[1].isdigit() or int(fields[1]) < 1:
-                errors.append('{}: max-cycles must be a positive integer, not {!r}'.format(
-                    where, fields[1]))
-                continue
-            cycles = int(fields[1])
-        rel = fields[0]
-        if os.path.isabs(rel) or rel.startswith('/') or re.match(r'^[A-Za-z]:', rel):
-            errors.append('{}: the path must be relative to the repository root'.format(where))
-            continue
-        if rel in seen:
-            errors.append('{}: {} is already listed on line {}'.format(where, rel, seen[rel]))
-            continue
-        seen[rel] = number
-        entries.append((rel, cycles, number))
-    return entries, errors
-
-
-def _select_from_file(root, items, path, need_tests):
-    # type: (str, list, str, bool) -> tuple
-    """Select the items listed in a --paths-from file.
-
-    Returns (items, {item name: cycles}, errors). When need_tests is true, a
-    line that selects no test file is an error, so that a listed file is never
-    silently skipped by --run-only.
-    """
-    entries, errors = read_paths_file(path)
-    by_path = {os.path.normcase(os.path.join(root, item.name)): item for item in items}
-    selected = []
-    cycles = {}
-    owner = {}
-    for rel, line_cycles, number in entries:
-        where = '{}:{}'.format(path, number)
-        full = os.path.join(root, *rel.split('/'))
-        if not os.path.exists(full):
-            errors.append('{}: {}: no such file or directory'.format(where, rel))
-            continue
-        matched, error = _select_one(root, by_path, rel, full)
-        if error:
-            errors.append('{}: {}'.format(where, error))
-            continue
-        if need_tests and not any(item.kind == 'test' for item in matched):
-            errors.append('{}: {} has no test file (a file with DEFINE_CONFIGURATION)'.format(
-                where, rel))
-            continue
-        for item in matched:
-            if item.name in owner:
-                errors.append('{}: {} is already selected by line {}'.format(
-                    where, item.name, owner[item.name]))
-                continue
-            owner[item.name] = number
-            selected.append(item)
-            if line_cycles is not None:
-                cycles[item.name] = line_cycles
-    return selected, cycles, errors
 
 
 def _common_args(root, item):
@@ -601,24 +549,44 @@ def judge_run_output(output):
     return True, ['{} ran, {} passed, {} skipped'.format(ran, passed, skipped)]
 
 
+def judge_run(code, output):
+    # type: (int, str) -> tuple
+    """Judge a finished jiecc --run by its exit code and its output.
+
+    Return (ok, detail lines). The run fails when judge_run_output() fails or
+    the exit code is not 0 (JiecUnit v7.0.0 exits with 1 on a failure).
+    """
+    ok, detail = judge_run_output(output)
+    if code != 0:
+        head = 'jiecc --run exited with code {}'.format(code)
+        return False, [head] + (detail if not ok else output.splitlines()[-20:])
+    return ok, detail
+
+
 def run_item(jiecc, root, item, max_cycles, timeout, run_options=()):
     # type: (str, str, Item, int, int, tuple) -> tuple
-    """Return (ok, detail lines). The exit code of jiecc --run is not used.
+    """Return (ok, detail lines) of judge_run(), or a failure on a timeout.
     *run_options* (probe_run_options()) are jiecc options added to every run."""
     cmd = ([jiecc, '--run', item.path] + _common_args(root, item)
            + ['--max-cycles', str(max_cycles)] + list(run_options))
     code, output = _execute(cmd, root, timeout)
     if code is None:
         return False, [output]
-    return judge_run_output(output)
+    return judge_run(code, output)
 
 
-def _print_result(phase, name, target, ok, detail, warnings):
-    # type: (str, str, str, bool, list, list) -> None
+def _print_result(phase, name, target, ok, detail, warnings, elapsed=None):
+    # type: (str, str, str, bool, list, list, float) -> None
+    """Print the result line of one task, and the detail lines on a failure.
+
+    *elapsed* (seconds, given for every run task) is shown as "[12.3 s]", so
+    that a slow test file is noticed before it reaches --timeout.
+    """
     status = 'OK' if ok else 'FAIL'
     head = detail[0] if (ok and detail) else ''
-    print('{:<4} {:<7} {:<8} {}{}'.format(
-        status, phase, target, name, ('  (' + head + ')') if head else ''), flush=True)
+    seconds = '  [{:.1f} s]'.format(elapsed) if elapsed is not None else ''
+    print('{:<4} {:<7} {:<8} {}{}{}'.format(
+        status, phase, target, name, seconds, ('  (' + head + ')') if head else ''), flush=True)
     if not ok:
         for line in detail:
             print('       ' + line, flush=True)
@@ -643,17 +611,15 @@ def main(argv=None):
     parser.add_argument('--jobs', '-j', type=int, default=os.cpu_count() or 1,
                         help='Number of parallel jiecc processes (default: CPU count).')
     parser.add_argument('--max-cycles', type=int, default=_DEFAULT_MAX_CYCLES,
-                        help='Maximum scan cycles for jiecc --run '
-                             '(default: {}). A line of --paths-from can set the '
-                             'cycles of its path.'.format(_DEFAULT_MAX_CYCLES))
+                        help='Maximum scan cycles for jiecc --run, a safety cap for '
+                             'a test that never halts (default: {}).'.format(
+                                 _DEFAULT_MAX_CYCLES))
     parser.add_argument('--timeout', type=int, default=_DEFAULT_TIMEOUT,
                         help='Timeout in seconds for each jiecc invocation '
                              '(default: {}).'.format(_DEFAULT_TIMEOUT))
     parser.add_argument('--output-dir', default=None,
                         help='Keep the XML files as DIR/<target>/<path>.xml instead of '
                              'writing them to a temporary directory.')
-    parser.add_argument('--paths-from', default=None, metavar='FILE',
-                        help='Read the paths (and optional cycles) from FILE, one per line.')
     args = parser.parse_args(argv)
 
     if args.compile_only and args.run_only:
@@ -661,10 +627,6 @@ def main(argv=None):
         return 2
     if args.output_dir and args.run_only:
         print('error: --output-dir cannot be used with --run-only (nothing is compiled).',
-              file=sys.stderr)
-        return 2
-    if args.paths_from and args.paths:
-        print('error: give paths either as arguments or with --paths-from, not both.',
               file=sys.stderr)
         return 2
     if args.jobs < 1:
@@ -675,21 +637,9 @@ def main(argv=None):
         return 2
 
     root = _repo_root()
-    cycles = {}
-    if args.paths_from:
-        items, cycles, errors = _select_from_file(root, _discover(root), args.paths_from,
-                                                  not args.compile_only)
-        if errors:
-            for line in errors:
-                print('error: ' + line, file=sys.stderr)
-            return 2
-        if not items:
-            print('No paths in {}; nothing to check.'.format(args.paths_from))
-            return 0
-    else:
-        items, errors = _select(root, _discover(root), args.paths)
-        for line in errors:
-            print('error: ' + line, file=sys.stderr)
+    items, errors = _select(root, _discover(root), args.paths)
+    for line in errors:
+        print('error: ' + line, file=sys.stderr)
 
     keep = bool(args.output_dir)
     if keep:
@@ -708,10 +658,23 @@ def main(argv=None):
         for item in items:
             for target in item.targets:
                 tasks.append(('compile', item, target))
+    skipped_runs = []
     if not args.compile_only:
+        selected_tests = set(os.path.normcase(os.path.abspath(os.path.join(root, item.name)))
+                             for item in items if item.kind == 'test')
         for item in items:
-            if item.kind == 'test':
-                tasks.append(('run', item, '-'))
+            if item.kind != 'test':
+                continue
+            # An aggregate test file runs the same tests as the files it
+            # includes; when all of them run too, running it again under
+            # jier only doubles the time. It is still compiled.
+            if item.included_tests and all(p in selected_tests for p in item.included_tests):
+                skipped_runs.append(item)
+                continue
+            tasks.append(('run', item, '-'))
+    for item in skipped_runs:
+        print('SKIP run     -        {}  (aggregate; its {} included test files run one by one)'
+              .format(item.name, len(item.included_tests)))
 
     if keep:
         outdir = os.path.abspath(args.output_dir)
@@ -723,14 +686,17 @@ def main(argv=None):
 
     def work(task):
         phase, item, target = task
+        elapsed = None
         if phase == 'compile':
             ok, detail, warnings = compile_item(jiecc, root, item, target, outdir,
                                                 args.timeout, keep)
         else:
-            ok, detail = run_item(jiecc, root, item, cycles.get(item.name, args.max_cycles),
-                                  args.timeout, run_options)
+            start = time.time()
+            ok, detail = run_item(jiecc, root, item, args.max_cycles, args.timeout,
+                                  run_options)
+            elapsed = time.time() - start
             warnings = []
-        return task, ok, detail, warnings
+        return task, ok, detail, warnings, elapsed
 
     _stopping.clear()
     try:
@@ -740,8 +706,8 @@ def main(argv=None):
                 for t in tasks:
                     futures.append(pool.submit(work, t))
                 for future in concurrent.futures.as_completed(futures):
-                    (phase, item, target), ok, detail, warnings = future.result()
-                    _print_result(phase, item.name, target, ok, detail, warnings)
+                    (phase, item, target), ok, detail, warnings, elapsed = future.result()
+                    _print_result(phase, item.name, target, ok, detail, warnings, elapsed)
                     counts[phase][0 if ok else 1] += 1
                     if not ok:
                         failures.append('{} {} {}'.format(phase, target, item.name))
@@ -761,7 +727,10 @@ def main(argv=None):
     if not args.run_only:
         print('  compile: {} passed, {} failed'.format(*counts['compile']))
     if not args.compile_only:
-        print('  run:     {} passed, {} failed'.format(*counts['run']))
+        line = '  run:     {} passed, {} failed'.format(*counts['run'])
+        if skipped_runs:
+            line += ', {} aggregate skipped'.format(len(skipped_runs))
+        print(line)
     if errors:
         print('  path errors: {}'.format(len(errors)))
     for line in sorted(failures):
