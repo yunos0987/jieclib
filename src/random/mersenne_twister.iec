@@ -127,7 +127,8 @@ end_function
 (*{doc Generates a pseudo-random number.
 @inout self The MersenneTwister generator state.
 @input bits The number of significant bits (1..32). Default: 32.
-@return A pseudo-random number. }*)
+@return A pseudo-random number, less than 2^bits.
+@error If bits is not in 1..32. The generator state is not changed then. }*)
 function MersenneTwister_next: dword
 	_PROLOGUE_OF_FUNCTION_()
 	var_in_out
@@ -145,6 +146,10 @@ function MersenneTwister_next: dword
 	var_temp constant
 		mag01: array[0..1] of dword := [dword#16#0, MATRIX_A];
 	end_var
+	if (bits < 1) or (bits > 32) then
+		eno := false;
+		return;
+	end_if;
 	if self.mti >= N then
 		if self.mti = 625 then
 			MersenneTwister_init(self, dword#5489);

@@ -1,0 +1,180 @@
+(*
+ * Tests of the basic statistics of src/stats/stats.iec (sampleSize, sum,
+ * mean, ...), which call the Stats_* functions of descriptive/ (roadmap
+ * PR-7).
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/stats/test_stats_basic.iec -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/stats/test_stats_basic.xml -t omron
+ *
+ * Each function is checked in two ways: it returns the same value as the
+ * Stats_* function it calls (with the arguments that stats.iec passes),
+ * and it agrees with Python. The data is [2, 4, 4, 4, 5, 5, 7, 9]; the
+ * expected values come from Python's statistics module (variance,
+ * pstdev, geometric_mean, harmonic_mean, median) and from the formulas
+ * of scipy.stats.skew(bias=False) and scipy.stats.kurtosis(fisher=True,
+ * bias=False), which reproduce the expectations of test_skewness.iec and
+ * test_kurtosis.iec.
+ *
+ * Array_isRegular, which the Stats_* functions call, uses max on dint,
+ * which jier (jiecc --run) does not support, so this test runs on the PLC
+ * environments only.
+ *)
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <stats/stats.iec>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_stats_basic_sampleSize,
+		test_stats_basic_sum,
+		test_stats_basic_mean,
+		test_stats_basic_variance,
+		test_stats_basic_sampleVariance,
+		test_stats_basic_standardDeviation,
+		test_stats_basic_standardError,
+		test_stats_basic_coefficientOfVariation,
+		test_stats_basic_geometricMean,
+		test_stats_basic_harmonicMean,
+		test_stats_basic_skewness,
+		test_stats_basic_kurtosis,
+		test_stats_basic_median
+	)
+)
+{#endif}
+
+{#define BASIC_EPS 1.0e-9}
+{#define BASIC_DATA data: array[0..7] of lreal := [2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0];}
+
+TEST_S(test_stats_basic_sampleSize)
+	var
+		BASIC_DATA
+	end
+	// Fact: sampleSize returns the number of elements, 8.
+		// Arrange/Act/Assert
+	EXPECT_EQ_DINT(8, sampleSize(data));
+END_TEST_S
+
+TEST_S(test_stats_basic_sum)
+	var
+		BASIC_DATA
+	end
+	// Fact: sum returns the sum of the elements, 40, as Stats_sum does.
+		// Arrange/Act/Assert
+	EXPECT_NEAR(40.0, sum(data), BASIC_EPS);
+	EXPECT_EQ_LREAL(Stats_sum(data, -1), sum(data));
+END_TEST_S
+
+TEST_S(test_stats_basic_mean)
+	var
+		BASIC_DATA
+	end
+	// Fact: mean returns the arithmetic mean, 5, as Stats_mean does.
+		// Arrange/Act/Assert
+	EXPECT_NEAR(5.0, mean(data), BASIC_EPS);
+	EXPECT_EQ_LREAL(Stats_mean(data, -1), mean(data));
+END_TEST_S
+
+TEST_S(test_stats_basic_variance)
+	var
+		BASIC_DATA
+	end
+	// Fact: variance returns the population variance (ddof = 0), 4.
+		// Arrange/Act/Assert
+	EXPECT_NEAR(4.0, variance(data), BASIC_EPS);
+	EXPECT_EQ_LREAL(Stats_variance(data, -1), variance(data));
+END_TEST_S
+
+TEST_S(test_stats_basic_sampleVariance)
+	var
+		BASIC_DATA
+	end
+	// Fact: sampleVariance returns the sample variance (ddof = 1), 32 / 7.
+		// Arrange/Act/Assert
+	EXPECT_NEAR(4.571428571428571, sampleVariance(data), BASIC_EPS);
+	EXPECT_EQ_LREAL(Stats_sample_variance(data, -1), sampleVariance(data));
+END_TEST_S
+
+TEST_S(test_stats_basic_standardDeviation)
+	var
+		BASIC_DATA
+	end
+	// Fact: standardDeviation returns the standard deviation with ddof = 0, 2.
+		// Arrange/Act/Assert
+	EXPECT_NEAR(2.0, standardDeviation(data), BASIC_EPS);
+	EXPECT_EQ_LREAL(Stats_stddev(data, -1, 0), standardDeviation(data));
+END_TEST_S
+
+TEST_S(test_stats_basic_standardError)
+	var
+		BASIC_DATA
+	end
+	// Fact: standardError returns the standard deviation with ddof = 0 divided by sqrt(n), 2 / sqrt(8).
+		// Arrange/Act/Assert
+	EXPECT_NEAR(0.7071067811865475, standardError(data), BASIC_EPS);
+	EXPECT_EQ_LREAL(Stats_standard_error_mean(data, -1, 0), standardError(data));
+END_TEST_S
+
+TEST_S(test_stats_basic_coefficientOfVariation)
+	var
+		BASIC_DATA
+	end
+	// Fact: coefficientOfVariation returns the standard deviation (ddof = 0) divided by the mean, 0.4.
+		// Arrange/Act/Assert
+	EXPECT_NEAR(0.4, coefficientOfVariation(data), BASIC_EPS);
+	EXPECT_EQ_LREAL(Stats_coefficient_of_variation(data, -1, 0), coefficientOfVariation(data));
+END_TEST_S
+
+TEST_S(test_stats_basic_geometricMean)
+	var
+		BASIC_DATA
+	end
+	// Fact: geometricMean agrees with statistics.geometric_mean of Python.
+		// Arrange/Act/Assert
+	EXPECT_NEAR(4.603215596046737, geometricMean(data), BASIC_EPS);
+	EXPECT_EQ_LREAL(Stats_geometric_mean(data, -1), geometricMean(data));
+END_TEST_S
+
+TEST_S(test_stats_basic_harmonicMean)
+	var
+		BASIC_DATA
+	end
+	// Fact: harmonicMean agrees with statistics.harmonic_mean of Python.
+		// Arrange/Act/Assert
+	EXPECT_NEAR(4.2017507294706125, harmonicMean(data), BASIC_EPS);
+	EXPECT_EQ_LREAL(Stats_harmonic_mean(data, -1), harmonicMean(data));
+END_TEST_S
+
+TEST_S(test_stats_basic_skewness)
+	var
+		BASIC_DATA
+	end
+	// Fact: skewness returns the bias-corrected skewness (scipy.stats.skew with bias=False).
+		// Arrange/Act/Assert
+	EXPECT_NEAR(0.8184875533567997, skewness(data), BASIC_EPS);
+	EXPECT_EQ_LREAL(Stats_skewness(data, -1, false), skewness(data));
+END_TEST_S
+
+TEST_S(test_stats_basic_kurtosis)
+	var
+		BASIC_DATA
+	end
+	// Fact: kurtosis returns the bias-corrected Fisher kurtosis (scipy.stats.kurtosis with fisher=True, bias=False).
+		// Arrange/Act/Assert
+	EXPECT_NEAR(0.940625, kurtosis(data), BASIC_EPS);
+	EXPECT_EQ_LREAL(Stats_kurtosis(data, -1, true, false), kurtosis(data));
+END_TEST_S
+
+TEST_S(test_stats_basic_median)
+	var
+		BASIC_DATA
+		work1: array[0..7] of lreal;
+		work2: array[0..7] of lreal;
+	end
+	// Fact: median of an even number of values returns the mean of the two middle values, 4.5.
+		// Arrange/Act/Assert
+	EXPECT_NEAR(4.5, median(data, work1, work2), BASIC_EPS);
+	EXPECT_EQ_LREAL(Stats_median(data:=data, n:=-1, work1:=work1, work2:=work2), median(data, work1, work2));
+END_TEST_S

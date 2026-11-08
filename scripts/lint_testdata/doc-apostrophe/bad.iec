@@ -1,0 +1,8 @@
+(*{doc Return a value. It doesn't check the range.}*)
+function Lint_doc_apostrophe_bad: dint
+	var_input
+		(*{doc An input value.}*)
+		value: dint;
+	end
+	Lint_doc_apostrophe_bad := value;
+end

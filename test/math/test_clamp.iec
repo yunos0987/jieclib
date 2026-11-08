@@ -1,0 +1,44 @@
+(*
+ * Test for Math_clamp
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/math/test_clamp.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/math/test_clamp.xml -t omron
+ *
+ * The expected values come from the definition.
+ *)
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <math/clamp.iec>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_clamp
+	)
+)
+{#endif}
+
+TEST_S(test_clamp)
+	var
+		ok: bool;
+	end
+	// Fact: A value outside the range is limited to the nearer limit.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(3.0, Math_clamp(value:=5.0, lower:=0.0, upper:=3.0));
+	EXPECT_EQ_LREAL(0.0, Math_clamp(value:=-1.0, lower:=0.0, upper:=3.0));
+
+	// Fact: A value inside the range, or on a limit, is returned as it is.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(2.0, Math_clamp(value:=2.0, lower:=0.0, upper:=3.0));
+	EXPECT_EQ_LREAL(3.0, Math_clamp(value:=3.0, lower:=0.0, upper:=3.0));
+	EXPECT_EQ_LREAL(1.0, Math_clamp(value:=1.0, lower:=1.0, upper:=1.0));
+
+	// Fact: lower > upper is an error.
+		// Arrange
+		// Act
+	Math_clamp(value:=1.0, lower:=2.0, upper:=1.0, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+END_TEST_S

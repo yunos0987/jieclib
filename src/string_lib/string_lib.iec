@@ -15,7 +15,7 @@
 {#define CHAR_MAX_BYTE 4}
 {#define STRING string[STRING_MAX_SIZE]}
 
-{doc 文字列の長さを取得する}
+(*{doc 文字列の長さを取得する}*)
 function String_length: dint
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
@@ -24,12 +24,12 @@ function String_length: dint
 	String_length := len(self);
 end
 
-{doc 指定位置の文字を取得する}
+(*{doc 指定位置の文字を取得する}*)
 function String_at: string[CHAR_MAX_BYTE + 1]
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
-		{doc: 0 origin.}
+		(*{doc 0 origin.}*)
 		p: dint;
 	end
 	var_temp
@@ -48,12 +48,12 @@ function String_at: string[CHAR_MAX_BYTE + 1]
 	end_if;
 end
 
-{doc 指定位置の文字を取得する}
+(*{doc 指定位置の文字を取得する}*)
 function String_charAt: string[CHAR_MAX_BYTE + 1]
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
-		{doc: 0 origin.}
+		(*{doc 0 origin.}*)
 		p: dint := 0;
 	end
 	if (0 <= p) and (p < uint_to_dint(len(self))) then
@@ -63,7 +63,7 @@ function String_charAt: string[CHAR_MAX_BYTE + 1]
 	end_if;
 end
 
-{doc 空文字列か調べる}
+(*{doc 空文字列か調べる}*)
 function String_empty: bool
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
@@ -120,7 +120,7 @@ function String_fromAsciiCharCode1: string[CHAR_MAX_BYTE + 1]
 	{#define CODE1 16#7f}
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
-		{doc: 変換元のASCII文字コード。}
+		(*{doc 変換元のASCII文字コード。}*)
 		charcode: dint;
 	end
 	var_temp
@@ -143,7 +143,7 @@ function String_fromAsciiCharCode1: string[CHAR_MAX_BYTE + 1]
 	{#undef CODE1}
 end
 
-{doc 小文字へ変換する}
+(*{doc 小文字へ変換する}*)
 function String_lower: STRING
 	{#define CHARCODE_A 16#41}
 	{#define CHARCODE_Z 16#5a}
@@ -175,7 +175,7 @@ function String_lower: STRING
 end
 {#define String_toLowerCase String_lower}
 
-{doc 大文字へ変換する}
+(*{doc 大文字へ変換する}*)
 function String_upper: STRING
 	{#define CHARCODE_a 16#61}
 	{#define CHARCODE_z 16#7a}
@@ -207,15 +207,15 @@ function String_upper: STRING
 end
 {#define String_toUpperCase String_upper}
 
-{doc 指定の文字列を削除する}
+(*{doc 指定の文字列を削除する}*)
 function String_remove: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
-		{doc: 入力文字列}
+		(*{doc 入力文字列}*)
 		self: STRING;
-		{doc: 削除文字列}
+		(*{doc 削除文字列}*)
 		del: STRING;
-		{doc: 最大削除回数}
+		(*{doc 最大削除回数}*)
 		count: dint := -1;
 	end
 	var_temp
@@ -226,6 +226,12 @@ function String_remove: STRING
 		r_str: STRING;
 	end
 	del_len := len(del);
+	// An empty del removes nothing. find(s, '') does not return 0 on every
+	// target, so the loop below would not end.
+	if del_len = 0 then
+		String_remove := self;
+		return;
+	end_if;
 	t_str := self;
 	l := len(t_str);
 	c_x := count;
@@ -248,7 +254,7 @@ function String_remove: STRING
 	String_remove := concat(r_str, t_str);
 end
 
-{doc 文字列を逆順に並び替える}
+(*{doc 文字列を逆順に並び替える}*)
 function String_reverse: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
@@ -263,7 +269,7 @@ function String_reverse: STRING
 	end_for;
 end
 
-{doc 指定の文字列で始まるか調べる}
+(*{doc 指定の文字列で始まるか調べる}*)
 function String_startswith: bool
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
@@ -285,7 +291,7 @@ function String_startswith: bool
 	end_if;
 end
 
-{doc 指定の文字列で終わるか調べる}
+(*{doc 指定の文字列で終わるか調べる}*)
 function String_endswith: bool
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
@@ -307,7 +313,7 @@ function String_endswith: bool
 	end_if;
 end
 
-{doc 指定の文字列を含む位置を取得する}
+(*{doc 指定の文字列を含む位置を取得する}*)
 function String_indexOf: dint
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
@@ -348,7 +354,7 @@ function String_indexOf: dint
 	end_if;
 end
 
-{doc 指定の文字列を後ろから検索する}
+(*{doc 指定の文字列を後ろから検索する}*)
 function String_lastIndexOf: dint
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
@@ -382,7 +388,7 @@ function String_lastIndexOf: dint
 	end_if;
 end
 
-{doc 指定の文字列を含むか調べる}
+(*{doc 指定の文字列を含むか調べる}*)
 function String_includes: bool
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
@@ -393,7 +399,7 @@ function String_includes: bool
 	String_includes := String_indexOf(self, searchString, position) <> -1;
 end
 
-{doc 文字列を指定文字列で分割する}
+(*{doc 文字列を指定文字列で分割する}*)
 function String_split: dint
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
@@ -457,7 +463,7 @@ function String_split: dint
 	end_while;
 end
 
-{doc 開始インデクスと終了インデクスを指定して、文字列の部分を取得する}
+(*{doc 開始インデクスと終了インデクスを指定して、文字列の部分を取得する}*)
 function String_substring: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
@@ -487,7 +493,7 @@ function String_substring: STRING
 	end_if;
 end
 
-{doc 両端の空白を削除する}
+(*{doc 両端の空白を削除する}*)
 function String_trim: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
@@ -546,7 +552,7 @@ function String_trim: STRING
 	String_trim := mid(self, dint_to_uint(i_1 - i_0 + 1), dint_to_uint(i_0));
 end
 
-{doc 左端の空白を削除する}
+(*{doc 左端の空白を削除する}*)
 function String_ltrim: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
@@ -591,7 +597,7 @@ end
 {#define String_trimStart String_ltrim}
 {#define String_trimLeft String_ltrim}
 
-{doc 右端の空白を削除する}
+(*{doc 右端の空白を削除する}*)
 function String_rtrim: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
@@ -636,7 +642,7 @@ end
 {#define String_trimEnd String_rtrim}
 {#define String_trimRight String_rtrim}
 
-{doc 文字列型配列を指定文字列で結合する}
+(*{doc 文字列型配列を指定文字列で結合する}*)
 function String_join: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
@@ -656,17 +662,17 @@ function String_join: STRING
 	end_for;
 end
 
-{doc 指定の文字列を置換する}
+(*{doc 指定の文字列を置換する}*)
 function String_substitute: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
-		{doc 入力文字列}
+		(*{doc 入力文字列}*)
 		self: STRING;
-		{doc 置換前文字列}
+		(*{doc 置換前文字列}*)
 		old: STRING;
-		{doc 置換後文字列}
+		(*{doc 置換後文字列}*)
 		new: STRING;
-		{doc 最大置換回数。-1: 制限なし}
+		(*{doc 最大置換回数。-1: 制限なし}*)
 		count: dint := -1;
 	end
 	var_temp
@@ -677,6 +683,12 @@ function String_substitute: STRING
 	end
 	String_substitute := '';
 	old_len := len(old);
+	// An empty old replaces nothing. find(s, '') does not return 0 on every
+	// target, so the loop below would not end.
+	if old_len = 0 then
+		String_substitute := self;
+		return;
+	end_if;
 	t_str := self;
 	l := len(t_str);
 	c_x := count;
@@ -695,12 +707,12 @@ function String_substitute: STRING
 	String_substitute := concat(String_substitute, t_str);
 end
 
-{doc 指定の文字列を指定回数繰り返す}
+(*{doc 指定の文字列を指定回数繰り返す}*)
 function String_repeat: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
-		{doc: 繰り返し回数（0以上）}
+		(*{doc 繰り返し回数（0以上）}*)
 		count: dint := 1;
 	end
 	var_temp
@@ -714,14 +726,14 @@ function String_repeat: STRING
 	end_while;
 end
 
-{doc 左側にパディング文字列を追加する}
+(*{doc 左側にパディング文字列を追加する}*)
 function String_padStart: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
-		{doc: 目標の文字列長}
+		(*{doc 目標の文字列長}*)
 		targetLength: dint := 0;
-		{doc: パディング文字列（デフォルト: スペース）}
+		(*{doc パディング文字列（デフォルト: スペース）}*)
 		padString: STRING := ' ';
 	end
 	var_temp
@@ -746,14 +758,14 @@ function String_padStart: STRING
 	end_if;
 end
 
-{doc 右側にパディング文字列を追加する}
+(*{doc 右側にパディング文字列を追加する}*)
 function String_padEnd: STRING
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
-		{doc: 目標の文字列長}
+		(*{doc 目標の文字列長}*)
 		targetLength: dint := 0;
-		{doc: パディング文字列（デフォルト: スペース）}
+		(*{doc パディング文字列（デフォルト: スペース）}*)
 		padString: STRING := ' ';
 	end
 	var_temp

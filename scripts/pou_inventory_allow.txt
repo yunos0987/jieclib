@@ -1,0 +1,14 @@
+# Public POUs (and template operations such as HashMap_*_copy) that may stay
+# without a direct test. scripts/pou_inventory.py --check fails when an
+# untested public POU is missing here, and when a line here is stale (the POU
+# no longer exists, or a test calls it now): remove the line then.
+#
+# Format: <POU name or template form> <reason>
+
+# Identity conversions used by the type conversion macros of sys_conv.iec.
+string_to_string Identity conversion used by the conversion macros of sys_conv.iec.
+udint_to_udint Identity conversion used by the conversion macros of sys_conv.iec.
+uint_to_uint Identity conversion used by the conversion macros of sys_conv.iec.
+
+# Internal helper with a public-looking name (roadmap D-9).
+hex_nibble Internal helper of hex.iec; to be renamed private_hex_nibble in the next major version (roadmap D-9).

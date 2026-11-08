@@ -1,0 +1,262 @@
+(*
+ * Tests of src/control/ (roadmap PR-14).
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/control/test_control.iec -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/control/test_control.xml -t omron
+ *
+ * Control_pid runs against a first-order plant (Signal_lowPass with a time
+ * constant of 1 s), with a sample time of 0.1 s. The expected values come
+ * from a Python simulation that does the same operations in the same order
+ * (the controller, then the plant, once per cycle).
+ *)
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <control/control.iec>}
+{#include <signal/signal.iec>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_Control_pid_step_response,
+		test_Control_pid_anti_windup,
+		test_Control_pid_bumpless,
+		test_Control_pid_fixed_process,
+		test_Control_pid_integral_headroom,
+		test_Control_pid_errors,
+		test_Control_ramp
+	)
+)
+{#endif}
+
+{#define CONTROL_EPS 1.0e-9}
+
+TEST_M(test_Control_pid_step_response)
+	var
+		pid: Control_pid;
+		plant: Signal_lowPass;
+	end
+	// Fact: With kp = 2, ki = 1, kd = 0.1 and a derivative filter of 0.05 s, the closed loop follows a step of the setpoint to 1 as the simulation does.
+		// Arrange
+	if CURRENT_CYCLE() = 0 then
+		plant(input_value:=0.0, time_constant:=1.0, sample_time:=0.1, reset:=true);
+	else
+		// Act
+		pid(setpoint:=1.0, process_value:=plant.output_value, kp:=2.0, ki:=1.0, kd:=0.1, derivative_filter:=0.05,
+			output_min:=0.0, output_max:=10.0, sample_time:=0.1, manual:=false, manual_output:=0.0,
+			reset:=CURRENT_CYCLE() = 1);
+		plant(input_value:=pid.output_value, time_constant:=1.0, sample_time:=0.1, reset:=false);
+	end_if;
+		// Assert
+	case CURRENT_CYCLE() of
+	1:
+		EXPECT_NEAR(2.1, pid.output_value, CONTROL_EPS);
+		EXPECT_NEAR(0.19090909090909092, plant.output_value, CONTROL_EPS);
+	2:
+		EXPECT_NEAR(1.6718181818181819, pid.output_value, CONTROL_EPS);
+	10:
+		EXPECT_NEAR(1.0083561860981878, pid.output_value, CONTROL_EPS);
+		EXPECT_NEAR(0.7642047231455785, plant.output_value, CONTROL_EPS);
+	30:
+		EXPECT_NEAR(0.9534764598412395, pid.output_value, CONTROL_EPS);
+		EXPECT_NEAR(0.9211416300105352, plant.output_value, CONTROL_EPS);
+		EXPECT_FALSE(pid.saturated);
+		EOT();
+	end_case;
+END_TEST_M
+
+TEST_M(test_Control_pid_anti_windup)
+	var
+		pid: Control_pid;
+		plant: Signal_lowPass;
+		setpoint: lreal;
+	end
+	// Fact: While the output is held at its upper limit, the integral does not grow, so when the setpoint drops the output leaves the limit at once.
+		// Arrange
+	if CURRENT_CYCLE() = 0 then
+		plant(input_value:=0.0, time_constant:=1.0, sample_time:=0.1, reset:=true);
+	else
+		if CURRENT_CYCLE() <= 30 then
+			setpoint := 5.0;
+		else
+			setpoint := 0.5;
+		end_if;
+		// Act
+		pid(setpoint:=setpoint, process_value:=plant.output_value, kp:=2.0, ki:=1.0, kd:=0.0, derivative_filter:=0.0,
+			output_min:=0.0, output_max:=1.5, sample_time:=0.1, manual:=false, manual_output:=0.0,
+			reset:=CURRENT_CYCLE() = 1);
+		plant(input_value:=pid.output_value, time_constant:=1.0, sample_time:=0.1, reset:=false);
+	end_if;
+		// Assert
+	case CURRENT_CYCLE() of
+	1:
+		EXPECT_EQ_LREAL(1.5, pid.output_value);
+		EXPECT_TRUE(pid.saturated);
+	30:
+		EXPECT_EQ_LREAL(1.5, pid.output_value);
+		EXPECT_NEAR(1.414037170048248, plant.output_value, CONTROL_EPS);
+	31:
+		// Without anti-windup, the integral of 30 cycles of error would keep the output at 1.5.
+		EXPECT_EQ_LREAL(0.0, pid.output_value);
+		EXPECT_NEAR(1.285488336407498, plant.output_value, CONTROL_EPS);
+		EOT();
+	end_case;
+END_TEST_M
+
+TEST_M(test_Control_pid_bumpless)
+	var
+		pid: Control_pid;
+		plant: Signal_lowPass;
+	end
+	// Fact: In manual mode the output is manual_output, and back in automatic mode it continues from there without a jump.
+		// Arrange
+	if CURRENT_CYCLE() = 0 then
+		plant(input_value:=0.0, time_constant:=1.0, sample_time:=0.1, reset:=true);
+	else
+		// Act
+		pid(setpoint:=1.0, process_value:=plant.output_value, kp:=2.0, ki:=1.0, kd:=0.0, derivative_filter:=0.0,
+			output_min:=0.0, output_max:=10.0, sample_time:=0.1,
+			manual:=(CURRENT_CYCLE() >= 6) and (CURRENT_CYCLE() <= 10), manual_output:=3.0,
+			reset:=CURRENT_CYCLE() = 1);
+		plant(input_value:=pid.output_value, time_constant:=1.0, sample_time:=0.1, reset:=false);
+	end_if;
+		// Assert
+	case CURRENT_CYCLE() of
+	5:
+		EXPECT_NEAR(1.2762837586230447, pid.output_value, CONTROL_EPS);
+	6, 10:
+		EXPECT_EQ_LREAL(3.0, pid.output_value);
+	11:
+		EXPECT_NEAR(2.6511936029010683, pid.output_value, CONTROL_EPS);
+		EXPECT_NEAR(1.6155048993643568, plant.output_value, CONTROL_EPS);
+		EOT();
+	end_case;
+END_TEST_M
+
+TEST_S(test_Control_pid_fixed_process)
+	var
+		pid: Control_pid;
+		idx: dint;
+	end
+	// Fact: When the integral has grown up to the limit, it stops growing while the output stays at the limit (anti-windup).
+		// Arrange (process value fixed at 0, setpoint 5: kp * e = 1.0, and the integral adds 0.5 per call)
+	pid(setpoint:=5.0, process_value:=0.0, kp:=0.2, ki:=1.0, kd:=0.0, derivative_filter:=0.0,
+		output_min:=0.0, output_max:=1.5, sample_time:=0.1, manual:=false, manual_output:=0.0, reset:=true);
+	EXPECT_EQ_LREAL(1.5, pid.output_value);
+		// Act
+	for idx := 1 to 9 do
+		pid(setpoint:=5.0, process_value:=0.0, kp:=0.2, ki:=1.0, kd:=0.0, derivative_filter:=0.0,
+			output_min:=0.0, output_max:=1.5, sample_time:=0.1, manual:=false, manual_output:=0.0, reset:=false);
+	end_for;
+	EXPECT_EQ_LREAL(1.5, pid.output_value);
+	pid(setpoint:=-1.0, process_value:=0.0, kp:=0.2, ki:=1.0, kd:=0.0, derivative_filter:=0.0,
+		output_min:=0.0, output_max:=1.5, sample_time:=0.1, manual:=false, manual_output:=0.0, reset:=false);
+		// Assert (the integral stayed at 0.5; it becomes 0.4, and -0.2 + 0.4 = 0.2. Without anti-windup the integral would be 4.9, and the output would stay at 1.5.)
+	EXPECT_NEAR(0.2, pid.output_value, CONTROL_EPS);
+	EXPECT_FALSE(pid.saturated);
+
+	// Fact: Back from manual mode, with the same process value, the output differs from the manual output only by ki * e * sample_time.
+		// Arrange (process value 0.5, setpoint 1: kp * e = 1.0)
+	pid(setpoint:=1.0, process_value:=0.5, kp:=2.0, ki:=1.0, kd:=0.0, derivative_filter:=0.0,
+		output_min:=0.0, output_max:=10.0, sample_time:=0.1, manual:=false, manual_output:=0.0, reset:=true);
+	pid(setpoint:=1.0, process_value:=0.5, kp:=2.0, ki:=1.0, kd:=0.0, derivative_filter:=0.0,
+		output_min:=0.0, output_max:=10.0, sample_time:=0.1, manual:=true, manual_output:=3.0, reset:=false);
+	EXPECT_EQ_LREAL(3.0, pid.output_value);
+		// Act
+	pid(setpoint:=1.0, process_value:=0.5, kp:=2.0, ki:=1.0, kd:=0.0, derivative_filter:=0.0,
+		output_min:=0.0, output_max:=10.0, sample_time:=0.1, manual:=false, manual_output:=3.0, reset:=false);
+		// Assert (3.0 + 1.0 * 0.5 * 0.1)
+	EXPECT_NEAR(3.05, pid.output_value, CONTROL_EPS);
+END_TEST_S
+
+TEST_S(test_Control_pid_integral_headroom)
+	var
+		pid: Control_pid;
+	end
+	// Fact: A step of the integral that would cross the upper limit integrates up to the limit, so the output reaches it.
+		// Arrange (kp = kd = 0, ki = 1, error 1, sample time 1: one step adds 1, the headroom is 0.5)
+	pid(setpoint:=1.0, process_value:=0.0, kp:=0.0, ki:=1.0, kd:=0.0, derivative_filter:=0.0,
+		output_min:=0.0, output_max:=0.5, sample_time:=1.0, manual:=false, manual_output:=0.0, reset:=true);
+		// Assert
+	EXPECT_EQ_LREAL(0.5, pid.output_value);
+	EXPECT_TRUE(pid.saturated);
+		// Act (the error stays positive: the integral does not grow beyond the limit)
+	pid(setpoint:=1.0, process_value:=0.0, kp:=0.0, ki:=1.0, kd:=0.0, derivative_filter:=0.0,
+		output_min:=0.0, output_max:=0.5, sample_time:=1.0, manual:=false, manual_output:=0.0, reset:=false);
+	EXPECT_EQ_LREAL(0.5, pid.output_value);
+
+	// Fact: The same holds for the lower limit: a step below it integrates down to the limit.
+		// Arrange/Act (error -1: the integral 0.5 would become -0.5, below the limit 0)
+	pid(setpoint:=-1.0, process_value:=0.0, kp:=0.0, ki:=1.0, kd:=0.0, derivative_filter:=0.0,
+		output_min:=0.0, output_max:=0.5, sample_time:=1.0, manual:=false, manual_output:=0.0, reset:=false);
+		// Assert
+	EXPECT_EQ_LREAL(0.0, pid.output_value);
+		// Act (the error turns positive: the output leaves the lower limit at once)
+	pid(setpoint:=0.25, process_value:=0.0, kp:=0.0, ki:=1.0, kd:=0.0, derivative_filter:=0.0,
+		output_min:=0.0, output_max:=0.5, sample_time:=1.0, manual:=false, manual_output:=0.0, reset:=false);
+	EXPECT_EQ_LREAL(0.25, pid.output_value);
+END_TEST_S
+
+TEST_S(test_Control_pid_errors)
+	var
+		pid: Control_pid;
+	end
+	// Fact: Invalid parameters are errors that keep the output, and the manual output is limited.
+		// Arrange
+	pid(setpoint:=1.0, process_value:=0.0, kp:=1.0, ki:=0.0, kd:=0.0, derivative_filter:=0.0,
+		output_min:=0.0, output_max:=10.0, sample_time:=0.1, manual:=false, manual_output:=0.0, reset:=true);
+	EXPECT_EQ_LREAL(1.0, pid.output_value);
+		// Act/Assert
+	pid(setpoint:=5.0, process_value:=0.0, kp:=-1.0, ki:=0.0, kd:=0.0, derivative_filter:=0.0,
+		output_min:=0.0, output_max:=10.0, sample_time:=0.1, manual:=false, manual_output:=0.0, reset:=false);
+	EXPECT_FALSE(pid.eno);
+	EXPECT_EQ_LREAL(1.0, pid.output_value);
+	pid(setpoint:=5.0, process_value:=0.0, kp:=1.0, ki:=0.0, kd:=0.0, derivative_filter:=0.0,
+		output_min:=2.0, output_max:=1.0, sample_time:=0.1, manual:=false, manual_output:=0.0, reset:=false);
+	EXPECT_FALSE(pid.eno);
+	pid(setpoint:=5.0, process_value:=0.0, kp:=1.0, ki:=0.0, kd:=0.0, derivative_filter:=0.0,
+		output_min:=0.0, output_max:=10.0, sample_time:=0.0, manual:=false, manual_output:=0.0, reset:=false);
+	EXPECT_FALSE(pid.eno);
+	EXPECT_EQ_LREAL(1.0, pid.output_value);
+	pid(setpoint:=5.0, process_value:=0.0, kp:=1.0, ki:=0.0, kd:=0.0, derivative_filter:=0.0,
+		output_min:=0.0, output_max:=10.0, sample_time:=0.1, manual:=true, manual_output:=20.0, reset:=false);
+	EXPECT_TRUE(pid.eno);
+	EXPECT_EQ_LREAL(10.0, pid.output_value);
+	EXPECT_TRUE(pid.saturated);
+END_TEST_S
+
+TEST_S(test_Control_ramp)
+	var
+		ramp: Control_ramp;
+	end
+	// Fact: The output starts at initial_value, moves toward the target by rate * sample_time per call, and stops at the target.
+		// Arrange
+	ramp(target_value:=1.0, rate:=4.0, initial_value:=0.0, sample_time:=0.1, reset:=true);
+	EXPECT_EQ_LREAL(0.0, ramp.output_value);
+	EXPECT_FALSE(ramp.reached);
+		// Act/Assert
+	ramp(target_value:=1.0, rate:=4.0, initial_value:=0.0, sample_time:=0.1, reset:=false);
+	EXPECT_NEAR(0.4, ramp.output_value, CONTROL_EPS);
+	ramp(target_value:=1.0, rate:=4.0, initial_value:=0.0, sample_time:=0.1, reset:=false);
+	EXPECT_NEAR(0.8, ramp.output_value, CONTROL_EPS);
+	ramp(target_value:=1.0, rate:=4.0, initial_value:=0.0, sample_time:=0.1, reset:=false);
+	EXPECT_EQ_LREAL(1.0, ramp.output_value);
+	EXPECT_TRUE(ramp.reached);
+	ramp(target_value:=0.5, rate:=4.0, initial_value:=0.0, sample_time:=0.1, reset:=false);
+	EXPECT_EQ_LREAL(0.6, ramp.output_value);
+	EXPECT_FALSE(ramp.reached);
+
+	// Fact: A negative rate or sample_time <= 0 is an error that keeps the output.
+		// Arrange
+		// Act
+	ramp(target_value:=5.0, rate:=-1.0, initial_value:=0.0, sample_time:=0.1, reset:=false);
+		// Assert
+	EXPECT_FALSE(ramp.eno);
+	EXPECT_EQ_LREAL(0.6, ramp.output_value);
+		// Act
+	ramp(target_value:=5.0, rate:=1.0, initial_value:=0.0, sample_time:=0.0, reset:=true);
+		// Assert
+	EXPECT_FALSE(ramp.eno);
+	EXPECT_EQ_LREAL(0.6, ramp.output_value);
+END_TEST_S

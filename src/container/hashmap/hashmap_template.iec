@@ -155,13 +155,13 @@
 
 type
 	HashMapEntryType: struct
-		{doc Entry state. HASHMAP_SLOT_EMPTY means unused; HASHMAP_SLOT_USED means occupied.}
+		(*{doc Entry state. HASHMAP_SLOT_EMPTY means unused; HASHMAP_SLOT_USED means occupied.}*)
 		state: word;
-		{doc Cached key hash value.}
+		(*{doc Cached key hash value.}*)
 		hash: udint;
-		{doc Entry key.}
+		(*{doc Entry key.}*)
 		key: HashMapKeyType;
-		{doc Entry value.}
+		(*{doc Entry value.}*)
 		value: HashMapValueType;
 	end
 end

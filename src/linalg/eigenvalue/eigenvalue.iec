@@ -75,8 +75,8 @@ function Matrix_eigenvalue_compute
 		aqq := a[q, q];
 		apq := a[p, q];
 		phi := 0.5 * Math_atan2(2.0 * apq, aqq - app);
-		c := COS(phi);
-		s_rot := SIN(phi);
+		c := cos(phi);
+		s_rot := sin(phi);
 
 		for k := 0 to n - 1 by 1 do
 			if (k <> p) and (k <> q) then

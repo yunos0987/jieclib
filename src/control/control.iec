@@ -1,0 +1,201 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/control/control.iec -I./src -o ./src/control/control.xml -t omron
+ *)
+{#ifndef __CONTROL_CONTROL_IEC__}
+{#define __CONTROL_CONTROL_IEC__}
+
+{#include <sys.iec>}
+
+(*{doc PID controller in the parallel form: output = kp * e + ki * integral(e) + kd * derivative, with e = setpoint - process_value.
+- The derivative is taken on the process value, not on the error, so that a change of the setpoint does not kick the output
+  (derivative on measurement). It is filtered with the time constant derivative_filter (an incomplete derivative);
+  0 means no filter.
+- The output is limited to output_min .. output_max. The integral grows at most until the output reaches a limit,
+  and not further in that direction while it stays there (anti-windup by conditional integration).
+- In manual mode (manual = true) the output is manual_output (limited), and the integral follows it, so that the
+  output does not jump when the mode returns to automatic (bumpless transfer).
+- The first call after reset (and the very first call) starts from the current process value with an empty integral.
+  In manual mode, reset clears the derivative; the integral follows the manual output anyway.
+- A call that is an error changes nothing, not even the last process value: the derivative of the next valid call
+  covers the whole change since the last valid call.
+Call it once per sample, with the time between the samples in sample_time.
+The results for NaN and infinity are undefined.
+@input setpoint The target value.
+@input process_value The measured value.
+@input kp The proportional gain (0 or more).
+@input ki The integral gain per second (0 or more).
+@input kd The derivative gain in seconds (0 or more).
+@input derivative_filter The time constant of the derivative filter in seconds (0 or more).
+@input output_min The lower limit of the output.
+@input output_max The upper limit of the output. It must not be less than output_min.
+@input sample_time The time between two calls in seconds (more than 0).
+@input manual True for manual mode.
+@input manual_output The output in manual mode.
+@input reset True to clear the integral and the derivative.
+@output output_value The output.
+@output saturated True if the output is at output_min or output_max.
+@error If sample_time <= 0, a gain or derivative_filter < 0, or output_min > output_max.
+The output and the state are then not changed (reset and manual are ignored too).}*)
+function_block Control_pid
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc The target value.}*)
+		setpoint: lreal;
+		(*{doc The measured value.}*)
+		process_value: lreal;
+		(*{doc The proportional gain (0 or more).}*)
+		kp: lreal;
+		(*{doc The integral gain per second (0 or more).}*)
+		ki: lreal;
+		(*{doc The derivative gain in seconds (0 or more).}*)
+		kd: lreal;
+		(*{doc The time constant of the derivative filter in seconds (0 or more).}*)
+		derivative_filter: lreal;
+		(*{doc The lower limit of the output.}*)
+		output_min: lreal;
+		(*{doc The upper limit of the output.}*)
+		output_max: lreal;
+		(*{doc The time between two calls in seconds (more than 0).}*)
+		sample_time: lreal;
+		(*{doc True for manual mode.}*)
+		manual: bool;
+		(*{doc The output in manual mode.}*)
+		manual_output: lreal;
+		(*{doc True to clear the integral and the derivative.}*)
+		reset: bool;
+	end
+	var_output
+		(*{doc The output.}*)
+		output_value: lreal;
+		(*{doc True if the output is at output_min or output_max.}*)
+		saturated: bool;
+	end
+	var
+		started: bool;
+		integral_term: lreal;
+		derivative_term: lreal;
+		last_process_value: lreal;
+	end
+	var_temp
+		error_value: lreal;
+		proportional_term: lreal;
+		raw_derivative: lreal;
+		next_integral: lreal;
+		unlimited: lreal;
+		headroom_integral: lreal;
+	end
+	if (sample_time <= 0.0) or (kp < 0.0) or (ki < 0.0) or (kd < 0.0) or (derivative_filter < 0.0)
+			or (output_min > output_max) then
+		eno := false;
+		return;
+	end_if;
+	if reset or not started then
+		integral_term := 0.0;
+		derivative_term := 0.0;
+		last_process_value := process_value;
+		started := true;
+	end_if;
+
+	error_value := setpoint - process_value;
+	proportional_term := kp * error_value;
+	// Derivative on measurement, through a first-order filter.
+	raw_derivative := -kd * (process_value - last_process_value) / sample_time;
+	derivative_term := derivative_term + sample_time / (derivative_filter + sample_time) * (raw_derivative - derivative_term);
+	last_process_value := process_value;
+
+	if manual then
+		output_value := manual_output;
+		if output_value > output_max then
+			output_value := output_max;
+		elsif output_value < output_min then
+			output_value := output_min;
+		end_if;
+		// Bumpless transfer: the integral makes the automatic output equal to the manual output.
+		integral_term := output_value - proportional_term - derivative_term;
+	else
+		next_integral := integral_term + ki * error_value * sample_time;
+		unlimited := proportional_term + next_integral + derivative_term;
+		// Conditional integration: integrate up to the limit, but not beyond it.
+		// A step that would cross a limit integrates only the headroom that is left,
+		// so that the output can still reach the limit.
+		if (unlimited > output_max) and (error_value > 0.0) then
+			headroom_integral := output_max - proportional_term - derivative_term;
+			if headroom_integral > integral_term then
+				integral_term := headroom_integral;
+			end_if;
+		elsif (unlimited < output_min) and (error_value < 0.0) then
+			headroom_integral := output_min - proportional_term - derivative_term;
+			if headroom_integral < integral_term then
+				integral_term := headroom_integral;
+			end_if;
+		else
+			integral_term := next_integral;
+		end_if;
+		output_value := proportional_term + integral_term + derivative_term;
+		if output_value > output_max then
+			output_value := output_max;
+		elsif output_value < output_min then
+			output_value := output_min;
+		end_if;
+	end_if;
+	saturated := (output_value >= output_max) or (output_value <= output_min);
+end_function_block
+
+(*{doc Ramp: the output moves toward target_value by at most rate per second.
+The first call after reset (and the very first call) sets the output to initial_value.
+@input target_value The value to reach.
+@input rate The largest change per second (0 or more; 0 holds the output).
+@input initial_value The output after reset.
+@input sample_time The time between two calls in seconds (more than 0).
+@input reset True to restart from initial_value.
+@output output_value The output.
+@output reached True when the output equals target_value.
+@error If sample_time <= 0 or rate < 0. The output and the state are then not changed (reset is ignored too).}*)
+function_block Control_ramp
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc The value to reach.}*)
+		target_value: lreal;
+		(*{doc The largest change per second (0 or more).}*)
+		rate: lreal;
+		(*{doc The output after reset.}*)
+		initial_value: lreal;
+		(*{doc The time between two calls in seconds (more than 0).}*)
+		sample_time: lreal;
+		(*{doc True to restart from initial_value.}*)
+		reset: bool;
+	end
+	var_output
+		(*{doc The output.}*)
+		output_value: lreal;
+		(*{doc True when the output equals target_value.}*)
+		reached: bool;
+	end
+	var
+		started: bool;
+	end
+	var_temp
+		max_step: lreal;
+	end
+	if (sample_time <= 0.0) or (rate < 0.0) then
+		eno := false;
+		return;
+	end_if;
+	if reset or not started then
+		output_value := initial_value;
+		started := true;
+	else
+		max_step := rate * sample_time;
+		if target_value - output_value > max_step then
+			output_value := output_value + max_step;
+		elsif output_value - target_value > max_step then
+			output_value := output_value - max_step;
+		else
+			output_value := target_value;
+		end_if;
+	end_if;
+	reached := output_value = target_value;
+end_function_block
+
+{#endif}

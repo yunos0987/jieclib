@@ -1,0 +1,30 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/math/trunc.iec -I./src -o ./src/math/trunc.xml -t omron
+ *)
+{#ifndef __MATH_TRUNC_IEC__}
+{#define __MATH_TRUNC_IEC__}
+
+{#include <sys.iec>}
+
+
+(*{doc Return the value rounded toward zero (truncation): trunc(2.7) = 2.0, trunc(-2.7) = -2.0.
+A value whose absolute value is 2^52 (4503599627370496.0) or more is always an integer, and is returned as it is.
+The results for NaN and infinity are undefined (they cannot be made in the same way on every environment).
+@input value The value.
+@return The integer part of value.}*)
+function Math_trunc: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc The value.}*)
+		value: lreal;
+	end
+	// trunc converts to lint, which overflows at 2^63.
+	if abs(value) >= 4503599627370496.0 then
+		Math_trunc := value;
+	else
+		Math_trunc := lint_to_lreal(trunc(value));
+	end_if;
+end
+
+{#endif}

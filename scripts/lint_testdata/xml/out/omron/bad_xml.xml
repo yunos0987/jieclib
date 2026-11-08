@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="www.iec.ch/public/TC65SC65BWG7TF10" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:smcext="https://www.ia.omron.com/Smc" xsi:schemaLocation="https://www.ia.omron.com/Smc%20IEC61131_10_Ed1_0_SmcExt1_0_Spc1_0.xsd" schemaVersion="1">
+<FileHeader companyName="" productName="" productVersion="" />
+<ContentHeader name="" creationDateTime="2026-11-06T00:00:00+09:00">
+<AddDataInfo><Info name="https://www.ia.omron.com/Smc IEC61131_10_Ed1_0_SmcExt1_0_Spc1_0.xsd" vendor="https://www.ia.omron.com/Smc" /></AddDataInfo>
+</ContentHeader>
+<Types><GlobalNamespace>
+<DataTypeDecl name="Bad_count_t">
+<Documentation xsi:type="SimpleText">An alias type (no-alias-type).</Documentation>
+<UserDefinedTypeSpec xsi:type="DirectlyDerivedTypeSpec"><BaseType><TypeName>dint</TypeName></BaseType></UserDefinedTypeSpec>
+</DataTypeDecl>
+<DataTypeDecl name="Bad_record_t">
+<Documentation xsi:type="SimpleText">A structure with bad member names.</Documentation>
+<UserDefinedTypeSpec xsi:type="StructTypeSpec">
+	<Member name="p_value">
+		<Documentation xsi:type="SimpleText">omron-p-prefix.</Documentation>
+		<Type><TypeName>dint</TypeName></Type>
+	</Member>
+	<Member name="left">
+		<Documentation xsi:type="SimpleText">reserved-name.</Documentation>
+		<Type><TypeName>dint</TypeName></Type>
+	</Member>
+	<Member name="v">
+		<Documentation xsi:type="SimpleText">keyence-names (one letter).</Documentation>
+		<Type><TypeName>dint</TypeName></Type>
+	</Member>
+	<Member name="hash">
+		<Documentation xsi:type="SimpleText">Not a finding: the h rule applies only to variables.</Documentation>
+		<Type><TypeName>dint</TypeName></Type>
+	</Member>
+</UserDefinedTypeSpec>
+</DataTypeDecl>
+<Function name="Bad_returns_struct">
+	<Documentation xsi:type="SimpleText">Returns a structure (no-struct-return).</Documentation>
+	<ResultType><TypeName>Bad_record_t</TypeName></ResultType>
+	<Parameters>
+	<InputVars>
+		<Variable name="values" orderWithinParamSet="1">
+			<Documentation xsi:type="SimpleText">varlen-array-inout (an input).</Documentation>
+			<Type><InstantlyDefinedType xsi:type="ArrayTypeSpec"><BaseType><TypeName>dint</TypeName></BaseType><DimensionSpec dimensionNumber="1"><VariableLength>true</VariableLength></DimensionSpec></InstantlyDefinedType></Type>
+		</Variable>
+	</InputVars>
+	<InputVars>
+		<Variable name="x" orderWithinParamSet="2">
+			<Documentation xsi:type="SimpleText">keyence-names (one letter).</Documentation>
+			<Type><TypeName>dint</TypeName></Type>
+		</Variable>
+	</InputVars>
+	<InputVars>
+		<Variable name="hi" orderWithinParamSet="3">
+			<Documentation xsi:type="SimpleText">keyence-names (h without _).</Documentation>
+			<Type><TypeName>dint</TypeName></Type>
+		</Variable>
+	</InputVars>
+	<InputVars>
+		<Variable name="r1" orderWithinParamSet="4">
+			<Documentation xsi:type="SimpleText">keyence-names (a device name).</Documentation>
+			<Type><TypeName>dint</TypeName></Type>
+		</Variable>
+	</InputVars>
+	<InputVars>
+		<Variable name="cmp" orderWithinParamSet="5">
+			<Documentation xsi:type="SimpleText">reserved-name.</Documentation>
+			<Type><TypeName>dint</TypeName></Type>
+		</Variable>
+	</InputVars>
+	<InputVars>
+		<Variable name="P_count" orderWithinParamSet="6">
+			<Documentation xsi:type="SimpleText">omron-p-prefix.</Documentation>
+			<Type><TypeName>dint</TypeName></Type>
+		</Variable>
+	</InputVars>
+	</Parameters>
+	<MainBody>
+		<BodyContent xsi:type="ST"><ST>	Bad_returns_struct.v := x;
+</ST></BodyContent>
+	</MainBody>
+</Function>
+<FunctionBlock name="Bad_function_block_whose_name_is_longer_than_sixty_four_bytes_xxx">
+	<Documentation xsi:type="SimpleText">pou-name-length (65 bytes) and varlen-array-inout (a local variable).</Documentation>
+	<Vars accessSpecifier="private">
+		<Variable name="arr">
+			<Type><InstantlyDefinedType xsi:type="ArrayTypeSpec"><BaseType><TypeName>dint</TypeName></BaseType><DimensionSpec dimensionNumber="1"><VariableLength>true</VariableLength></DimensionSpec></InstantlyDefinedType></Type>
+		</Variable>
+	</Vars>
+	<MainBody>
+		<BodyContent xsi:type="ST"><ST>;</ST></BodyContent>
+	</MainBody>
+</FunctionBlock>
+<Function name="JiecTest_ignored">
+	<Documentation xsi:type="SimpleText">Not checked: the name starts with JiecTest_.</Documentation>
+	<ResultType><TypeName>dint</TypeName></ResultType>
+	<Parameters>
+	<InputVars>
+		<Variable name="x" orderWithinParamSet="1">
+			<Type><TypeName>dint</TypeName></Type>
+		</Variable>
+	</InputVars>
+	</Parameters>
+	<MainBody>
+		<BodyContent xsi:type="ST"><ST>	JiecTest_ignored := x;
+</ST></BodyContent>
+	</MainBody>
+</Function>
+</GlobalNamespace></Types>
+<Instances>
+</Instances>
+</Project>

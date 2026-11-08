@@ -1,0 +1,58 @@
+(*
+ * Sample: smooth a noisy measurement with a moving average and a median filter.
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./samples/moving_average/moving_average.iec -I./src -o ./samples/moving_average/moving_average.xml -t omron
+ *)
+
+// Make a moving average of the last 10 inputs: the function block
+// Signal_movingAverage_n10. The name and the capacity are macros, so that
+// the buffer is inside the function block.
+{#define SignalMovingAverageName n10}
+{#define SignalMovingAverageCapacity 10}
+{#include <signal/moving_average_template.iec>}
+{#undef SignalMovingAverageName}
+{#undef SignalMovingAverageCapacity}
+
+// Make a median filter of the last 5 inputs (the capacity must be odd):
+// the function block Signal_median_n5.
+{#define SignalMedianName n5}
+{#define SignalMedianCapacity 5}
+{#include <signal/median_template.iec>}
+{#undef SignalMedianName}
+{#undef SignalMedianCapacity}
+
+{#include <signal/signal.iec>}
+
+(*{doc Smooth a measurement in three ways: a median filter removes short spikes, a moving average
+reduces the noise, and a low-pass filter (first-order lag) smooths with a time constant.
+Call it every cycle of a task whose period is in task_period.}*)
+program MovingAverageSample
+	var
+		(*{doc The measured value.}*)
+		measured: lreal;
+		(*{doc The period of the task in seconds.}*)
+		task_period: lreal := 0.01;
+		(*{doc True to restart the filters from the current value.}*)
+		restart: bool;
+	end
+	var
+		(*{doc The median of the last 5 values.}*)
+		median_value: lreal;
+		(*{doc The average of the last 10 medians.}*)
+		average_value: lreal;
+		(*{doc The measured value through a first-order lag of 0.5 s.}*)
+		lag_value: lreal;
+	end
+	var
+		median_filter: Signal_median_n5;
+		average: Signal_movingAverage_n10;
+		lag: Signal_lowPass;
+	end
+	median_filter(input_value:=measured, reset:=restart);
+	median_value := median_filter.output_value;
+	average(input_value:=median_value, reset:=restart);
+	average_value := average.output_value;
+	lag(input_value:=measured, time_constant:=0.5, sample_time:=task_period, reset:=restart);
+	lag_value := lag.output_value;
+	restart := false;
+end_program

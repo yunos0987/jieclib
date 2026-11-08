@@ -1,0 +1,38 @@
+(*
+ * Checks that a TEST_M test of JiecUnit runs over several cycles and keeps
+ * its variables between the cycles (roadmap PR-6). The tests of signal and
+ * control use TEST_M.
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/test_jiecunit_test_m.iec -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/test_jiecunit_test_m.xml -t omron
+ *)
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_TEST_M_runs_over_cycles
+	)
+)
+{#endif}
+
+TEST_M(test_TEST_M_runs_over_cycles)
+	var
+		total: dint;
+		cycles_seen: dint;
+	end
+	// Fact: A TEST_M test runs once per cycle, CURRENT_CYCLE() counts from 0, and the variables keep their values between the cycles.
+		// Arrange/Act
+	EXPECT_EQ_DINT(cycles_seen, CURRENT_CYCLE());
+	cycles_seen := cycles_seen + 1;
+	total := total + CURRENT_CYCLE() + 1;
+		// Assert
+	if CURRENT_CYCLE() = 19 then
+		// 1 + 2 + ... + 20 = 210
+		EXPECT_EQ_DINT(20, cycles_seen);
+		EXPECT_EQ_DINT(210, total);
+		EOT();
+	end_if;
+END_TEST_M

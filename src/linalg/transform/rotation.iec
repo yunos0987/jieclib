@@ -46,8 +46,8 @@ function Matrix_rotation_2d
 		return;
 	end_if;
 
-	c := COS(theta);
-	s := SIN(theta);
+	c := cos(theta);
+	s := sin(theta);
 	rotation[0, 0] := c;
 	rotation[0, 1] := -s;
 	rotation[1, 0] := s;
@@ -94,8 +94,8 @@ function Matrix_rotation_z
 		return;
 	end_if;
 
-	c := COS(theta);
-	s := SIN(theta);
+	c := cos(theta);
+	s := sin(theta);
 	rotation[0, 0] := c;
 	rotation[0, 1] := -s;
 	rotation[0, 2] := 0.0;

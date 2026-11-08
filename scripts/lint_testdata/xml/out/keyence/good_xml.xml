@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="www.iec.ch/public/TC65SC65BWG7TF10" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="www.iec.ch/public/TC65SC65BWG7TF10%20IEC61131_10_Ed1_0.xsd" schemaVersion="1.0">
+<FileHeader companyName="" productName="" productVersion="" />
+<ContentHeader name="" creationDateTime="2026-11-06T00:00:00+09:00">
+</ContentHeader>
+<Types><GlobalNamespace>
+<DataTypeDecl name="Good_record_t">
+<Documentation xsi:type="SimpleText">A structure with good member names.</Documentation>
+<UserDefinedTypeSpec xsi:type="StructTypeSpec">
+	<Member name="total_value">
+		<Documentation xsi:type="SimpleText">A member.</Documentation>
+		<Type><TypeName>dint</TypeName></Type>
+	</Member>
+	<Member name="hash">
+		<Documentation xsi:type="SimpleText">A member that starts with h (allowed for members).</Documentation>
+		<Type><TypeName>dint</TypeName></Type>
+	</Member>
+</UserDefinedTypeSpec>
+</DataTypeDecl>
+<Function name="Good_fill_record">
+	<Documentation xsi:type="SimpleText">Fills a structure through var_in_out instead of returning it.</Documentation>
+	<ResultType><TypeName>bool</TypeName></ResultType>
+	<Parameters>
+	<InoutVars>
+		<Variable name="values" orderWithinParamSet="2">
+			<Documentation xsi:type="SimpleText">The variable-length array is a var_in_out parameter.</Documentation>
+			<Type><InstantlyDefinedType xsi:type="ArrayTypeSpec"><BaseType><TypeName>dint</TypeName></BaseType><DimensionSpec dimensionNumber="1"><VariableLength>true</VariableLength></DimensionSpec></InstantlyDefinedType></Type>
+		</Variable>
+	</InoutVars>
+	<InoutVars>
+		<Variable name="record" orderWithinParamSet="3">
+			<Documentation xsi:type="SimpleText">The record to fill.</Documentation>
+			<Type><TypeName>Good_record_t</TypeName></Type>
+		</Variable>
+	</InoutVars>
+	<InputVars>
+		<Variable name="high_value" orderWithinParamSet="4">
+			<Documentation xsi:type="SimpleText">A name with an underscore.</Documentation>
+			<Type><TypeName>dint</TypeName></Type>
+		</Variable>
+	</InputVars>
+	</Parameters>
+	<MainBody>
+		<BodyContent xsi:type="ST"><ST>	record.total_value := values[lower_bound(values, 1)] + high_value;
+	Good_fill_record := true;
+</ST></BodyContent>
+		<BodyContent xsi:type="LD">
+<Rung evaluationOrder="1">
+	<LdObject xsi:type="LeftPowerRail">
+		<ConnectionPointOut connectionPointOutId="1" />
+	</LdObject>
+	<FbdObject xsi:type="Block" typeName="END">
+		<InputVariables>
+			<InputVariable parameterName="EN">
+				<ConnectionPointIn><Connection refConnectionPointOutId="1" /></ConnectionPointIn>
+			</InputVariable>
+		</InputVariables>
+		<OutputVariables>
+			<OutputVariable parameterName="ENO">
+				<ConnectionPointOut connectionPointOutId="2"></ConnectionPointOut>
+			</OutputVariable>
+		</OutputVariables>
+	</FbdObject>
+	<LdObject xsi:type="RightPowerRail">
+		<ConnectionPointIn>
+			<Connection refConnectionPointOutId="2" />
+		</ConnectionPointIn>
+	</LdObject>
+</Rung>
+<Rung evaluationOrder="2">
+	<LdObject xsi:type="LeftPowerRail">
+		<ConnectionPointOut connectionPointOutId="1" />
+	</LdObject>
+	<FbdObject xsi:type="Block" typeName="ENDH">
+		<InputVariables>
+			<InputVariable parameterName="EN">
+				<ConnectionPointIn><Connection refConnectionPointOutId="1" /></ConnectionPointIn>
+			</InputVariable>
+		</InputVariables>
+		<OutputVariables>
+			<OutputVariable parameterName="ENO">
+				<ConnectionPointOut connectionPointOutId="2"></ConnectionPointOut>
+			</OutputVariable>
+		</OutputVariables>
+	</FbdObject>
+	<LdObject xsi:type="RightPowerRail">
+		<ConnectionPointIn>
+			<Connection refConnectionPointOutId="2" />
+		</ConnectionPointIn>
+	</LdObject>
+</Rung></BodyContent>
+	</MainBody>
+</Function>
+</GlobalNamespace></Types>
+<Instances>
+</Instances>
+</Project>

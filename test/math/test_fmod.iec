@@ -1,0 +1,65 @@
+(*
+ * Test for Math_fmod
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/math/test_fmod.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/math/test_fmod.xml -t omron
+ *
+ * The expected values come from math.fmod of Python (the same as fmod of C).
+ *)
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <math/fmod.iec>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_fmod
+	)
+)
+{#endif}
+
+TEST_S(test_fmod)
+	var
+		ok: bool;
+	end
+	// Fact: fmod is exact even when dividend / divisor is rounded.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(0.09999999999999953, Math_fmod(dividend:=5.3, divisor:=0.1));
+	EXPECT_EQ_LREAL(0.09999999999999995, Math_fmod(dividend:=1.0, divisor:=0.1));
+
+	// Fact: The result has the sign of dividend.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(-1.5, Math_fmod(dividend:=-7.5, divisor:=2.0));
+	EXPECT_EQ_LREAL(1.5, Math_fmod(dividend:=7.5, divisor:=-2.0));
+	EXPECT_EQ_LREAL(-1.5, Math_fmod(dividend:=-7.5, divisor:=-2.0));
+
+	// Fact: A dividend of 0 and an exact multiple give 0.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(0.0, Math_fmod(dividend:=0.0, divisor:=3.0));
+	EXPECT_EQ_LREAL(0.0, Math_fmod(dividend:=6.0, divisor:=3.0));
+	EXPECT_EQ_LREAL(0.0, Math_fmod(dividend:=-6.0, divisor:=3.0));
+
+	// Fact: When abs(dividend) < abs(divisor), dividend is returned as it is.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(2.0, Math_fmod(dividend:=2.0, divisor:=3.0));
+	EXPECT_EQ_LREAL(-1e-300, Math_fmod(dividend:=-1e-300, divisor:=7.0));
+
+	// Fact: Large quotients (beyond lint) are exact, including the largest lreal.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(0.0, Math_fmod(dividend:=1e+300, divisor:=3.0));
+	EXPECT_EQ_LREAL(2.0, Math_fmod(dividend:=1.7976931348623157e+308, divisor:=3.0));
+	EXPECT_EQ_LREAL(0.050000000000000044, Math_fmod(dividend:=1.7976931348623157e+308, divisor:=0.1));
+
+	// Fact: Subnormal values are exact: fmod(3m, 2m) = m for the smallest subnormal m.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(5e-324, Math_fmod(dividend:=1.5e-323, divisor:=1e-323));
+
+	// Fact: divisor = 0 is an error.
+		// Arrange
+		// Act
+	Math_fmod(dividend:=1.0, divisor:=0.0, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+END_TEST_S

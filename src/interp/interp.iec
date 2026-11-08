@@ -1,0 +1,228 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/interp/interp.iec -I./src -o ./src/interp/interp.xml -t omron
+ *)
+{#ifndef __INTERP_INTERP_IEC__}
+{#define __INTERP_INTERP_IEC__}
+
+{#include <sys.iec>}
+
+(*{doc Find the segment of a strictly increasing axis that contains a value.
+Internal to the library. It also checks that the first point_count points increase strictly.
+@inout axis The axis values.
+@input point_count The number of points used (2 or more, at most the size of axis).
+@input value The value to locate.
+@output segment The index (from the lower bound of axis) of the first point of the segment: 0 to point_count - 2.
+Below the first point it is 0; above the last point it is point_count - 2.
+@return true if the axis is valid.}*)
+function private_Interp_segment: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The axis values.}*)
+		axis: array[*] of lreal;
+	end
+	var_input
+		(*{doc The number of points used.}*)
+		point_count: dint;
+		(*{doc The value to locate.}*)
+		value: lreal;
+	end
+	var_output
+		(*{doc The index of the first point of the segment.}*)
+		segment: dint;
+	end
+	var_temp
+		lower_index: dint;
+		idx: dint;
+		found: bool;
+	end
+	private_Interp_segment := false;
+	segment := 0;
+	lower_index := lower_bound(axis, 1);
+	if (point_count < 2) or (point_count > upper_bound(axis, 1) - lower_index + 1) then
+		return;
+	end_if;
+	segment := point_count - 2;
+	found := false;
+	// One pass: check the order, and remember the first segment whose end is at or above value.
+	for idx := 1 to point_count - 1 do
+		if axis[lower_index + idx] <= axis[lower_index + idx - 1] then
+			return;
+		end_if;
+		if (not found) and (value <= axis[lower_index + idx]) then
+			segment := idx - 1;
+			found := true;
+		end_if;
+	end_for;
+	private_Interp_segment := true;
+end
+
+(*{doc Linear interpolation in a table of points (a polyline): the y of x_value on the line through
+(x_table[i], y_table[i]). x_table must increase strictly over the points used.
+Outside the table, extrapolate selects whether the end segments are extended (true) or the end values are kept (false).
+count selects how many points are used from the lower bounds, so that a table with unused entries at the end can be passed.
+The arrays are var_in_out: put a constant table in a variable first. The time is proportional to count (one pass).
+The results for NaN and infinity are undefined.
+@inout x_table The x values of the points (strictly increasing).
+@inout y_table The y values of the points (the same lower bound and at least as many elements as the points used).
+@input x_value The x to interpolate at.
+@input count The number of points used; -1 means all the elements of x_table. Default: -1.
+@input extrapolate True to extend the end segments outside the table, false to keep the end values. Default: false.
+@return The interpolated y.
+@error If fewer than 2 points are used, count is larger than an array, x_table does not increase strictly,
+or the lower bounds of the arrays differ. The result is then 0.0.}*)
+function Interp_linear1d: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The x values of the points.}*)
+		x_table: array[*] of lreal;
+		(*{doc The y values of the points.}*)
+		y_table: array[*] of lreal;
+	end
+	var_input
+		(*{doc The x to interpolate at.}*)
+		x_value: lreal;
+		(*{doc The number of points used; -1 means all. Default: -1.}*)
+		count: dint := -1;
+		(*{doc True to extend the end segments outside the table. Default: false.}*)
+		extrapolate: bool := false;
+	end
+	var_temp
+		lower_index: dint;
+		point_count: dint;
+		segment: dint;
+		ok: bool;
+		x0, x1, y0, y1: lreal;
+	end
+	lower_index := lower_bound(x_table, 1);
+	if lower_bound(y_table, 1) <> lower_index then
+		eno := false;
+		return;
+	end_if;
+	point_count := count;
+	if point_count = -1 then
+		point_count := upper_bound(x_table, 1) - lower_index + 1;
+	end_if;
+	if point_count > upper_bound(y_table, 1) - lower_index + 1 then
+		eno := false;
+		return;
+	end_if;
+	ok := private_Interp_segment(axis:=x_table, point_count:=point_count, value:=x_value, segment=>segment);
+	if not ok then
+		eno := false;
+		return;
+	end_if;
+	x0 := x_table[lower_index + segment];
+	x1 := x_table[lower_index + segment + 1];
+	y0 := y_table[lower_index + segment];
+	y1 := y_table[lower_index + segment + 1];
+	if not extrapolate then
+		if x_value <= x0 then
+			Interp_linear1d := y0;
+			return;
+		elsif x_value >= x1 then
+			Interp_linear1d := y1;
+			return;
+		end_if;
+	end_if;
+	Interp_linear1d := y0 + (y1 - y0) * (x_value - x0) / (x1 - x0);
+end
+
+(*{doc Bilinear interpolation in a 2-dimensional table: table[i, j] is the value at (x_axis[i], y_axis[j]).
+Both axes must increase strictly over the points used. Outside the table, the coordinates are limited to the
+table (the edge values are kept). The arrays are var_in_out: put a constant table in a variable first.
+The results for NaN and infinity are undefined.
+@inout x_axis The x values of the rows of table (strictly increasing).
+@inout y_axis The y values of the columns of table (strictly increasing).
+@inout table The values; table[lower + i, lower + j] belongs to x_axis[i] and y_axis[j] (counted from the lower bounds).
+@input x_value The x to interpolate at.
+@input y_value The y to interpolate at.
+@input x_count The number of x points used; -1 means all the elements of x_axis. Default: -1.
+@input y_count The number of y points used; -1 means all the elements of y_axis. Default: -1.
+@return The interpolated value.
+@error If fewer than 2 points are used on an axis, a count is larger than an array, an axis does not increase strictly,
+or the lower bounds of the axes and table differ. The result is then 0.0.}*)
+function Interp_linear2d: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The x values of the rows of table.}*)
+		x_axis: array[*] of lreal;
+		(*{doc The y values of the columns of table.}*)
+		y_axis: array[*] of lreal;
+		(*{doc The values of the table.}*)
+		table: array[*, *] of lreal;
+	end
+	var_input
+		(*{doc The x to interpolate at.}*)
+		x_value: lreal;
+		(*{doc The y to interpolate at.}*)
+		y_value: lreal;
+		(*{doc The number of x points used; -1 means all. Default: -1.}*)
+		x_count: dint := -1;
+		(*{doc The number of y points used; -1 means all. Default: -1.}*)
+		y_count: dint := -1;
+	end
+	var_temp
+		x_lower, y_lower: dint;
+		x_points, y_points: dint;
+		x_segment, y_segment: dint;
+		ok: bool;
+		x_clamped, y_clamped: lreal;
+		x_ratio, y_ratio: lreal;
+		i0, j0: dint;
+		v00, v01, v10, v11: lreal;
+	end
+	x_lower := lower_bound(x_axis, 1);
+	y_lower := lower_bound(y_axis, 1);
+	if (lower_bound(table, 1) <> x_lower) or (lower_bound(table, 2) <> y_lower) then
+		eno := false;
+		return;
+	end_if;
+	x_points := x_count;
+	if x_points = -1 then
+		x_points := upper_bound(x_axis, 1) - x_lower + 1;
+	end_if;
+	y_points := y_count;
+	if y_points = -1 then
+		y_points := upper_bound(y_axis, 1) - y_lower + 1;
+	end_if;
+	if (x_points > upper_bound(table, 1) - x_lower + 1) or (y_points > upper_bound(table, 2) - y_lower + 1) then
+		eno := false;
+		return;
+	end_if;
+	ok := private_Interp_segment(axis:=x_axis, point_count:=x_points, value:=x_value, segment=>x_segment);
+	if not ok then
+		eno := false;
+		return;
+	end_if;
+	ok := private_Interp_segment(axis:=y_axis, point_count:=y_points, value:=y_value, segment=>y_segment);
+	if not ok then
+		eno := false;
+		return;
+	end_if;
+	i0 := x_lower + x_segment;
+	j0 := y_lower + y_segment;
+	// Limit the coordinates to the table, so that the edge values are kept outside it.
+	x_clamped := x_value;
+	if x_clamped < x_axis[i0] then
+		x_clamped := x_axis[i0];
+	elsif x_clamped > x_axis[i0 + 1] then
+		x_clamped := x_axis[i0 + 1];
+	end_if;
+	y_clamped := y_value;
+	if y_clamped < y_axis[j0] then
+		y_clamped := y_axis[j0];
+	elsif y_clamped > y_axis[j0 + 1] then
+		y_clamped := y_axis[j0 + 1];
+	end_if;
+	x_ratio := (x_clamped - x_axis[i0]) / (x_axis[i0 + 1] - x_axis[i0]);
+	y_ratio := (y_clamped - y_axis[j0]) / (y_axis[j0 + 1] - y_axis[j0]);
+	v00 := table[i0, j0];
+	v01 := table[i0, j0 + 1];
+	v10 := table[i0 + 1, j0];
+	v11 := table[i0 + 1, j0 + 1];
+	Interp_linear2d := (v00 * (1.0 - y_ratio) + v01 * y_ratio) * (1.0 - x_ratio)
+		+ (v10 * (1.0 - y_ratio) + v11 * y_ratio) * x_ratio;
+end
+
+{#endif}

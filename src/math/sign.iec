@@ -1,0 +1,29 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/math/sign.iec -I./src -o ./src/math/sign.xml -t omron
+ *)
+{#ifndef __MATH_SIGN_IEC__}
+{#define __MATH_SIGN_IEC__}
+
+{#include <sys.iec>}
+
+
+(*{doc Return the sign of the value: -1.0, 0.0 or 1.0.
+@input value The value.
+@return -1.0 if value < 0, 1.0 if value > 0, 0.0 otherwise.}*)
+function Math_sign: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc The value.}*)
+		value: lreal;
+	end
+	if value > 0.0 then
+		Math_sign := 1.0;
+	elsif value < 0.0 then
+		Math_sign := -1.0;
+	else
+		Math_sign := 0.0;
+	end_if;
+end
+
+{#endif}

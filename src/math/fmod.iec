@@ -1,0 +1,71 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/math/fmod.iec -I./src -o ./src/math/fmod.xml -t omron
+ *)
+{#ifndef __MATH_FMOD_IEC__}
+{#define __MATH_FMOD_IEC__}
+
+{#include <sys.iec>}
+
+(*{doc Return the floating-point remainder of dividend / divisor, as fmod in C.
+The result has the sign of dividend and is exact: fmod(5.3, 0.1) = 0.09999999999999953.
+It does not use dividend - trunc(dividend / divisor) * divisor, which is wrong when the quotient is rounded,
+and which overflows lint when the quotient is 2^63 or more.
+The divisor is doubled up to the largest value that does not exceed the dividend, and is then subtracted
+while it is halved back; every step is exact. The loop runs once per binary exponent between the two values,
+at most about 2100 times (for the largest dividend and the smallest subnormal divisor).
+The results for NaN and infinity are undefined (they cannot be made in the same way on every environment).
+@input dividend The value to divide.
+@input divisor The value to divide by. It must not be 0.
+@return The remainder, with the sign of dividend and an absolute value less than the absolute value of divisor.
+@error If divisor is 0.}*)
+function Math_fmod: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc The value to divide.}*)
+		dividend: lreal;
+		(*{doc The value to divide by. It must not be 0.}*)
+		divisor: lreal;
+	end
+	var_temp
+		abs_dividend: lreal;
+		abs_divisor: lreal;
+		scaled: lreal;
+		remainder: lreal;
+		steps: dint;
+		loop_index: dint;
+	end
+	if divisor = 0.0 then
+		eno := false;
+		return;
+	end_if;
+	abs_dividend := abs(dividend);
+	abs_divisor := abs(divisor);
+	if abs_dividend < abs_divisor then
+		Math_fmod := dividend;
+		return;
+	end_if;
+	// Double the divisor while it stays at most half of the dividend. Comparing
+	// with abs_dividend * 0.5 instead of computing scaled * 2.0 first avoids an
+	// overflow to infinity near the largest lreal.
+	scaled := abs_divisor;
+	steps := 0;
+	while scaled <= abs_dividend * 0.5 do
+		scaled := scaled * 2.0;
+		steps := steps + 1;
+	end_while;
+	remainder := abs_dividend;
+	for loop_index := 0 to steps do
+		if remainder >= scaled then
+			remainder := remainder - scaled;
+		end_if;
+		scaled := scaled * 0.5;
+	end_for;
+	if dividend < 0.0 then
+		Math_fmod := -remainder;
+	else
+		Math_fmod := remainder;
+	end_if;
+end
+
+{#endif}

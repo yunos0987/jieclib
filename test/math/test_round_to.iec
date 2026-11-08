@@ -1,0 +1,71 @@
+(*
+ * Test for Math_roundTo
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/math/test_round_to.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/math/test_round_to.xml -t omron
+ *
+ * The expected values come from the definition of Math_roundTo (not Python round(), which rounds a half to even).
+ *)
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <math/round_to.iec>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_round_to
+	)
+)
+{#endif}
+
+TEST_S(test_round_to)
+	var
+		ok: bool;
+	end
+	// Fact: Positive digits round to decimal places; a half is rounded away from zero.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(1.3, Math_roundTo(value:=1.25, digits:=1));
+	EXPECT_EQ_LREAL(-1.3, Math_roundTo(value:=-1.25, digits:=1));
+	EXPECT_EQ_LREAL(3.14, Math_roundTo(value:=3.14159, digits:=2));
+	EXPECT_EQ_LREAL(3.0, Math_roundTo(value:=2.5, digits:=0));
+
+	// Fact: digits = 0 rounds to an integer, and negative values are rounded away from zero.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(-3.0, Math_roundTo(value:=-2.5, digits:=0));
+	EXPECT_EQ_LREAL(2.0, Math_roundTo(value:=2.4, digits:=0));
+	EXPECT_EQ_LREAL(-1.3, Math_roundTo(value:=-1.25, digits:=1));
+
+	// Fact: 1.015 is below 1.015 in binary, so it is rounded down to 1.01.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(1.01, Math_roundTo(value:=1.015, digits:=2));
+
+	// Fact: Negative digits round to tens, hundreds, ...
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(1200.0, Math_roundTo(value:=1234.0, digits:=-2));
+	EXPECT_EQ_LREAL(1300.0, Math_roundTo(value:=1250.0, digits:=-2));
+	EXPECT_EQ_LREAL(-1300.0, Math_roundTo(value:=-1250.0, digits:=-2));
+
+	// Fact: A value whose scaled magnitude is 2^52 or more is returned as it is, without an overflow.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(1e+300, Math_roundTo(value:=1e+300, digits:=15));
+	EXPECT_EQ_LREAL(-1.7976931348623157e+308, Math_roundTo(value:=-1.7976931348623157e+308, digits:=15));
+	EXPECT_EQ_LREAL(1.7976931348623157e+308, Math_roundTo(value:=1.7976931348623157e+308, digits:=-15));
+	EXPECT_EQ_LREAL(4503599627370495.5, Math_roundTo(value:=4503599627370495.5, digits:=1));
+
+	// Fact: The limits -15 and 15 are accepted.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(0.5, Math_roundTo(value:=0.5, digits:=15));
+	EXPECT_EQ_LREAL(5000000000000000.0, Math_roundTo(value:=5000000000000000.0, digits:=-15));
+
+	// Fact: digits outside -15 to 15 is an error.
+		// Arrange
+		// Act
+	Math_roundTo(value:=1.0, digits:=16, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+
+	Math_roundTo(value:=1.0, digits:=-16, eno=>ok);
+	EXPECT_FALSE(ok);
+END_TEST_S

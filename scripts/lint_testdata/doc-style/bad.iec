@@ -1,0 +1,10 @@
+{doc A doc pragma without the comment.}
+function Lint_doc_style_bad: dint
+	var_input
+		{doc: A doc pragma with a colon.}
+		value1: dint;
+		(*{doc: A doc pragma with a colon in a comment.}*)
+		value2: dint;
+	end
+	Lint_doc_style_bad := value1 + value2;
+end

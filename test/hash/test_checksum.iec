@@ -1,0 +1,93 @@
+(*
+ * Test for Checksum_sum8, Checksum_xor8 and Checksum_lrc
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/hash/test_checksum.iec -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/hash/test_checksum.xml -t omron
+ *
+ * The expected values were computed in Python for the ASCII text
+ * 123456789: sum(data) % 256 = 16#DD, the XOR of the bytes = 16#31,
+ * and (-sum(data)) % 256 = 16#23.
+ *)
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <hash/checksum.iec>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_Checksum_sum8,
+		test_Checksum_xor8,
+		test_Checksum_lrc
+	)
+)
+{#endif}
+
+// The ASCII text 123456789.
+{#define CHECKSUM_TEST_DIGITS digits: array[0..8] of byte := [16#31, 16#32, 16#33, 16#34, 16#35, 16#36, 16#37, 16#38, 16#39];}
+
+TEST_S(test_Checksum_sum8)
+	var
+		CHECKSUM_TEST_DIGITS
+		ok: bool;
+	end
+	// Fact: The 8-bit sum of 123456789 is 16#DD (the carries are dropped).
+		// Arrange/Act/Assert
+	EXPECT_EQ_BYTE(byte#16#DD, Checksum_sum8(dat:=digits));
+
+	// Fact: offset and length select a part; an empty part sums to 0.
+		// Arrange/Act/Assert
+	EXPECT_EQ_BYTE(byte#16#63, Checksum_sum8(dat:=digits, offset:=0, length:=2));
+	EXPECT_EQ_BYTE(byte#16#00, Checksum_sum8(dat:=digits, offset:=3, length:=0));
+
+	// Fact: A range outside the array is an error.
+		// Arrange
+		// Act
+	Checksum_sum8(dat:=digits, offset:=8, length:=2, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+END_TEST_S
+
+TEST_S(test_Checksum_xor8)
+	var
+		CHECKSUM_TEST_DIGITS
+		ok: bool;
+	end
+	// Fact: The XOR of 123456789 is 16#31.
+		// Arrange/Act/Assert
+	EXPECT_EQ_BYTE(byte#16#31, Checksum_xor8(dat:=digits));
+
+	// Fact: offset and length select a part.
+		// Arrange/Act/Assert
+	EXPECT_EQ_BYTE(byte#16#03, Checksum_xor8(dat:=digits, offset:=0, length:=2));
+
+	// Fact: length < -1 is an error.
+		// Arrange
+		// Act
+	Checksum_xor8(dat:=digits, offset:=0, length:=-2, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+END_TEST_S
+
+TEST_S(test_Checksum_lrc)
+	var
+		CHECKSUM_TEST_DIGITS
+		ok: bool;
+	end
+	// Fact: The LRC of 123456789 is 16#23, and the sum of the bytes and the LRC is 0 modulo 256.
+		// Arrange/Act/Assert
+	EXPECT_EQ_BYTE(byte#16#23, Checksum_lrc(dat:=digits));
+	EXPECT_EQ_DINT(0, (byte_to_dint(Checksum_sum8(dat:=digits)) + byte_to_dint(Checksum_lrc(dat:=digits))) mod 256);
+
+	// Fact: The LRC of an empty part is 0.
+		// Arrange/Act/Assert
+	EXPECT_EQ_BYTE(byte#16#00, Checksum_lrc(dat:=digits, offset:=0, length:=0));
+
+	// Fact: A range outside the array is an error.
+		// Arrange
+		// Act
+	Checksum_lrc(dat:=digits, offset:=-1, length:=1, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+END_TEST_S

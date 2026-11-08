@@ -23,7 +23,7 @@ function String_asciiCharCodeAt: dint
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
 		self: STRING;
-		{doc: 0-originの文字位置。}
+		(*{doc 0-originの文字位置。}*)
 		p: dint := 0;
 	end
 	var_temp
@@ -63,7 +63,7 @@ function String_equals: bool
 		self: STRING;
 	end
 	var_input
-		{doc: 比較対象の文字列。}
+		(*{doc 比較対象の文字列。}*)
 		other: STRING;
 	end
 	String_equals := self = other;

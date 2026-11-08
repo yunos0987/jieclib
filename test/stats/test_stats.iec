@@ -2,9 +2,6 @@
  * $ cd <JiecLib Project Root>
  * $ jiecc ./test/stats/test_stats.iec -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/stats/test_stats.xml -t omron
  *)
-{#if _JIECC and (_JIECC_FULL_VER < 90200)}
-{#error JiecLib requires Jiecc 9.2.0 or later.}
-{#endif}
 {#include <jiecunit.iec>}
 {#if _JIECUNIT and (_JIECUNIT_VER < 402)}
 	{#error This test requires JiecUnit 4.2 or later.}
@@ -139,7 +136,23 @@ DEFINE_CONFIGURATION(
 		test_stats_quantiles,
 		test_stats_rankdata,
 		test_stats_sorted_copy,
-		test_stats_select_kth
+		test_stats_select_kth,
+		test_stats_basic_sampleSize,
+		test_stats_basic_sum,
+		test_stats_basic_mean,
+		test_stats_basic_variance,
+		test_stats_basic_sampleVariance,
+		test_stats_basic_standardDeviation,
+		test_stats_basic_standardError,
+		test_stats_basic_coefficientOfVariation,
+		test_stats_basic_geometricMean,
+		test_stats_basic_harmonicMean,
+		test_stats_basic_skewness,
+		test_stats_basic_kurtosis,
+		test_stats_basic_median,
+		test_Stats_p_value_normal_two_tailed,
+		test_Stats_p_value_t_two_tailed,
+		test_Stats_p_value_chi_square_right
 	)
 )
 {#undef _TEST_}
@@ -185,3 +198,5 @@ DEFINE_CONFIGURATION(
 {#include "sequences/test_quantile.iec"}
 {#include "sequences/test_rank.iec"}
 {#include "sequences/test_sort_select.iec"}
+{#include "test_stats_basic.iec"}
+{#include "inference/tests/test_p_values.iec"}

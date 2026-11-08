@@ -71,7 +71,7 @@ function Random_nextExponential: lreal
 		if rand_val <= lreal#0.0 then
 			rand_val := lreal#2.2204460492503e-16; // guard against log(0)
 		end_if;
-		Random_nextExponential := -LN(rand_val) / lambda;
+		Random_nextExponential := -ln(rand_val) / lambda;
 	end_if;
 end
 

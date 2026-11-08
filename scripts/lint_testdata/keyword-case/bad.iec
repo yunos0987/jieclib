@@ -1,0 +1,12 @@
+(*{doc Uppercase keywords, literals, types and standard functions.}*)
+function Lint_keyword_case_bad: LREAL
+	var_input
+		(*{doc An input value.}*)
+		value: lreal;
+	end
+	if (value > 0.0) OR (value < -1.0) then
+		Lint_keyword_case_bad := SQRT(abs(value));
+	elsif TRUE then
+		Lint_keyword_case_bad := DINT_TO_LREAL(1);
+	end_if;
+end

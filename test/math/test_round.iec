@@ -1,0 +1,48 @@
+(*
+ * Test for Math_round
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/math/test_round.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/math/test_round.xml -t omron
+ *
+ * The expected values come from the definition: a half is rounded away from zero.
+ *)
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <math/round.iec>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_round
+	)
+)
+{#endif}
+
+TEST_S(test_round)
+	// Fact: A half is rounded away from zero.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(3.0, Math_round(value:=2.5));
+	EXPECT_EQ_LREAL(-3.0, Math_round(value:=-2.5));
+	EXPECT_EQ_LREAL(1.0, Math_round(value:=0.5));
+	EXPECT_EQ_LREAL(-1.0, Math_round(value:=-0.5));
+	EXPECT_EQ_LREAL(2.0, Math_round(value:=1.5));
+
+	// Fact: Other values are rounded to the nearest integer.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(2.0, Math_round(value:=2.4999));
+	EXPECT_EQ_LREAL(-3.0, Math_round(value:=-2.6));
+	EXPECT_EQ_LREAL(0.0, Math_round(value:=0.0));
+
+	// Fact: 0.49999999999999994 (the largest lreal below 0.5) is rounded to 0, not 1, and its negative to 0, not -1.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(0.0, Math_round(value:=0.49999999999999994));
+	EXPECT_EQ_LREAL(0.0, Math_round(value:=-0.49999999999999994));
+
+	// Fact: Values around 2^52 and large values are correct.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(4503599627370496.0, Math_round(value:=4503599627370495.5));
+	EXPECT_EQ_LREAL(-4503599627370496.0, Math_round(value:=-4503599627370495.5));
+	EXPECT_EQ_LREAL(1e+300, Math_round(value:=1e+300));
+END_TEST_S

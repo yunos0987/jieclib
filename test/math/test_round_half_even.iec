@@ -1,0 +1,53 @@
+(*
+ * Test for Math_roundHalfEven
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/math/test_round_half_even.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/math/test_round_half_even.xml -t omron
+ *
+ * The expected values come from the definition (Python round() for these values).
+ *)
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <math/round_half_even.iec>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_round_half_even
+	)
+)
+{#endif}
+
+TEST_S(test_round_half_even)
+	// Fact: A half is rounded to the even integer.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(2.0, Math_roundHalfEven(value:=2.5));
+	EXPECT_EQ_LREAL(4.0, Math_roundHalfEven(value:=3.5));
+	EXPECT_EQ_LREAL(-2.0, Math_roundHalfEven(value:=-2.5));
+	EXPECT_EQ_LREAL(-4.0, Math_roundHalfEven(value:=-3.5));
+	EXPECT_EQ_LREAL(0.0, Math_roundHalfEven(value:=0.5));
+	EXPECT_EQ_LREAL(2.0, Math_roundHalfEven(value:=1.5));
+
+	// Fact: Negative halves are rounded to the even integer too.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(0.0, Math_roundHalfEven(value:=-0.5));
+	EXPECT_EQ_LREAL(-2.0, Math_roundHalfEven(value:=-1.5));
+
+	// Fact: Other values are rounded to the nearest integer.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(3.0, Math_roundHalfEven(value:=2.6));
+	EXPECT_EQ_LREAL(-3.0, Math_roundHalfEven(value:=-2.6));
+	EXPECT_EQ_LREAL(2.0, Math_roundHalfEven(value:=2.4));
+
+	// Fact: A half just below 2^52 is rounded to the even integer.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(4503599627370496.0, Math_roundHalfEven(value:=4503599627370495.5));
+	EXPECT_EQ_LREAL(4503599627370494.0, Math_roundHalfEven(value:=4503599627370494.5));
+
+	// Fact: Large values are returned as they are.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(1e+19, Math_roundHalfEven(value:=1e+19));
+	EXPECT_EQ_LREAL(-1e+300, Math_roundHalfEven(value:=-1e+300));
+END_TEST_S

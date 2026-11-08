@@ -1,0 +1,26 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/math/ceil.iec -I./src -o ./src/math/ceil.xml -t omron
+ *)
+{#ifndef __MATH_CEIL_IEC__}
+{#define __MATH_CEIL_IEC__}
+
+{#include <sys.iec>}
+{#include <math/floor.iec>}
+
+
+(*{doc Return the smallest integer that is not less than the value (the ceiling function).
+ceil(2.1) = 3.0, ceil(-2.7) = -2.0. The result is the same as -Math_floor(-value).
+The results for NaN and infinity are undefined (they cannot be made in the same way on every environment).
+@input value The value.
+@return The smallest integer that is not less than value.}*)
+function Math_ceil: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc The value.}*)
+		value: lreal;
+	end
+	Math_ceil := -Math_floor(x:=-value);
+end
+
+{#endif}

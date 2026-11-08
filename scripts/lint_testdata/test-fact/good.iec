@@ -1,0 +1,11 @@
+TEST_S(test_lint_fact_good1)
+	// Fact: One equals one.
+		// Act/Assert
+	EXPECT_EQ(1, 1);
+END_TEST_S
+
+TEST_M(test_lint_fact_good2)
+	// Fact: Two equals two.
+		// Act/Assert
+	EXPECT_EQ(2, 2);
+END_TEST_M

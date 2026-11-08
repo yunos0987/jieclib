@@ -1,0 +1,9 @@
+(*{doc Return a value.}*)
+function Lint_parse_nested: dint
+	var_input
+		(*{doc An input value.}*)
+		value: dint;
+	end
+	(* An outer comment (* with an inner comment *) is not supported. *)
+	Lint_parse_nested := value;
+end

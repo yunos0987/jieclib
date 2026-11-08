@@ -1,0 +1,45 @@
+(*
+ * Sample: simulate the variation of a process value with normally distributed random numbers.
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./samples/random_process_variation/random_process_variation.iec -I./src -o ./samples/random_process_variation/random_process_variation.xml -t omron
+ *)
+
+{#include <random/mersenne_twister.iec>}
+
+(*{doc Output a simulated process value: the target plus a normally distributed variation,
+and a rare defect (a Bernoulli trial). Use it to test a control program without a machine.}*)
+program RandomSample
+	var
+		(*{doc The target value of the process.}*)
+		target: lreal := 100.0;
+		(*{doc The standard deviation of the variation.}*)
+		variation: lreal := 0.5;
+		(*{doc The probability of a defect per cycle.}*)
+		defect_rate: lreal := 0.001;
+	end
+	var
+		(*{doc The simulated process value.}*)
+		process_value: lreal;
+		(*{doc True in the cycles that simulate a defect.}*)
+		defect: bool;
+	end
+	var
+		generator: MersenneTwister_t;
+		initialized: bool;
+		ok: bool;
+		next_value: lreal;
+	end
+	if not initialized then
+		// A fixed seed gives the same sequence after every restart, which makes
+		// a test repeatable. Use another seed (a clock, ...) for other sequences.
+		MersenneTwister_init(generator, dword#16#CAFEBABE);
+		initialized := true;
+	end_if;
+
+	// nextGaussian returns eno = false for a negative sigma; keep the last value then.
+	next_value := MersenneTwister_nextGaussian(self:=generator, mean:=target, sigma:=variation, eno=>ok);
+	if ok then
+		process_value := next_value;
+	end_if;
+	defect := MersenneTwister_nextBernoulli(self:=generator, prob:=defect_rate);
+end_program

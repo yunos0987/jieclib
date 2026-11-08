@@ -1,0 +1,42 @@
+(*
+ * Test for Math_ceil
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/math/test_ceil.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/math/test_ceil.xml -t omron
+ *
+ * The expected values come from math.ceil of Python.
+ *)
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <math/ceil.iec>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_ceil
+	)
+)
+{#endif}
+
+TEST_S(test_ceil)
+	// Fact: ceil rounds up to the next integer.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(3.0, Math_ceil(value:=2.1));
+	EXPECT_EQ_LREAL(-2.0, Math_ceil(value:=-2.7));
+	EXPECT_EQ_LREAL(2.0, Math_ceil(value:=2.0));
+	EXPECT_EQ_LREAL(0.0, Math_ceil(value:=-0.5));
+	EXPECT_EQ_LREAL(0.0, Math_ceil(value:=0.0));
+
+	// Fact: Values around 2^52 are rounded up correctly.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(4503599627370496.0, Math_ceil(value:=4503599627370495.5));
+	EXPECT_EQ_LREAL(-4503599627370495.0, Math_ceil(value:=-4503599627370495.5));
+
+	// Fact: Large values are returned as they are.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(1e+19, Math_ceil(value:=1e+19));
+	EXPECT_EQ_LREAL(-1e+19, Math_ceil(value:=-1e+19));
+	EXPECT_EQ_LREAL(1e+300, Math_ceil(value:=1e+300));
+END_TEST_S

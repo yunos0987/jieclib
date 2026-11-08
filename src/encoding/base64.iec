@@ -109,7 +109,7 @@ end
 function base64decode: dint
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
-		txt: STRING (*{doc: input base64 text.}*);
+		txt: STRING (*{doc input base64 text.}*);
 	end
 	var_in_out
 		dat: array[*] of byte;

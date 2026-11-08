@@ -1,0 +1,79 @@
+name: Release XML
+
+# Attaches the IEC 61131-10 XML of src/ to a GitHub Release: one zip per
+# target (omron and keyence), made by scripts/package_release.py. The author
+# keeps creating Releases as before; publishing one starts this workflow.
+# workflow_dispatch rebuilds the files of an existing Release.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag of the Release to rebuild (for example v4.1.0)
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Builds the zips with read-only permissions. The downloaded Jiecc runs
+  # only here, never with a token that can write.
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # refs/tags/ makes sure that a branch with the same name is not used.
+          ref: refs/tags/${{ github.event_name == 'release' && github.event.release.tag_name || inputs.tag }}
+          submodules: recursive
+
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.x"
+
+      # The tag is passed in the environment, not written into the script,
+      # so that a crafted tag name cannot inject a command.
+      - name: Check the tag against VERSION
+        env:
+          TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.tag }}
+        run: python scripts/package_release.py check-tag "$TAG"
+
+      - uses: ./.github/actions/setup-jiecc
+
+      - name: Compile src/ to XML
+        run: python scripts/run_tests.py --compile-only --output-dir out --jiecc "$JIECC_EXE" src
+
+      - name: Make the zips
+        run: |
+          python scripts/package_release.py package --xml-dir out --dist dist \
+            --jiecc-version "$("$JIECC_EXE" --version)"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-xml
+          path: dist/*.zip
+          if-no-files-found: error
+
+  # Attaches the zips to the Release; the only job that can write.
+  upload:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-xml
+          path: dist
+
+      - name: Attach the zips to the Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.tag }}
+        run: gh release upload "$TAG" dist/*.zip --clobber

@@ -1,0 +1,82 @@
+name: PR checks
+
+# Checks of a pull request that depend on its labels and body. They are kept
+# out of ci.yml so that editing the body or a label does not rerun the long
+# compile and run jobs.
+on:
+  pull_request:
+    branches: [main, develop]
+    # edited reruns the checks when the body changes; labeled and unlabeled
+    # rerun them when the lint-baseline-reset label changes.
+    types: [opened, edited, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+jobs:
+  # Fails when the pull request adds entries to scripts/lint_baseline.json,
+  # compared with the merge base of the pull request and its target branch
+  # (comparing with the latest target branch would treat entries removed there
+  # as added here). A pull request that changes a lint rule and rewrites the
+  # baseline gets the lint-baseline-reset label from the maintainer, with the
+  # reason in its body; reviewers check who set the label.
+  lint-baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.x"
+
+      # Values from the event are passed through env, never pasted into the script.
+      - name: Check that the lint baseline does not grow
+        shell: python
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: |
+          import json
+          import os
+          import subprocess
+          import sys
+
+          if "lint-baseline-reset" in json.loads(os.environ["LABELS"]):
+              print("The lint-baseline-reset label is set; the baseline comparison is skipped.")
+              sys.exit(0)
+          base = subprocess.check_output(
+              ["git", "merge-base", "origin/" + os.environ["BASE_REF"], "HEAD"]).decode().strip()
+          sys.exit(subprocess.call([sys.executable, "scripts/lint.py",
+                                    "--check-baseline-against", base]))
+
+  # Fails when the body does not record the L3 / L4 results that the change
+  # requires (see .github/pull_request_template.md and scripts/check_pr_body.py).
+  # A pull request to main merges a release from develop; its changes were
+  # recorded in their own pull requests, so it is not checked.
+  pr-body:
+    if: github.base_ref != 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.x"
+
+      - name: Check the L3 / L4 records in the pull request body
+        shell: python
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          import os
+          import subprocess
+          import sys
+
+          base = subprocess.check_output(
+              ["git", "merge-base", "origin/" + os.environ["BASE_REF"], "HEAD"]).decode().strip()
+          sys.exit(subprocess.call([sys.executable, "scripts/check_pr_body.py", "--base", base]))

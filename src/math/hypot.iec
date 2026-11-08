@@ -1,0 +1,46 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/math/hypot.iec -I./src -o ./src/math/hypot.xml -t omron
+ *)
+{#ifndef __MATH_HYPOT_IEC__}
+{#define __MATH_HYPOT_IEC__}
+
+{#include <sys.iec>}
+
+
+(*{doc Return sqrt(x_value^2 + y_value^2), the length of the vector (x_value, y_value).
+The values are divided by the larger absolute value first, so the squares do not overflow:
+hypot(3.0e200, 4.0e200) = 5.0e200.
+The results for NaN and infinity are undefined (they cannot be made in the same way on every environment).
+@input x_value The x component.
+@input y_value The y component.
+@return The length.}*)
+function Math_hypot: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc The x component.}*)
+		x_value: lreal;
+		(*{doc The y component.}*)
+		y_value: lreal;
+	end
+	var_temp
+		larger: lreal;
+		smaller: lreal;
+		ratio: lreal;
+	end
+	larger := abs(x_value);
+	smaller := abs(y_value);
+	if smaller > larger then
+		ratio := larger;
+		larger := smaller;
+		smaller := ratio;
+	end_if;
+	if larger = 0.0 then
+		Math_hypot := 0.0;
+		return;
+	end_if;
+	ratio := smaller / larger;
+	Math_hypot := larger * sqrt(1.0 + ratio * ratio);
+end
+
+{#endif}

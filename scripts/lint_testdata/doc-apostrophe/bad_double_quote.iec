@@ -1,0 +1,8 @@
+(*{doc Return a value. The quote 'it' is paired, but "this one is not.}*)
+function Lint_doc_quote_bad: dint
+	var_input
+		(*{doc An input value.}*)
+		value: dint;
+	end
+	Lint_doc_quote_bad := value;
+end

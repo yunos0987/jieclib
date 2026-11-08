@@ -1,0 +1,9 @@
+(*{doc Return a value.}*)
+function Lint_parse_bad: dint
+	var_input
+		(*{doc An input value.}*)
+		value: dint;
+	end
+	Lint_parse_bad := value;
+end
+(* This comment is not closed.

@@ -1,0 +1,18 @@
+{#define STRING string[80]}
+{#define MY_TRUE true}
+
+(*{doc Lowercase keywords. Uppercase words in comments, strings and macro names are allowed.}*)
+function Lint_keyword_case_good: dint
+	var_input
+		(*{doc An input value; IF and OR in a doc pragma are text.}*)
+		value: dword;
+		(*{doc A name.}*)
+		name: STRING;
+	end
+	// IF THEN ELSE in a comment is text.
+	(* WHILE TRUE DO in a block comment is text. *)
+	name := 'IF OR TRUE';
+	if (value = 16#DEADBEEF) or MY_TRUE then
+		Lint_keyword_case_good := lreal_to_dint(sqrt(4.0));
+	end_if;
+end

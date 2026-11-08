@@ -21,9 +21,10 @@ JiecLib への貢献に関心を持っていただき、ありがとうござい
 
 1. `develop` ブランチから作業用のブランチを作る。
 2. 変更する。コミットは、目的が分かる最小の単位にする。
-3. `python scripts/run_tests.py` を実行し、`All checks passed.` と表示されることを確認する（[テストの実行](#テストの実行)）。
-4. Pull Request を作る。通常は `develop` を宛先にする。`main` への Pull Request は、`develop` からのリリースの取り込みに使う。
-5. リリースは、`main` のコミットにタグ `vX.Y.Z` を付けて行う（[バージョン管理](#バージョン管理)）。
+3. `python scripts/run_tests.py` を実行し、`All checks passed.` と表示されることを確認する。`python scripts/lint.py` を実行し、`Lint passed.` と表示されることを確認する（[テストの実行](#テストの実行)）。
+4. 利用者に関係する変更は、[CHANGELOG.md](CHANGELOG.md) の `[Unreleased]` 節に書く。
+5. Pull Request を作る。通常は `develop` を宛先にする。`main` への Pull Request は、`develop` からのリリースの取り込みに使う。本文は、テンプレート（`.github/pull_request_template.md`）の欄を埋める。`src/` を変更したときは Sysmac Studio のシミュレータでの実行（L3）の結果を、keyence を宣言したファイルを変更したときは KV Studio での実行（L4）の結果を書く（未実施なら理由を書く）。CI がこの欄の書式を確かめる。
+6. リリースは、`main` のコミットにタグ `vX.Y.Z` を付けて行う（[バージョン管理](#バージョン管理)）。
 
 ## テストの実行
 
@@ -36,8 +37,9 @@ $ python scripts/run_tests.py
 
 `scripts/run_tests.py` は、次の 2 つを行います。
 
-- コンパイル: `src/` のライブラリ（先頭コメントに `$ jiecc` のコマンド行があるファイル）と、`test/` のテスト（`DEFINE_CONFIGURATION` を含むファイル）を、先頭コメントの `-t` に書かれたターゲット（書かれていなければ `omron`）でコンパイルします。生成した XML は一時ディレクトリに出力し、終了時に削除します。
-- 実行: `test/` のテストを、jier（`jiecc --run`）で実行します。`jiecc --run` の終了コードはテストの失敗を反映しないため、JiecUnit の集計行（`[========] N tests ran.` など）から合否を判定します。
+- コンパイル: `src/` のライブラリと `samples/` の利用例（先頭コメントに `$ jiecc` のコマンド行があるファイル）と、`test/` のテスト（`DEFINE_CONFIGURATION` を含むファイル）を、先頭コメントの `-t` に書かれたターゲット（書かれていなければ `omron`）でコンパイルします。生成した XML は一時ディレクトリに出力し、終了時に削除します。
+- 実行: `test/` のテストを、jier（`jiecc --run`）で実行します。JiecUnit v7.0.0 は、テストが終わると `halt` で jier を止めるので、`jiecc --run` は `--max-cycles` を待たずに終わり、終了コードはテストの結果を反映します（全テストが合格なら 0、失敗があれば 1）。終了コードが 0 で、JiecUnit の集計行（`[========] N tests ran.` など）が全テストの合格を示すときだけ、合格とします。
+- 実行の例外: ライブラリのテストを 1 つにまとめるファイル（自分では `TEST_S` / `TEST_M` を定義せず、テストファイルを `{#include "..."}` するだけのファイル。例: `test/container/test_container.iec`）は、まとめるファイルがすべて実行の対象にあるとき、コンパイルだけを行い、jier では実行しません（同じテストを 2 回実行しないため）。`SKIP run` の行に表示します。そのファイルだけを指定したときは実行します。PLC の環境で、全テストを一度に取り込むときに使います。
 
 どちらも、`jiecc` の出力に `error:` の行があれば失敗とみなします。すべて成功すると、最後に `All checks passed.` と表示されます。
 
@@ -53,10 +55,91 @@ $ python scripts/run_tests.py --jiecc /path/to/jiecc.exe
 - `--compile-only`: コンパイルだけを行います。
 - `--run-only`: テストの実行だけを行います。
 - `--jobs N`: 並列に実行する jiecc の数（既定: CPU 数）。
-- `--max-cycles N`: `jiecc --run` の最大スキャン回数。
-- `--timeout SEC`: jiecc 1 回あたりの制限時間（秒）。
+- `--max-cycles N`: `jiecc --run` の最大スキャン回数（既定: 2000）。`halt` に届かないテストを止めるための上限です。上限で止まると集計行が出ないので、失敗と判定されます。`TEST_M`（複数の周期にわたるテスト）の周期数の合計がこれを超えるファイルは、大きな値を指定してください。
+- `--timeout SEC`: jiecc 1 回あたりの制限時間（秒。既定: 300）。時間を超えると（1 周期の中で終わらない処理など）、jiecc が起動した子のプロセスも含めて終了させ、失敗とします。テストの実行の行には、ファイルごとにかかった秒数（`[12.3 s]`）を表示します。
+- テストの実行では、`jiecc --help` に `--allow-narrowing` があれば（Jiecc 9.4.0 以降）、`jiecc --run` にそれを付けます。Jiecc 9.4.0 から jier は型の不一致で止まり（`--type-check` の既定が `fail`）、OMRON の `LEN` の戻り値 UINT を変換する `uint_to_dint(len(s))` は、jier の `len` が DINT を返すため、DINT から UINT への縮小になります。`--allow-narrowing` は、同じ族の中の縮小を警告に戻します。
+- `--output-dir DIR`: 生成した XML を消さずに、`DIR/<ターゲット>/<ファイルのパス>.xml`（例: `DIR/omron/src/string_lib/string_lib.xml`）に残します。コンパイルに失敗したファイルの XML は残しません。`--run-only` とは一緒に使えません。
 
-GitHub Actions の CI（`.github/workflows/ci.yml`）は、Windows と Linux の両方で、最新の Jiecc（Windows は [jiecc.zip](https://www.graviness.com/iec_61131-3/jiecc.zip)、Linux は [jiecc.tgz](https://www.graviness.com/iec_61131-3/jiecc.tgz)）を取得し、`--compile-only` と `--run-only` を別々のジョブで実行します。現在、テストの実行のジョブは失敗しても CI を失敗にしません。
+すべてのテストファイルは、jier で通るようにしてください。CI の `run` ジョブが、Windows と Linux で全テストを jier で実行し、1 つでも失敗すると CI を失敗にします。
+
+1 つのテストファイルは、jier で単独で実行して 60 秒以内に終わるようにしてください（全件を並列で実行すると 2〜3 倍かかります。`--timeout` の既定の 300 秒を超えると失敗します）。jier は PLC より遅いので、60 秒を超えるファイルは、`{#ifdef _JIER}` で jier のときだけ繰り返しの回数や標本の数を減らします。標本の数に依存する許容幅は、減らした数で計算し直し、計算の方法をコメントに書いてください（例: `test/random/test_random_distribution.iec`）。PLC のターゲットでの処理は変えません。
+
+### 規約の検査（lint）
+
+`scripts/lint.py` は、[コーディング規約](#コーディング規約)と AGENTS.md の規約のうち、ソースを読んで判定できるものを検査します。jiecc は要りません。
+
+```
+$ python scripts/lint.py
+$ python scripts/lint.py src/math test/math
+```
+
+`src/`・`test/`・`samples/` の `.iec` を読み、違反を `<path>:<line>: error: <規則>: <説明>`（警告は `warning:`）の形で 1 行ずつ出力します。違反がなければ、最後に `Lint passed.` と表示されます。規則の一覧は `scripts/lint.py` の先頭のコメントにあります。キーワードなどの小文字の規則では、`{#define}` で定義したマクロの名前（`STRING` など）と、`.` の後のメンバーの名前は検査しません。マクロの名前は、どのファイルで定義したものでも、すべてのファイルで検査の対象外になります。
+
+- エラーの規則（キーワードなどを小文字で書く、doc プラグマを `(*{doc ...}*)` の形で書く、doc プラグマの引用符を対にする、`src/` の POU の直前に doc プラグマを書く、`continue` と `/* */` を使わない）は、1 件でもあれば失敗です。
+- 警告の規則（コメントと doc プラグマを英語で書く、テストに `// Fact:` を書く）は、既存の違反を `scripts/lint_baseline.json` に一覧として記録しています。一覧にない警告が出たら失敗です。新しく書くコードでは、警告も出さないでください。
+- 一覧の項目は、ファイルと、コメントの最初の日本語の行（またはテストの名前）です。行番号は含まないので、コードを動かしても変わりません。既存の日本語のコメントの、最初の日本語の行を書き換えると、新しい警告になります。そのときは英語に直してください。
+- 警告を直したら、`python scripts/lint.py --update-baseline` で一覧から消します。このオプションは、一覧にある規則の項目を消すだけで、足しません。一覧に節のない規則（新しく足した警告の規則）だけは、今の警告で節を作ります。一覧のファイルがないときはエラーになります。
+- 一覧に項目を足す変更は、CI（`pr-checks.yml` の `lint-baseline` ジョブ）が失敗にします。規則そのものを見直す Pull Request だけは、`python scripts/lint.py --reset-baseline` で一覧を作り直し、管理者がラベル `lint-baseline-reset` を付けます。本文に理由を書いてください。
+- `scripts/test_lint.py` は、`lint.py` の単体テストです。規則ごとの違反の例と違反しない例が `scripts/lint_testdata/` にあります。
+
+#### 対応ターゲットの宣言
+
+各 `.iec` の先頭コメントの `$ jiecc ... -t <ターゲット>` の行が、対応を宣言したターゲットです（[README.md の「対応ターゲット」](README.md#対応ターゲット)）。宣言は、そのターゲットの開発環境で確かめたものだけにします。新しいファイルは omron だけを宣言します。
+
+- `src/<名前>/` のエントリファイルと `test/<名前>/` のテストは、同じライブラリとして扱います（`src/` と `test/` の直下のファイルは `sys`）。ソースとテストで宣言が違うと、lint の `target-consistency` がエラーにします（パスを指定しない、全体の検査のとき）。ソースにヘッダーがないライブラリ（テンプレートだけのもの）は、テストのヘッダーを宣言とみなします。
+- 宣言を変えたとき、ライブラリを追加したときは、`python scripts/target_table.py --update` で README.md の表を作り直します。CI の `lint` ジョブが、表とヘッダーの一致を確かめます（`--check`）。
+- 開発環境で確かめた結果は、Pull Request の本文の L3・L4 の欄に書き、README.md の「開発環境で確かめた結果」の表も直します。
+
+#### コンパイルした XML の検査
+
+名前と型の規則は、jiecc でコンパイルした XML を読んで検査します。テンプレートが作る POU や変数の名前も検査できます。
+
+```
+$ python scripts/run_tests.py --compile-only --output-dir out
+$ python scripts/lint.py --xml-dir out
+```
+
+`--xml-dir` を付けると、ソースの規則に加えて、次の規則を検査します（`scripts/lint_xml.py`）。違反は `<XML>: error: <規則>: <POU 名>.<名前>: <説明>` の形で出力します。同じ POU は、それを include したすべての XML に入るので、規則・POU・名前ごとに 1 回だけ出力します。
+
+| 規則 | 重さ | 内容 |
+|---|---|---|
+| `xml-missing` | エラー | ヘッダーで宣言したターゲットの XML がない、または読めない（コンパイルの失敗を見逃さない） |
+| `pou-name-length` | エラー | POU 名が 64 バイトを超える |
+| `reserved-name` | エラー | 変数・構造体のメンバーの名前が `left`・`right`・`len`・`cmp`・`dec` |
+| `omron-p-prefix` | エラー | 変数・構造体のメンバーの名前が `p_`・`P_` で始まる |
+| `varlen-array-inout` | エラー | 可変長配列（`array[*]`）を `var_in_out` 以外で使う |
+| `no-struct-return` | エラー | 関数が構造体を返す |
+| `no-alias-type` | エラー | 直接派生型（エイリアス型）を宣言する |
+| `keyence-names` | 警告 | keyence（または mitsubishi）を宣言したファイルで、1 文字の名前、`h` / `H` で始まり `_` を含まない変数名、`^[rRtTcC]\d+$` の変数名を使う |
+
+- 対象は、関数・ファンクションブロックの変数（引数・局所変数・一時変数）と、構造体のメンバーです。テストのプログラム（`Program`）と、構成（`Configuration`）のグローバル変数（テストにだけある）と、JiecUnit の POU と型（`vendor/jiecunit` で定義し、`src/` で定義していないもの、`JiecTest_` で始まるもの）は検査しません。
+- `keyence-names` の既存の違反は、`scripts/lint_baseline.json` の `keyence-names` の節にあります（項目は `<POU 名>.<名前>`）。`--xml-dir` を付けずに `--update-baseline` を実行しても、この節は変わりません。
+- CI の `compile` ジョブが、コンパイルの後にこの検査を行います。
+- ファイルやディレクトリを指定すると（例: `python scripts/lint.py --xml-dir out src/math`）、その下のファイルの XML だけを読みます。
+
+#### テストのない POU の検査
+
+公開の POU には、テストを書いてください。`scripts/pou_inventory.py` は、コンパイルした XML（omron）を読み、テストのプログラムから直接呼ばれていない公開の POU を一覧にします。
+
+```
+$ python scripts/run_tests.py --compile-only --output-dir out
+$ python scripts/pou_inventory.py --xml-dir out --check
+```
+
+- `src/` のエントリファイルの XML にある POU（`src/` が具体化したテンプレートの POU を含む）は、1 つずつテストが要ります。
+- テストでだけ具体化するテンプレート（container など）は、操作ごとにまとめます。`HashMap_*_copy` のどれか 1 つの具体化が呼ばれていれば、テストありです。操作の形は、テンプレートの名前を作るマクロ（`{#define _HASHMAP_COPY_(T) HashMap_@@T@@_copy}`）から求めます。
+- 名前に `private` または `_static_` を含む POU は、内部の POU なので対象外です。
+- テストを書かない理由がある POU は、`scripts/pou_inventory_allow.txt` に `<名前またはテンプレートの形> <理由>` の形で載せます。`--check` は、一覧にないテストなしの POU、どの分類にも当てはまらない POU（未分類）、理由のない行、古い行（POU がない、またはテストができた）があれば失敗します。テストを書いたら、一覧の行を消してください。
+- CI の `compile` ジョブが、XML の lint の後に `--check` を実行します。
+
+### CI
+
+GitHub Actions の CI（`.github/workflows/ci.yml`）は、Windows と Linux の両方で、最新の Jiecc（Windows は [jiecc.zip](https://www.graviness.com/iec_61131-3/jiecc.zip)、Linux は [jiecc.tgz](https://www.graviness.com/iec_61131-3/jiecc.tgz)）を取得し、`--compile-only` と `--run-only` を別々のジョブで実行します。`run` ジョブは、全テストを jier で実行し（1 ファイルあたり `--timeout 300`）、1 つでも失敗すると CI を失敗にします。このジョブは、`scripts/run_tests.py` と `scripts/lint.py` の単体テストも、jiecc を使って実行します。`compile` ジョブは、コンパイルの後に、生成した XML を `python scripts/lint.py --xml-dir out` で検査します（[コンパイルした XML の検査](#コンパイルした-xml-の検査)）。`lint` ジョブは `scripts/lint.py` とその単体テストを実行します。
+
+Pull Request では、`.github/workflows/pr-checks.yml` も実行します。本文やラベルを変えたときにも再実行されます。
+
+- `lint-baseline`: `scripts/lint_baseline.json` に、宛先のブランチとの分岐点のコミットにない項目があれば失敗にします。ラベル `lint-baseline-reset` があれば省略します。
+- `pr-body`: 本文の L3・L4 の欄の書式を確かめます（`scripts/check_pr_body.py`）。宛先が `main` の Pull Request は対象外です。
 
 ## コーディング規約
 
@@ -256,7 +339,9 @@ end
 
 JiecLib のバージョンは、リポジトリルートの `VERSION` ファイルに `MAJOR.MINOR.PATCH`（例: `3.4.0`）の 1 行で記録します。バージョンを表すマクロはありません。Git のタグ（`vX.Y.Z`）は、`VERSION` と同じ番号を `main` のコミットに付けたものです。
 
-`VERSION` は、リリース専用のコミット（メッセージは `release vX.Y.Z`）でだけ更新します。機能追加・修正のコミットでは更新しません。同じコミットで、[CHANGELOG.md](CHANGELOG.md) の変更中の節の見出しを `[X.Y.Z] - 日付` に置き換えます。`develop` を `main` にマージした後、`main` のコミットにタグを付けます。
+`VERSION` は、リリース専用のコミット（メッセージは `release vX.Y.Z`）でだけ更新します。機能追加・修正のコミットでは更新しません。変更の内容は、Pull Request ごとに [CHANGELOG.md](CHANGELOG.md) の `[Unreleased]` 節に書いておきます。リリースのコミットで、`[Unreleased]` 節の見出しを `[X.Y.Z] - 日付` に置き換え、次の変更のために空の `[Unreleased]` 節を設けます。`develop` を `main` にマージした後、`main` のコミットにタグを付けます。
+
+GitHub で、そのタグの Release を公開すると、`.github/workflows/release.yml` が `src/` の XML を作り、ターゲットごとの zip（`jieclib-X.Y.Z-omron.zip`・`jieclib-X.Y.Z-keyence.zip`）を Release に添付します。zip には、使った Jiecc の版と取り込みの注意（`IMPORT_NOTES.txt`）が入ります。タグが `v` + `VERSION` と一致しないときは、何も添付せずに失敗します。添付をやり直すときは、Actions の画面から `Release XML` をタグを指定して実行します（`workflow_dispatch`）。
 
 ```
 $ git tag vX.Y.Z

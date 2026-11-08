@@ -1,0 +1,148 @@
+(*
+ * Test for CRC16_modbus, CRC16_ccittFalse, CRC16_xmodem and CRC16_toHex
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/hash/test_crc16.iec -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/hash/test_crc16.xml -t omron
+ *
+ * The expected values were computed in Python with a bit-by-bit CRC
+ * (the check values of the CRC catalogue for the ASCII text 123456789):
+ * CRC-16/MODBUS 16#4B37, CRC-16/CCITT-FALSE 16#29B1, CRC-16/XMODEM
+ * 16#31C3, and CRC-16/MODBUS of the Modbus RTU request 01 03 00 00 00 0A
+ * is 16#CDC5 (the frame ends with C5 CD, the low byte first).
+ *)
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <hash/crc16.iec>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_CRC16_modbus,
+		test_CRC16_ccittFalse,
+		test_CRC16_xmodem,
+		test_CRC16_toHex
+	)
+)
+{#endif}
+
+// The ASCII text 123456789.
+{#define CRC16_TEST_DIGITS digits: array[0..8] of byte := [16#31, 16#32, 16#33, 16#34, 16#35, 16#36, 16#37, 16#38, 16#39];}
+
+TEST_S(test_CRC16_modbus)
+	var
+		CRC16_TEST_DIGITS
+		frame: array[0..5] of byte := [16#01, 16#03, 16#00, 16#00, 16#00, 16#0A];
+		offset_digits: array[10..20] of byte := [16#00, 16#31, 16#32, 16#33, 16#34, 16#35, 16#36, 16#37, 16#38, 16#39, 16#00];
+		first_part: word;
+		ok: bool;
+	end
+	// Fact: CRC-16/MODBUS of 123456789 is the check value 16#4B37.
+		// Arrange/Act/Assert
+	EXPECT_EQ_WORD(word#16#4B37, CRC16_modbus(dat:=digits));
+
+	// Fact: CRC-16/MODBUS of the Modbus RTU request 01 03 00 00 00 0A is 16#CDC5.
+		// Arrange/Act/Assert
+	EXPECT_EQ_WORD(word#16#CDC5, CRC16_modbus(dat:=frame));
+
+	// Fact: offset and length select a part of the array, also when it does not start at 0.
+		// Arrange/Act/Assert
+	EXPECT_EQ_WORD(word#16#4B37, CRC16_modbus(dat:=offset_digits, offset:=1, length:=9));
+
+	// Fact: Passing the CRC of 1234 as crc_init for 56789 gives the CRC of 123456789.
+		// Arrange
+		// Act
+	first_part := CRC16_modbus(dat:=digits, offset:=0, length:=4);
+		// Assert
+	EXPECT_EQ_WORD(word#16#4B37, CRC16_modbus(dat:=digits, offset:=4, length:=5, crc_init:=first_part));
+
+	// Fact: length = 0 returns crc_init, also at the end of the array.
+		// Arrange/Act/Assert
+	EXPECT_EQ_WORD(word#16#FFFF, CRC16_modbus(dat:=digits, offset:=0, length:=0));
+	EXPECT_EQ_WORD(word#16#1234, CRC16_modbus(dat:=digits, offset:=9, length:=0, crc_init:=word#16#1234));
+
+	// Fact: A range outside the array, or length < -1, is an error.
+		// Arrange
+		// Act
+	CRC16_modbus(dat:=digits, offset:=5, length:=5, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+		// Act
+	CRC16_modbus(dat:=digits, offset:=-1, length:=1, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+		// Act
+	CRC16_modbus(dat:=digits, offset:=10, length:=0, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+		// Act
+	CRC16_modbus(dat:=digits, offset:=-1, length:=0, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+		// Act
+	CRC16_modbus(dat:=digits, offset:=0, length:=-2, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+END_TEST_S
+
+TEST_S(test_CRC16_ccittFalse)
+	var
+		CRC16_TEST_DIGITS
+		first_part: word;
+		ok: bool;
+	end
+	// Fact: CRC-16/CCITT-FALSE of 123456789 is the check value 16#29B1.
+		// Arrange/Act/Assert
+	EXPECT_EQ_WORD(word#16#29B1, CRC16_ccittFalse(dat:=digits));
+
+	// Fact: Passing the CRC of 1234 as crc_init for 56789 gives the CRC of 123456789.
+		// Arrange
+		// Act
+	first_part := CRC16_ccittFalse(dat:=digits, offset:=0, length:=4);
+		// Assert
+	EXPECT_EQ_WORD(word#16#29B1, CRC16_ccittFalse(dat:=digits, offset:=4, length:=5, crc_init:=first_part));
+
+	// Fact: A range outside the array is an error.
+		// Arrange
+		// Act
+	CRC16_ccittFalse(dat:=digits, offset:=0, length:=10, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+END_TEST_S
+
+TEST_S(test_CRC16_xmodem)
+	var
+		CRC16_TEST_DIGITS
+		first_part: word;
+		ok: bool;
+	end
+	// Fact: CRC-16/XMODEM of 123456789 is the check value 16#31C3, and the default crc_init is 0.
+		// Arrange/Act/Assert
+	EXPECT_EQ_WORD(word#16#31C3, CRC16_xmodem(dat:=digits));
+	EXPECT_EQ_WORD(word#16#0000, CRC16_xmodem(dat:=digits, offset:=0, length:=0));
+
+	// Fact: Passing the CRC of 1234 as crc_init for 56789 gives the CRC of 123456789.
+		// Arrange
+		// Act
+	first_part := CRC16_xmodem(dat:=digits, offset:=0, length:=4);
+		// Assert
+	EXPECT_EQ_WORD(word#16#31C3, CRC16_xmodem(dat:=digits, offset:=4, length:=5, crc_init:=first_part));
+
+	// Fact: A range outside the array is an error.
+		// Arrange
+		// Act
+	CRC16_xmodem(dat:=digits, offset:=9, length:=1, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+END_TEST_S
+
+TEST_S(test_CRC16_toHex)
+	// Fact: toHex gives 4 lowercase hexadecimal digits, with leading zeros.
+		// Arrange/Act/Assert
+	EXPECT_EQ_STRING('4b37', CRC16_toHex(crc:=word#16#4B37));
+	EXPECT_EQ_STRING('cdc5', CRC16_toHex(crc:=word#16#CDC5));
+	EXPECT_EQ_STRING('000a', CRC16_toHex(crc:=word#16#000A));
+	EXPECT_EQ_STRING('ffff', CRC16_toHex(crc:=word#16#FFFF));
+	EXPECT_EQ_STRING('0000', CRC16_toHex(crc:=word#16#0000));
+END_TEST_S

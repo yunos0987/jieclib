@@ -1,0 +1,112 @@
+(*
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/hash/checksum.iec -I./src -o ./src/hash/checksum.xml -t omron
+ *)
+{#ifndef __HASH_CHECKSUM_IEC__}
+{#define __HASH_CHECKSUM_IEC__}
+
+{#include <sys.iec>}
+{#include <sys_conv.iec>}
+{#include <hash/crc16.iec>}
+
+(*{doc Return the 8-bit sum of a byte array (the carries are dropped).
+The sum of the ASCII text 123456789 is 16#DD.
+@inout dat The byte array.
+@input offset The offset of the first byte from the lower bound of dat. Default: 0.
+@input length The number of bytes; -1 means up to the end of dat. Default: -1.
+@return The sum modulo 256. For length = 0 it is 0.
+@error If offset or length selects bytes outside dat, or length < -1.}*)
+function Checksum_sum8: byte
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The byte array.}*)
+		dat: array[*] of byte;
+	end
+	var_input
+		(*{doc The offset of the first byte. Default: 0.}*)
+		offset: dint := 0;
+		(*{doc The number of bytes; -1 means up to the end of dat. Default: -1.}*)
+		length: dint := -1;
+	end
+	var_temp
+		first_index, count, idx, total: dint;
+	end
+	if not private_CRC16_range(dat:=dat, offset:=offset, length:=length, first_index=>first_index, count=>count) then
+		eno := false;
+		return;
+	end_if;
+	total := 0;
+	for idx := first_index to first_index + count - 1 do
+		total := (total + byte_to_dint(dat[idx])) mod 256;
+	end_for;
+	Checksum_sum8 := dint_to_byte(total);
+end
+
+(*{doc Return the XOR of all the bytes of a byte array.
+The XOR of the ASCII text 123456789 is 16#31.
+@inout dat The byte array.
+@input offset The offset of the first byte from the lower bound of dat. Default: 0.
+@input length The number of bytes; -1 means up to the end of dat. Default: -1.
+@return The XOR of the bytes. For length = 0 it is 0.
+@error If offset or length selects bytes outside dat, or length < -1.}*)
+function Checksum_xor8: byte
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The byte array.}*)
+		dat: array[*] of byte;
+	end
+	var_input
+		(*{doc The offset of the first byte. Default: 0.}*)
+		offset: dint := 0;
+		(*{doc The number of bytes; -1 means up to the end of dat. Default: -1.}*)
+		length: dint := -1;
+	end
+	var_temp
+		first_index, count, idx: dint;
+		result: byte;
+	end
+	if not private_CRC16_range(dat:=dat, offset:=offset, length:=length, first_index=>first_index, count=>count) then
+		eno := false;
+		return;
+	end_if;
+	result := byte#16#00;
+	for idx := first_index to first_index + count - 1 do
+		result := result xor dat[idx];
+	end_for;
+	Checksum_xor8 := result;
+end
+
+(*{doc Return the LRC of Modbus ASCII: the negation of the 8-bit sum, modulo 256.
+The bytes must be the binary bytes of the message, that is, after the pairs of ASCII hexadecimal
+characters of the frame are converted back to bytes (not the characters themselves).
+The LRC of the ASCII text 123456789 is 16#23.
+@inout dat The byte array.
+@input offset The offset of the first byte from the lower bound of dat. Default: 0.
+@input length The number of bytes; -1 means up to the end of dat. Default: -1.
+@return The LRC. For length = 0 it is 0.
+@error If offset or length selects bytes outside dat, or length < -1.}*)
+function Checksum_lrc: byte
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The byte array.}*)
+		dat: array[*] of byte;
+	end
+	var_input
+		(*{doc The offset of the first byte. Default: 0.}*)
+		offset: dint := 0;
+		(*{doc The number of bytes; -1 means up to the end of dat. Default: -1.}*)
+		length: dint := -1;
+	end
+	var_temp
+		total: dint;
+		ok: bool;
+	end
+	total := byte_to_dint(Checksum_sum8(dat:=dat, offset:=offset, length:=length, eno=>ok));
+	if not ok then
+		eno := false;
+		return;
+	end_if;
+	Checksum_lrc := dint_to_byte((256 - total) mod 256);
+end
+
+{#endif}

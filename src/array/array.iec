@@ -1,8 +1,6 @@
 (*
  * $ cd <JiecLib Project Root>
  * $ jiecc ./src/array/array.iec -I./src -o ./src/array/array.xml -t omron
- * or
- * $ jiecc ./src/array/array.iec -I./src -o ./src/array/array.xml -t keyence
  *)
 {#ifndef __ARRAY_IEC__}
 {#define __ARRAY_IEC__}

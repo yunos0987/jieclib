@@ -1,0 +1,50 @@
+(*
+ * Test for Math_floor with large values
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/math/test_floor_large.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/math/test_floor_large.xml -t omron
+ *)
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <math/floor.iec>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_floor_large
+	)
+)
+
+{#endif}
+
+// The expected values are math.floor in Python. Every lreal of magnitude
+// 2^52 (4503599627370496.0) or more is an integer, so floor returns it.
+TEST_S(test_floor_large)
+	// Fact: A value just below 2^52 is still rounded down.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(4500000000000000.0, Math_floor(x:=4.5e15));
+	EXPECT_EQ_LREAL(-4500000000000000.0, Math_floor(x:=-4.5e15));
+	EXPECT_EQ_LREAL(4503599627370495.0, Math_floor(x:=4503599627370495.5));
+	EXPECT_EQ_LREAL(-4503599627370496.0, Math_floor(x:=-4503599627370495.5));
+	EXPECT_EQ_LREAL(4503599627370495.0, Math_floor(x:=4503599627370495.0));
+
+	// Fact: A value of magnitude 2^52 or more is returned as it is.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(4503599627370496.0, Math_floor(x:=4503599627370496.0));
+	EXPECT_EQ_LREAL(-4503599627370496.0, Math_floor(x:=-4503599627370496.0));
+	EXPECT_EQ_LREAL(4503599627370498.0, Math_floor(x:=4503599627370498.0));
+	EXPECT_EQ_LREAL(-4503599627370498.0, Math_floor(x:=-4503599627370498.0));
+	EXPECT_EQ_LREAL(9.0e18, Math_floor(x:=9.0e18));
+	EXPECT_EQ_LREAL(-9.0e18, Math_floor(x:=-9.0e18));
+
+	// Fact: A value of magnitude 2^63 or more, which does not fit in lint, is returned as it is.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(9223372036854775808.0, Math_floor(x:=9223372036854775808.0));
+	EXPECT_EQ_LREAL(-9223372036854775808.0, Math_floor(x:=-9223372036854775808.0));
+	EXPECT_EQ_LREAL(1.0e19, Math_floor(x:=1.0e19));
+	EXPECT_EQ_LREAL(-1.0e19, Math_floor(x:=-1.0e19));
+	EXPECT_EQ_LREAL(1.0e300, Math_floor(x:=1.0e300));
+	EXPECT_EQ_LREAL(-1.0e300, Math_floor(x:=-1.0e300));
+END_TEST_S

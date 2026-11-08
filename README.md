@@ -3,21 +3,26 @@
 ## 目次
 
 - [概要](#概要)
+- [対応ターゲット](#対応ターゲット)
 - [必要環境](#必要環境)
 - [Sysmac StudioでJiecLib内のライブラリを取り込む方法](#sysmac-studioでjieclib内のライブラリを取り込む方法)
 - [JiecLibに含まれるライブラリ](#jieclibに含まれるライブラリ)
   - [array](#array)
   - [bitset](#bitset)
+  - [control](#control)
   - [compress](#compress)
   - [container](#container)
   - [encoding](#encoding)
   - [hash](#hash)
+  - [interp](#interp)
   - [linalg](#linalg)
   - [math](#math)
   - [random](#random)
+  - [signal](#signal)
   - [stats](#stats)
   - [string\_lib](#string_lib)
   - [vector](#vector)
+- [利用例（samples）](#利用例samples)
 - [JiecLib開発者向け](#jieclib開発者向け)
   - [サブモジュール含むリポジトリのクローン方法](#サブモジュール含むリポジトリのクローン方法)
   - [JiecLibのテスト方法](#jieclibのテスト方法)
@@ -31,14 +36,54 @@ JiecLibは、<a href="https://www.graviness.com/iec_61131-3/">IEC 61131-3 ST言�
 
 テキスト形式のコードをPLCメーカーのツールで取り込み可能な形式に変換するために、[IEC 61131-3 ⇄ IEC 61131-10変換ソフトウェア Jiecc](https://www.graviness.com/iec_61131-3/jiecc.html)を使用します。
 
-現在、JiecLibはオムロン社製の[Sysmac Studio](https://www.fa.omron.co.jp/products/family/3077/download/software.html)（[IEC 61131-10 XML](https://plcopen.org/sites/default/files/downloads/iec_61131-10_preview.pdf)対応）を対象としています。
+主な対象は、オムロン社製の[Sysmac Studio](https://www.fa.omron.co.jp/products/family/3077/download/software.html)（[IEC 61131-10 XML](https://plcopen.org/sites/default/files/downloads/iec_61131-10_preview.pdf)対応）です。ライブラリごとに使えるターゲットは、[対応ターゲット](#対応ターゲット)を参照してください。
+
+## 対応ターゲット
+
+各ライブラリの `.iec` の先頭コメントの `$ jiecc ... -t <ターゲット>` の行が、そのライブラリが対応を宣言したターゲットです。CI は、宣言したすべてのターゲットでコンパイルします。ただし、Jiecc のコンパイルはどのターゲットでも通るので、コンパイルが通ることは、その開発環境で使えることを意味しません。宣言は、その開発環境（Sysmac Studio・KV Studio）でテストを実行して確かめたものだけにします。
+
+<!-- target-table:begin -->
+| ライブラリ | 宣言したターゲット |
+|---|---|
+| [array](./src/array) | omron |
+| [bitset](./src/bitset) | omron |
+| [compress](./src/compress) | omron |
+| [container](./src/container) | keyence, omron |
+| [control](./src/control) | omron |
+| [encoding](./src/encoding) | omron |
+| [hash](./src/hash) | omron |
+| [interp](./src/interp) | omron |
+| [linalg](./src/linalg) | omron |
+| [math](./src/math) | omron |
+| [random](./src/random) | keyence, omron |
+| [signal](./src/signal) | omron |
+| [stats](./src/stats) | omron |
+| [string_lib](./src/string_lib) | keyence, omron |
+| [sys](./src)（`src/` 直下の `sys.iec` など） | omron |
+| [vector](./src/vector) | omron |
+<!-- target-table:end -->
+
+この表は `python scripts/target_table.py --update` で作ります。CI（`lint` ジョブ）が、ヘッダーと一致するかを確かめます。テンプレートだけのライブラリ（container）と `sys` は、テストのヘッダーを宣言とみなします。
+
+開発環境で確かめた結果（L3: Sysmac Studio のシミュレータ、L4: KV Studio）は、Pull Request の本文に記録します。次の表は、その記録をまとめたものです。記録のないものは「未確認」です。
+
+| ライブラリ | omron（Sysmac Studio） | keyence（KV Studio） |
+|---|---|---|
+| すべて | 未確認（記録なし） | 未確認（記録なし） |
+
+この表は、作者が確かめた範囲を書き足していきます（まだ記録がありません）。
+
+`sys`（`sys.iec`・`sys_conv.iec`）は omron だけを宣言していますが、keyence を宣言したライブラリ（string_lib・random・container）が include して使うので、keyence のビルドにも入ります。その確認は、それらのライブラリの L4 で行います。`sys` を変更した Pull Request は、L4 の欄も求められます（`scripts/check_pr_body.py` が include をたどります）。
+
+- 三菱電機（mitsubishi）には対応しません。`src/sys.iec` などに三菱電機向けの分岐がありますが、完全ではありません（関数の `var_in_out` の扱いなど）。
+- CODESYS（codesys）は、`src/sys_config.iec` に分岐がありますが、宣言したライブラリはありません。
 
 ## 必要環境
 
-* [Jiecc 9.2.0以降](https://www.graviness.com/iec_61131-3/jiecc.html#Header.Jiecc%E3%81%AE%E3%83%80%E3%82%A6%E3%83%B3%E3%83%AD%E3%83%BC%E3%83%89%E3%81%A8%E5%AE%9F%E8%A1%8C%E6%96%B9%E6%B3%95)
+* [Jiecc 9.4.0以降](https://www.graviness.com/iec_61131-3/jiecc.html#Header.Jiecc%E3%81%AE%E3%83%80%E3%82%A6%E3%83%B3%E3%83%AD%E3%83%BC%E3%83%89%E3%81%A8%E5%AE%9F%E8%A1%8C%E6%96%B9%E6%B3%95)
   * IEC 61131-3テキストをIEC 61131-10 XMLに変換するコマンドラインの無料ソフトウェアです。
-  * JiecLibのテスト（`test/`。JiecUnit v6.0.0を使います）の実行にも、Jiecc 9.2.0以降を使います。
-  * Jiecc 9.2.0未満では、`{#error}`でコンパイルを止めます。
+  * JiecLibのテスト（`test/`。JiecUnit v7.0.0を使います）の実行にも、Jiecc 9.4.0以降を使います。
+  * Jiecc 9.4.0未満では、`{#error}`でコンパイルを止めます。
 * [Sysmac Studio](https://www.fa.omron.co.jp/products/family/3077/download/software.html)
   * 同梱のシミュレータでテスト可能です。必要に応じてPLC本体も入手してください。
 
@@ -71,6 +116,10 @@ $ jiecc ./src/string_lib/string_lib.iec -I./src -o ./src/string_lib/string_lib.x
 ![string_lib.xmlインポート完了後の画面](./docs/screen_stringlib_import_completed.png)
 
 [string_lib](./src/string_lib/string_lib.iec) に含まれるPOU群（`String_charAt`、`String_lower` など）がインポートされます。
+
+Jiecc を用意しない場合は、GitHub の [Releases](https://github.com/yunos0987/jieclib/releases) から、ターゲットごとの zip（`jieclib-X.Y.Z-omron.zip` など。4.1.0 以降）をダウンロードし、中の XML（例: `string_lib/string_lib.xml`）を取り込みます。各 XML は、そのライブラリが include するファイルの POU（`sys.iec` の `Console_*` など）も含むので、複数の XML を 1 つのプロジェクトに取り込むと、同じ POU が重なります。すでにある POU は、取り込みを省くか上書きしてください。テンプレートは zip に入っていません（マクロを選んで、Jiecc で具体化します）。
+
+テンプレート（container など）の具体化の仕方と、プログラムからの使い方は、[利用例（samples）](#利用例samples) を参照してください。
 
 ## JiecLibに含まれるライブラリ
 
@@ -418,6 +467,19 @@ FIFO形式のリングバッファです。`overwrite=true` で初期化する�
 
 テスト用XML生成コマンド: `jiecc ./test/container/ringbuffer/test_ringbuffer.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/container/ringbuffer/test_ringbuffer.xml -t omron`
 
+### [control](./src/control)
+
+制御のライブラリです（[control.iec](./src/control/control.iec)）。周期は引数 `sample_time`（秒）で受け取り、引数の誤りは `eno := false` で知らせます（出力と状態は前回のまま）。入力 `reset` が真のとき、状態を初期値に戻します。
+
+| POU | 種類 | 説明 |
+|---|---|---|
+| `Control_pid` | ファンクションブロック | 並列形の PID（`kp * e + ki * ∫e + kd * 微分`）。出力の上下限、アンチワインドアップ（上下限に達したら、その向きの積分を止める）、手動・自動の切替（切り替えても出力が飛ばない）、微分先行（測定値の微分）、不完全微分（時定数 `derivative_filter`） |
+| `Control_ramp` | ファンクションブロック | 目標値へ、毎秒 `rate` 以内の変化で近づける |
+
+* IEC 61131-10 XML生成コマンド: `jiecc ./src/control/control.iec -I./src -o ./src/control/control.xml -t omron`
+* 使い方は、[samples/pid_loop](./samples/pid_loop) を参照してください。
+* NJ/NX には、オートチューニング付きの 2 自由度 PID（`PIDAT`・`PIDAT_HeatCool`）と、多段のプログラムパターン（`AC_StepProgram`）があります。omron でしか使わない場合は、標準命令も検討してください。これらの POU は、簡素で、ベンダーをまたいで同じ書き方で使え、テストで振る舞いを確かめられます。
+
 ### [encoding](./src/encoding)
 
 エンコーディング関連ライブラリです。
@@ -451,6 +513,19 @@ FIFO形式のリングバッファです。`overwrite=true` で初期化する�
 * **CRC32**（[crc32.iec](./src/hash/crc32.iec)）
   * `CRC32_string` / `CRC32_bytes`
   * IEC 61131-10 XML生成コマンド: `jiecc ./src/hash/crc32.iec -I./src -o ./src/hash/crc32.xml -t omron`
+* **CRC-16**（[crc16.iec](./src/hash/crc16.iec)）
+  * `CRC16_modbus`（CRC-16/MODBUS）/ `CRC16_ccittFalse`（CRC-16/CCITT-FALSE）/ `CRC16_xmodem`（CRC-16/XMODEM）: バイト配列の CRC を `word` で返します（`offset`/`length` 指定可。作業用の配列は要りません）。引数 `crc_init` に前の配列の結果を渡すと、2 つの配列にまたがる電文の CRC を続けて計算できます。
+  * `CRC16_toHex`: CRC を 4 桁の 16 進文字列（小文字）にします。
+  * Modbus RTU の電文には、CRC を下位バイト、上位バイトの順に付けます。例: 要求 `01 03 00 00 00 0A` の CRC は `16#CDC5` なので、電文は `01 03 00 00 00 0A C5 CD` です。
+    ```
+    crc := CRC16_modbus(dat:=frame, offset:=0, length:=6);
+    frame[6] := word_to_byte(crc and word#16#00FF);              // C5
+    frame[7] := dint_to_byte(word_to_dint(crc) / 256);           // CD
+    ```
+  * IEC 61131-10 XML生成コマンド: `jiecc ./src/hash/crc16.iec -I./src -o ./src/hash/crc16.xml -t omron`
+* **チェックサム**（[checksum.iec](./src/hash/checksum.iec)）
+  * `Checksum_sum8`（8 ビットの和）/ `Checksum_xor8`（全バイトの XOR）/ `Checksum_lrc`（Modbus ASCII の LRC。16 進文字を 2 進のバイトに戻した後のバイト列に使います）
+  * IEC 61131-10 XML生成コマンド: `jiecc ./src/hash/checksum.iec -I./src -o ./src/hash/checksum.xml -t omron`
 * **MD5**（[md5.iec](./src/hash/md5.iec)）
   * `MD5_string` / `MD5_bytes`
   * IEC 61131-10 XML生成コマンド: `jiecc ./src/hash/md5.iec -I./src -o ./src/hash/md5.xml -t omron`
@@ -463,6 +538,29 @@ FIFO形式のリングバッファです。`overwrite=true` で初期化する�
 * **SHA-512**（[sha512.iec](./src/hash/sha512.iec)）
   * `SHA512_string` / `SHA512_bytes`
   * IEC 61131-10 XML生成コマンド: `jiecc ./src/hash/sha512.iec -I./src -o ./src/hash/sha512.xml -t omron`
+
+### [interp](./src/interp)
+
+補間テーブルのライブラリです（[interp.iec](./src/interp/interp.iec)）。テーブルは `var_in_out` の可変長配列で渡すので、定数のテーブルは変数に入れてから渡します。
+
+| 関数 | 説明 |
+|---|---|
+| `Interp_linear1d(x_table, y_table, x_value, count := -1, extrapolate := false)` | 折れ線の線形補間。`x_table` は使う点の範囲で狭義の昇順。`count` で先頭から使う点の数を決める（末尾を使わないテーブルのため。-1 は全要素）。範囲外は、`extrapolate` が偽なら端の値、真なら端の区間を延長する。1 回の走査（点の数に比例する時間）で、昇順の確認と区間の探索を行う |
+| `Interp_linear2d(x_axis, y_axis, table, x_value, y_value, x_count := -1, y_count := -1)` | 2 次元テーブルの双線形補間。`table[i, j]` が `(x_axis[i], y_axis[j])` の値。範囲外は端の値 |
+
+使用例（ヒーターの温度から出力の上限を決める）:
+
+```
+var
+	temps: array[0..3] of lreal := [0.0, 100.0, 200.0, 300.0];
+	limits: array[0..3] of lreal := [100.0, 80.0, 50.0, 20.0];
+	limit: lreal;
+end
+limit := Interp_linear1d(x_table:=temps, y_table:=limits, x_value:=current_temp);
+```
+
+* IEC 61131-10 XML生成コマンド: `jiecc ./src/interp/interp.iec -I./src -o ./src/interp/interp.xml -t omron`
+* NJ/NX の `ScaleTrans` は 2 点の直線変換です。この関数は多点の折れ線で、ほかのベンダーでも同じ書き方で使えます。
 
 ### [linalg](./src/linalg)
 
@@ -503,6 +601,23 @@ IEC 61131-10 XML生成コマンド: `jiecc ./src/linalg/linalg.iec -I./src -o ./
 |---|---|---|
 | [Math_floor](./src/math/floor.iec) | 床関数（floor） | `jiecc ./src/math/floor.iec -I./src -o ./src/math/floor.xml -t omron` |
 | [Math_atan2](./src/math/atan2.iec) | 2引数アークタンジェント | `jiecc ./src/math/atan2.iec -I./src -o ./src/math/atan2.xml -t omron` |
+| [Math_ceil](./src/math/ceil.iec) | 天井関数（ceil） | `jiecc ./src/math/ceil.iec -I./src -o ./src/math/ceil.xml -t omron` |
+| [Math_trunc](./src/math/trunc.iec) | 0 方向への切り捨て | `jiecc ./src/math/trunc.iec -I./src -o ./src/math/trunc.xml -t omron` |
+| [Math_round](./src/math/round.iec) | 四捨五入（0.5 は 0 から遠い方へ） | `jiecc ./src/math/round.iec -I./src -o ./src/math/round.xml -t omron` |
+| [Math_roundHalfEven](./src/math/round_half_even.iec) | 偶数丸め（0.5 ちょうどは偶数の方へ） | `jiecc ./src/math/round_half_even.iec -I./src -o ./src/math/round_half_even.xml -t omron` |
+| [Math_roundTo](./src/math/round_to.iec) | 小数点以下 digits 桁への四捨五入（digits は -15〜15） | `jiecc ./src/math/round_to.iec -I./src -o ./src/math/round_to.xml -t omron` |
+| [Math_clamp](./src/math/clamp.iec) | 値を下限と上限の範囲に収める | `jiecc ./src/math/clamp.iec -I./src -o ./src/math/clamp.xml -t omron` |
+| [Math_lerp](./src/math/lerp.iec) | 線形補間 | `jiecc ./src/math/lerp.iec -I./src -o ./src/math/lerp.xml -t omron` |
+| [Math_sign](./src/math/sign.iec) | 符号（-1.0 / 0.0 / 1.0） | `jiecc ./src/math/sign.iec -I./src -o ./src/math/sign.xml -t omron` |
+| [Math_hypot](./src/math/hypot.iec) | `sqrt(x^2 + y^2)`（桁あふれしない） | `jiecc ./src/math/hypot.iec -I./src -o ./src/math/hypot.xml -t omron` |
+| [Math_fmod](./src/math/fmod.iec) | 浮動小数点の剰余（C の `fmod` と同じ値） | `jiecc ./src/math/fmod.iec -I./src -o ./src/math/fmod.xml -t omron` |
+| [Math_gcd](./src/math/gcd.iec) | 最大公約数（lint） | `jiecc ./src/math/gcd.iec -I./src -o ./src/math/gcd.xml -t omron` |
+| [Math_lcm](./src/math/lcm.iec) | 最小公倍数（lint） | `jiecc ./src/math/lcm.iec -I./src -o ./src/math/lcm.xml -t omron` |
+| [Math_isClose](./src/math/is_close.iec) | 2 つの値が近いか（Python の `math.isclose` と同じ判定） | `jiecc ./src/math/is_close.iec -I./src -o ./src/math/is_close.xml -t omron` |
+
+- NaN と無限大を渡したときの結果は未定義です（環境によって、NaN や無限大を同じ方法で作れないため）。
+- `Math_roundTo` は 2 進数で計算するので、2 進数で正確に表せない値は、見た目の 10 進数どおりには丸まりません（例: `Math_roundTo(1.015, 2)` は `1.015` が実際には `1.01499999999999990...` なので `1.01`）。
+- NJ/NX シリーズには、役割が重なる標準命令があります。`Round`・`TRUNC`・`RoundUp`（整数を返す。これらの関数は `lreal` を返し、整数の範囲を超える値でも使える）、`FMod` です。omron でしか使わない場合は、標準命令も検討してください。これらの関数は、ベンダーをまたいで同じ書き方で使えます。
 
 ### [random](./src/random)
 
@@ -546,7 +661,23 @@ IEC 61131-10 XML生成コマンド: `jiecc ./src/linalg/linalg.iec -I./src -o ./
 |---|---|---|
 | `nextGaussian(mean, sigma)` | SPC・工程変動シミュレーション | Box-Muller変換 |
 | `nextExponential(lambda)` | 故障間隔（MTBF）シミュレーション | 逆CDF: `-LN(U)/lambda` |
-| `nextPoisson(lambda)` | 不良数・イベント到着モデル | Knuthのアルゴリズム |
+| `nextPoisson(lambda)` | 不良数・イベント到着モデル | Knuthのアルゴリズム（`0 < lambda <= 500`。1 回に約 `lambda + 1` 個の乱数を使う） |
+
+### [signal](./src/signal)
+
+信号処理（フィルタ・比較）のライブラリです。状態を持つものはファンクションブロックで、周期に依存するものは周期（秒）を引数 `sample_time` で受け取ります。引数の誤りは `eno := false` で知らせ、ファンクションブロックは前回の出力と状態を保ちます。入力 `reset` が真のとき、状態を初期値に戻します。
+
+| POU | 種類 | 説明 |
+|---|---|---|
+| `Signal_deadband` | 関数 | 不感帯（範囲内は 0、範囲外は近い方の境界からの差）。NJ/NX の `Band` と同じ出力 |
+| `Signal_lowPass` | ファンクションブロック | 一次遅れ（`alpha = sample_time / (time_constant + sample_time)`） |
+| `Signal_rateLimiter` | ファンクションブロック | 変化率の上限（上昇・下降を別に指定） |
+| `Signal_hysteresis` | ファンクションブロック | オン・オフの閾値を別に持つ比較 |
+| `Signal_movingAverage_<名前>` | テンプレート（[moving_average_template.iec](./src/signal/moving_average_template.iec)） | 単純移動平均。容量はマクロ `SignalMovingAverageCapacity` |
+| `Signal_median_<名前>` | テンプレート（[median_template.iec](./src/signal/median_template.iec)） | メディアンフィルタ。容量はマクロ `SignalMedianCapacity`（奇数） |
+
+* IEC 61131-10 XML生成コマンド: `jiecc ./src/signal/signal.iec -I./src -o ./src/signal/signal.xml -t omron`
+* テンプレートの使い方は、[samples/moving_average](./samples/moving_average) を参照してください。
 
 ### [stats](./src/stats)
 
@@ -641,6 +772,19 @@ IEC 61131-10 XML生成コマンド: `jiecc ./src/vector/vector.iec -I./src -o ./
 * **ユーティリティ**（[utils.iec](./src/vector/utils.iec)）
   * `Vector_utils_is_regular` / `Vector_utils_is_zero` / `Vector_utils_normalize`: 補助関数
 
+## 利用例（samples）
+
+[samples/](./samples) に、ライブラリの使い方を示すプログラムがあります。各ディレクトリの README.md に、目的・XML の生成コマンド・Sysmac Studio での使い方があります。CI は、すべての例をコンパイルし、規約を検査します。
+
+| 例 | 内容 |
+|---|---|
+| [hashmap_string_to_dint](./samples/hashmap_string_to_dint) | ハッシュマップのテンプレートの具体化（文字列のキーから dint の値）。部品の名前ごとの数を数える |
+| [ringbuffer_recent_values](./samples/ringbuffer_recent_values) | リングバッファで直近 10 個の測定値を保持し、平均を出す |
+| [random_process_variation](./samples/random_process_variation) | Mersenne Twister の正規分布で、工程の値の変動を模擬する |
+| [moving_average](./samples/moving_average) | 移動平均・メディアンフィルタ・一次遅れで、測定値をなめらかにする |
+| [pid_loop](./samples/pid_loop) | PID 制御（`Control_pid`）とランプ（`Control_ramp`）で、模擬した一次遅れの対象を制御する |
+| [modbus_crc](./samples/modbus_crc) | CRC-16/MODBUS で、Modbus RTU の電文に CRC を付け、応答の CRC を確かめる |
+
 ## JiecLib開発者向け
 
 JiecLibの一部のライブラリは [JiecUnit](https://github.com/yunos0987/jiecunit) に依存しています。外部依存の管理に Git submodule を使用します。
@@ -671,7 +815,7 @@ $ cd jieclib
 $ python scripts/run_tests.py
 ```
 
-jiecc は、`--jiecc PATH`、環境変数 `JIECC`、`PATH` 上の `jiecc` の順に探します。オプションの詳細、コーディング規約、貢献の流れは [CONTRIBUTING.md](./CONTRIBUTING.md) を参照してください。
+jiecc は、`--jiecc PATH`、環境変数 `JIECC`、`PATH` 上の `jiecc` の順に探します。コーディング規約の検査は `python scripts/lint.py` で行えます（jiecc は不要です）。名前と型の規則は、`python scripts/run_tests.py --compile-only --output-dir out` でコンパイルした後に、`python scripts/lint.py --xml-dir out` で検査します。オプションの詳細、コーディング規約、貢献の流れは [CONTRIBUTING.md](./CONTRIBUTING.md) を参照してください。
 
 PLCメーカーのツールでテストを実行する場合は、次の手順に従います。
 

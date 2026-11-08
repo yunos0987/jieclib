@@ -1,0 +1,52 @@
+(*
+ * Test for Math_trunc
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/math/test_trunc.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/math/test_trunc.xml -t omron
+ *
+ * The expected values come from math.trunc of Python.
+ *)
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <math/trunc.iec>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_trunc
+	)
+)
+{#endif}
+
+TEST_S(test_trunc)
+	// Fact: trunc rounds toward zero.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(2.0, Math_trunc(value:=2.7));
+	EXPECT_EQ_LREAL(-2.0, Math_trunc(value:=-2.7));
+	EXPECT_EQ_LREAL(0.0, Math_trunc(value:=0.5));
+	EXPECT_EQ_LREAL(0.0, Math_trunc(value:=-0.5));
+	EXPECT_EQ_LREAL(3.0, Math_trunc(value:=3.0));
+
+	// Fact: 0 and the smallest values are truncated to 0.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(0.0, Math_trunc(value:=0.0));
+	EXPECT_EQ_LREAL(0.0, Math_trunc(value:=-0.0));
+	EXPECT_EQ_LREAL(0.0, Math_trunc(value:=5e-324));
+
+	// Fact: Values just below 2^52 are still truncated.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(4503599627370495.0, Math_trunc(value:=4503599627370495.5));
+	EXPECT_EQ_LREAL(-4503599627370495.0, Math_trunc(value:=-4503599627370495.5));
+
+	// Fact: Values of magnitude 2^52 or more, including those beyond lint (2^63), are returned as they are.
+		// Arrange/Act/Assert
+	EXPECT_EQ_LREAL(4503599627370496.0, Math_trunc(value:=4503599627370496.0));
+	EXPECT_EQ_LREAL(-4503599627370496.0, Math_trunc(value:=-4503599627370496.0));
+	EXPECT_EQ_LREAL(9.223372036854776e+18, Math_trunc(value:=9.223372036854776e+18));
+	EXPECT_EQ_LREAL(-9.223372036854776e+18, Math_trunc(value:=-9.223372036854776e+18));
+	EXPECT_EQ_LREAL(1e+19, Math_trunc(value:=1e+19));
+	EXPECT_EQ_LREAL(-1e+300, Math_trunc(value:=-1e+300));
+	EXPECT_EQ_LREAL(1.7976931348623157e+308, Math_trunc(value:=1.7976931348623157e+308));
+END_TEST_S

@@ -1,0 +1,52 @@
+(*
+ * Test for Math_lcm
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/math/test_lcm.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/math/test_lcm.xml -t omron
+ *
+ * The expected values come from math.lcm of Python.
+ *)
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <math/lcm.iec>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_lcm
+	)
+)
+{#endif}
+
+TEST_S(test_lcm)
+	var
+		ok: bool;
+	end
+	// Fact: lcm of positive and negative integers.
+		// Arrange/Act/Assert
+	EXPECT_EQ_INT64(12, Math_lcm(num_a:=4, num_b:=6));
+	EXPECT_EQ_INT64(12, Math_lcm(num_a:=-4, num_b:=6));
+	EXPECT_EQ_INT64(42, Math_lcm(num_a:=21, num_b:=6));
+	EXPECT_EQ_INT64(7, Math_lcm(num_a:=7, num_b:=1));
+
+	// Fact: lcm with 0 is 0.
+		// Arrange/Act/Assert
+	EXPECT_EQ_INT64(0, Math_lcm(num_a:=0, num_b:=5));
+	EXPECT_EQ_INT64(0, Math_lcm(num_a:=0, num_b:=0));
+
+	// Fact: The largest result that fits in lint.
+		// Arrange/Act/Assert
+	EXPECT_EQ_INT64(9223372036854775807, Math_lcm(num_a:=lint#9223372036854775807, num_b:=7));
+
+	// Fact: A result beyond lint is an error.
+		// Arrange
+		// Act
+	Math_lcm(num_a:=lint#9223372036854775807, num_b:=2, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+
+	Math_lcm(num_a:=lint#-9223372036854775807 - lint#1, num_b:=2, eno=>ok);
+	EXPECT_FALSE(ok);
+END_TEST_S

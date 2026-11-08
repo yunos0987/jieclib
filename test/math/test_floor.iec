@@ -2,8 +2,6 @@
  * Test for Math_floor function
  * $ cd <JiecLib Project Root>
  * $ jiecc ./test/math/test_floor.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/math/test_floor.xml -t omron
- * or
- * $ jiecc ./test/math/test_floor.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/math/test_floor.xml -t keyence
  *)
 {#include <jiecunit.iec>}
 {#if _JIECUNIT and (_JIECUNIT_VER < 402)}

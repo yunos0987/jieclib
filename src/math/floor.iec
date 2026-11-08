@@ -7,17 +7,28 @@
 
 {#include <sys.iec>}
 
-{doc 与えられた値以下の最大の整数を返す（床関数）
-  floor(2.7) = 2.0, floor(-2.7) = -3.0}
+(*{doc Return the largest integer that is not greater than the value (the floor function).
+  floor(2.7) = 2.0, floor(-2.7) = -3.0.
+  A value whose absolute value is 2^52 (4503599627370496.0) or more is always an integer, and is returned as it is.
+@input x The value.
+@return The largest integer that is not greater than x.}*)
 function Math_floor: lreal
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
+		(*{doc The value.}*)
 		x: lreal;
 	end
 	var_temp
 		truncated: lreal;
 		frac_part: lreal;
 	end
+		// Every lreal of magnitude 2^52 or more is an integer. trunc converts to
+		// lint, which overflows at 2^63, so such values are returned as they are.
+		if abs(x) >= 4503599627370496.0 then
+			Math_floor := x;
+			return;
+		end_if;
+
 		truncated := lint_to_lreal(trunc(x));
 		frac_part := x - truncated;
 

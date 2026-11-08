@@ -57,7 +57,7 @@ TEST_S(test_matrix_eigenvector_compute)
 	Matrix_eigenvector_compute(a:=a4, eigenvalue:=2.0, eigenvector:=ev4);
 	EXPECT_NEAR(0.70710678, abs(ev4[0]), 1e-6);
 	Matrix_eigenvector_compute(a:=a5, eigenvalue:=1.0, eigenvector:=ev5);
-	EXPECT_TRUE((abs(ev5[0]) > 0.5) OR (abs(ev5[1]) > 0.5) OR (abs(ev5[2]) > 0.5));
+	EXPECT_TRUE((abs(ev5[0]) > 0.5) or (abs(ev5[1]) > 0.5) or (abs(ev5[2]) > 0.5));
 	Matrix_eigenvector_compute(a:=a6, eigenvalue:=1.0, eigenvector:=ev6);
 	EXPECT_NEAR(0.70710678, abs(ev6[0]), 1e-6);
 	Matrix_eigenvector_compute(a:=a7, eigenvalue:=3.0, eigenvector:=ev7);

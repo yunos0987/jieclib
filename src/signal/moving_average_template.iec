@@ -1,0 +1,93 @@
+(*
+	================================================================================
+	Moving average template
+	================================================================================
+
+	This template generates a function block that outputs the simple moving
+	average of the last N inputs (N is a macro, so that the buffer is inside
+	the function block).
+
+	Required macros:
+	  - SignalMovingAverageName
+	    Suffix of the function block name.
+	  - SignalMovingAverageCapacity
+	    N, the number of inputs averaged (1 or more).
+
+	Generated API:
+	  - Signal_movingAverage_@@SignalMovingAverageName (function block)
+	      inputs: input_value, reset; outputs: output_value, filled_count
+
+	Example:
+	  {#define SignalMovingAverageName n10}
+	  {#define SignalMovingAverageCapacity 10}
+	  {#include <signal/moving_average_template.iec>}
+	  {#undef SignalMovingAverageName}
+	  {#undef SignalMovingAverageCapacity}
+	  // var ma: Signal_movingAverage_n10; end
+	  // ma(input_value:=x); y := ma.output_value;
+	================================================================================
+*)
+{#include <sys.iec>}
+
+{#ifndef SignalMovingAverageName}
+	{#error require SignalMovingAverageName macro.}
+{#endif}
+{#ifndef SignalMovingAverageCapacity}
+	{#error require SignalMovingAverageCapacity macro.}
+{#endif}
+{#if SignalMovingAverageCapacity < 1}
+	{#error The capacity of the moving average must be 1 or more.}
+{#endif}
+
+{#define _SIGNAL_MOVING_AVERAGE_(T) Signal_movingAverage_@@T}
+{#define SIGNAL_MOVING_AVERAGE(T) _SIGNAL_MOVING_AVERAGE_(T)}
+{#define Signal_movingAverage SIGNAL_MOVING_AVERAGE(SignalMovingAverageName)}
+
+(*{doc Simple moving average of the last N inputs (N = SignalMovingAverageCapacity).
+Until N inputs have been given, it outputs the average of the inputs given so far.
+The sum is recomputed from the kept inputs at every call, so rounding errors do not build up.
+@input input_value The new input.
+@input reset True to forget the kept inputs; the input of the same call is then the first one.
+@output output_value The average of the kept inputs.
+@output filled_count The number of kept inputs (1 to N).}*)
+function_block Signal_movingAverage
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc The new input.}*)
+		input_value: lreal;
+		(*{doc True to forget the kept inputs.}*)
+		reset: bool;
+	end
+	var_output
+		(*{doc The average of the kept inputs.}*)
+		output_value: lreal;
+		(*{doc The number of kept inputs.}*)
+		filled_count: dint;
+	end
+	var
+		kept: array[0..SignalMovingAverageCapacity - 1] of lreal;
+		next_index: dint;
+	end
+	var_temp
+		idx: dint;
+		total: lreal;
+	end
+	if reset then
+		filled_count := 0;
+		next_index := 0;
+	end_if;
+	kept[next_index] := input_value;
+	next_index := (next_index + 1) mod SignalMovingAverageCapacity;
+	if filled_count < SignalMovingAverageCapacity then
+		filled_count := filled_count + 1;
+	end_if;
+	total := 0.0;
+	for idx := 0 to filled_count - 1 do
+		total := total + kept[idx];
+	end_for;
+	output_value := total / dint_to_lreal(filled_count);
+end_function_block
+
+{#undef _SIGNAL_MOVING_AVERAGE_}
+{#undef SIGNAL_MOVING_AVERAGE}
+{#undef Signal_movingAverage}

@@ -131,7 +131,7 @@ function time_to_string_sec: string[64]
 	end_if;
 end
 {#elif _MITSUBISHI}
-	// TODO:
+	// Not supported: JiecLib does not support Mitsubishi (README.md).
 {#endif}
 
 {#if _OMRON}

@@ -1,0 +1,396 @@
+(*
+ * Statistical tests of the random distributions (roadmap PR-6).
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/random/test_random_distribution.iec -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/random/test_random_distribution.xml -t omron
+ *
+ * Each test draws N = 10000 numbers with a fixed seed, 500 per cycle over 20
+ * cycles (TEST_M), so that one cycle stays short on a PLC. The seed is fixed,
+ * so the result is always the same; the tolerances are wide enough to pass
+ * by chance only with a negligible probability, and narrow enough to catch
+ * an error in the implementation (such as a wrong coefficient):
+ *   - sample mean:     theoretical mean +- 5 sigma / sqrt(N)
+ *   - sample variance: theoretical variance +- 5 sigma^2 sqrt((kurtosis - 1) / N)
+ *   - Bernoulli count: N p +- 5 sqrt(N p (1 - p))
+ *   - nextIntInRange(0, 9): the chi-square statistic of the 10 counts lies
+ *     between the 1.0e-6 lower and upper quantiles of the chi-square
+ *     distribution with 9 degrees of freedom (0.22838484007344917 and
+ *     44.81093787068782). The lower bound catches counts that are too even
+ *     (a periodic pattern).
+ * The quantiles were computed in Python with the regularized incomplete
+ * gamma function and checked against table values (df 9: 16.9190 at the
+ * upper 0.05, 27.8772 at the upper 0.001, 1.1519 at the lower 0.001).
+ * The tests were also simulated in Python with the same generators and
+ * seeds; every statistic was within 0.5 of its tolerance.
+ *
+ * Under jier (jiecc --run, _JIER defined) the generators are slow (about
+ * 26 s per 500 draws of every test, 2026-11-08, Jiecc 9.4.0; 10000 draws
+ * took 669 s), so each test draws N = 200 numbers, 10 per cycle over the
+ * same 20 cycles; test_random.iec, which includes this file, then ends
+ * within 60 s. The tolerances use the same formulas and the same 5 sigma
+ * and 1.0e-6 levels with N = 200 (computed with math.sqrt of the Python
+ * standard library); the chi-square bounds do not depend on N (df 9;
+ * expected count 20). With N = 200 the variance tolerance of the
+ * exponential distribution equals the variance, so under jier that check
+ * only bounds the variance from above. On the PLC targets N stays 10000
+ * and the literals are those of the formulas with N = 10000.
+ *)
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <random/mersenne_twister.iec>}
+{#include <random/xorshift32.iec>}
+{#include <random/lcg.iec>}
+{#include <random/lfsr32.iec>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_nextIntInRange_distribution,
+		test_nextRealInRange_distribution,
+		test_nextBernoulli_distribution,
+		test_nextGaussian_distribution,
+		test_nextExponential_distribution,
+		test_nextPoisson_distribution,
+		test_nextPoisson_lambda_limit
+	)
+)
+{#endif}
+
+// N = DIST_PER_CYCLE * (DIST_LAST_CYCLE + 1). DIST_N, the expected count of
+// DistTest_chiSquare10 (N / 10) and every DIST_TOL_ tolerance depend on N;
+// change them together.
+{#ifdef _JIER}
+// N = 10 * 20 = 200 under jier (see the header comment).
+{#define DIST_PER_CYCLE 10}
+{#define DIST_N 200.0}
+{#define DIST_EXPECTED_COUNT 20.0}
+// 5 sqrt(64 / 12) / sqrt(200) and 5 (64 / 12) sqrt(0.8 / 200)
+{#define DIST_TOL_REAL_MEAN 0.8164965809277259}
+{#define DIST_TOL_REAL_VAR 1.6865480854231354}
+// 200 * 0.3 +- 5 sqrt(200 * 0.3 * 0.7)
+{#define DIST_BERNOULLI_MEAN 60.0}
+{#define DIST_TOL_BERNOULLI 32.4037034920393}
+// mean: 5 * 2 / sqrt(200); variance: 5 * 4 sqrt(2 / 200), 5 * 4 sqrt(8 / 200), 5 * 4 sqrt(2.25 / 200)
+{#define DIST_TOL_MEAN_SD2 0.7071067811865475}
+{#define DIST_TOL_GAUSSIAN_VAR 2.0}
+{#define DIST_TOL_EXPONENTIAL_VAR 4.0}
+{#define DIST_TOL_POISSON_VAR 2.1213203435596424}
+{#else}
+// N = 500 * 20 = 10000 on the PLC targets.
+{#define DIST_PER_CYCLE 500}
+{#define DIST_N 10000.0}
+{#define DIST_EXPECTED_COUNT 1000.0}
+// 5 sqrt(64 / 12) / 100 and 5 (64 / 12) sqrt(0.8 / 10000)
+{#define DIST_TOL_REAL_MEAN 0.11547005383792515}
+{#define DIST_TOL_REAL_VAR 0.23851391759997756}
+// 3000 +- 5 sqrt(10000 * 0.3 * 0.7)
+{#define DIST_BERNOULLI_MEAN 3000.0}
+{#define DIST_TOL_BERNOULLI 229.128784747792}
+// mean: 5 * 2 / 100; variance: 5 * 4 sqrt(2 / 10000), 5 * 4 sqrt(8 / 10000), 5 * 4 sqrt(2.25 / 10000)
+{#define DIST_TOL_MEAN_SD2 0.1}
+{#define DIST_TOL_GAUSSIAN_VAR 0.282842712474619}
+{#define DIST_TOL_EXPONENTIAL_VAR 0.565685424949238}
+{#define DIST_TOL_POISSON_VAR 0.3}
+{#endif}
+{#define DIST_LAST_CYCLE 19}
+
+// The seeds of the generators.
+{#define DIST_SEED_MT dword#16#CAFEBABE}
+{#define DIST_SEED_XS dword#16#92D68CA2}
+{#define DIST_SEED_LCG udint#12345}
+{#define DIST_SEED_LFSR dword#16#ACE1ACE1}
+
+(*{doc Return the chi-square statistic of 10 counts of N draws (expected count N / 10 each).}*)
+function DistTest_chiSquare10: lreal
+	var_in_out
+		(*{doc The counts of the values 0 to 9.}*)
+		counts: array[*] of dint;
+	end
+	var_temp
+		idx: dint;
+		diff: lreal;
+	end
+	DistTest_chiSquare10 := 0.0;
+	for idx := 0 to 9 do
+		diff := dint_to_lreal(counts[idx]) - DIST_EXPECTED_COUNT;
+		DistTest_chiSquare10 := DistTest_chiSquare10 + diff * diff / DIST_EXPECTED_COUNT;
+	end_for;
+end_function
+
+(*{doc Return the sample variance of N values from their sum and sum of squares.}*)
+function DistTest_variance: lreal
+	var_input
+		(*{doc The sum of the values.}*)
+		total: lreal;
+		(*{doc The sum of the squares of the values.}*)
+		total_sq: lreal;
+	end
+	DistTest_variance := (total_sq - total * total / DIST_N) / (DIST_N - 1.0);
+end_function
+
+TEST_M(test_nextIntInRange_distribution)
+	var
+		mt: MersenneTwister_t;
+		xs: Xorshift32_t;
+		lcg: LCG_t;
+		lfsr: LFSR32_t;
+		mt_counts, xs_counts, lcg_counts, lfsr_counts: array[0..9] of dint;
+		value: dint;
+		idx: dint;
+		in_range: bool;
+	end
+	// Fact: nextIntInRange(0, 9) of every generator gives each value 0 to 9 equally often (chi-square test, df 9).
+		// Arrange
+	if CURRENT_CYCLE() = 0 then
+		MersenneTwister_init(mt, DIST_SEED_MT);
+		Xorshift32_init(xs, DIST_SEED_XS);
+		LCG_init(lcg, DIST_SEED_LCG);
+		LFSR32_init(self:=lfsr, seed:=DIST_SEED_LFSR);
+		in_range := true;
+	end_if;
+		// Act
+	for idx := 1 to DIST_PER_CYCLE do
+		value := MersenneTwister_nextIntInRange(mt, 0, 9);
+		in_range := in_range and (value >= 0) and (value <= 9);
+		if (value >= 0) and (value <= 9) then
+			mt_counts[value] := mt_counts[value] + 1;
+		end_if;
+		value := Xorshift32_nextIntInRange(xs, 0, 9);
+		in_range := in_range and (value >= 0) and (value <= 9);
+		if (value >= 0) and (value <= 9) then
+			xs_counts[value] := xs_counts[value] + 1;
+		end_if;
+		value := LCG_nextIntInRange(lcg, 0, 9);
+		in_range := in_range and (value >= 0) and (value <= 9);
+		if (value >= 0) and (value <= 9) then
+			lcg_counts[value] := lcg_counts[value] + 1;
+		end_if;
+		value := LFSR32_nextIntInRange(lfsr, 0, 9);
+		in_range := in_range and (value >= 0) and (value <= 9);
+		if (value >= 0) and (value <= 9) then
+			lfsr_counts[value] := lfsr_counts[value] + 1;
+		end_if;
+	end_for;
+		// Assert
+	if CURRENT_CYCLE() = DIST_LAST_CYCLE then
+		EXPECT_TRUE(in_range);
+		EXPECT_GE_LREAL(DistTest_chiSquare10(mt_counts), 0.22838484007344917);
+		EXPECT_LE_LREAL(DistTest_chiSquare10(mt_counts), 44.81093787068782);
+		EXPECT_GE_LREAL(DistTest_chiSquare10(xs_counts), 0.22838484007344917);
+		EXPECT_LE_LREAL(DistTest_chiSquare10(xs_counts), 44.81093787068782);
+		EXPECT_GE_LREAL(DistTest_chiSquare10(lcg_counts), 0.22838484007344917);
+		EXPECT_LE_LREAL(DistTest_chiSquare10(lcg_counts), 44.81093787068782);
+		EXPECT_GE_LREAL(DistTest_chiSquare10(lfsr_counts), 0.22838484007344917);
+		EXPECT_LE_LREAL(DistTest_chiSquare10(lfsr_counts), 44.81093787068782);
+		EOT();
+	end_if;
+END_TEST_M
+
+TEST_M(test_nextRealInRange_distribution)
+	var
+		mt: MersenneTwister_t;
+		xs: Xorshift32_t;
+		lcg: LCG_t;
+		mt_sum, mt_sum_sq, xs_sum, xs_sum_sq, lcg_sum, lcg_sum_sq: lreal;
+		value: lreal;
+		idx: dint;
+		in_range: bool;
+	end
+	// Fact: nextRealInRange(-2, 6) of every generator has the mean 2 and the variance 8^2 / 12 of the uniform distribution (kurtosis 1.8).
+		// Arrange
+	if CURRENT_CYCLE() = 0 then
+		MersenneTwister_init(mt, DIST_SEED_MT);
+		Xorshift32_init(xs, DIST_SEED_XS);
+		LCG_init(lcg, DIST_SEED_LCG);
+		in_range := true;
+	end_if;
+		// Act
+	for idx := 1 to DIST_PER_CYCLE do
+		value := MersenneTwister_nextRealInRange(mt, lreal#-2.0, lreal#6.0);
+		in_range := in_range and (value >= -2.0) and (value < 6.0);
+		mt_sum := mt_sum + value;
+		mt_sum_sq := mt_sum_sq + value * value;
+		value := Xorshift32_nextRealInRange(xs, lreal#-2.0, lreal#6.0);
+		in_range := in_range and (value >= -2.0) and (value < 6.0);
+		xs_sum := xs_sum + value;
+		xs_sum_sq := xs_sum_sq + value * value;
+		value := LCG_nextRealInRange(lcg, lreal#-2.0, lreal#6.0);
+		in_range := in_range and (value >= -2.0) and (value < 6.0);
+		lcg_sum := lcg_sum + value;
+		lcg_sum_sq := lcg_sum_sq + value * value;
+	end_for;
+		// Assert
+	if CURRENT_CYCLE() = DIST_LAST_CYCLE then
+		// variance 64 / 12; the tolerances are DIST_TOL_REAL_MEAN and DIST_TOL_REAL_VAR
+		EXPECT_TRUE(in_range);
+		EXPECT_NEAR(2.0, mt_sum / DIST_N, DIST_TOL_REAL_MEAN);
+		EXPECT_NEAR(5.333333333333333, DistTest_variance(mt_sum, mt_sum_sq), DIST_TOL_REAL_VAR);
+		EXPECT_NEAR(2.0, xs_sum / DIST_N, DIST_TOL_REAL_MEAN);
+		EXPECT_NEAR(5.333333333333333, DistTest_variance(xs_sum, xs_sum_sq), DIST_TOL_REAL_VAR);
+		EXPECT_NEAR(2.0, lcg_sum / DIST_N, DIST_TOL_REAL_MEAN);
+		EXPECT_NEAR(5.333333333333333, DistTest_variance(lcg_sum, lcg_sum_sq), DIST_TOL_REAL_VAR);
+		EOT();
+	end_if;
+END_TEST_M
+
+TEST_M(test_nextBernoulli_distribution)
+	var
+		mt: MersenneTwister_t;
+		xs: Xorshift32_t;
+		lcg: LCG_t;
+		mt_true, xs_true, lcg_true: dint;
+		idx: dint;
+	end
+	// Fact: nextBernoulli(0.3) of every generator is true about 0.3 N times (binomial distribution).
+		// Arrange
+	if CURRENT_CYCLE() = 0 then
+		MersenneTwister_init(mt, DIST_SEED_MT);
+		Xorshift32_init(xs, DIST_SEED_XS);
+		LCG_init(lcg, DIST_SEED_LCG);
+	end_if;
+		// Act
+	for idx := 1 to DIST_PER_CYCLE do
+		if MersenneTwister_nextBernoulli(mt, lreal#0.3) then
+			mt_true := mt_true + 1;
+		end_if;
+		if Xorshift32_nextBernoulli(xs, lreal#0.3) then
+			xs_true := xs_true + 1;
+		end_if;
+		if LCG_nextBernoulli(lcg, lreal#0.3) then
+			lcg_true := lcg_true + 1;
+		end_if;
+	end_for;
+		// Assert
+	if CURRENT_CYCLE() = DIST_LAST_CYCLE then
+		// N * 0.3 +- 5 sqrt(N * 0.3 * 0.7)
+		EXPECT_NEAR(DIST_BERNOULLI_MEAN, dint_to_lreal(mt_true), DIST_TOL_BERNOULLI);
+		EXPECT_NEAR(DIST_BERNOULLI_MEAN, dint_to_lreal(xs_true), DIST_TOL_BERNOULLI);
+		EXPECT_NEAR(DIST_BERNOULLI_MEAN, dint_to_lreal(lcg_true), DIST_TOL_BERNOULLI);
+		EOT();
+	end_if;
+END_TEST_M
+
+TEST_M(test_nextGaussian_distribution)
+	var
+		mt: MersenneTwister_t;
+		xs: Xorshift32_t;
+		mt_sum, mt_sum_sq, xs_sum, xs_sum_sq: lreal;
+		value: lreal;
+		idx: dint;
+	end
+	// Fact: nextGaussian(10, 2) has the mean 10 and the variance 4 of N(10, 2^2) (kurtosis 3).
+		// Arrange
+	if CURRENT_CYCLE() = 0 then
+		MersenneTwister_init(mt, DIST_SEED_MT);
+		Xorshift32_init(xs, DIST_SEED_XS);
+	end_if;
+		// Act
+	for idx := 1 to DIST_PER_CYCLE do
+		value := MersenneTwister_nextGaussian(mt, lreal#10.0, lreal#2.0);
+		mt_sum := mt_sum + value;
+		mt_sum_sq := mt_sum_sq + value * value;
+		value := Xorshift32_nextGaussian(xs, lreal#10.0, lreal#2.0);
+		xs_sum := xs_sum + value;
+		xs_sum_sq := xs_sum_sq + value * value;
+	end_for;
+		// Assert
+	if CURRENT_CYCLE() = DIST_LAST_CYCLE then
+		// mean: 5 * 2 / sqrt(N); variance: 5 * 4 sqrt(2 / N)
+		EXPECT_NEAR(10.0, mt_sum / DIST_N, DIST_TOL_MEAN_SD2);
+		EXPECT_NEAR(4.0, DistTest_variance(mt_sum, mt_sum_sq), DIST_TOL_GAUSSIAN_VAR);
+		EXPECT_NEAR(10.0, xs_sum / DIST_N, DIST_TOL_MEAN_SD2);
+		EXPECT_NEAR(4.0, DistTest_variance(xs_sum, xs_sum_sq), DIST_TOL_GAUSSIAN_VAR);
+		EOT();
+	end_if;
+END_TEST_M
+
+TEST_M(test_nextExponential_distribution)
+	var
+		mt: MersenneTwister_t;
+		xs: Xorshift32_t;
+		mt_sum, mt_sum_sq, xs_sum, xs_sum_sq: lreal;
+		value: lreal;
+		idx: dint;
+	end
+	// Fact: nextExponential(0.5) has the mean 1 / 0.5 = 2 and the variance 1 / 0.5^2 = 4 (kurtosis 9).
+		// Arrange
+	if CURRENT_CYCLE() = 0 then
+		MersenneTwister_init(mt, DIST_SEED_MT);
+		Xorshift32_init(xs, DIST_SEED_XS);
+	end_if;
+		// Act
+	for idx := 1 to DIST_PER_CYCLE do
+		value := MersenneTwister_nextExponential(mt, lreal#0.5);
+		mt_sum := mt_sum + value;
+		mt_sum_sq := mt_sum_sq + value * value;
+		value := Xorshift32_nextExponential(xs, lreal#0.5);
+		xs_sum := xs_sum + value;
+		xs_sum_sq := xs_sum_sq + value * value;
+	end_for;
+		// Assert
+	if CURRENT_CYCLE() = DIST_LAST_CYCLE then
+		// mean: 5 * 2 / sqrt(N); variance: 5 * 4 sqrt(8 / N)
+		EXPECT_NEAR(2.0, mt_sum / DIST_N, DIST_TOL_MEAN_SD2);
+		EXPECT_NEAR(4.0, DistTest_variance(mt_sum, mt_sum_sq), DIST_TOL_EXPONENTIAL_VAR);
+		EXPECT_NEAR(2.0, xs_sum / DIST_N, DIST_TOL_MEAN_SD2);
+		EXPECT_NEAR(4.0, DistTest_variance(xs_sum, xs_sum_sq), DIST_TOL_EXPONENTIAL_VAR);
+		EOT();
+	end_if;
+END_TEST_M
+
+TEST_M(test_nextPoisson_distribution)
+	var
+		mt: MersenneTwister_t;
+		xs: Xorshift32_t;
+		mt_sum, mt_sum_sq, xs_sum, xs_sum_sq: lreal;
+		value: lreal;
+		idx: dint;
+	end
+	// Fact: nextPoisson(4) has the mean 4 and the variance 4 (kurtosis 3 + 1 / 4).
+		// Arrange
+	if CURRENT_CYCLE() = 0 then
+		MersenneTwister_init(mt, DIST_SEED_MT);
+		Xorshift32_init(xs, DIST_SEED_XS);
+	end_if;
+		// Act
+	for idx := 1 to DIST_PER_CYCLE do
+		value := dint_to_lreal(MersenneTwister_nextPoisson(mt, lreal#4.0));
+		mt_sum := mt_sum + value;
+		mt_sum_sq := mt_sum_sq + value * value;
+		value := dint_to_lreal(Xorshift32_nextPoisson(xs, lreal#4.0));
+		xs_sum := xs_sum + value;
+		xs_sum_sq := xs_sum_sq + value * value;
+	end_for;
+		// Assert
+	if CURRENT_CYCLE() = DIST_LAST_CYCLE then
+		// mean: 5 * 2 / sqrt(N); variance: 5 * 4 sqrt(2.25 / N)
+		EXPECT_NEAR(4.0, mt_sum / DIST_N, DIST_TOL_MEAN_SD2);
+		EXPECT_NEAR(4.0, DistTest_variance(mt_sum, mt_sum_sq), DIST_TOL_POISSON_VAR);
+		EXPECT_NEAR(4.0, xs_sum / DIST_N, DIST_TOL_MEAN_SD2);
+		EXPECT_NEAR(4.0, DistTest_variance(xs_sum, xs_sum_sq), DIST_TOL_POISSON_VAR);
+		EOT();
+	end_if;
+END_TEST_M
+
+TEST_S(test_nextPoisson_lambda_limit)
+	var
+		mt: MersenneTwister_t;
+		xs: Xorshift32_t;
+		ok: bool;
+	end
+	// Fact: nextPoisson accepts lambda = 500 and rejects a larger lambda with eno = false.
+		// Arrange
+	MersenneTwister_init(mt, DIST_SEED_MT);
+	Xorshift32_init(xs, DIST_SEED_XS);
+		// Act/Assert
+	MersenneTwister_nextPoisson(self:=mt, lambda:=lreal#500.0, eno=>ok);
+	EXPECT_TRUE(ok);
+	MersenneTwister_nextPoisson(self:=mt, lambda:=lreal#500.001, eno=>ok);
+	EXPECT_FALSE(ok);
+	Xorshift32_nextPoisson(self:=xs, lambda:=lreal#500.0, eno=>ok);
+	EXPECT_TRUE(ok);
+	Xorshift32_nextPoisson(self:=xs, lambda:=lreal#1000.0, eno=>ok);
+	EXPECT_FALSE(ok);
+END_TEST_S

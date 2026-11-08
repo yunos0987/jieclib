@@ -7,19 +7,19 @@
 
 {#include <sys.iec>}
 
-{doc 2引数アークタンジェント関数。
+(*{doc 2引数アークタンジェント関数。
 座標(x, y)の偏角をラジアンで返す。
 結果は-πからπの範囲内。象限を考慮した正しい角度を返す。
 @in y Y座標値
 @in x X座標値
-@return 偏角（ラジアン、-πからπ）}
+@return 偏角（ラジアン、-πからπ）}*)
 function Math_atan2: lreal
 	{#define PI 3.14159265358979323846}
 	_PROLOGUE_OF_FUNCTION_()
 	var_input
-		{doc Y座標値}
+		(*{doc Y座標値}*)
 		y: lreal;
-		{doc X座標値}
+		(*{doc X座標値}*)
 		x: lreal;
 	end
 		if x > 0.0 then

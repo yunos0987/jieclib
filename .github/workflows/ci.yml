@@ -50,6 +50,34 @@ jobs:
               print("error: " + line)
           sys.exit(1 if bad else 0)
 
+  # Checks the coding rules that can be checked without jiecc
+  # (scripts/lint.py). A warning that is not in scripts/lint_baseline.json
+  # fails the job. The comparison of the baseline with the target branch is in
+  # pr-checks.yml, because it reruns when a label changes.
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.x"
+
+      - name: Test the lint and PR body scripts
+        run: |
+          python scripts/test_lint.py
+          python scripts/test_check_pr_body.py
+          python scripts/test_pou_inventory.py
+          python scripts/test_package_release.py
+          python scripts/test_target_table.py
+
+      - name: Lint
+        run: python scripts/lint.py
+
+      # The table of the declared targets in README.md must match the headers.
+      - name: Check the target table of README.md
+        run: python scripts/target_table.py --check
+
   # Compiles every library entry file in src/ and every test file in test/
   # for the targets named in their header comments. A failure fails CI.
   compile:
@@ -64,14 +92,15 @@ jobs:
         with:
           submodules: recursive
 
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.x"
 
       - uses: ./.github/actions/setup-jiecc
 
       # A Python step runs the same way on Windows and Linux, and its exit
-      # code is the exit code of run_tests.py.
+      # code is the exit code of run_tests.py. The XML is kept in out/ for
+      # the next step.
       - name: Compile sources and tests
         shell: python
         run: |
@@ -80,33 +109,62 @@ jobs:
           import sys
 
           sys.exit(subprocess.call([sys.executable, "scripts/run_tests.py", "--compile-only",
+                                    "--output-dir", "out",
                                     "--jiecc", os.environ["JIECC_EXE"]]))
 
-  # Runs the tests with the jier interpreter (jiecc --run). Many tests do not
-  # run under jier yet, so this job is informational: continue-on-error keeps
-  # a failure from failing CI. It becomes required once Jiecc and JiecLib
-  # support running all tests with jier.
+      # Checks the names and types in the compiled XML (scripts/lint_xml.py).
+      # It runs even when a compile failed: the missing XML is reported.
+      - name: Lint the compiled XML
+        if: ${{ !cancelled() }}
+        run: python scripts/lint.py --xml-dir out
+
+      # Every public POU needs a test, unless scripts/pou_inventory_allow.txt
+      # lists it with a reason (scripts/pou_inventory.py).
+      - name: Check that the public POUs have tests
+        if: ${{ !cancelled() }}
+        run: python scripts/pou_inventory.py --xml-dir out --check
+
+  # Runs all the tests with the jier interpreter (jiecc --run). A failure
+  # fails CI. JiecUnit halts jier when the tests have finished, so each test
+  # file ends without waiting for --max-cycles; --timeout 300 (the default of
+  # run_tests.py) kills a test file that does not end. The job also runs the unit tests of run_tests.py
+  # and lint.py with jiecc, including the check that a timeout kills the
+  # whole jiecc process tree on this OS.
   run:
     strategy:
       fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest]
     runs-on: ${{ matrix.os }}
-    continue-on-error: true
-    # Informational and capped: 300 s per test file (--timeout) and 120 min per job.
-    timeout-minutes: 120
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: recursive
 
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.x"
 
       - uses: ./.github/actions/setup-jiecc
 
+      - name: Test run_tests.py and lint.py with jiecc
+        shell: python
+        run: |
+          import os
+          import subprocess
+          import sys
+
+          # test_lint.py also recompiles its XML test data with jiecc here,
+          # to notice a change of the XML format of jiecc.
+          env = dict(os.environ, JIECC=os.environ["JIECC_EXE"])
+          codes = [subprocess.call([sys.executable, "scripts/" + name], env=env)
+                   for name in ("test_run_tests.py", "test_lint.py")]
+          sys.exit(1 if any(codes) else 0)
+
+      # Runs even when the unit tests failed, so that both results are shown.
       - name: Run tests with jier
+        if: ${{ !cancelled() }}
         shell: python
         run: |
           import os

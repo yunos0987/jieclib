@@ -335,7 +335,7 @@ function Array_quicksort_n
 		pivot := self[left_idx + (right_idx - left_idx) / 2];
 
 		while l_ptr <= r_ptr do
-			while TRUE do
+			while true do
 				if ascending then
 					cond := self[l_ptr] < pivot;
 				else
@@ -348,7 +348,7 @@ function Array_quicksort_n
 				end_if;
 			end_while;
 
-			while TRUE do
+			while true do
 				if ascending then
 					cond := self[r_ptr] > pivot;
 				else

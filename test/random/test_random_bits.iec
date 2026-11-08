@@ -1,0 +1,88 @@
+(*
+ * Tests of MersenneTwister_next and Xorshift32_next with a number of bits
+ * (roadmap PR-7).
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/random/test_random_bits.iec -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/random/test_random_bits.xml -t omron
+ *
+ * The expected values come from Python reproductions of the generators
+ * (MT19937 initialized with init_genrand, as MersenneTwister_init does; not
+ * Python's random.seed, which uses init_by_array). next(bits) returns the
+ * upper bits of the next 32-bit output, so the outputs for seed 0xCAFEBABE
+ * are 2225186022, 2519076155 and 3281398375, and next(1), next(16) and
+ * next(32) return 2225186022 / 2^31 = 1, 2519076155 / 2^16 = 38438 and
+ * 3281398375. For Xorshift32 with seed 0x92D68CA2 the outputs are
+ * 723471715 (the value in test_xorshift32.iec), 2497366906 and 2064144800.
+ *
+ * The generators use shr and shl without a width, which jier (jiecc --run)
+ * does not support, so this test runs on the PLC environments only.
+ *)
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <random/mersenne_twister.iec>}
+{#include <random/xorshift32.iec>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_MersenneTwister_next_bits,
+		test_Xorshift32_next_bits
+	)
+)
+{#endif}
+
+TEST_S(test_MersenneTwister_next_bits)
+	var
+		mt: MersenneTwister_t;
+		ok: bool;
+	end
+	// Fact: next(bits) returns the upper bits of the next output, so the value is less than 2^bits.
+		// Arrange
+	MersenneTwister_init(mt, dword#16#CAFEBABE);
+		// Act/Assert
+	EXPECT_EQ_UDINT(udint#1, dword_to_udint(MersenneTwister_next(mt, 1)));
+	EXPECT_EQ_UDINT(udint#38438, dword_to_udint(MersenneTwister_next(mt, 16)));
+	EXPECT_EQ_UDINT(udint#3281398375, dword_to_udint(MersenneTwister_next(mt, 32)));
+
+	// Fact: bits outside 1..32 is an error and does not use an output of the generator.
+		// Arrange
+	MersenneTwister_init(mt, dword#16#CAFEBABE);
+		// Act
+	MersenneTwister_next(self:=mt, bits:=0, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+		// Act
+	MersenneTwister_next(self:=mt, bits:=33, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_EQ_UDINT(udint#2225186022, dword_to_udint(MersenneTwister_next(mt, 32)));
+END_TEST_S
+
+TEST_S(test_Xorshift32_next_bits)
+	var
+		xs: Xorshift32_t;
+		ok: bool;
+	end
+	// Fact: next(bits) returns the upper bits of the next output, so the value is less than 2^bits.
+		// Arrange
+	Xorshift32_init(xs, dword#16#92D68CA2);
+		// Act/Assert
+	EXPECT_EQ_UDINT(udint#0, dword_to_udint(Xorshift32_next(xs, 1)));
+	EXPECT_EQ_UDINT(udint#38106, dword_to_udint(Xorshift32_next(xs, 16)));
+	EXPECT_EQ_UDINT(udint#2064144800, dword_to_udint(Xorshift32_next(xs, 32)));
+
+	// Fact: bits outside 1..32 is an error and does not change the state.
+		// Arrange
+	Xorshift32_init(xs, dword#16#92D68CA2);
+		// Act
+	Xorshift32_next(self:=xs, bits:=0, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+		// Act
+	Xorshift32_next(self:=xs, bits:=33, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_EQ_UDINT(udint#723471715, dword_to_udint(Xorshift32_next(xs, 32)));
+END_TEST_S

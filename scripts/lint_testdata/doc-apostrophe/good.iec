@@ -1,0 +1,9 @@
+(*{doc Return a value. It doesn$27t check the range.
+The separator is '=', a quoted word is "name", and 'a$'b' escapes in a string.}*)
+function Lint_doc_apostrophe_good: dint
+	var_input
+		(*{doc An input value.}*)
+		value: dint;
+	end
+	Lint_doc_apostrophe_good := value;
+end
