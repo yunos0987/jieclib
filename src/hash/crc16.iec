@@ -65,7 +65,6 @@ function private_CRC16_range: bool
 end
 
 (*{doc Update a reflected CRC-16 (shifted to the right) with one byte.
-The shift is a division by 2, not shr, so that the function also runs under jier.
 @input crc The CRC so far.
 @input data_byte The next byte.
 @input poly The reflected polynomial (16#A001 for CRC-16/MODBUS).
@@ -87,16 +86,15 @@ function private_CRC16_updateReflected: word
 	value := crc xor byte_to_word(data_byte);
 	for bit_index := 0 to 7 do
 		if (value and word#16#0001) <> word#16#0000 then
-			value := dint_to_word(word_to_dint(value) / 2) xor poly;
+			value := shr(value, 1) xor poly;
 		else
-			value := dint_to_word(word_to_dint(value) / 2);
+			value := shr(value, 1);
 		end_if;
 	end_for;
 	private_CRC16_updateReflected := value;
 end
 
 (*{doc Update a non-reflected CRC-16 (shifted to the left) with one byte.
-The shifts are multiplications by 256 and 2, not shl, so that the function also runs under jier.
 @input crc The CRC so far.
 @input data_byte The next byte.
 @input poly The polynomial (16#1021 for CRC-16/CCITT-FALSE and CRC-16/XMODEM).
@@ -115,12 +113,12 @@ function private_CRC16_updateNormal: word
 		value: word;
 		bit_index: dint;
 	end
-	value := crc xor dint_to_word(byte_to_dint(data_byte) * 256);
+	value := crc xor shl(byte_to_word(data_byte), 8);
 	for bit_index := 0 to 7 do
 		if (value and word#16#8000) <> word#16#0000 then
-			value := dint_to_word((word_to_dint(value) * 2) mod 65536) xor poly;
+			value := shl(value, 1) xor poly;
 		else
-			value := dint_to_word((word_to_dint(value) * 2) mod 65536);
+			value := shl(value, 1);
 		end_if;
 	end_for;
 	private_CRC16_updateNormal := value;

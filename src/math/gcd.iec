@@ -32,15 +32,8 @@ function Math_gcd: lint
 		eno := false;
 		return;
 	end_if;
-	// Not abs(): jier (jiecc --run) cannot run abs on an integer.
-	larger := num_a;
-	if larger < lint#0 then
-		larger := -larger;
-	end_if;
-	smaller := num_b;
-	if smaller < lint#0 then
-		smaller := -smaller;
-	end_if;
+	larger := abs(num_a);
+	smaller := abs(num_b);
 	while smaller <> lint#0 do
 		rest := larger mod smaller;
 		larger := smaller;

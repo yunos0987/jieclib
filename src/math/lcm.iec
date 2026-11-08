@@ -38,15 +38,8 @@ function Math_lcm: lint
 		Math_lcm := lint#0;
 		return;
 	end_if;
-	// Not abs(): jier (jiecc --run) cannot run abs on an integer.
-	quotient := num_a / divisor;
-	if quotient < lint#0 then
-		quotient := -quotient;
-	end_if;
-	abs_b := num_b;
-	if abs_b < lint#0 then
-		abs_b := -abs_b;
-	end_if;
+	quotient := abs(num_a / divisor);
+	abs_b := abs(num_b);
 	if (quotient <> lint#0) and (abs_b > lint#9223372036854775807 / quotient) then
 		eno := false;
 		return;
