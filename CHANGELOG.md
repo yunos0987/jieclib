@@ -19,6 +19,8 @@
 - `Math_floor` が、絶対値が 2^63 以上の値で誤った値を返す不具合を直しました（例: `Math_floor(1.0e19)` が `-8.446744073709552e+18`、`Math_floor(1.0e300)` が `0.0` を返していました）。`lint` に変換して切り捨てていたため、`lint` の範囲を超える値であふれていました。絶対値が 2^52 以上の `lreal` は必ず整数なので、その値をそのまま返します。テストは `test/math/test_floor_large.iec` です。
 - `MersenneTwister_nextPoisson` と `Xorshift32_nextPoisson` は、`lambda` が 500 を超えると `eno := false` を返すようにしました。これまでは上限がなく、`lambda` が約 745 を超えると `exp(-lambda)` が 0 になり、`lambda` と関係のない値を返していました。また、1 回の呼び出しで約 `lambda + 1` 個の乱数を使うため、`lambda` が大きいとタスクの周期を圧迫します。
 
+- `String_remove` と `String_substitute` は、削除・置換する文字列（`del`・`old`）が空のとき、入力の文字列をそのまま返すようにしました。これまでは、`find(s, '')` が 0 を返すまで繰り返していたため、`find` が空の文字列に 0 以外を返す環境（jier は 1 を返す）では、1 回の呼び出しが終わりませんでした。PLC では、1 周期の中で終わらない処理になります。テストは `test/string_lib/test_string_empty_search.iec` です。`test/string_lib/test_string_lib.iec` も jier で最後まで実行できるようになりました。
+
 - `MersenneTwister_next` と `Xorshift32_next` は、`bits` が 1〜32 の範囲外のとき `eno := false` を返すようにしました。生成器の状態は変えません。これまでは範囲を確かめずに `shr(x, 32 - bits)` を計算していました。
 
 ### その他 / Other

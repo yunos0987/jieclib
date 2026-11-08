@@ -1,0 +1,51 @@
+(*
+ * Test for the string functions given an empty search string
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/string_lib/test_string_empty_search.iec -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/string_lib/test_string_empty_search.xml -t omron
+ *)
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <string_lib/string_lib.iec>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_String_remove_empty,
+		test_String_substitute_empty
+	)
+)
+
+{#endif}
+
+// find(s, '') returns 1 under jier, so these calls did not return before
+// the empty search string was handled.
+TEST_S(test_String_remove_empty)
+	// Fact: An empty del removes nothing, whatever the count is.
+		// Arrange/Act/Assert
+	EXPECT_EQ_STRING('abcdabcd', String_remove(self:='abcdabcd', del:='', count:=-1));
+	EXPECT_EQ_STRING('abcdabcd', String_remove(self:='abcdabcd', del:='', count:=1));
+	EXPECT_EQ_STRING('abcdabcd', String_remove(self:='abcdabcd', del:='', count:=0));
+
+	// Fact: An empty del on an empty string returns an empty string.
+		// Arrange/Act/Assert
+	EXPECT_EQ_STRING('', String_remove(self:='', del:='', count:=-1));
+END_TEST_S
+
+TEST_S(test_String_substitute_empty)
+	// Fact: An empty old replaces nothing, whatever the new and the count are.
+		// Arrange/Act/Assert
+	EXPECT_EQ_STRING('abcdabcd', String_substitute(self:='abcdabcd', old:='', new:='*'));
+	EXPECT_EQ_STRING('abcdabcd', String_substitute(self:='abcdabcd', old:='', new:='*', count:=1));
+	EXPECT_EQ_STRING('abcdabcd', String_substitute(self:='abcdabcd', old:='', new:='', count:=-1));
+
+	// Fact: An empty old on an empty string returns an empty string.
+		// Arrange/Act/Assert
+	EXPECT_EQ_STRING('', String_substitute(self:='', old:='', new:='*'));
+
+	// Fact: A non-empty old is still replaced.
+		// Arrange/Act/Assert
+	EXPECT_EQ_STRING('a*da*d', String_substitute(self:='abcdabcd', old:='bc', new:='*'));
+END_TEST_S

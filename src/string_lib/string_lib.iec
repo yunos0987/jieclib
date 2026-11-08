@@ -226,6 +226,12 @@ function String_remove: STRING
 		r_str: STRING;
 	end
 	del_len := len(del);
+	// An empty del removes nothing. find(s, '') does not return 0 on every
+	// target, so the loop below would not end.
+	if del_len = 0 then
+		String_remove := self;
+		return;
+	end_if;
 	t_str := self;
 	l := len(t_str);
 	c_x := count;
@@ -677,6 +683,12 @@ function String_substitute: STRING
 	end
 	String_substitute := '';
 	old_len := len(old);
+	// An empty old replaces nothing. find(s, '') does not return 0 on every
+	// target, so the loop below would not end.
+	if old_len = 0 then
+		String_substitute := self;
+		return;
+	end_if;
 	t_str := self;
 	l := len(t_str);
 	c_x := count;
