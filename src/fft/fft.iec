@@ -1,0 +1,13 @@
+(*
+ * FFT library: transforms, spectrum and window functions.
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/fft/fft.iec -I./src -o ./src/fft/fft.xml -t omron
+ *)
+{#ifndef __FFT_FFT_IEC__}
+{#define __FFT_FFT_IEC__}
+
+{#include "transform.iec"}
+{#include "spectrum.iec"}
+{#include "window.iec"}
+
+{#endif}

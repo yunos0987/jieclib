@@ -1,0 +1,572 @@
+(*
+ * Tests of src/fft/transform.iec.
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/fft/test_transform.iec -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/fft/test_transform.xml -t omron
+ *
+ * The expected values were computed in Python without an FFT, with the direct
+ * O(N^2) definition (cmath and math; NumPy is not used):
+ *   def dft(x, sign=-1):
+ *       n = len(x)
+ *       return [sum(x[j] * cmath.exp(sign * 2j * math.pi * k * j / n) for j in range(n)) for k in range(n)]
+ *   forward: dft(x); inverse: [v / n for v in dft(x, +1)];
+ *   rfft: dft(x)[:n // 2 + 1];
+ *   irfft: the inverse of the full spectrum [X0.real, X1, .., X(n/2-1), X(n/2).real, conj(X(n/2-1)), .., conj(X1)].
+ * The round trips (inverse after forward, irfft after rfft) and the comparison
+ * of rfft with the forward transform use the signal FFT_SIGNAL_RE / FFT_SIGNAL_IM
+ * below, for N = 1 (complex only), 2, 4, 8 and 64.
+ *)
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <fft/transform.iec>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_Fft_forward,
+		test_Fft_inverse,
+		test_Fft_rfft,
+		test_Fft_irfft
+	)
+)
+{#endif}
+
+{#define FFT_EPS 1.0e-9}
+
+// A deterministic test signal: the value of point n (dint).
+{#define FFT_SIGNAL_RE(n) (sin(0.37 * dint_to_lreal(n) + 0.2) + 0.5 * cos(1.3 * dint_to_lreal(n)))}
+{#define FFT_SIGNAL_IM(n) (cos(0.53 * dint_to_lreal(n) - 0.1) - 0.25 * sin(2.1 * dint_to_lreal(n)))}
+// Fill re_arr[0 .. last] and im_arr[0 .. last] with the test signal.
+{#define FFT_FILL(re_arr, im_arr, last) for idx := 0 to last do re_arr[idx] := FFT_SIGNAL_RE(idx); im_arr[idx] := FFT_SIGNAL_IM(idx); end_for;}
+// Fill re_arr[0 .. last] with the real part of the test signal.
+{#define FFT_FILL_REAL(re_arr, last) for idx := 0 to last do re_arr[idx] := FFT_SIGNAL_RE(idx); end_for;}
+// max_error := the largest difference between re_arr, im_arr and the test signal.
+{#define FFT_SIGNAL_ERROR(re_arr, im_arr, last) max_error := 0.0; for idx := 0 to last do max_error := max(max_error, abs(re_arr[idx] - FFT_SIGNAL_RE(idx))); max_error := max(max_error, abs(im_arr[idx] - FFT_SIGNAL_IM(idx))); end_for;}
+// max_error := the largest difference between re_arr and the real part of the test signal.
+{#define FFT_REAL_ERROR(re_arr, last) max_error := 0.0; for idx := 0 to last do max_error := max(max_error, abs(re_arr[idx] - FFT_SIGNAL_RE(idx))); end_for;}
+
+TEST_S(test_Fft_forward)
+	var
+		re8: array[0..7] of lreal := [1.0, 2.0, 0.5, -1.0, 3.0, -2.5, 0.25, 4.0];
+		im8: array[0..7] of lreal := [0.5, -1.0, 2.0, 0.0, -0.75, 1.5, -2.0, 1.0];
+		re2: array[0..1] of lreal := [3.0, 1.0];
+		im2: array[0..1] of lreal := [2.0, -1.0];
+		re1: array[0..0] of lreal := [1.5];
+		im1: array[0..0] of lreal := [-2.5];
+		re3: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		im3: array[0..2] of lreal := [4.0, 5.0, 6.0];
+		re6: array[0..5] of lreal;
+		im6: array[0..5] of lreal;
+		re_offset: array[1..4] of lreal := [1.0, 2.0, 3.0, 4.0];
+		im_offset: array[1..4] of lreal := [5.0, 6.0, 7.0, 8.0];
+		re4: array[0..3] of lreal := [1.0, 2.0, 3.0, 4.0];
+		im_long: array[0..7] of lreal := [5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0];
+		idx: dint;
+		max_error: lreal;
+		ok: bool;
+	end
+	// Fact: For N = 8 the forward FFT equals the direct DFT X[k] = sum x[n] exp(-2 pi i k n / N), without scaling.
+		// Arrange (re8, im8)
+		// Act
+	Fft_forward(re:=re8, im:=im8, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_NEAR(7.25, re8[0], FFT_EPS);
+	EXPECT_NEAR(6.242640687119285, re8[1], FFT_EPS);
+	EXPECT_NEAR(2.7499999999999973, re8[2], FFT_EPS);
+	EXPECT_NEAR(-15.192388155425116, re8[3], FFT_EPS);
+	EXPECT_NEAR(2.250000000000003, re8[4], FFT_EPS);
+	EXPECT_NEAR(-2.2426406871192786, re8[5], FFT_EPS);
+	EXPECT_NEAR(3.7500000000000027, re8[6], FFT_EPS);
+	EXPECT_NEAR(3.192388155425125, re8[7], FFT_EPS);
+	EXPECT_NEAR(1.25, im8[0], FFT_EPS);
+	EXPECT_NEAR(0.29289321881345326, im8[1], FFT_EPS);
+	EXPECT_NEAR(3.250000000000001, im8[2], FFT_EPS);
+	EXPECT_NEAR(2.914213562373089, im8[3], FFT_EPS);
+	EXPECT_NEAR(-1.75, im8[4], FFT_EPS);
+	EXPECT_NEAR(1.7071067811865466, im8[5], FFT_EPS);
+	EXPECT_NEAR(-3.7500000000000027, im8[6], FFT_EPS);
+	EXPECT_NEAR(0.0857864376269232, im8[7], FFT_EPS);
+
+	// Fact: For N = 2 the spectrum is the sum and the difference of the two points.
+		// Arrange (re2, im2)
+		// Act
+	Fft_forward(re:=re2, im:=im2, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_NEAR(4.0, re2[0], FFT_EPS);
+	EXPECT_NEAR(2.0, re2[1], FFT_EPS);
+	EXPECT_NEAR(1.0, im2[0], FFT_EPS);
+	EXPECT_NEAR(3.0, im2[1], FFT_EPS);
+
+	// Fact: N = 1 is valid and leaves the point unchanged.
+		// Arrange (re1, im1)
+		// Act
+	Fft_forward(re:=re1, im:=im1, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_NEAR(1.5, re1[0], 0.0);
+	EXPECT_NEAR(-2.5, im1[0], 0.0);
+
+	// Fact: N = 3 (not a power of two) is an error and the arrays are not changed.
+		// Arrange (re3, im3)
+		// Act
+	Fft_forward(re:=re3, im:=im3, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(1.0, re3[0], 0.0);
+	EXPECT_NEAR(2.0, re3[1], 0.0);
+	EXPECT_NEAR(3.0, re3[2], 0.0);
+	EXPECT_NEAR(4.0, im3[0], 0.0);
+	EXPECT_NEAR(5.0, im3[1], 0.0);
+	EXPECT_NEAR(6.0, im3[2], 0.0);
+
+	// Fact: N = 6 (even but not a power of two) is an error and the arrays are not changed.
+		// Arrange
+	FFT_FILL(re6, im6, 5)
+		// Act
+	Fft_forward(re:=re6, im:=im6, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	FFT_SIGNAL_ERROR(re6, im6, 5)
+	EXPECT_NEAR(0.0, max_error, 0.0);
+
+	// Fact: Arrays whose lower bound is not 0 are an error and are not changed.
+		// Arrange (re_offset, im_offset)
+		// Act
+	Fft_forward(re:=re_offset, im:=im_offset, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(1.0, re_offset[1], 0.0);
+	EXPECT_NEAR(4.0, re_offset[4], 0.0);
+	EXPECT_NEAR(5.0, im_offset[1], 0.0);
+	EXPECT_NEAR(8.0, im_offset[4], 0.0);
+
+	// Fact: re and im of different sizes are an error and are not changed.
+		// Arrange (re4, im_long)
+		// Act
+	Fft_forward(re:=re4, im:=im_long, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(1.0, re4[0], 0.0);
+	EXPECT_NEAR(4.0, re4[3], 0.0);
+	EXPECT_NEAR(5.0, im_long[0], 0.0);
+	EXPECT_NEAR(12.0, im_long[7], 0.0);
+END_TEST_S
+
+TEST_S(test_Fft_inverse)
+	var
+		re8: array[0..7] of lreal := [1.0, 2.0, 0.5, -1.0, 3.0, -2.5, 0.25, 4.0];
+		im8: array[0..7] of lreal := [0.5, -1.0, 2.0, 0.0, -0.75, 1.5, -2.0, 1.0];
+		re1: array[0..0] of lreal;
+		im1: array[0..0] of lreal;
+		re2: array[0..1] of lreal;
+		im2: array[0..1] of lreal;
+		re4: array[0..3] of lreal;
+		im4: array[0..3] of lreal;
+		re_rt8: array[0..7] of lreal;
+		im_rt8: array[0..7] of lreal;
+		re64: array[0..63] of lreal;
+		im64: array[0..63] of lreal;
+		re3: array[0..2] of lreal := [1.0, 2.0, 3.0];
+		im3: array[0..2] of lreal := [4.0, 5.0, 6.0];
+		re6: array[0..5] of lreal;
+		im6: array[0..5] of lreal;
+		re_offset: array[1..4] of lreal := [1.0, 2.0, 3.0, 4.0];
+		im_offset: array[1..4] of lreal := [5.0, 6.0, 7.0, 8.0];
+		im_short: array[0..1] of lreal := [5.0, 6.0];
+		idx: dint;
+		max_error: lreal;
+		ok: bool;
+	end
+	// Fact: For N = 8 the inverse FFT equals the direct inverse DFT x[n] = (1 / N) sum X[k] exp(2 pi i k n / N).
+		// Arrange (re8, im8)
+		// Act
+	Fft_inverse(re:=re8, im:=im8, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_NEAR(0.90625, re8[0], FFT_EPS);
+	EXPECT_NEAR(0.39904851942813974, re8[1], FFT_EPS);
+	EXPECT_NEAR(0.46874999999999983, re8[2], FFT_EPS);
+	EXPECT_NEAR(-0.28033008588991004, re8[3], FFT_EPS);
+	EXPECT_NEAR(0.2812499999999996, re8[4], FFT_EPS);
+	EXPECT_NEAR(-1.899048519428139, re8[5], FFT_EPS);
+	EXPECT_NEAR(0.34375000000000056, re8[6], FFT_EPS);
+	EXPECT_NEAR(0.7803300858899117, re8[7], FFT_EPS);
+	EXPECT_NEAR(0.15625, im8[0], FFT_EPS);
+	EXPECT_NEAR(0.010723304703363096, im8[1], FFT_EPS);
+	EXPECT_NEAR(-0.46875000000000006, im8[2], FFT_EPS);
+	EXPECT_NEAR(0.21338834764831846, im8[3], FFT_EPS);
+	EXPECT_NEAR(-0.21875, im8[4], FFT_EPS);
+	EXPECT_NEAR(0.36427669529663886, im8[5], FFT_EPS);
+	EXPECT_NEAR(0.4062499999999993, im8[6], FFT_EPS);
+	EXPECT_NEAR(0.036611652351680596, im8[7], FFT_EPS);
+
+	// Fact: Fft_inverse after Fft_forward gives back the data for N = 1, 2, 4, 8 and 64.
+		// Arrange
+	FFT_FILL(re1, im1, 0)
+	FFT_FILL(re2, im2, 1)
+	FFT_FILL(re4, im4, 3)
+	FFT_FILL(re_rt8, im_rt8, 7)
+	FFT_FILL(re64, im64, 63)
+		// Act/Assert
+	Fft_forward(re:=re1, im:=im1);
+	Fft_inverse(re:=re1, im:=im1, eno=>ok);
+	EXPECT_TRUE(ok);
+	FFT_SIGNAL_ERROR(re1, im1, 0)
+	EXPECT_NEAR(0.0, max_error, FFT_EPS);
+	Fft_forward(re:=re2, im:=im2);
+	Fft_inverse(re:=re2, im:=im2, eno=>ok);
+	EXPECT_TRUE(ok);
+	FFT_SIGNAL_ERROR(re2, im2, 1)
+	EXPECT_NEAR(0.0, max_error, FFT_EPS);
+	Fft_forward(re:=re4, im:=im4);
+	Fft_inverse(re:=re4, im:=im4, eno=>ok);
+	EXPECT_TRUE(ok);
+	FFT_SIGNAL_ERROR(re4, im4, 3)
+	EXPECT_NEAR(0.0, max_error, FFT_EPS);
+	Fft_forward(re:=re_rt8, im:=im_rt8);
+	Fft_inverse(re:=re_rt8, im:=im_rt8, eno=>ok);
+	EXPECT_TRUE(ok);
+	FFT_SIGNAL_ERROR(re_rt8, im_rt8, 7)
+	EXPECT_NEAR(0.0, max_error, FFT_EPS);
+	Fft_forward(re:=re64, im:=im64);
+	Fft_inverse(re:=re64, im:=im64, eno=>ok);
+	EXPECT_TRUE(ok);
+	FFT_SIGNAL_ERROR(re64, im64, 63)
+	EXPECT_NEAR(0.0, max_error, FFT_EPS);
+
+	// Fact: N = 3 is an error and the arrays are not changed.
+		// Arrange (re3, im3)
+		// Act
+	Fft_inverse(re:=re3, im:=im3, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(1.0, re3[0], 0.0);
+	EXPECT_NEAR(3.0, re3[2], 0.0);
+	EXPECT_NEAR(4.0, im3[0], 0.0);
+	EXPECT_NEAR(6.0, im3[2], 0.0);
+
+	// Fact: N = 6 is an error and the arrays are not changed.
+		// Arrange
+	FFT_FILL(re6, im6, 5)
+		// Act
+	Fft_inverse(re:=re6, im:=im6, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	FFT_SIGNAL_ERROR(re6, im6, 5)
+	EXPECT_NEAR(0.0, max_error, 0.0);
+
+	// Fact: Arrays whose lower bound is not 0 are an error and are not changed.
+		// Arrange (re_offset, im_offset)
+		// Act
+	Fft_inverse(re:=re_offset, im:=im_offset, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(1.0, re_offset[1], 0.0);
+	EXPECT_NEAR(4.0, re_offset[4], 0.0);
+	EXPECT_NEAR(5.0, im_offset[1], 0.0);
+	EXPECT_NEAR(8.0, im_offset[4], 0.0);
+
+	// Fact: re and im of different sizes are an error and are not changed.
+		// Arrange
+	FFT_FILL_REAL(re4, 3)
+		// Act
+	Fft_inverse(re:=re4, im:=im_short, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	FFT_REAL_ERROR(re4, 3)
+	EXPECT_NEAR(0.0, max_error, 0.0);
+	EXPECT_NEAR(5.0, im_short[0], 0.0);
+	EXPECT_NEAR(6.0, im_short[1], 0.0);
+END_TEST_S
+
+TEST_S(test_Fft_rfft)
+	var
+		samples8: array[0..7] of lreal := [1.0, -0.5, 2.0, 3.5, -1.25, 0.75, 4.0, -2.0];
+		out_re5: array[0..4] of lreal;
+		out_im5: array[0..4] of lreal;
+		x2: array[0..1] of lreal;
+		x4: array[0..3] of lreal;
+		x8: array[0..7] of lreal;
+		x64: array[0..63] of lreal;
+		full_re2: array[0..1] of lreal;
+		full_im2: array[0..1] of lreal;
+		full_re4: array[0..3] of lreal;
+		full_im4: array[0..3] of lreal;
+		full_re8: array[0..7] of lreal;
+		full_im8: array[0..7] of lreal;
+		full_re64: array[0..63] of lreal;
+		full_im64: array[0..63] of lreal;
+		half_re2: array[0..1] of lreal;
+		half_im2: array[0..1] of lreal;
+		half_re3: array[0..2] of lreal;
+		half_im3: array[0..2] of lreal;
+		half_re5: array[0..4] of lreal;
+		half_im5: array[0..4] of lreal;
+		half_re33: array[0..32] of lreal;
+		half_im33: array[0..32] of lreal;
+		samples6: array[0..5] of lreal;
+		out_re4: array[0..3] of lreal := [1.0, 2.0, 3.0, 4.0];
+		out_im4: array[0..3] of lreal := [5.0, 6.0, 7.0, 8.0];
+		samples1: array[0..0] of lreal := [1.0];
+		out_re1: array[0..0] of lreal := [9.0];
+		out_im1: array[0..0] of lreal := [8.0];
+		out_re_long: array[0..5] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+		samples_offset: array[1..8] of lreal := [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
+		idx: dint;
+		max_error: lreal;
+		ok: bool;
+	end
+	// Fact: For N = 8 the real FFT equals the bins 0 .. N/2 of the direct DFT, and the samples are not changed.
+		// Arrange (samples8)
+		// Act
+	Fft_rfft(samples:=samples8, out_re:=out_re5, out_im:=out_im5, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_NEAR(7.5, out_re5[0], FFT_EPS);
+	EXPECT_NEAR(-2.5229707730091957, out_re5[1], FFT_EPS);
+	EXPECT_NEAR(-6.25, out_re5[2], FFT_EPS);
+	EXPECT_NEAR(7.022970773009197, out_re5[3], FFT_EPS);
+	EXPECT_NEAR(4.0, out_re5[4], FFT_EPS);
+	EXPECT_NEAR(0.0, out_im5[0], FFT_EPS);
+	EXPECT_NEAR(-1.0052038200428273, out_im5[1], FFT_EPS);
+	EXPECT_NEAR(1.249999999999998, out_im5[2], FFT_EPS);
+	EXPECT_NEAR(-5.0052038200428255, out_im5[3], FFT_EPS);
+	EXPECT_NEAR(0.0, out_im5[4], FFT_EPS);
+	EXPECT_NEAR(1.0, samples8[0], 0.0);
+	EXPECT_NEAR(-0.5, samples8[1], 0.0);
+	EXPECT_NEAR(-2.0, samples8[7], 0.0);
+
+	// Fact: The real FFT equals the first N/2 + 1 bins of Fft_forward of the same real data, for N = 2, 4, 8 and 64.
+		// Arrange
+	FFT_FILL_REAL(x2, 1)
+	FFT_FILL_REAL(full_re2, 1)
+	FFT_FILL_REAL(x4, 3)
+	FFT_FILL_REAL(full_re4, 3)
+	FFT_FILL_REAL(x8, 7)
+	FFT_FILL_REAL(full_re8, 7)
+	FFT_FILL_REAL(x64, 63)
+	FFT_FILL_REAL(full_re64, 63)
+		// Act
+	Fft_forward(re:=full_re2, im:=full_im2);
+	Fft_rfft(samples:=x2, out_re:=half_re2, out_im:=half_im2, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	max_error := 0.0;
+	for idx := 0 to 1 do
+		max_error := max(max_error, abs(half_re2[idx] - full_re2[idx]));
+		max_error := max(max_error, abs(half_im2[idx] - full_im2[idx]));
+	end_for;
+	EXPECT_NEAR(0.0, max_error, FFT_EPS);
+		// Act
+	Fft_forward(re:=full_re4, im:=full_im4);
+	Fft_rfft(samples:=x4, out_re:=half_re3, out_im:=half_im3, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	max_error := 0.0;
+	for idx := 0 to 2 do
+		max_error := max(max_error, abs(half_re3[idx] - full_re4[idx]));
+		max_error := max(max_error, abs(half_im3[idx] - full_im4[idx]));
+	end_for;
+	EXPECT_NEAR(0.0, max_error, FFT_EPS);
+		// Act
+	Fft_forward(re:=full_re8, im:=full_im8);
+	Fft_rfft(samples:=x8, out_re:=half_re5, out_im:=half_im5, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	max_error := 0.0;
+	for idx := 0 to 4 do
+		max_error := max(max_error, abs(half_re5[idx] - full_re8[idx]));
+		max_error := max(max_error, abs(half_im5[idx] - full_im8[idx]));
+	end_for;
+	EXPECT_NEAR(0.0, max_error, FFT_EPS);
+		// Act
+	Fft_forward(re:=full_re64, im:=full_im64);
+	Fft_rfft(samples:=x64, out_re:=half_re33, out_im:=half_im33, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	max_error := 0.0;
+	for idx := 0 to 32 do
+		max_error := max(max_error, abs(half_re33[idx] - full_re64[idx]));
+		max_error := max(max_error, abs(half_im33[idx] - full_im64[idx]));
+	end_for;
+	EXPECT_NEAR(0.0, max_error, FFT_EPS);
+
+	// Fact: N = 6 (not a power of two) is an error and the outputs are not changed.
+		// Arrange (out_re4, out_im4 have N/2 + 1 = 4 elements)
+	FFT_FILL_REAL(samples6, 5)
+		// Act
+	Fft_rfft(samples:=samples6, out_re:=out_re4, out_im:=out_im4, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(1.0, out_re4[0], 0.0);
+	EXPECT_NEAR(4.0, out_re4[3], 0.0);
+	EXPECT_NEAR(5.0, out_im4[0], 0.0);
+	EXPECT_NEAR(8.0, out_im4[3], 0.0);
+
+	// Fact: N = 1 is an error for the real FFT and the outputs are not changed.
+		// Arrange (samples1)
+		// Act
+	Fft_rfft(samples:=samples1, out_re:=out_re1, out_im:=out_im1, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(9.0, out_re1[0], 0.0);
+	EXPECT_NEAR(8.0, out_im1[0], 0.0);
+
+	// Fact: Outputs that do not have N/2 + 1 elements are an error and are not changed.
+		// Arrange (N = 8 needs 5 elements; out_re4 has 4, out_re_long has 6)
+		// Act
+	Fft_rfft(samples:=samples8, out_re:=out_re4, out_im:=out_im4, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(1.0, out_re4[0], 0.0);
+	EXPECT_NEAR(4.0, out_re4[3], 0.0);
+	EXPECT_NEAR(5.0, out_im4[0], 0.0);
+	EXPECT_NEAR(8.0, out_im4[3], 0.0);
+		// Act
+	Fft_rfft(samples:=samples8, out_re:=out_re_long, out_im:=out_im5, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(1.0, out_re_long[0], 0.0);
+	EXPECT_NEAR(6.0, out_re_long[5], 0.0);
+	EXPECT_NEAR(-5.0052038200428255, out_im5[3], FFT_EPS);
+
+	// Fact: Samples whose lower bound is not 0 are an error and the outputs are not changed.
+		// Arrange (samples_offset)
+		// Act
+	Fft_rfft(samples:=samples_offset, out_re:=out_re5, out_im:=out_im5, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(7.5, out_re5[0], FFT_EPS);
+	EXPECT_NEAR(-5.0052038200428255, out_im5[3], FFT_EPS);
+END_TEST_S
+
+TEST_S(test_Fft_irfft)
+	var
+		in_re5: array[0..4] of lreal := [2.0, 1.0, -0.5, 3.0, 0.25];
+		in_im5: array[0..4] of lreal := [0.7, -1.5, 2.0, 0.5, -0.3];
+		out8: array[0..7] of lreal;
+		x2: array[0..1] of lreal;
+		x4: array[0..3] of lreal;
+		x8: array[0..7] of lreal;
+		x64: array[0..63] of lreal;
+		half_re2: array[0..1] of lreal;
+		half_im2: array[0..1] of lreal;
+		half_re3: array[0..2] of lreal;
+		half_im3: array[0..2] of lreal;
+		half_re5: array[0..4] of lreal;
+		half_im5: array[0..4] of lreal;
+		half_re33: array[0..32] of lreal;
+		half_im33: array[0..32] of lreal;
+		in_re4: array[0..3] of lreal := [1.0, 2.0, 3.0, 4.0];
+		in_im4: array[0..3] of lreal := [0.0, 0.0, 0.0, 0.0];
+		out6: array[0..5] of lreal;
+		out_short: array[0..5] of lreal;
+		in_re1: array[0..0] of lreal := [1.0];
+		in_im1: array[0..0] of lreal := [0.0];
+		out_any: array[0..1] of lreal := [3.0, 4.0];
+		in_im_short: array[0..3] of lreal := [0.0, 0.0, 0.0, 0.0];
+		in_re_offset: array[1..5] of lreal := [2.0, 1.0, -0.5, 3.0, 0.25];
+		in_im_offset: array[1..5] of lreal := [0.7, -1.5, 2.0, 0.5, -0.3];
+		idx: dint;
+		max_error: lreal;
+		ok: bool;
+	end
+	// Fact: For M = 5 points (N = 8) the inverse real FFT equals the direct inverse DFT of the conjugate-symmetric spectrum, ignoring the imaginary parts of X[0] and X[N/2].
+		// Arrange (in_re5, in_im5)
+		// Act
+	Fft_irfft(in_re:=in_re5, in_im:=in_im5, samples:=out8, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_NEAR(1.15625, out8[0], FFT_EPS);
+	EXPECT_NEAR(-0.4580266952966369, out8[1], FFT_EPS);
+	EXPECT_NEAR(0.90625, out8[2], FFT_EPS);
+	EXPECT_NEAR(1.2490800858899103, out8[3], FFT_EPS);
+	EXPECT_NEAR(-0.8437500000000002, out8[4], FFT_EPS);
+	EXPECT_NEAR(-0.10447330470336333, out8[5], FFT_EPS);
+	EXPECT_NEAR(-0.0937500000000007, out8[6], FFT_EPS);
+	EXPECT_NEAR(0.18841991411009099, out8[7], FFT_EPS);
+	EXPECT_NEAR(2.0, in_re5[0], 0.0);
+	EXPECT_NEAR(0.7, in_im5[0], 0.0);
+	EXPECT_NEAR(-0.3, in_im5[4], 0.0);
+
+	// Fact: Fft_irfft after Fft_rfft gives back the samples for N = 2, 4, 8 and 64.
+		// Arrange
+	FFT_FILL_REAL(x2, 1)
+	FFT_FILL_REAL(x4, 3)
+	FFT_FILL_REAL(x8, 7)
+	FFT_FILL_REAL(x64, 63)
+	Fft_rfft(samples:=x2, out_re:=half_re2, out_im:=half_im2);
+	Fft_rfft(samples:=x4, out_re:=half_re3, out_im:=half_im3);
+	Fft_rfft(samples:=x8, out_re:=half_re5, out_im:=half_im5);
+	Fft_rfft(samples:=x64, out_re:=half_re33, out_im:=half_im33);
+		// Act/Assert
+	Fft_irfft(in_re:=half_re2, in_im:=half_im2, samples:=x2, eno=>ok);
+	EXPECT_TRUE(ok);
+	FFT_REAL_ERROR(x2, 1)
+	EXPECT_NEAR(0.0, max_error, FFT_EPS);
+	Fft_irfft(in_re:=half_re3, in_im:=half_im3, samples:=x4, eno=>ok);
+	EXPECT_TRUE(ok);
+	FFT_REAL_ERROR(x4, 3)
+	EXPECT_NEAR(0.0, max_error, FFT_EPS);
+	Fft_irfft(in_re:=half_re5, in_im:=half_im5, samples:=x8, eno=>ok);
+	EXPECT_TRUE(ok);
+	FFT_REAL_ERROR(x8, 7)
+	EXPECT_NEAR(0.0, max_error, FFT_EPS);
+	Fft_irfft(in_re:=half_re33, in_im:=half_im33, samples:=x64, eno=>ok);
+	EXPECT_TRUE(ok);
+	FFT_REAL_ERROR(x64, 63)
+	EXPECT_NEAR(0.0, max_error, FFT_EPS);
+
+	// Fact: M = 4 points (N = 6, not a power of two) is an error and the output is not changed.
+		// Arrange
+	FFT_FILL_REAL(out6, 5)
+		// Act
+	Fft_irfft(in_re:=in_re4, in_im:=in_im4, samples:=out6, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	FFT_REAL_ERROR(out6, 5)
+	EXPECT_NEAR(0.0, max_error, 0.0);
+
+	// Fact: An output that does not have 2 (M - 1) elements is an error and is not changed.
+		// Arrange (M = 5 needs 8 elements; out_short has 6)
+	FFT_FILL_REAL(out_short, 5)
+		// Act
+	Fft_irfft(in_re:=in_re5, in_im:=in_im5, samples:=out_short, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	FFT_REAL_ERROR(out_short, 5)
+	EXPECT_NEAR(0.0, max_error, 0.0);
+
+	// Fact: M = 1 is an error and the output is not changed.
+		// Arrange (in_re1, in_im1)
+		// Act
+	Fft_irfft(in_re:=in_re1, in_im:=in_im1, samples:=out_any, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(3.0, out_any[0], 0.0);
+	EXPECT_NEAR(4.0, out_any[1], 0.0);
+
+	// Fact: in_re and in_im of different sizes are an error and the output is not changed.
+		// Arrange
+	FFT_FILL_REAL(out8, 7)
+		// Act
+	Fft_irfft(in_re:=in_re5, in_im:=in_im_short, samples:=out8, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	FFT_REAL_ERROR(out8, 7)
+	EXPECT_NEAR(0.0, max_error, 0.0);
+
+	// Fact: Inputs whose lower bound is not 0 are an error and the output is not changed.
+		// Arrange
+	FFT_FILL_REAL(out8, 7)
+		// Act
+	Fft_irfft(in_re:=in_re_offset, in_im:=in_im_offset, samples:=out8, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	FFT_REAL_ERROR(out8, 7)
+	EXPECT_NEAR(0.0, max_error, 0.0);
+END_TEST_S

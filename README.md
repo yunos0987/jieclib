@@ -13,6 +13,7 @@
   - [compress](#compress)
   - [container](#container)
   - [encoding](#encoding)
+  - [fft](#fft)
   - [hash](#hash)
   - [interp](#interp)
   - [linalg](#linalg)
@@ -51,6 +52,7 @@ JiecLibは、<a href="https://www.graviness.com/iec_61131-3/">IEC 61131-3 ST言�
 | [container](./src/container) | keyence, omron |
 | [control](./src/control) | omron |
 | [encoding](./src/encoding) | omron |
+| [fft](./src/fft) | omron |
 | [hash](./src/hash) | omron |
 | [interp](./src/interp) | omron |
 | [linalg](./src/linalg) | omron |
@@ -506,6 +508,87 @@ FIFO形式のリングバッファです。`overwrite=true` で初期化する�
   * HMI・計量器・Modbus 機器など産業機器との通信で使われる Packed BCD 形式
   * IEC 61131-10 XML生成コマンド: `jiecc ./src/encoding/bcd.iec -I./src -o ./src/encoding/bcd.xml -t omron`
 
+### [fft](./src/fft)
+
+高速フーリエ変換（FFT）のライブラリです（[fft.iec](./src/fft/fft.iec)）。複素数の FFT と逆変換、実数の信号の FFT と逆変換、スペクトルの振幅・パワー・位相、窓関数があります。振動の周波数分析などに使います。畳み込み・相関・dB 変換・ピークの検出はありません（ピークの探し方は利用例を参照してください）。
+
+| POU | 種類 | 説明 |
+|---|---|---|
+| `Fft_forward(re, im)` | 関数 | 複素数の FFT（その場で変換。スケーリングなし） |
+| `Fft_inverse(re, im)` | 関数 | 複素数の逆 FFT（その場で変換。1/N 倍） |
+| `Fft_rfft(samples, out_re, out_im)` | 関数 | 実数の信号 N 点の FFT。片側の N/2 + 1 点を出す（NumPy の `rfft` と同じ値） |
+| `Fft_irfft(in_re, in_im, samples)` | 関数 | `Fft_rfft` の逆変換。片側の M 点から実数の信号 2(M - 1) 点を出す（NumPy の `irfft` と同じ値） |
+| `Fft_amplitude(re, im, window_gain, amplitude)` | 関数 | 片側スペクトルの振幅（物理的な振幅。窓の補正つき） |
+| `Fft_power(re, im, window_gain, power)` | 関数 | 片側スペクトルのパワー（合計が信号の二乗平均になる） |
+| `Fft_phase(re, im, phase)` | 関数 | 位相 `atan2(im, re)`（ラジアン） |
+| `Fft_window_rectangular(window_values)` | 関数 | 矩形窓（すべて 1.0） |
+| `Fft_window_hann(window_values)` | 関数 | Hann 窓 |
+| `Fft_window_hamming(window_values)` | 関数 | Hamming 窓 |
+| `Fft_window_blackman(window_values)` | 関数 | Blackman 窓 |
+| `Fft_window_flattop(window_values)` | 関数 | フラットトップ窓 |
+| `Fft_window_gain(window_values)` | 関数 | 窓の係数の平均（コヒーレントゲイン）を返す |
+
+使用例（256 点の信号に Hann 窓を掛けて、振幅スペクトルを求める）:
+
+```
+var
+	samples: array[0..255] of lreal;
+	hann_window: array[0..255] of lreal;
+	windowed: array[0..255] of lreal;
+	spec_re: array[0..128] of lreal;
+	spec_im: array[0..128] of lreal;
+	amplitude: array[0..128] of lreal;
+	gain: lreal;
+end
+Fft_window_hann(window_values:=hann_window);
+gain := Fft_window_gain(window_values:=hann_window);
+Vector_elementwise_mul(a:=samples, b:=hann_window, result:=windowed);
+Fft_rfft(samples:=windowed, out_re:=spec_re, out_im:=spec_im);
+Fft_amplitude(re:=spec_re, im:=spec_im, window_gain:=gain, amplitude:=amplitude);
+// amplitude[k] is the amplitude at k * fs / 256 Hz (fs: the sampling frequency).
+```
+
+#### 仕様
+
+* **定義と正規化**: NumPy（`numpy.fft`）と同じです。
+  * 順変換: `X[k] = Σ_{n=0}^{N-1} x[n] · exp(-2πi·k·n/N)`（k = 0〜N-1）。スケーリングはしません（1 倍）。
+  * 逆変換: `x[n] = (1/N) · Σ_{k=0}^{N-1} X[k] · exp(+2πi·k·n/N)`。1/N 倍するので、順変換の後に逆変換すると元に戻ります。
+* **点の数**: FFT の点の数 N は 2 のべき乗（1, 2, 4, 8, …）に限ります。それ以外の N は `eno := false` です。アルゴリズムは、ビット反転の並べ替えと、基数 2 の Cooley-Tukey の繰り返し（再帰なし）です。複素数の FFT（`Fft_forward`・`Fft_inverse`）は N = 1 も受け付け、そのまま返します。実数の FFT（`Fft_rfft`・`Fft_irfft`）は N が 2 以上です。
+* **複素数の持ち方**: 複素数の列は、実部の配列 `re` と虚部の配列 `im` の 2 つの `lreal` の配列で渡します（`var_in_out` の可変長配列。構造体の型はありません）。配列は正規配列（下限が 0、要素数 1 以上）にします。
+* **配列の長さ**:
+  * `Fft_forward`・`Fft_inverse`: `re` と `im` は同じ N 要素。結果で上書きします。
+  * `Fft_rfft`: `samples` は N 要素（変えません）。`out_re`・`out_im` は N/2 + 1 要素。
+  * `Fft_irfft`: `in_re`・`in_im` は同じ M 要素（M は 2 以上。変えません）。`samples` は N = 2(M - 1) 要素で、N は 2 のべき乗。
+  * `Fft_amplitude`・`Fft_power`: `re`・`im`・出力は同じ M 要素（M は 2 以上）。N = 2(M - 1) として計算します。2 のべき乗でなくてもかまいません。
+  * `Fft_phase`: `re`・`im`・`phase` は同じ要素数（1 以上）。
+  * 窓関数: `window_values` は 1 以上の任意の長さ（2 のべき乗でなくてよい）。
+* **実行の時間**: どの関数も、1 回の呼び出しで変換を終えます（複数の周期に分けるファンクションブロックではありません）。N 点の複素 FFT は、(N/2)·log2(N) 回のバタフライ（それぞれ複素数の掛け算 1 回）と、N - 1 回の `cos`・`sin` の計算です。N = 1024 なら 5120 回のバタフライです。実数の FFT は N/2 点の複素 FFT と、N/2 回程度の前後の処理です。大きな N を使うときは、タスクの周期に収まるかを確かめてください。
+* **回転因子**: 回転因子 `exp(∓2πi·j/L)` は、使うたびに `cos` と `sin` で計算します。漸化式（誤差がたまる）や、利用者が渡す表は使いません。
+* **実数の FFT**: `Fft_rfft` は、N 点の実数の信号を N/2 点の複素数 `z[n] = x[2n] + i·x[2n+1]` に詰め、N/2 点の複素 FFT をした後、偶数番目と奇数番目のスペクトルに分けて合成します（`X[k] = E[k] + exp(-2πi·k/N)·O[k]`）。出力は片側の N/2 + 1 点（k = 0〜N/2）で、残りの半分は `X[N-k] = conj(X[k])` です。`out_im[0]` と `out_im[N/2]` は 0 です。作業用の配列は要りません（`out_re`・`out_im` を使います）。`Fft_irfft` はその逆で、同じく N/2 点の複素 FFT を使います（作業用に `samples` を使います）。`in_im[0]`（直流）と `in_im[M-1]`（ナイキスト周波数）は無視します（NumPy と同じ）。
+* **振幅**（`Fft_amplitude`）: 正弦波の振幅そのもの（物理的な振幅）を返します。k = 0（直流）と k = N/2（ナイキスト周波数）は `|X[k]| / N`、それ以外は `2·|X[k]| / N` で、さらに `window_gain` で割ります。振幅 A の正弦波の周波数がちょうどビン k（周波数 `k · fs / N`、fs はサンプリング周波数）にあれば、`amplitude[k] = A` です。一定のオフセットは `amplitude[0]` になります。
+* **パワー**（`Fft_power`）: 片側のパワーです。k = 0 と k = N/2 は `|X[k]|² / N²`、それ以外は `2·|X[k]|² / N²` で、さらに `window_gain²` で割ります。`window_gain = 1` のとき、パワーの合計は信号の二乗平均 `mean(x[n]²)` に等しくなります（パーセバルの定理）。振幅 A の正弦波は `A² / 2` です。
+* **位相**（`Fft_phase`）: `atan2(im[k], re[k])`（ラジアン、-π〜π）。`Math_atan2`（[atan2.iec](./src/math/atan2.iec)）を使います。`A·cos(2π·k·n/N + φ)` のビン k の位相は φ です。振幅が 0 に近いビンの位相には意味がありません。
+* **窓の補正**: `window_gain` は窓の係数の平均（コヒーレントゲイン、`Fft_window_gain` の値）です。窓を掛けると振幅が係数の平均の倍率で小さくなるので、`Fft_amplitude`・`Fft_power` に渡して補正します。既定値は 1.0（窓なし）で、0 より大きくなければいけません。
+* **窓関数**: 窓ごとに別の関数です。FFT 用の周期的な定義（長さ L、分母 L。SciPy の `get_window(..., fftbins=True)` と同じ）で、`w[n] = Σ_k (-1)^k · a_k · cos(2π·k·n/L)`（n = 0〜L-1）です。長さ 1 の窓は 1.0 です（SciPy と同じ）。窓を信号に掛けるには、`Vector_elementwise_mul`（[arithmetic.iec](./src/vector/arithmetic.iec)）を使います（専用の関数はありません）。
+
+  | 窓 | 係数 | 係数の平均（L が十分大きいとき） |
+  |---|---|---|
+  | 矩形（`Fft_window_rectangular`） | すべて 1.0 | 1 |
+  | Hann（`Fft_window_hann`） | a0 = 0.5, a1 = 0.5 | 0.5 |
+  | Hamming（`Fft_window_hamming`） | a0 = 0.54, a1 = 0.46 | 0.54 |
+  | Blackman（`Fft_window_blackman`） | a0 = 0.42, a1 = 0.5, a2 = 0.08 | 0.42 |
+  | フラットトップ（`Fft_window_flattop`） | a0 = 0.21557895, a1 = 0.41663158, a2 = 0.277263158, a3 = 0.083578947, a4 = 0.006947368（SciPy の `flattop` と同じ） | 0.21557895 |
+
+  フラットトップ窓は、ビンの間の振幅の誤差が小さいので、振幅を測るのに向きます。係数の一部はわずかに負になります。
+* **誤り**: 次のときは `eno := false` を返し、出力と `var_in_out` の配列を変えません。
+  * 配列が正規配列でない（下限が 0 でない、など）
+  * FFT の N が 2 のべき乗でない（`Fft_rfft`・`Fft_irfft` は N が 2 未満も）
+  * 長さが合わない（`re` と `im`、`Fft_rfft` の出力が N/2 + 1 要素でない、`Fft_irfft` の出力が 2(M - 1) 要素でない、スペクトルの関数の出力が入力と同じ要素数でない）
+  * `Fft_amplitude`・`Fft_power` の M が 2 未満、または `window_gain` が 0 以下
+
+* IEC 61131-10 XML生成コマンド: `jiecc ./src/fft/fft.iec -I./src -o ./src/fft/fft.xml -t omron`
+* 使い方は、[samples/fft_vibration](./samples/fft_vibration) を参照してください。
+
 ### [hash](./src/hash)
 
 ハッシュ関連ライブラリです。各関数は文字列入力版（`_string`）とバイト配列入力版（`_bytes`、`offset`/`length` 指定可）を提供します。
@@ -784,6 +867,7 @@ IEC 61131-10 XML生成コマンド: `jiecc ./src/vector/vector.iec -I./src -o ./
 | [moving_average](./samples/moving_average) | 移動平均・メディアンフィルタ・一次遅れで、測定値をなめらかにする |
 | [pid_loop](./samples/pid_loop) | PID 制御（`Control_pid`）とランプ（`Control_ramp`）で、模擬した一次遅れの対象を制御する |
 | [modbus_crc](./samples/modbus_crc) | CRC-16/MODBUS で、Modbus RTU の電文に CRC を付け、応答の CRC を確かめる |
+| [fft_vibration](./samples/fft_vibration) | 模擬した振動に Hann 窓を掛けて実数の FFT をし、振幅スペクトルからピークの周波数と振幅を求める |
 
 ## JiecLib開発者向け
 

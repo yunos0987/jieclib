@@ -1,0 +1,256 @@
+(*
+ * Tests of src/fft/window.iec.
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/fft/test_window.iec -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/fft/test_window.xml -t omron
+ *
+ * The expected values were computed in Python with the periodic cosine-sum
+ * formula (math only):
+ *   def cw(L, a):
+ *       if L == 1: return [1.0]
+ *       return [sum((-1)**k * a[k] * math.cos(2 * math.pi * k * n / L) for k in range(len(a))) for n in range(L)]
+ *   hann [0.5, 0.5], hamming [0.54, 0.46], blackman [0.42, 0.5, 0.08],
+ *   flattop [0.21557895, 0.41663158, 0.277263158, 0.083578947, 0.006947368];
+ *   gain = sum(w) / L.
+ *)
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <fft/window.iec>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_Fft_window_rectangular,
+		test_Fft_window_hann,
+		test_Fft_window_hamming,
+		test_Fft_window_blackman,
+		test_Fft_window_flattop,
+		test_Fft_window_gain
+	)
+)
+{#endif}
+
+{#define FFT_EPS 1.0e-9}
+
+TEST_S(test_Fft_window_rectangular)
+	var
+		win8: array[0..7] of lreal;
+		win3: array[0..2] of lreal;
+		win_offset: array[1..3] of lreal := [5.0, 6.0, 7.0];
+		ok: bool;
+	end
+	// Fact: Every coefficient of the rectangular window is 1.0, for any length.
+		// Arrange (win8, win3)
+		// Act
+	Fft_window_rectangular(window_values:=win8, eno=>ok);
+	Fft_window_rectangular(window_values:=win3);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_NEAR(1.0, win8[0], 0.0);
+	EXPECT_NEAR(1.0, win8[7], 0.0);
+	EXPECT_NEAR(1.0, win3[0], 0.0);
+	EXPECT_NEAR(1.0, win3[2], 0.0);
+
+	// Fact: An array whose lower bound is not 0 is an error and is not changed.
+		// Arrange (win_offset)
+		// Act
+	Fft_window_rectangular(window_values:=win_offset, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(5.0, win_offset[1], 0.0);
+	EXPECT_NEAR(7.0, win_offset[3], 0.0);
+END_TEST_S
+
+TEST_S(test_Fft_window_hann)
+	var
+		win8: array[0..7] of lreal;
+		win5: array[0..4] of lreal;
+		win1: array[0..0] of lreal;
+		win_offset: array[1..3] of lreal := [5.0, 6.0, 7.0];
+		ok: bool;
+	end
+	// Fact: The periodic Hann window of length 8 is 0.5 - 0.5 cos(2 pi n / 8).
+		// Arrange (win8)
+		// Act
+	Fft_window_hann(window_values:=win8, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_NEAR(0.0, win8[0], FFT_EPS);
+	EXPECT_NEAR(0.1464466094067262, win8[1], FFT_EPS);
+	EXPECT_NEAR(0.49999999999999994, win8[2], FFT_EPS);
+	EXPECT_NEAR(0.8535533905932737, win8[3], FFT_EPS);
+	EXPECT_NEAR(1.0, win8[4], FFT_EPS);
+	EXPECT_NEAR(0.8535533905932738, win8[5], FFT_EPS);
+	EXPECT_NEAR(0.5000000000000001, win8[6], FFT_EPS);
+	EXPECT_NEAR(0.14644660940672632, win8[7], FFT_EPS);
+
+	// Fact: A length that is not a power of two (5) is allowed and uses the denominator 5.
+		// Arrange (win5)
+		// Act
+	Fft_window_hann(window_values:=win5, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_NEAR(0.0, win5[0], FFT_EPS);
+	EXPECT_NEAR(0.3454915028125263, win5[1], FFT_EPS);
+	EXPECT_NEAR(0.9045084971874737, win5[2], FFT_EPS);
+	EXPECT_NEAR(0.9045084971874737, win5[3], FFT_EPS);
+	EXPECT_NEAR(0.3454915028125264, win5[4], FFT_EPS);
+
+	// Fact: A window of length 1 is 1.0.
+		// Arrange (win1)
+		// Act
+	Fft_window_hann(window_values:=win1, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_NEAR(1.0, win1[0], 0.0);
+
+	// Fact: An array whose lower bound is not 0 is an error and is not changed.
+		// Arrange (win_offset)
+		// Act
+	Fft_window_hann(window_values:=win_offset, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(5.0, win_offset[1], 0.0);
+	EXPECT_NEAR(7.0, win_offset[3], 0.0);
+END_TEST_S
+
+TEST_S(test_Fft_window_hamming)
+	var
+		win8: array[0..7] of lreal;
+		win_offset: array[1..3] of lreal := [5.0, 6.0, 7.0];
+		ok: bool;
+	end
+	// Fact: The periodic Hamming window of length 8 is 0.54 - 0.46 cos(2 pi n / 8).
+		// Arrange (win8)
+		// Act
+	Fft_window_hamming(window_values:=win8, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_NEAR(0.08000000000000002, win8[0], FFT_EPS);
+	EXPECT_NEAR(0.21473088065418816, win8[1], FFT_EPS);
+	EXPECT_NEAR(0.54, win8[2], FFT_EPS);
+	EXPECT_NEAR(0.8652691193458119, win8[3], FFT_EPS);
+	EXPECT_NEAR(1.0, win8[4], FFT_EPS);
+	EXPECT_NEAR(0.865269119345812, win8[5], FFT_EPS);
+	EXPECT_NEAR(0.5400000000000001, win8[6], FFT_EPS);
+	EXPECT_NEAR(0.21473088065418822, win8[7], FFT_EPS);
+
+	// Fact: An array whose lower bound is not 0 is an error and is not changed.
+		// Arrange (win_offset)
+		// Act
+	Fft_window_hamming(window_values:=win_offset, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(5.0, win_offset[1], 0.0);
+	EXPECT_NEAR(7.0, win_offset[3], 0.0);
+END_TEST_S
+
+TEST_S(test_Fft_window_blackman)
+	var
+		win8: array[0..7] of lreal;
+		win_offset: array[1..3] of lreal := [5.0, 6.0, 7.0];
+		ok: bool;
+	end
+	// Fact: The periodic Blackman window of length 8 is 0.42 - 0.5 cos(2 pi n / 8) + 0.08 cos(4 pi n / 8).
+		// Arrange (win8)
+		// Act
+	Fft_window_blackman(window_values:=win8, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_NEAR(0.0, win8[0], FFT_EPS);
+	EXPECT_NEAR(0.0664466094067262, win8[1], FFT_EPS);
+	EXPECT_NEAR(0.33999999999999997, win8[2], FFT_EPS);
+	EXPECT_NEAR(0.7735533905932737, win8[3], FFT_EPS);
+	EXPECT_NEAR(1.0, win8[4], FFT_EPS);
+	EXPECT_NEAR(0.7735533905932739, win8[5], FFT_EPS);
+	EXPECT_NEAR(0.3400000000000001, win8[6], FFT_EPS);
+	EXPECT_NEAR(0.06644660940672628, win8[7], FFT_EPS);
+
+	// Fact: An array whose lower bound is not 0 is an error and is not changed.
+		// Arrange (win_offset)
+		// Act
+	Fft_window_blackman(window_values:=win_offset, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(5.0, win_offset[1], 0.0);
+	EXPECT_NEAR(7.0, win_offset[3], 0.0);
+END_TEST_S
+
+TEST_S(test_Fft_window_flattop)
+	var
+		win8: array[0..7] of lreal;
+		win_offset: array[1..3] of lreal := [5.0, 6.0, 7.0];
+		ok: bool;
+	end
+	// Fact: The periodic flat top window of length 8 uses the five SciPy coefficients and has small negative values.
+		// Arrange (win8)
+		// Act
+	Fft_window_flattop(window_values:=win8, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_NEAR(-0.0004210510000000013, win8[0], FFT_EPS);
+	EXPECT_NEAR(-0.026872193286334542, win8[1], FFT_EPS);
+	EXPECT_NEAR(-0.05473684000000003, win8[2], FFT_EPS);
+	EXPECT_NEAR(0.4441353572863344, win8[3], FFT_EPS);
+	EXPECT_NEAR(1.000000003, win8[4], FFT_EPS);
+	EXPECT_NEAR(0.44413535728633474, win8[5], FFT_EPS);
+	EXPECT_NEAR(-0.05473683999999999, win8[6], FFT_EPS);
+	EXPECT_NEAR(-0.026872193286334584, win8[7], FFT_EPS);
+
+	// Fact: An array whose lower bound is not 0 is an error and is not changed.
+		// Arrange (win_offset)
+		// Act
+	Fft_window_flattop(window_values:=win_offset, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(5.0, win_offset[1], 0.0);
+	EXPECT_NEAR(7.0, win_offset[3], 0.0);
+END_TEST_S
+
+TEST_S(test_Fft_window_gain)
+	var
+		win8: array[0..7] of lreal;
+		win5: array[0..4] of lreal;
+		values3: array[0..2] of lreal := [1.0, 2.0, 6.0];
+		win_offset: array[1..3] of lreal := [5.0, 6.0, 7.0];
+		gain: lreal;
+		ok: bool;
+	end
+	// Fact: The coherent gain is the mean of the coefficients.
+		// Arrange (values3)
+		// Act
+	gain := Fft_window_gain(window_values:=values3, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_NEAR(3.0, gain, FFT_EPS);
+
+	// Fact: The gains of the windows of length 8 are rectangular 1, Hann 0.5, Hamming 0.54, Blackman 0.42 and flat top 0.21557895.
+		// Arrange/Act/Assert
+	Fft_window_rectangular(window_values:=win8);
+	EXPECT_NEAR(1.0, Fft_window_gain(window_values:=win8), FFT_EPS);
+	Fft_window_hann(window_values:=win8);
+	EXPECT_NEAR(0.5, Fft_window_gain(window_values:=win8), FFT_EPS);
+	Fft_window_hamming(window_values:=win8);
+	EXPECT_NEAR(0.54, Fft_window_gain(window_values:=win8), FFT_EPS);
+	Fft_window_blackman(window_values:=win8);
+	EXPECT_NEAR(0.42, Fft_window_gain(window_values:=win8), FFT_EPS);
+	Fft_window_flattop(window_values:=win8);
+	EXPECT_NEAR(0.21557895, Fft_window_gain(window_values:=win8), FFT_EPS);
+
+	// Fact: The gain of the flat top window of length 5 is also 0.21557895.
+		// Arrange
+	Fft_window_flattop(window_values:=win5);
+		// Act
+	gain := Fft_window_gain(window_values:=win5);
+		// Assert
+	EXPECT_NEAR(0.21557895, gain, FFT_EPS);
+
+	// Fact: An array whose lower bound is not 0 is an error.
+		// Arrange (win_offset)
+		// Act
+	Fft_window_gain(window_values:=win_offset, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+END_TEST_S

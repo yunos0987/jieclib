@@ -1,0 +1,155 @@
+(*
+ * Amplitude, power and phase of a one-sided spectrum (the output of Fft_rfft).
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/fft/spectrum.iec -I./src -o ./src/fft/spectrum.xml -t omron
+ *)
+{#ifndef __FFT_SPECTRUM_IEC__}
+{#define __FFT_SPECTRUM_IEC__}
+
+{#include <sys.iec>}
+{#include <array/array.iec>}
+{#include <math/atan2.iec>}
+
+(*{doc Physical amplitude of each frequency of a one-sided spectrum (the output of Fft_rfft).
+The spectrum has M points X[0] .. X[M - 1], from N = 2 (M - 1) real samples.
+amplitude[k] = |X[k]| / N / window_gain for k = 0 and k = M - 1 (direct current and the Nyquist frequency),
+amplitude[k] = 2 |X[k]| / N / window_gain for the other k.
+A sine of amplitude A whose frequency is exactly bin k (k * fs / N, fs the sampling frequency) gives amplitude[k] = A,
+and a constant offset gives amplitude[0] = offset.
+When the samples were multiplied by a window, pass the coherent gain of the window (Fft_window_gain) in window_gain
+to correct the amplitude.
+@inout re The real parts of X. A regular array (the lower bound is 0) of M elements, M at least 2. It is not changed.
+@inout im The imaginary parts of X. A regular array of M elements. It is not changed.
+@input window_gain The coherent gain of the window (the mean of its coefficients). It must be more than 0. Default value: 1.0
+@inout amplitude The amplitudes (output). A regular array of M elements.
+@error If an array is not a regular array, the sizes differ, M is less than 2, or window_gain <= 0.
+amplitude is then not changed.}*)
+function Fft_amplitude
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The real parts of the one-sided spectrum (M elements, M at least 2).}*)
+		re: array[*] of lreal;
+		(*{doc The imaginary parts of the one-sided spectrum (M elements).}*)
+		im: array[*] of lreal;
+	end
+	var_input
+		(*{doc The coherent gain of the window (more than 0). Default value: 1.0}*)
+		window_gain: lreal := 1.0;
+	end
+	var_in_out
+		(*{doc The amplitudes (output, M elements).}*)
+		amplitude: array[*] of lreal;
+	end
+	var_temp
+		m_size, im_size, out_size, pos: dint;
+		scale: lreal;
+	end
+	m_size := Array_isRegular_lreal(re);
+	im_size := Array_isRegular_lreal(im);
+	out_size := Array_isRegular_lreal(amplitude);
+	if (m_size < 2) or (im_size <> m_size) or (out_size <> m_size) then
+		eno := false;
+		return;
+	end_if;
+	if window_gain <= 0.0 then
+		eno := false;
+		return;
+	end_if;
+	// scale = 1 / (N * window_gain), N = 2 (M - 1).
+	scale := 1.0 / (2.0 * dint_to_lreal(m_size - 1) * window_gain);
+	for pos := 0 to m_size - 1 do
+		amplitude[pos] := sqrt(re[pos] * re[pos] + im[pos] * im[pos]) * scale;
+		if (pos > 0) and (pos < m_size - 1) then
+			amplitude[pos] := 2.0 * amplitude[pos];
+		end_if;
+	end_for;
+end
+
+(*{doc One-sided power of each frequency of a one-sided spectrum (the output of Fft_rfft).
+The spectrum has M points X[0] .. X[M - 1], from N = 2 (M - 1) real samples.
+power[k] = |X[k]|^2 / N^2 / window_gain^2 for k = 0 and k = M - 1 (direct current and the Nyquist frequency),
+power[k] = 2 |X[k]|^2 / N^2 / window_gain^2 for the other k.
+With window_gain = 1 the sum of power is the mean square of the samples (Parseval): sum of power[k] = mean(x[n]^2).
+A sine of amplitude A at exactly bin k gives power[k] = A^2 / 2.
+@inout re The real parts of X. A regular array (the lower bound is 0) of M elements, M at least 2. It is not changed.
+@inout im The imaginary parts of X. A regular array of M elements. It is not changed.
+@input window_gain The coherent gain of the window (the mean of its coefficients). It must be more than 0. Default value: 1.0
+@inout power The powers (output). A regular array of M elements.
+@error If an array is not a regular array, the sizes differ, M is less than 2, or window_gain <= 0.
+power is then not changed.}*)
+function Fft_power
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The real parts of the one-sided spectrum (M elements, M at least 2).}*)
+		re: array[*] of lreal;
+		(*{doc The imaginary parts of the one-sided spectrum (M elements).}*)
+		im: array[*] of lreal;
+	end
+	var_input
+		(*{doc The coherent gain of the window (more than 0). Default value: 1.0}*)
+		window_gain: lreal := 1.0;
+	end
+	var_in_out
+		(*{doc The powers (output, M elements).}*)
+		power: array[*] of lreal;
+	end
+	var_temp
+		m_size, im_size, out_size, pos: dint;
+		scale: lreal;
+	end
+	m_size := Array_isRegular_lreal(re);
+	im_size := Array_isRegular_lreal(im);
+	out_size := Array_isRegular_lreal(power);
+	if (m_size < 2) or (im_size <> m_size) or (out_size <> m_size) then
+		eno := false;
+		return;
+	end_if;
+	if window_gain <= 0.0 then
+		eno := false;
+		return;
+	end_if;
+	// scale = 1 / (N * window_gain)^2, N = 2 (M - 1).
+	scale := 1.0 / (2.0 * dint_to_lreal(m_size - 1) * window_gain);
+	scale := scale * scale;
+	for pos := 0 to m_size - 1 do
+		power[pos] := (re[pos] * re[pos] + im[pos] * im[pos]) * scale;
+		if (pos > 0) and (pos < m_size - 1) then
+			power[pos] := 2.0 * power[pos];
+		end_if;
+	end_for;
+end
+
+(*{doc Phase of each point of a spectrum: phase[k] = atan2(im[k], re[k]) in radians, from -pi to pi (Math_atan2).
+For a cosine A cos(2 pi k n / N + phi) at exactly bin k, phase[k] = phi.
+The phase of a point whose amplitude is 0 (or very small) is 0 or has no meaning.
+The arrays may have any size of 1 or more (for example the one-sided output of Fft_rfft, or the output of Fft_forward).
+@inout re The real parts. A regular array (the lower bound is 0). It is not changed.
+@inout im The imaginary parts. A regular array of the same size. It is not changed.
+@inout phase The phases in radians (output). A regular array of the same size.
+@error If an array is not a regular array or the sizes differ. phase is then not changed.}*)
+function Fft_phase
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The real parts.}*)
+		re: array[*] of lreal;
+		(*{doc The imaginary parts (the same size as re).}*)
+		im: array[*] of lreal;
+		(*{doc The phases in radians (output, the same size as re).}*)
+		phase: array[*] of lreal;
+	end
+	var_temp
+		m_size, im_size, out_size, pos: dint;
+	end
+	m_size := Array_isRegular_lreal(re);
+	im_size := Array_isRegular_lreal(im);
+	out_size := Array_isRegular_lreal(phase);
+	if (m_size = 0) or (im_size <> m_size) or (out_size <> m_size) then
+		eno := false;
+		return;
+	end_if;
+	for pos := 0 to m_size - 1 do
+		phase[pos] := Math_atan2(y:=im[pos], x:=re[pos]);
+	end_for;
+end
+
+{#endif}

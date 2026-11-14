@@ -1,0 +1,87 @@
+(*
+ * Sample: find the main frequency of a vibration with the FFT.
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./samples/fft_vibration/fft_vibration.iec -I./src -o ./samples/fft_vibration/fft_vibration.xml -t omron
+ *)
+{#include <fft/fft.iec>}
+{#include <vector/arithmetic.iec>}
+
+{#define FFT_SAMPLE_PI 3.14159265358979323846}
+
+(*{doc Find the main frequency of a simulated vibration with the FFT.
+The vibration is an offset plus two sines, sampled at sampling_frequency (256 samples).
+The samples are multiplied by a Hann window (Vector_elementwise_mul), transformed with Fft_rfft,
+and converted to amplitudes with Fft_amplitude, corrected by the gain of the window (Fft_window_gain).
+The bin with the largest amplitude (except direct current) gives the peak: its frequency is k * sampling_frequency / 256.
+Set analyze to true to run the analysis once; it finishes in one call.}*)
+program FftVibrationSample
+	var
+		(*{doc True to run the analysis once (it is set back to false).}*)
+		analyze: bool := true;
+		(*{doc The sampling frequency in Hz.}*)
+		sampling_frequency: lreal := 1024.0;
+		(*{doc The offset of the simulated vibration.}*)
+		offset_value: lreal := 0.2;
+		(*{doc The frequency of the main sine in Hz (64 Hz is bin 16).}*)
+		main_frequency: lreal := 64.0;
+		(*{doc The amplitude of the main sine.}*)
+		main_amplitude: lreal := 1.5;
+		(*{doc The frequency of the second sine in Hz (200 Hz is bin 50).}*)
+		second_frequency: lreal := 200.0;
+		(*{doc The amplitude of the second sine.}*)
+		second_amplitude: lreal := 0.4;
+	end
+	var
+		(*{doc The frequency of the peak in Hz.}*)
+		peak_frequency: lreal;
+		(*{doc The amplitude of the peak (corrected by the gain of the window).}*)
+		peak_amplitude: lreal;
+		(*{doc The index of the peak bin.}*)
+		peak_bin: dint;
+		(*{doc The amplitude of direct current (the offset).}*)
+		dc_amplitude: lreal;
+		(*{doc True if the analysis succeeded.}*)
+		ok: bool;
+	end
+	var
+		samples: array[0..255] of lreal;
+		hann_window: array[0..255] of lreal;
+		windowed: array[0..255] of lreal;
+		spec_re: array[0..128] of lreal;
+		spec_im: array[0..128] of lreal;
+		amplitude: array[0..128] of lreal;
+		gain: lreal;
+		sample_time: lreal;
+		idx: dint;
+	end
+	if analyze then
+		analyze := false;
+		// Simulate the measured vibration.
+		for idx := 0 to 255 do
+			sample_time := dint_to_lreal(idx) / sampling_frequency;
+			samples[idx] := offset_value
+				+ main_amplitude * sin(2.0 * FFT_SAMPLE_PI * main_frequency * sample_time)
+				+ second_amplitude * sin(2.0 * FFT_SAMPLE_PI * second_frequency * sample_time);
+		end_for;
+		// Apply the Hann window, then transform.
+		Fft_window_hann(window_values:=hann_window);
+		gain := Fft_window_gain(window_values:=hann_window);
+		Vector_elementwise_mul(a:=samples, b:=hann_window, result:=windowed);
+		Fft_rfft(samples:=windowed, out_re:=spec_re, out_im:=spec_im, eno=>ok);
+		if ok then
+			Fft_amplitude(re:=spec_re, im:=spec_im, window_gain:=gain, amplitude:=amplitude, eno=>ok);
+		end_if;
+		if ok then
+			// Find the largest amplitude, except direct current (bin 0).
+			dc_amplitude := amplitude[0];
+			peak_bin := 1;
+			for idx := 2 to 128 do
+				if amplitude[idx] > amplitude[peak_bin] then
+					peak_bin := idx;
+				end_if;
+			end_for;
+			peak_amplitude := amplitude[peak_bin];
+			peak_frequency := dint_to_lreal(peak_bin) * sampling_frequency / 256.0;
+		end_if;
+	end_if;
+end_program

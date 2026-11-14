@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### 追加 / Added
+
+- 高速フーリエ変換（FFT）のライブラリ `src/fft/` を追加しました。複素数の FFT と逆変換（`Fft_forward`・`Fft_inverse`）、実数の信号の FFT と逆変換（`Fft_rfft`・`Fft_irfft`。片側の N/2 + 1 点）、スペクトルの振幅・パワー・位相（`Fft_amplitude`・`Fft_power`・`Fft_phase`）、窓関数（`Fft_window_rectangular`・`Fft_window_hann`・`Fft_window_hamming`・`Fft_window_blackman`・`Fft_window_flattop`）と窓の係数の平均（`Fft_window_gain`）です。点の数は 2 のべき乗で、定義と正規化は NumPy と同じです（順変換は 1 倍、逆変換は 1/N 倍）。どの関数も 1 回の呼び出しで終わります。仕様は README.md の「fft」の節にあります。テスト（`test/fft/test_transform.iec`・`test/fft/test_spectrum.iec`・`test/fft/test_window.iec`）は jier で実行でき、利用例 `samples/fft_vibration/` もあります。
+
 ## [5.0.0] - 2026-11-08
 
 ### 互換性に影響する変更 / Breaking changes
