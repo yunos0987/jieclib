@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [6.0.0] - 2026-11-15
+
 ### 互換性に影響する変更 / Breaking changes
 
 - サブモジュール `vendor/jiecunit` を JiecUnit v7.0.0 から v8.0.0（コミット e314106）に更新し、`src/sys.iec`・`src/sys_config.iec`・`src/sys_conv.iec` に JiecUnit v8.0.0 の `sys/` の変更を取り込みました。必要な Jiecc は 9.4.0 以降のままです。JiecLib の `src/` は JiecUnit の `sys/` より先にインクルードパスにあるので、JiecUnit v8.0.0 が使う関数とマクロも JiecLib の `sys` に要ります。
