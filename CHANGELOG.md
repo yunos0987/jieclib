@@ -20,6 +20,7 @@
 ### その他 / Other
 
 - JiecUnit v8.0.0 と Jiecc 9.4.0・9.6.0 で、`python scripts/run_tests.py` のすべての検査が通ることを確認しました。README.md の「必要環境」に書きました。
+- `src/sys.iec` の `jiec_quote` の入力の名前は、JiecUnit の `s` ではなく `source_text` にしました（1 文字の名前は、キーエンス・三菱の命名規則に当たるため）。`jiec_quote`・`jiec_time_quotient`・`jiec_time_remainder` のテスト（`test/test_sys.iec`・`test/test_sys_conv.iec`）を JiecUnit から移しました。
 
 ## [5.0.0] - 2026-11-08
 

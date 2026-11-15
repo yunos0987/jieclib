@@ -17,7 +17,9 @@ DEFINE_CONFIGURATION(
 		test_lreal_to_string,
 		test_bool_to_string,
 		test_time_to_literal,
-		test_jiec_concat
+		test_jiec_time_quotient,
+		test_jiec_concat,
+		test_jiec_quote
 	)
 )
 {#undef _TEST_}
@@ -46,4 +48,41 @@ TEST_S(test_jiec_concat)
 	EXPECT_EQ_STRING('abcdefghijklmnopqrstuvwxyzABCDEF', jiec_concat('ab', 'cd', 'ef', 'gh', 'ij', 'kl', 'mn', 'op', 'qr', 'st', 'uv', 'wx', 'yz', 'AB', 'CD', 'EF'));
 	//
 	EXPECT_EQ_STRING('', jiec_concat(''));
+END_TEST_S
+
+TEST_S(test_jiec_quote)
+	var
+		long_text: string[STRING_MAX_SIZE];
+		quoted: string[STRING_MAX_SIZE];
+		index: dint;
+	end
+	// Fact: jiec_quote encloses a plain string in quote characters.
+		// Arrange/Act/Assert
+	EXPECT_EQ_STRING('$'abc$'', jiec_quote('abc'));
+
+	// Fact: jiec_quote of an empty string is two quote characters.
+		// Arrange/Act/Assert
+	EXPECT_EQ_STRING('$'$'', jiec_quote(''));
+
+	// Fact: jiec_quote escapes quote characters and dollar signs with a dollar sign.
+		// Arrange/Act/Assert
+	EXPECT_EQ_STRING('$'$$$'$$$$$'', jiec_quote('$'$$'));
+
+	// Fact: jiec_quote keeps the other characters, including spaces at the end.
+		// Arrange/Act/Assert
+	EXPECT_EQ_STRING('$'a b  $'', jiec_quote('a b  '));
+
+	// Fact: jiec_quote cuts off a string that does not fit and marks it with three dots after the closing quote.
+		// Arrange
+	long_text := '';
+	for index := 1 to STRING_MAX_SIZE do
+		long_text := concat(long_text, 'x');
+	end_for;
+		// Act
+	quoted := jiec_quote(long_text);
+		// Assert
+	// (One less than STRING_MAX_SIZE: on OMRON the size of a STRING includes the terminator.)
+	EXPECT_EQ_INT(STRING_MAX_SIZE - 1, len(quoted));
+	EXPECT_EQ_STRING('$'...', right(quoted, 4));
+	EXPECT_EQ_STRING('$'x', left(quoted, 2));
 END_TEST_S

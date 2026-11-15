@@ -248,13 +248,13 @@ Encloses the string in quote characters, and escapes every quote character and
 every dollar sign in it with a dollar sign. If the result does not fit in
 STRING_MAX_SIZE characters, the quoted part is cut off and followed by three
 dots after the closing quote character.
-@input s The string to quote.
+@input source_text The string to quote.
 @return The quoted string.}*)
 function jiec_quote: string[STRING_MAX_SIZE]
 	_PROLOGUE_OF_FUNCTION_FOR_SYS_();
 	var_input
 		(*{doc The string to quote.}*)
-		s: string[STRING_MAX_SIZE];
+		source_text: string[STRING_MAX_SIZE];
 	end
 	var_temp
 		index: dint;
@@ -265,9 +265,9 @@ function jiec_quote: string[STRING_MAX_SIZE]
 	end
 	quoted := '$'';
 	cut := false;
-	size := len(s);
+	size := len(source_text);
 	for index := 1 to size do
-		piece := mid(s, 1, _jiec_to_strpos(index));
+		piece := mid(source_text, 1, _jiec_to_strpos(index));
 		if piece = '$'' then
 			piece := '$$$'';
 		elsif piece = '$$' then

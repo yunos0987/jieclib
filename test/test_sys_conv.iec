@@ -16,7 +16,8 @@ DEFINE_CONFIGURATION(
 		test_dint_to_string,
 		test_lreal_to_string,
 		test_bool_to_string,
-		test_time_to_literal
+		test_time_to_literal,
+		test_jiec_time_quotient
 	)
 )
 {#endif}
@@ -104,4 +105,19 @@ TEST_S(test_time_to_literal)
 	// note: int64 based
 	//EXPECT_EQ_STRING('T#-106751d23h47m16s854.775808ms', time_to_literal(time#-9223372036854.775808ms));
 	//EXPECT_EQ_STRING('T#106751d23h47m16s854.775807ms', time_to_literal(time#9223372036854.775807ms));
+END_TEST_S
+
+TEST_S(test_jiec_time_quotient)
+	// Fact: jiec_time_quotient counts the whole units.
+		// Arrange/Act/Assert
+	EXPECT_EQ_DINT(0, jiec_time_quotient(time#999ms, time#1s));
+	EXPECT_EQ_DINT(1, jiec_time_quotient(time#1s, time#1s));
+	EXPECT_EQ_DINT(86399, jiec_time_quotient(jiec_sub_time(time#1d, time#1ms), time#1s));
+	EXPECT_EQ_DINT(36500, jiec_time_quotient(time#36500d12h, time#1d));
+
+	// Fact: jiec_time_remainder is what is left after the whole units.
+		// Arrange/Act/Assert
+	EXPECT_TRUE(time#999ms = jiec_time_remainder(time#999ms, time#1s));
+	EXPECT_TRUE(time#0s = jiec_time_remainder(time#1s, time#1s));
+	EXPECT_TRUE(time#12h = jiec_time_remainder(time#36500d12h, time#1d));
 END_TEST_S
