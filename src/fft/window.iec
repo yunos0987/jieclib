@@ -1,0 +1,208 @@
+(*
+ * Window functions for the FFT (periodic definition, as scipy.signal.get_window with fftbins=True).
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/fft/window.iec -I./src -o ./src/fft/window.xml -t omron
+ *
+ * A cosine-sum window of length L is w[n] = a0 - a1 cos(2 pi n / L) + a2 cos(4 pi n / L)
+ * - a3 cos(6 pi n / L) + a4 cos(8 pi n / L), n = 0 .. L - 1. The denominator is L (not L - 1),
+ * so that the window repeats with period L, which suits the FFT. A window of length 1 is 1.0.
+ * Apply a window with Vector_elementwise_mul (src/vector/arithmetic.iec).
+ *)
+{#ifndef __FFT_WINDOW_IEC__}
+{#define __FFT_WINDOW_IEC__}
+
+{#include <sys.iec>}
+{#include <array/array.iec>}
+
+{#ifndef FFT_PI}
+{#define FFT_PI 3.14159265358979323846}
+{#endif}
+
+(*{doc Fill an array with a periodic cosine-sum window.
+Internal to the library.
+w[n] = a0 - a1 cos(2 pi n / L) + a2 cos(4 pi n / L) - a3 cos(6 pi n / L) + a4 cos(8 pi n / L), n = 0 .. L - 1.
+A window of length 1 is 1.0.
+@inout window_values The window coefficients (output). A regular array of L elements.
+@input coef0 a0.
+@input coef1 a1.
+@input coef2 a2.
+@input coef3 a3.
+@input coef4 a4.
+@error If window_values is not a regular array. It is then not changed.}*)
+function private_Fft_cosineWindow
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The window coefficients (output).}*)
+		window_values: array[*] of lreal;
+	end
+	var_input
+		(*{doc a0.}*)
+		coef0: lreal;
+		(*{doc a1.}*)
+		coef1: lreal;
+		(*{doc a2.}*)
+		coef2: lreal;
+		(*{doc a3.}*)
+		coef3: lreal;
+		(*{doc a4.}*)
+		coef4: lreal;
+	end
+	var_temp
+		w_size, pos: dint;
+		angle: lreal;
+	end
+	w_size := Array_isRegular_lreal(window_values);
+	if w_size = 0 then
+		eno := false;
+		return;
+	end_if;
+	if w_size = 1 then
+		window_values[0] := 1.0;
+		return;
+	end_if;
+	for pos := 0 to w_size - 1 do
+		angle := 2.0 * FFT_PI * dint_to_lreal(pos) / dint_to_lreal(w_size);
+		window_values[pos] := coef0 - coef1 * cos(angle) + coef2 * cos(2.0 * angle)
+			- coef3 * cos(3.0 * angle) + coef4 * cos(4.0 * angle);
+	end_for;
+end
+
+(*{doc Rectangular window: every coefficient is 1.0 (the same as no window). Its coherent gain is 1.
+@inout window_values The window coefficients (output). A regular array (the lower bound is 0) of any length of 1 or more.
+@error If window_values is not a regular array. It is then not changed.}*)
+function Fft_window_rectangular
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The window coefficients (output). A regular array of any length of 1 or more.}*)
+		window_values: array[*] of lreal;
+	end
+	var_temp
+		w_size, pos: dint;
+	end
+	w_size := Array_isRegular_lreal(window_values);
+	if w_size = 0 then
+		eno := false;
+		return;
+	end_if;
+	for pos := 0 to w_size - 1 do
+		window_values[pos] := 1.0;
+	end_for;
+end
+
+(*{doc Hann window (periodic): w[n] = 0.5 - 0.5 cos(2 pi n / L), n = 0 .. L - 1, L the length.
+The denominator is L, so that the window suits the FFT. A window of length 1 is 1.0.
+Its coherent gain (the mean of the coefficients) is 0.5 for L of 2 or more.
+@inout window_values The window coefficients (output). A regular array (the lower bound is 0) of any length of 1 or more.
+@error If window_values is not a regular array. It is then not changed.}*)
+function Fft_window_hann
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The window coefficients (output). A regular array of any length of 1 or more.}*)
+		window_values: array[*] of lreal;
+	end
+	var_temp
+		ok: bool;
+	end
+	private_Fft_cosineWindow(window_values:=window_values, coef0:=0.5, coef1:=0.5, coef2:=0.0, coef3:=0.0, coef4:=0.0, eno=>ok);
+	if not ok then
+		eno := false;
+		return;
+	end_if;
+end
+
+(*{doc Hamming window (periodic): w[n] = 0.54 - 0.46 cos(2 pi n / L), n = 0 .. L - 1, L the length.
+The denominator is L, so that the window suits the FFT. A window of length 1 is 1.0.
+Its coherent gain (the mean of the coefficients) is 0.54 for L of 2 or more.
+@inout window_values The window coefficients (output). A regular array (the lower bound is 0) of any length of 1 or more.
+@error If window_values is not a regular array. It is then not changed.}*)
+function Fft_window_hamming
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The window coefficients (output). A regular array of any length of 1 or more.}*)
+		window_values: array[*] of lreal;
+	end
+	var_temp
+		ok: bool;
+	end
+	private_Fft_cosineWindow(window_values:=window_values, coef0:=0.54, coef1:=0.46, coef2:=0.0, coef3:=0.0, coef4:=0.0, eno=>ok);
+	if not ok then
+		eno := false;
+		return;
+	end_if;
+end
+
+(*{doc Blackman window (periodic): w[n] = 0.42 - 0.5 cos(2 pi n / L) + 0.08 cos(4 pi n / L), n = 0 .. L - 1, L the length.
+The denominator is L, so that the window suits the FFT. A window of length 1 is 1.0.
+Its coherent gain (the mean of the coefficients) is 0.42 for L of 3 or more.
+@inout window_values The window coefficients (output). A regular array (the lower bound is 0) of any length of 1 or more.
+@error If window_values is not a regular array. It is then not changed.}*)
+function Fft_window_blackman
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The window coefficients (output). A regular array of any length of 1 or more.}*)
+		window_values: array[*] of lreal;
+	end
+	var_temp
+		ok: bool;
+	end
+	private_Fft_cosineWindow(window_values:=window_values, coef0:=0.42, coef1:=0.5, coef2:=0.08, coef3:=0.0, coef4:=0.0, eno=>ok);
+	if not ok then
+		eno := false;
+		return;
+	end_if;
+end
+
+(*{doc Flat top window (periodic, the coefficients of scipy.signal.windows.flattop):
+w[n] = a0 - a1 cos(2 pi n / L) + a2 cos(4 pi n / L) - a3 cos(6 pi n / L) + a4 cos(8 pi n / L), n = 0 .. L - 1, L the length,
+a0 = 0.21557895, a1 = 0.41663158, a2 = 0.277263158, a3 = 0.083578947, a4 = 0.006947368.
+The amplitude error between bins is small, so it suits measuring amplitudes. Some coefficients are slightly negative.
+The denominator is L, so that the window suits the FFT. A window of length 1 is 1.0.
+Its coherent gain (the mean of the coefficients) is 0.21557895 for L of 5 or more.
+@inout window_values The window coefficients (output). A regular array (the lower bound is 0) of any length of 1 or more.
+@error If window_values is not a regular array. It is then not changed.}*)
+function Fft_window_flattop
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The window coefficients (output). A regular array of any length of 1 or more.}*)
+		window_values: array[*] of lreal;
+	end
+	var_temp
+		ok: bool;
+	end
+	private_Fft_cosineWindow(window_values:=window_values, coef0:=0.21557895, coef1:=0.41663158, coef2:=0.277263158, coef3:=0.083578947, coef4:=0.006947368, eno=>ok);
+	if not ok then
+		eno := false;
+		return;
+	end_if;
+end
+
+(*{doc Coherent gain of a window: the mean of its coefficients, sum of w[n] / L.
+Pass it to Fft_amplitude and Fft_power as window_gain to correct for the window.
+For the periodic windows of this library (L large enough): rectangular 1, Hann 0.5, Hamming 0.54, Blackman 0.42,
+flat top 0.21557895.
+@inout window_values The window coefficients. A regular array (the lower bound is 0) of any length of 1 or more. It is not changed.
+@return The mean of the coefficients.
+@error If window_values is not a regular array.}*)
+function Fft_window_gain: lreal
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The window coefficients. It is not changed.}*)
+		window_values: array[*] of lreal;
+	end
+	var_temp
+		w_size, pos: dint;
+		total: lreal;
+	end
+	w_size := Array_isRegular_lreal(window_values);
+	if w_size = 0 then
+		eno := false;
+		return;
+	end_if;
+	total := 0.0;
+	for pos := 0 to w_size - 1 do
+		total := total + window_values[pos];
+	end_for;
+	Fft_window_gain := total / dint_to_lreal(w_size);
+end
+
+{#endif}

@@ -1,6 +1,10 @@
 {#ifndef __SYS_CONFIG_IEC__}
 {#define __SYS_CONFIG_IEC__}
 
+// Every value below can be overridden with -D NAME=VALUE.
+
+// The maximum length of a STRING.
+{#ifndef STRING_MAX_SIZE}
 {#if _OMRON}
     {#define STRING_MAX_SIZE 1986}
 {#elif _KEYENCE}
@@ -12,14 +16,20 @@
 {#else}
     {#define STRING_MAX_SIZE 1024} // note: tentative value.
 {#endif}
+{#endif}
 
 // num of lines
+{#ifndef CONSOLE_MAX_ROWS}
 {#define CONSOLE_MAX_ROWS 1024}
-// num of char for a line.
+{#endif}
+// num of char for a line. A longer line is cut off when it is stored in the
+// console buffer (jier still prints the whole line to the standard output).
+{#ifndef CONSOLE_MAX_COLS}
 {#if _OMRON}
     {#define CONSOLE_MAX_COLS 512}
 {#else}
     {#define CONSOLE_MAX_COLS STRING_MAX_SIZE}
+{#endif}
 {#endif}
 
 {#endif}

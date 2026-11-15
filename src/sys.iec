@@ -42,7 +42,7 @@
 {#define _DEFINE_SYS_IN_CONFIGURATION_()
 }
 {#define _DEFINE_CONSOLE_IN_CONFIGURATION_()
-	var_global _CONSOLE_: Console_t := (row_index:=0, rows:=[CONSOLE_MAX_ROWS('')]); end
+	var_global _CONSOLE_: Console_t := (row_index:=0, full:=false, wrapped:=false, rows:=[CONSOLE_MAX_ROWS('')]); end
 }
 {#if not (_KEYENCE or _MITSUBISHI)}
 	{#define _DEFINE_SYS_IN_POU_()
@@ -159,13 +159,17 @@ type
 	Console_t: struct
 		(*{doc Current row index for writing.}*)
 		row_index: dint;
+		(*{doc Whether every row has been written once, so that the next line overwrites the oldest one.}*)
+		full: bool;
+		(*{doc Whether a line has overwritten an older one.}*)
+		wrapped: bool;
 		(*{doc Array of text rows.}*)
 		rows: array[CONSOLE_MAX_ROWS] of string[CONSOLE_MAX_COLS];
 	end;
 end
 
 (*{doc Initialize the Console structure.
-Clears all rows and resets the row index to 0.
+Clears all rows, resets the row index to 0 and clears full and wrapped.
 @inout self The Console_t structure to initialize.
 @return Always returns true.}*)
 function Console_initialize: bool
@@ -178,6 +182,8 @@ function Console_initialize: bool
 		self.rows[row_index] := '';
 	end_for;
 	self.row_index := 0;
+	self.full := false;
+	self.wrapped := false;
 end
 
 (*{doc Append text to the current row without advancing to the next row.
@@ -198,7 +204,9 @@ function Console_print: bool
 end
 
 (*{doc Print a line to the console and advance to the next row.
-The row index wraps around when it reaches the maximum number of rows.
+The row index wraps around when it reaches the maximum number of rows (full
+is set), and a line written after that overwrites the oldest one (wrapped is
+set).
 @inout self The Console_t structure.
 @input line The line to print.
 @return The new row index after advancing.}*)
@@ -212,9 +220,72 @@ function Console_puts: dint
 {#ifdef _JIER}
 	PUTS(line);
 {#endif}
+	if self.full then
+		self.wrapped := true;
+	end_if;
 	self.rows[self.row_index] := line;
 	self.row_index := (self.row_index + 1) mod CONSOLE_MAX_ROWS;
+	if self.row_index = 0 then
+		self.full := true;
+	end_if;
 	Console_puts := self.row_index;
+end
+
+// The position (1-based) of the first occurrence of needle in haystack, or 0
+// if there is none. An empty needle is found at position 1.
+// This is the standard FIND; a target that names it differently can change
+// this one macro.
+{#define jiec_find(haystack, needle) find(haystack, needle)}
+// A DINT as a position or a length of the string functions (UINT on OMRON).
+{#if _OMRON}
+	{#define _jiec_to_strpos(value_) dint_to_uint(value_)}
+{#else}
+	{#define _jiec_to_strpos(value_) value_}
+{#endif}
+
+(*{doc Quote a string the way it is written as an ST literal.
+Encloses the string in quote characters, and escapes every quote character and
+every dollar sign in it with a dollar sign. If the result does not fit in
+STRING_MAX_SIZE characters, the quoted part is cut off and followed by three
+dots after the closing quote character.
+@input source_text The string to quote.
+@return The quoted string.}*)
+function jiec_quote: string[STRING_MAX_SIZE]
+	_PROLOGUE_OF_FUNCTION_FOR_SYS_();
+	var_input
+		(*{doc The string to quote.}*)
+		source_text: string[STRING_MAX_SIZE];
+	end
+	var_temp
+		index: dint;
+		size: dint;
+		piece: string[8]; // a character (multi-byte ones too) or its two-character escape
+		quoted: string[STRING_MAX_SIZE];
+		cut: bool;
+	end
+	quoted := '$'';
+	cut := false;
+	size := len(source_text);
+	for index := 1 to size do
+		piece := mid(source_text, 1, _jiec_to_strpos(index));
+		if piece = '$'' then
+			piece := '$$$'';
+		elsif piece = '$$' then
+			piece := '$$$$';
+		end_if;
+		// Keep room for the closing quote, the three dots and the terminator
+		// (the size of a STRING includes it on OMRON).
+		if len(quoted) + len(piece) > STRING_MAX_SIZE - 5 then
+			cut := true;
+			exit;
+		end_if;
+		quoted := concat(quoted, piece);
+	end_for;
+	quoted := concat(quoted, '$'');
+	if cut then
+		quoted := concat(quoted, '...');
+	end_if;
+	jiec_quote := quoted;
 end
 
 {#endif}

@@ -19,7 +19,7 @@ JiecLib は、IEC 61131-3 ST 言語のライブラリです。コーディング
 - 変更したファイルだけを確認する場合は、ファイルやディレクトリを指定する（例: `python scripts/run_tests.py src/math test/math`）。コンパイルだけなら `--compile-only`、テストの実行だけなら `--run-only` を付ける。
 - jiecc は、`--jiecc PATH`、環境変数 `JIECC`、`PATH` 上の `jiecc` の順に探す。
 - `scripts/run_tests.py` は、`jiecc --help` に `--allow-narrowing` があれば（Jiecc 9.4.0 以降）それを `jiecc --run` に付ける。手動で jier を走らせるときも付ける（jier の `len` は DINT を返すので、OMRON の UINT を変換する `uint_to_dint(len(s))` が縮小になり、既定では止まる）。
-- JiecUnit v7.0.0 は、テストが終わると jier を `halt` で止める。`jiecc --run` の終了コードは、全テストが合格なら 0、失敗があれば 1 になる。`scripts/run_tests.py` は、終了コードと標準出力の集計行の両方で合否を判定する。
+- JiecUnit（v7.0.0 以降。今は v8.0.0）は、テストが終わると jier を `halt` で止める。`jiecc --run` の終了コードは、全テストが合格なら 0、失敗があれば 1 になる。`scripts/run_tests.py` は、終了コードと標準出力の集計行の両方で合否を判定する。
 - `jiecc` の終了コードが 0 でも、出力に `error:` の行があれば失敗とみなす。手動でコンパイルや実行をした場合も、この行を確認する。
 - すべてのテストファイルは jier で通す（CI の `run` ジョブが、全テストを jier で実行し、1 つでも失敗すると CI を失敗にする）。ライブラリのテストを 1 つにまとめるファイル（自分では `TEST_S` / `TEST_M` を定義せず、テストファイルを `{#include "..."}` するだけ。例: `test/container/test_container.iec`）は、まとめるファイルも実行するときは jier で実行しない（`SKIP run` と表示する）。新しいテストは、まとめるファイルではなく個別のテストファイルに書く。
 - `scripts/run_tests.py` を変更したら、`python scripts/test_run_tests.py` を実行する。

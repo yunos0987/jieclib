@@ -1,0 +1,317 @@
+(*
+ * Tests of src/fft/spectrum.iec.
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./test/fft/test_spectrum.iec -I. -I./src -I./vendor/jiecunit -D_TEST_ -o ./test/fft/test_spectrum.xml -t omron
+ *
+ * The expected values were computed in Python (math and cmath; NumPy is not used):
+ *   amplitude[k] = c * math.hypot(re[k], im[k]) / N / window_gain,
+ *   power[k] = c * (re[k]^2 + im[k]^2) / N^2 / window_gain^2,
+ *   with N = 2 (M - 1), c = 1 for k = 0 and k = M - 1 and c = 2 otherwise;
+ *   phase[k] = math.atan2(im[k], re[k]).
+ * The spectra of the sampled signals come from the direct DFT
+ *   X[k] = sum(x[n] * cmath.exp(-2j * math.pi * k * n / N) for n in range(N)),
+ * which gives, for example, the mean square 4.953125 of the 8 samples used for
+ * Parseval, amplitude 2.5 at bin 5 and 1.0 at bin 0 for
+ * 1.0 + 2.5 sin(2 pi 5 n / 64) (also with the Hann window and window_gain 0.5),
+ * and the phase 0.4 at bin 3 for cos(2 pi 3 n / 16 + 0.4).
+ *)
+{#include <jiecunit.iec>}
+{#if _JIECUNIT and (_JIECUNIT_VER < 402)}
+	{#error This test requires JiecUnit 4.2 or later.}
+{#endif}
+
+{#include <fft/fft.iec>}
+{#include <vector/arithmetic.iec>}
+
+{#ifdef _TEST_}
+DEFINE_CONFIGURATION(
+	_JIEC_TESTNAMES_LIST_(
+		test_Fft_amplitude,
+		test_Fft_power,
+		test_Fft_phase
+	)
+)
+{#endif}
+
+{#define FFT_EPS 1.0e-9}
+{#define FFT_PI_VALUE 3.14159265358979323846}
+
+TEST_S(test_Fft_amplitude)
+	var
+		re5: array[0..4] of lreal := [4.0, 3.0, 0.0, -1.0, 2.0];
+		im5: array[0..4] of lreal := [0.0, 4.0, -2.0, 1.0, 0.0];
+		amp5: array[0..4] of lreal;
+		samples64: array[0..63] of lreal;
+		hann64: array[0..63] of lreal;
+		windowed64: array[0..63] of lreal;
+		spec_re: array[0..32] of lreal;
+		spec_im: array[0..32] of lreal;
+		amp33: array[0..32] of lreal;
+		gain: lreal;
+		amp_keep: array[0..4] of lreal := [9.0, 9.0, 9.0, 9.0, 9.0];
+		amp_short: array[0..3] of lreal := [9.0, 9.0, 9.0, 9.0];
+		im_short: array[0..3] of lreal := [0.0, 0.0, 0.0, 0.0];
+		re1: array[0..0] of lreal := [1.0];
+		im1: array[0..0] of lreal := [0.0];
+		amp1: array[0..0] of lreal := [9.0];
+		re_offset: array[1..5] of lreal := [4.0, 3.0, 0.0, -1.0, 2.0];
+		idx: dint;
+		ok: bool;
+	end
+	// Fact: The amplitude is |X| / N at k = 0 and k = N/2 and 2 |X| / N elsewhere (M = 5, N = 8).
+		// Arrange (re5, im5)
+		// Act
+	Fft_amplitude(re:=re5, im:=im5, amplitude:=amp5, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_NEAR(0.5, amp5[0], FFT_EPS);
+	EXPECT_NEAR(1.25, amp5[1], FFT_EPS);
+	EXPECT_NEAR(0.5, amp5[2], FFT_EPS);
+	EXPECT_NEAR(0.3535533905932738, amp5[3], FFT_EPS);
+	EXPECT_NEAR(0.25, amp5[4], FFT_EPS);
+
+	// Fact: The amplitude is divided by window_gain.
+		// Arrange (re5, im5)
+		// Act
+	Fft_amplitude(re:=re5, im:=im5, window_gain:=2.0, amplitude:=amp5, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_NEAR(0.25, amp5[0], FFT_EPS);
+	EXPECT_NEAR(0.625, amp5[1], FFT_EPS);
+	EXPECT_NEAR(0.25, amp5[2], FFT_EPS);
+	EXPECT_NEAR(0.1767766952966369, amp5[3], FFT_EPS);
+	EXPECT_NEAR(0.125, amp5[4], FFT_EPS);
+
+	// Fact: A sine of amplitude 2.5 at exactly bin 5 with an offset of 1.0 gives amplitude 2.5 at bin 5 and 1.0 at bin 0 (N = 64).
+		// Arrange
+	for idx := 0 to 63 do
+		samples64[idx] := 1.0 + 2.5 * sin(2.0 * FFT_PI_VALUE * 5.0 * dint_to_lreal(idx) / 64.0);
+	end_for;
+	Fft_rfft(samples:=samples64, out_re:=spec_re, out_im:=spec_im);
+		// Act
+	Fft_amplitude(re:=spec_re, im:=spec_im, amplitude:=amp33, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_NEAR(2.5, amp33[5], FFT_EPS);
+	EXPECT_NEAR(1.0, amp33[0], FFT_EPS);
+	EXPECT_NEAR(0.0, amp33[4], FFT_EPS);
+	EXPECT_NEAR(0.0, amp33[6], FFT_EPS);
+
+	// Fact: With the Hann window and window_gain = Fft_window_gain (0.5), the same sine still gives amplitude 2.5 at bin 5 and 1.0 at bin 0.
+		// Arrange
+	Fft_window_hann(window_values:=hann64);
+	gain := Fft_window_gain(window_values:=hann64);
+	Vector_elementwise_mul(a:=samples64, b:=hann64, result:=windowed64);
+	Fft_rfft(samples:=windowed64, out_re:=spec_re, out_im:=spec_im);
+		// Act
+	Fft_amplitude(re:=spec_re, im:=spec_im, window_gain:=gain, amplitude:=amp33, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_NEAR(0.5, gain, FFT_EPS);
+	EXPECT_NEAR(2.5, amp33[5], FFT_EPS);
+	EXPECT_NEAR(1.0, amp33[0], FFT_EPS);
+
+	// Fact: window_gain <= 0 is an error and the output is not changed.
+		// Arrange (amp_keep)
+		// Act
+	Fft_amplitude(re:=re5, im:=im5, window_gain:=0.0, amplitude:=amp_keep, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(9.0, amp_keep[0], 0.0);
+	EXPECT_NEAR(9.0, amp_keep[4], 0.0);
+		// Act
+	Fft_amplitude(re:=re5, im:=im5, window_gain:=-1.0, amplitude:=amp_keep, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(9.0, amp_keep[0], 0.0);
+	EXPECT_NEAR(9.0, amp_keep[4], 0.0);
+
+	// Fact: Arrays of different sizes are an error and the output is not changed.
+		// Arrange (amp_short, im_short)
+		// Act
+	Fft_amplitude(re:=re5, im:=im5, amplitude:=amp_short, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(9.0, amp_short[0], 0.0);
+	EXPECT_NEAR(9.0, amp_short[3], 0.0);
+		// Act
+	Fft_amplitude(re:=re5, im:=im_short, amplitude:=amp_keep, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(9.0, amp_keep[0], 0.0);
+	EXPECT_NEAR(9.0, amp_keep[4], 0.0);
+
+	// Fact: M = 1 (no N) and arrays whose lower bound is not 0 are errors and the output is not changed.
+		// Arrange (re1, im1, amp1, re_offset)
+		// Act
+	Fft_amplitude(re:=re1, im:=im1, amplitude:=amp1, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(9.0, amp1[0], 0.0);
+		// Act
+	Fft_amplitude(re:=re_offset, im:=im5, amplitude:=amp_keep, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(9.0, amp_keep[0], 0.0);
+	EXPECT_NEAR(9.0, amp_keep[4], 0.0);
+END_TEST_S
+
+TEST_S(test_Fft_power)
+	var
+		re5: array[0..4] of lreal := [4.0, 3.0, 0.0, -1.0, 2.0];
+		im5: array[0..4] of lreal := [0.0, 4.0, -2.0, 1.0, 0.0];
+		pow5: array[0..4] of lreal;
+		samples8: array[0..7] of lreal := [1.0, -0.5, 2.0, 3.5, -1.25, 0.75, 4.0, -2.0];
+		spec_re: array[0..4] of lreal;
+		spec_im: array[0..4] of lreal;
+		samples64: array[0..63] of lreal;
+		spec_re33: array[0..32] of lreal;
+		spec_im33: array[0..32] of lreal;
+		pow33: array[0..32] of lreal;
+		pow_keep: array[0..4] of lreal := [9.0, 9.0, 9.0, 9.0, 9.0];
+		pow_short: array[0..3] of lreal := [9.0, 9.0, 9.0, 9.0];
+		re_offset: array[1..5] of lreal := [4.0, 3.0, 0.0, -1.0, 2.0];
+		total: lreal;
+		idx: dint;
+		ok: bool;
+	end
+	// Fact: The power is |X|^2 / N^2 at k = 0 and k = N/2 and 2 |X|^2 / N^2 elsewhere (M = 5, N = 8).
+		// Arrange (re5, im5)
+		// Act
+	Fft_power(re:=re5, im:=im5, power:=pow5, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_NEAR(0.25, pow5[0], FFT_EPS);
+	EXPECT_NEAR(0.78125, pow5[1], FFT_EPS);
+	EXPECT_NEAR(0.125, pow5[2], FFT_EPS);
+	EXPECT_NEAR(0.0625, pow5[3], FFT_EPS);
+	EXPECT_NEAR(0.0625, pow5[4], FFT_EPS);
+
+	// Fact: The power is divided by window_gain^2.
+		// Arrange (re5, im5)
+		// Act
+	Fft_power(re:=re5, im:=im5, window_gain:=0.5, power:=pow5, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_NEAR(1.0, pow5[0], FFT_EPS);
+	EXPECT_NEAR(3.125, pow5[1], FFT_EPS);
+	EXPECT_NEAR(0.5, pow5[2], FFT_EPS);
+	EXPECT_NEAR(0.25, pow5[3], FFT_EPS);
+	EXPECT_NEAR(0.25, pow5[4], FFT_EPS);
+
+	// Fact: The sum of the power of the real FFT equals the mean square of the samples (Parseval), 4.953125.
+		// Arrange
+	Fft_rfft(samples:=samples8, out_re:=spec_re, out_im:=spec_im);
+		// Act
+	Fft_power(re:=spec_re, im:=spec_im, power:=pow5, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	total := 0.0;
+	for idx := 0 to 4 do
+		total := total + pow5[idx];
+	end_for;
+	EXPECT_NEAR(4.953125, total, FFT_EPS);
+
+	// Fact: A sine of amplitude 2.5 at exactly bin 5 gives power 2.5^2 / 2 = 3.125 at bin 5, which is also the mean square (N = 64).
+		// Arrange
+	for idx := 0 to 63 do
+		samples64[idx] := 2.5 * sin(2.0 * FFT_PI_VALUE * 5.0 * dint_to_lreal(idx) / 64.0);
+	end_for;
+	Fft_rfft(samples:=samples64, out_re:=spec_re33, out_im:=spec_im33);
+		// Act
+	Fft_power(re:=spec_re33, im:=spec_im33, power:=pow33, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_NEAR(3.125, pow33[5], FFT_EPS);
+	total := 0.0;
+	for idx := 0 to 32 do
+		total := total + pow33[idx];
+	end_for;
+	EXPECT_NEAR(3.125, total, FFT_EPS);
+
+	// Fact: window_gain <= 0 is an error and the output is not changed.
+		// Arrange (pow_keep)
+		// Act
+	Fft_power(re:=re5, im:=im5, window_gain:=0.0, power:=pow_keep, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(9.0, pow_keep[0], 0.0);
+	EXPECT_NEAR(9.0, pow_keep[4], 0.0);
+		// Act
+	Fft_power(re:=re5, im:=im5, window_gain:=-0.5, power:=pow_keep, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(9.0, pow_keep[0], 0.0);
+	EXPECT_NEAR(9.0, pow_keep[4], 0.0);
+
+	// Fact: Arrays of different sizes or whose lower bound is not 0 are errors and the output is not changed.
+		// Arrange (pow_short, re_offset)
+		// Act
+	Fft_power(re:=re5, im:=im5, power:=pow_short, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(9.0, pow_short[0], 0.0);
+	EXPECT_NEAR(9.0, pow_short[3], 0.0);
+		// Act
+	Fft_power(re:=re_offset, im:=im5, power:=pow_keep, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(9.0, pow_keep[0], 0.0);
+	EXPECT_NEAR(9.0, pow_keep[4], 0.0);
+END_TEST_S
+
+TEST_S(test_Fft_phase)
+	var
+		re6: array[0..5] of lreal := [1.0, 0.0, -1.0, 0.0, 1.0, -2.0];
+		im6: array[0..5] of lreal := [0.0, 1.0, 0.0, -1.0, 1.0, -1.0];
+		phase6: array[0..5] of lreal;
+		samples16: array[0..15] of lreal;
+		spec_re: array[0..8] of lreal;
+		spec_im: array[0..8] of lreal;
+		phase9: array[0..8] of lreal;
+		phase_keep: array[0..5] of lreal := [9.0, 9.0, 9.0, 9.0, 9.0, 9.0];
+		im_short: array[0..4] of lreal := [0.0, 0.0, 0.0, 0.0, 0.0];
+		re_offset: array[1..6] of lreal := [1.0, 0.0, -1.0, 0.0, 1.0, -2.0];
+		idx: dint;
+		ok: bool;
+	end
+	// Fact: The phase is atan2(im, re) in radians, from -pi to pi.
+		// Arrange (re6, im6)
+		// Act
+	Fft_phase(re:=re6, im:=im6, phase:=phase6, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_NEAR(0.0, phase6[0], FFT_EPS);
+	EXPECT_NEAR(1.5707963267948966, phase6[1], FFT_EPS);
+	EXPECT_NEAR(3.141592653589793, phase6[2], FFT_EPS);
+	EXPECT_NEAR(-1.5707963267948966, phase6[3], FFT_EPS);
+	EXPECT_NEAR(0.7853981633974483, phase6[4], FFT_EPS);
+	EXPECT_NEAR(-2.677945044588987, phase6[5], FFT_EPS);
+
+	// Fact: A cosine cos(2 pi 3 n / 16 + 0.4) at exactly bin 3 has phase 0.4 at bin 3.
+		// Arrange
+	for idx := 0 to 15 do
+		samples16[idx] := cos(2.0 * FFT_PI_VALUE * 3.0 * dint_to_lreal(idx) / 16.0 + 0.4);
+	end_for;
+	Fft_rfft(samples:=samples16, out_re:=spec_re, out_im:=spec_im);
+		// Act
+	Fft_phase(re:=spec_re, im:=spec_im, phase:=phase9, eno=>ok);
+		// Assert
+	EXPECT_TRUE(ok);
+	EXPECT_NEAR(0.4, phase9[3], FFT_EPS);
+
+	// Fact: Arrays of different sizes or whose lower bound is not 0 are errors and the output is not changed.
+		// Arrange (phase_keep, im_short, re_offset)
+		// Act
+	Fft_phase(re:=re6, im:=im_short, phase:=phase_keep, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(9.0, phase_keep[0], 0.0);
+	EXPECT_NEAR(9.0, phase_keep[5], 0.0);
+		// Act
+	Fft_phase(re:=re_offset, im:=im6, phase:=phase_keep, eno=>ok);
+		// Assert
+	EXPECT_FALSE(ok);
+	EXPECT_NEAR(9.0, phase_keep[0], 0.0);
+	EXPECT_NEAR(9.0, phase_keep[5], 0.0);
+END_TEST_S

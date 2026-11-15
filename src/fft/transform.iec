@@ -1,0 +1,419 @@
+(*
+ * Fast Fourier transform (radix-2 Cooley-Tukey, iterative, in place).
+ * $ cd <JiecLib Project Root>
+ * $ jiecc ./src/fft/transform.iec -I./src -o ./src/fft/transform.xml -t omron
+ *
+ * Definition (the same as NumPy):
+ *   forward: X[k] = sum over n of x[n] * exp(-2 pi i k n / N)  (no scaling)
+ *   inverse: x[n] = (1 / N) * sum over k of X[k] * exp(2 pi i k n / N)
+ * N must be a power of two. Each call finishes the whole transform.
+ *)
+{#ifndef __FFT_TRANSFORM_IEC__}
+{#define __FFT_TRANSFORM_IEC__}
+
+{#include <sys.iec>}
+{#include <array/array.iec>}
+
+{#ifndef FFT_PI}
+{#define FFT_PI 3.14159265358979323846}
+{#endif}
+
+(*{doc Check whether a number is a power of two (1, 2, 4, 8, ...).
+Internal to the library.
+@input value The number.
+@return true if value is a power of two.}*)
+function private_Fft_isPowerOfTwo: bool
+	_PROLOGUE_OF_FUNCTION_()
+	var_input
+		(*{doc The number.}*)
+		value: dint;
+	end
+	var_temp
+		power_value: dint;
+	end
+	power_value := 1;
+	while (power_value < value) and (power_value < 1073741824) do
+		power_value := power_value * 2;
+	end_while;
+	private_Fft_isPowerOfTwo := power_value = value;
+end
+
+(*{doc Complex FFT in place on the first count elements of two arrays, without scaling.
+Internal to the library. The arrays must start at index 0 and have at least count elements;
+count must be a power of two. The caller checks this.
+Bit reversal permutation, then log2(count) stages of butterflies.
+The twiddle factors are computed with cos and sin at each use.
+@inout re The real parts.
+@inout im The imaginary parts.
+@input count The number of points.
+@input inverse false: exp(-2 pi i k n / count); true: exp(+2 pi i k n / count).}*)
+function private_Fft_core
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The real parts.}*)
+		re: array[*] of lreal;
+		(*{doc The imaginary parts.}*)
+		im: array[*] of lreal;
+	end
+	var_input
+		(*{doc The number of points.}*)
+		count: dint;
+		(*{doc true for the inverse direction.}*)
+		inverse: bool;
+	end
+	var_temp
+		pos, rev, bit_value, span, block, top, bottom: dint;
+		tmp_value, direction, angle, tw_re, tw_im, prod_re, prod_im: lreal;
+	end
+	// Bit reversal permutation.
+	rev := 0;
+	for pos := 0 to count - 2 do
+		if pos < rev then
+			tmp_value := re[pos];
+			re[pos] := re[rev];
+			re[rev] := tmp_value;
+			tmp_value := im[pos];
+			im[pos] := im[rev];
+			im[rev] := tmp_value;
+		end_if;
+		bit_value := count / 2;
+		while (bit_value >= 1) and (rev >= bit_value) do
+			rev := rev - bit_value;
+			bit_value := bit_value / 2;
+		end_while;
+		rev := rev + bit_value;
+	end_for;
+	// Butterflies: in each stage, blocks of 2 * span points are combined.
+	if inverse then
+		direction := 1.0;
+	else
+		direction := -1.0;
+	end_if;
+	span := 1;
+	while span < count do
+		for block := 0 to span - 1 do
+			angle := direction * FFT_PI * dint_to_lreal(block) / dint_to_lreal(span);
+			tw_re := cos(angle);
+			tw_im := sin(angle);
+			top := block;
+			while top < count do
+				bottom := top + span;
+				prod_re := tw_re * re[bottom] - tw_im * im[bottom];
+				prod_im := tw_re * im[bottom] + tw_im * re[bottom];
+				re[bottom] := re[top] - prod_re;
+				im[bottom] := im[top] - prod_im;
+				re[top] := re[top] + prod_re;
+				im[top] := im[top] + prod_im;
+				top := top + 2 * span;
+			end_while;
+		end_for;
+		span := span * 2;
+	end_while;
+end
+
+(*{doc Complex FFT in place on count complex points stored interleaved in one array, without scaling.
+Internal to the library. Point p has its real part in values[2 p] and its imaginary part in values[2 p + 1].
+The array must start at index 0 and have at least 2 count elements; count must be a power of two.
+The caller checks this. Same algorithm as private_Fft_core.
+@inout values The interleaved complex points.
+@input count The number of complex points.
+@input inverse false: exp(-2 pi i k n / count); true: exp(+2 pi i k n / count).}*)
+function private_Fft_coreInterleaved
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The interleaved complex points.}*)
+		values: array[*] of lreal;
+	end
+	var_input
+		(*{doc The number of complex points.}*)
+		count: dint;
+		(*{doc true for the inverse direction.}*)
+		inverse: bool;
+	end
+	var_temp
+		pos, rev, bit_value, span, block, top, bottom: dint;
+		tmp_value, direction, angle, tw_re, tw_im, prod_re, prod_im: lreal;
+	end
+	// Bit reversal permutation.
+	rev := 0;
+	for pos := 0 to count - 2 do
+		if pos < rev then
+			tmp_value := values[2 * pos];
+			values[2 * pos] := values[2 * rev];
+			values[2 * rev] := tmp_value;
+			tmp_value := values[2 * pos + 1];
+			values[2 * pos + 1] := values[2 * rev + 1];
+			values[2 * rev + 1] := tmp_value;
+		end_if;
+		bit_value := count / 2;
+		while (bit_value >= 1) and (rev >= bit_value) do
+			rev := rev - bit_value;
+			bit_value := bit_value / 2;
+		end_while;
+		rev := rev + bit_value;
+	end_for;
+	// Butterflies: in each stage, blocks of 2 * span points are combined.
+	if inverse then
+		direction := 1.0;
+	else
+		direction := -1.0;
+	end_if;
+	span := 1;
+	while span < count do
+		for block := 0 to span - 1 do
+			angle := direction * FFT_PI * dint_to_lreal(block) / dint_to_lreal(span);
+			tw_re := cos(angle);
+			tw_im := sin(angle);
+			top := block;
+			while top < count do
+				bottom := top + span;
+				prod_re := tw_re * values[2 * bottom] - tw_im * values[2 * bottom + 1];
+				prod_im := tw_re * values[2 * bottom + 1] + tw_im * values[2 * bottom];
+				values[2 * bottom] := values[2 * top] - prod_re;
+				values[2 * bottom + 1] := values[2 * top + 1] - prod_im;
+				values[2 * top] := values[2 * top] + prod_re;
+				values[2 * top + 1] := values[2 * top + 1] + prod_im;
+				top := top + 2 * span;
+			end_while;
+		end_for;
+		span := span * 2;
+	end_while;
+end
+
+(*{doc Forward complex FFT in place: X[k] = sum over n of x[n] * exp(-2 pi i k n / N), k = 0 .. N - 1.
+No scaling (the same as numpy.fft.fft). The complex data is held in two arrays of the same size N:
+re holds the real parts and im the imaginary parts. On return they hold the spectrum X.
+N must be a power of two (1, 2, 4, 8, ...). N = 1 leaves the data unchanged.
+The transform finishes in one call: radix-2 Cooley-Tukey with bit reversal, (N / 2) log2(N) butterflies
+(one complex multiplication each) and N - 1 evaluations of cos and sin for the twiddle factors.
+For N = 1024 this is 5120 butterflies; check that it fits in the task period.
+@inout re The real parts (input x, output X). A regular array (the lower bound is 0) of N elements.
+@inout im The imaginary parts (input x, output X). A regular array of N elements.
+@error If re or im is not a regular array, the sizes of re and im differ, or N is not a power of two.
+re and im are then not changed.}*)
+function Fft_forward
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The real parts (input x, output X). A regular array of N elements; N is a power of two.}*)
+		re: array[*] of lreal;
+		(*{doc The imaginary parts (input x, output X). A regular array of N elements.}*)
+		im: array[*] of lreal;
+	end
+	var_temp
+		n_points, im_size: dint;
+	end
+	n_points := Array_isRegular_lreal(re);
+	im_size := Array_isRegular_lreal(im);
+	if (n_points = 0) or (im_size <> n_points) then
+		eno := false;
+		return;
+	end_if;
+	if not private_Fft_isPowerOfTwo(n_points) then
+		eno := false;
+		return;
+	end_if;
+	private_Fft_core(re:=re, im:=im, count:=n_points, inverse:=false);
+end
+
+(*{doc Inverse complex FFT in place: x[n] = (1 / N) * sum over k of X[k] * exp(2 pi i k n / N), n = 0 .. N - 1.
+The scale is 1 / N (the same as numpy.fft.ifft), so Fft_inverse after Fft_forward gives back the data.
+The complex data is held in two arrays of the same size N (re: real parts, im: imaginary parts).
+N must be a power of two (1, 2, 4, 8, ...).
+The transform finishes in one call: (N / 2) log2(N) butterflies, N - 1 evaluations of cos and sin,
+and N multiplications for the scaling.
+@inout re The real parts (input X, output x). A regular array (the lower bound is 0) of N elements.
+@inout im The imaginary parts (input X, output x). A regular array of N elements.
+@error If re or im is not a regular array, the sizes of re and im differ, or N is not a power of two.
+re and im are then not changed.}*)
+function Fft_inverse
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The real parts (input X, output x). A regular array of N elements; N is a power of two.}*)
+		re: array[*] of lreal;
+		(*{doc The imaginary parts (input X, output x). A regular array of N elements.}*)
+		im: array[*] of lreal;
+	end
+	var_temp
+		n_points, im_size, pos: dint;
+		scale: lreal;
+	end
+	n_points := Array_isRegular_lreal(re);
+	im_size := Array_isRegular_lreal(im);
+	if (n_points = 0) or (im_size <> n_points) then
+		eno := false;
+		return;
+	end_if;
+	if not private_Fft_isPowerOfTwo(n_points) then
+		eno := false;
+		return;
+	end_if;
+	private_Fft_core(re:=re, im:=im, count:=n_points, inverse:=true);
+	scale := 1.0 / dint_to_lreal(n_points);
+	for pos := 0 to n_points - 1 do
+		re[pos] := re[pos] * scale;
+		im[pos] := im[pos] * scale;
+	end_for;
+end
+
+(*{doc FFT of real data: the one-sided spectrum X[k], k = 0 .. N / 2 (N / 2 + 1 points), the same as numpy.fft.rfft.
+X[k] = sum over n of samples[n] * exp(-2 pi i k n / N), no scaling. The other half of the spectrum
+is the complex conjugate: X[N - k] = conj(X[k]). out_im[0] and out_im[N / 2] are 0.
+N must be a power of two and at least 2.
+The N real samples are packed into N / 2 complex points z[n] = samples[2 n] + i samples[2 n + 1]
+(stored in out_re and out_im), transformed with an N / 2 point complex FFT, and separated into the
+spectrum of the even and the odd samples. The transform finishes in one call: (N / 4) log2(N / 2) butterflies,
+about N / 2 evaluations of cos and sin, and N / 2 post-processing steps.
+@inout samples The N real samples. A regular array (the lower bound is 0). It is not changed.
+@inout out_re The real parts of X. A regular array of N / 2 + 1 elements.
+@inout out_im The imaginary parts of X. A regular array of N / 2 + 1 elements.
+@error If an array is not a regular array, N is not a power of two or is less than 2,
+or out_re or out_im does not have N / 2 + 1 elements. out_re and out_im are then not changed.}*)
+function Fft_rfft
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The N real samples (N is a power of two, at least 2). It is not changed.}*)
+		samples: array[*] of lreal;
+		(*{doc The real parts of the one-sided spectrum (N / 2 + 1 elements).}*)
+		out_re: array[*] of lreal;
+		(*{doc The imaginary parts of the one-sided spectrum (N / 2 + 1 elements).}*)
+		out_im: array[*] of lreal;
+	end
+	var_temp
+		n_points, n_half, re_size, im_size, pos, mirror: dint;
+		zr1, zi1, zr2, zi2, even_re, even_im, odd_re, odd_im: lreal;
+		angle, cos_pos, sin_pos, cos_mirror, sin_mirror: lreal;
+	end
+	n_points := Array_isRegular_lreal(samples);
+	re_size := Array_isRegular_lreal(out_re);
+	im_size := Array_isRegular_lreal(out_im);
+	if n_points < 2 then
+		eno := false;
+		return;
+	end_if;
+	if not private_Fft_isPowerOfTwo(n_points) then
+		eno := false;
+		return;
+	end_if;
+	n_half := n_points / 2;
+	if (re_size <> n_half + 1) or (im_size <> n_half + 1) then
+		eno := false;
+		return;
+	end_if;
+	// Pack the even samples into the real parts and the odd samples into the imaginary parts.
+	for pos := 0 to n_half - 1 do
+		out_re[pos] := samples[2 * pos];
+		out_im[pos] := samples[2 * pos + 1];
+	end_for;
+	private_Fft_core(re:=out_re, im:=out_im, count:=n_half, inverse:=false);
+	// Z = E + i O, where E and O are the spectra of the even and the odd samples.
+	// X[k] = E[k] + exp(-2 pi i k / N) O[k], with E[k] = (Z[k] + conj(Z[N/2 - k])) / 2
+	// and O[k] = (Z[k] - conj(Z[N/2 - k])) / (2 i). k and N/2 - k are computed together.
+	zr1 := out_re[0];
+	zi1 := out_im[0];
+	out_re[0] := zr1 + zi1;
+	out_im[0] := 0.0;
+	out_re[n_half] := zr1 - zi1;
+	out_im[n_half] := 0.0;
+	for pos := 1 to n_half / 2 do
+		mirror := n_half - pos;
+		zr1 := out_re[pos];
+		zi1 := out_im[pos];
+		zr2 := out_re[mirror];
+		zi2 := out_im[mirror];
+		even_re := (zr1 + zr2) * 0.5;
+		even_im := (zi1 - zi2) * 0.5;
+		odd_re := (zi1 + zi2) * 0.5;
+		odd_im := (zr2 - zr1) * 0.5;
+		angle := -2.0 * FFT_PI * dint_to_lreal(pos) / dint_to_lreal(n_points);
+		cos_pos := cos(angle);
+		sin_pos := sin(angle);
+		out_re[pos] := even_re + cos_pos * odd_re - sin_pos * odd_im;
+		out_im[pos] := even_im + cos_pos * odd_im + sin_pos * odd_re;
+		if mirror <> pos then
+			// X[N/2 - k] = conj(E[k]) + exp(-2 pi i (N/2 - k) / N) conj(O[k]).
+			angle := -2.0 * FFT_PI * dint_to_lreal(mirror) / dint_to_lreal(n_points);
+			cos_mirror := cos(angle);
+			sin_mirror := sin(angle);
+			out_re[mirror] := even_re + cos_mirror * odd_re + sin_mirror * odd_im;
+			out_im[mirror] := -even_im - cos_mirror * odd_im + sin_mirror * odd_re;
+		end_if;
+	end_for;
+end
+
+(*{doc Inverse of Fft_rfft: N real samples from the one-sided spectrum X[k], k = 0 .. N / 2, the same as numpy.fft.irfft.
+samples[n] = (1 / N) * sum over k = 0 .. N - 1 of X[k] * exp(2 pi i k n / N), where X[N - k] = conj(X[k]).
+The scale is 1 / N, so Fft_irfft after Fft_rfft gives back the samples.
+The imaginary parts of X[0] and X[N / 2] are ignored (as in NumPy).
+The spectrum has M points (M = N / 2 + 1, so N = 2 (M - 1)); N must be a power of two and at least 2.
+The spectrum is combined into N / 2 complex points (stored in samples), transformed with an N / 2 point
+inverse complex FFT, and unpacked: samples[2 n] and samples[2 n + 1] are the real and imaginary parts of point n.
+The transform finishes in one call: (N / 4) log2(N / 2) butterflies, about N / 2 evaluations of cos and sin,
+N / 2 pre-processing steps and N multiplications for the scaling.
+@inout in_re The real parts of X. A regular array (the lower bound is 0) of M elements. It is not changed.
+@inout in_im The imaginary parts of X. A regular array of M elements. It is not changed.
+@inout samples The N = 2 (M - 1) real samples (output). A regular array.
+@error If an array is not a regular array, the sizes of in_re and in_im differ, M is less than 2,
+samples does not have 2 (M - 1) elements, or 2 (M - 1) is not a power of two. samples is then not changed.}*)
+function Fft_irfft
+	_PROLOGUE_OF_FUNCTION_()
+	var_in_out
+		(*{doc The real parts of the one-sided spectrum (M elements). It is not changed.}*)
+		in_re: array[*] of lreal;
+		(*{doc The imaginary parts of the one-sided spectrum (M elements). It is not changed.}*)
+		in_im: array[*] of lreal;
+		(*{doc The 2 (M - 1) real samples (output).}*)
+		samples: array[*] of lreal;
+	end
+	var_temp
+		m_size, im_size, n_points, n_half, pos, mirror: dint;
+		ar, ai, br, bi, even_re, even_im, diff_re, diff_im, odd_re, odd_im: lreal;
+		angle, cos_pos, sin_pos, scale: lreal;
+	end
+	m_size := Array_isRegular_lreal(in_re);
+	im_size := Array_isRegular_lreal(in_im);
+	n_points := Array_isRegular_lreal(samples);
+	if (m_size < 2) or (im_size <> m_size) then
+		eno := false;
+		return;
+	end_if;
+	n_half := m_size - 1;
+	if n_points <> 2 * n_half then
+		eno := false;
+		return;
+	end_if;
+	if not private_Fft_isPowerOfTwo(n_points) then
+		eno := false;
+		return;
+	end_if;
+	// Z[k] = E[k] + i O[k], with E[k] = (X[k] + conj(X[N/2 - k])) / 2
+	// and O[k] = (X[k] - conj(X[N/2 - k])) exp(2 pi i k / N) / 2.
+	// For k = 0 the imaginary parts of X[0] and X[N/2] are ignored, so E[0] and O[0] are real.
+	samples[0] := (in_re[0] + in_re[n_half]) * 0.5;
+	samples[1] := (in_re[0] - in_re[n_half]) * 0.5;
+	for pos := 1 to n_half - 1 do
+		mirror := n_half - pos;
+		ar := in_re[pos];
+		ai := in_im[pos];
+		br := in_re[mirror];
+		bi := -in_im[mirror];
+		even_re := (ar + br) * 0.5;
+		even_im := (ai + bi) * 0.5;
+		diff_re := (ar - br) * 0.5;
+		diff_im := (ai - bi) * 0.5;
+		angle := 2.0 * FFT_PI * dint_to_lreal(pos) / dint_to_lreal(n_points);
+		cos_pos := cos(angle);
+		sin_pos := sin(angle);
+		odd_re := diff_re * cos_pos - diff_im * sin_pos;
+		odd_im := diff_re * sin_pos + diff_im * cos_pos;
+		samples[2 * pos] := even_re - odd_im;
+		samples[2 * pos + 1] := even_im + odd_re;
+	end_for;
+	private_Fft_coreInterleaved(values:=samples, count:=n_half, inverse:=true);
+	// z[n] = samples[2 n] + i samples[2 n + 1] are the even and the odd samples.
+	scale := 1.0 / dint_to_lreal(n_half);
+	for pos := 0 to n_points - 1 do
+		samples[pos] := samples[pos] * scale;
+	end_for;
+end
+
+{#endif}
