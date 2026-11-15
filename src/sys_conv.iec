@@ -84,51 +84,182 @@ end
 {#endif}
 
 {#if not (_MITSUBISHI)}
-// note: int64 based
-(*{doc Convert a time value to a string representation in seconds.
-The output format is "<sign><seconds>.<microseconds>s" or "<sign><seconds>s" if there are no fractional seconds.
+// The sum and the difference of two TIME values. Sysmac Studio (OMRON) has no
+// + and - for TIME, so the standard functions ADD_TIME / SUB_TIME are used;
+// CODESYS has the operators only.
+{#if _CODESYS}
+	{#define jiec_add_time(lhs_, rhs_) ((lhs_) + (rhs_))}
+	{#define jiec_sub_time(lhs_, rhs_) ((lhs_) - (rhs_))}
+{#else}
+	{#define jiec_add_time(lhs_, rhs_) add_time(lhs_, rhs_)}
+	{#define jiec_sub_time(lhs_, rhs_) sub_time(lhs_, rhs_)}
+{#endif}
+
+(*{doc How many times a duration contains a unit, rounded down.
+Uses only the addition (ADD_TIME), the subtraction (SUB_TIME) and the comparison of TIME values:
+the PLC tools do not multiply or divide a TIME value by a number. It works
+without 64-bit integers and never computes a duration longer than value.
+@input value The duration; must not be negative.
+@input unit The unit; must be positive.
+@return The number of whole units in value (at most 2147483647).}*)
+function jiec_time_quotient: dint
+	_PROLOGUE_OF_FUNCTION_FOR_SYS_();
+	var_input
+		(*{doc The duration; must not be negative.}*)
+		value: time;
+		(*{doc The unit; must be positive.}*)
+		unit: time;
+	end
+	var_temp
+		remaining: time;
+		chunk: time;
+		chunk_count: dint;
+	end
+	jiec_time_quotient := 0;
+	remaining := value;
+	while remaining >= unit do
+		// Take the largest unit * 2^k that fits (the subtraction avoids a
+		// duration above the range of TIME).
+		chunk := unit;
+		chunk_count := 1;
+		while chunk_count < 1073741824 do
+			if jiec_sub_time(remaining, chunk) < chunk then
+				exit;
+			end_if;
+			chunk := jiec_add_time(chunk, chunk);
+			chunk_count := chunk_count * 2;
+		end_while;
+		if jiec_time_quotient > 2147483647 - chunk_count then
+			jiec_time_quotient := 2147483647;
+			return;
+		end_if;
+		remaining := jiec_sub_time(remaining, chunk);
+		jiec_time_quotient := jiec_time_quotient + chunk_count;
+	end_while;
+end
+
+(*{doc What is left of a duration after taking out the whole units.
+The counterpart of jiec_time_quotient, with the same restrictions: the PLC
+tools do not multiply or divide a TIME value by a number, so the remainder
+is computed with subtractions and comparisons too.
+@input value The duration; must not be negative.
+@input unit The unit; must be positive.
+@return value minus the whole units in it (less than unit).}*)
+function jiec_time_remainder: time
+	_PROLOGUE_OF_FUNCTION_FOR_SYS_();
+	var_input
+		(*{doc The duration; must not be negative.}*)
+		value: time;
+		(*{doc The unit; must be positive.}*)
+		unit: time;
+	end
+	var_temp
+		remaining: time;
+		chunk: time;
+		chunk_count: dint;
+	end
+	remaining := value;
+	while remaining >= unit do
+		chunk := unit;
+		chunk_count := 1;
+		while chunk_count < 1073741824 do
+			if jiec_sub_time(remaining, chunk) < chunk then
+				exit;
+			end_if;
+			chunk := jiec_add_time(chunk, chunk);
+			chunk_count := chunk_count * 2;
+		end_while;
+		remaining := jiec_sub_time(remaining, chunk);
+	end_while;
+	jiec_time_remainder := remaining;
+end
+
+// The nanoseconds of a duration shorter than a second, as DINT.
+{#if _OMRON}
+	{#define _jiec_subsecond_to_nsec(...) lint_to_dint(TimeToNanoSec(__VA_ARGS__))}
+{#elif _KEYENCE}
+	{#define _jiec_subsecond_to_nsec(...) (TimeToMicroSec(__VA_ARGS__) * 1000)}
+{#elif _CODESYS}
+	{#define _jiec_subsecond_to_nsec(...) lint_to_dint(ltime_to_lint(__VA_ARGS__))}
+{#else}
+	// jier has only time_to_usec_dint, which drops what is below a
+	// microsecond: count the nanoseconds that are left.
+	{#define _jiec_subsecond_to_nsec(...) (time_to_usec_dint(__VA_ARGS__) * 1000 + jiec_time_quotient(jiec_time_remainder(__VA_ARGS__, time#0.001ms), time#0.000001ms))}
+{#endif}
+
+(*{doc Convert a time value to text in the form of a duration literal of IEC 61131-3.
+The form is "T#[-][<d>d][<h>h][<m>m][<s>s][<ms>ms]", for example
+"T#1h30m5s250ms"; a part that is 0 is left out, and 0 is "T#0s". A fraction of
+a millisecond is written with a decimal point, down to nanoseconds
+("T#250.123456ms"); the units us and ns are not used. Unlike a conversion
+through an integer of microseconds, long durations are not cut off.
 @input in The time value to convert.
-@return The string representation of the time value in seconds.}*)
-function time_to_string_sec: string[64]
+@return The text.}*)
+function time_to_literal: string[64]
 	_PROLOGUE_OF_FUNCTION_FOR_SYS_();
 	var_input
 		(*{doc The time value to convert.}*)
 		in: time;
 	end
 	var_temp
-		usec_raw: dint;
-		sec_rem_raw: dint;
-		sec_int_raw: dint;
-		sec_rem_str: string[16];
-		sign: string[2] := '';
+		remaining: time;
+		days: dint;
+		seconds: dint;
+		nsec: dint;
+		ms_fraction: dint;
+		ms_fraction_str: string[16];
+		literal: string[64];
 	end
-	usec_raw := time_to_usec_dint(in);
-
-	sec_rem_raw := usec_raw mod dint#1_000_000;
-	sec_int_raw := (usec_raw - sec_rem_raw) / dint#1_000_000;
-
-	if usec_raw < 0 then
-		sign := '-';
-		sec_rem_raw := -sec_rem_raw;
-		sec_int_raw := -sec_int_raw;
+	literal := 'T#';
+	remaining := in;
+	if in < time#0s then
+		literal := 'T#-';
+		remaining := jiec_sub_time(time#0s, in);
+	end_if;
+	if remaining = time#0s then
+		time_to_literal := 'T#0s';
+		return;
 	end_if;
 
-	sec_rem_str := dint_to_string(sec_rem_raw);
-	while len(sec_rem_str) <> 6 do
-		sec_rem_str := jiec_concat('0', sec_rem_str);
-	end_while;
-	while len(sec_rem_str) > 0 do
-		if right(sec_rem_str, 1) <> '0' then
-			exit;
+	// (The PLC tools do not multiply or divide a TIME value by a number, so
+	// the value is split with jiec_time_quotient / jiec_time_remainder.)
+	days := jiec_time_quotient(remaining, time#1d);
+	if days > 0 then
+		remaining := jiec_time_remainder(remaining, time#1d);
+		literal := jiec_concat(literal, dint_to_string(days), 'd');
+	end_if;
+	// Less than a day is left.
+	seconds := jiec_time_quotient(remaining, time#1s);
+	remaining := jiec_time_remainder(remaining, time#1s);
+	if seconds >= 3600 then
+		literal := jiec_concat(literal, dint_to_string(seconds / 3600), 'h');
+		seconds := seconds mod 3600;
+	end_if;
+	if seconds >= 60 then
+		literal := jiec_concat(literal, dint_to_string(seconds / 60), 'm');
+		seconds := seconds mod 60;
+	end_if;
+	if seconds > 0 then
+		literal := jiec_concat(literal, dint_to_string(seconds), 's');
+	end_if;
+	// Less than a second is left: its nanoseconds fit in a DINT.
+	nsec := _jiec_subsecond_to_nsec(remaining);
+	ms_fraction := nsec mod 1000000;
+	if nsec > 0 then
+		literal := jiec_concat(literal, dint_to_string(nsec / 1000000));
+		if ms_fraction > 0 then
+			ms_fraction_str := dint_to_string(ms_fraction);
+			while len(ms_fraction_str) < 6 do
+				ms_fraction_str := jiec_concat('0', ms_fraction_str);
+			end_while;
+			while right(ms_fraction_str, 1) = '0' do
+				ms_fraction_str := left(ms_fraction_str, len(ms_fraction_str) - 1);
+			end_while;
+			literal := jiec_concat(literal, '.', ms_fraction_str);
 		end_if;
-		sec_rem_str := delete(sec_rem_str, 1, len(sec_rem_str));
-	end_while;
-
-	if sec_rem_str <> '' then
-		time_to_string_sec := jiec_concat(sign, dint_to_string(sec_int_raw), '.', sec_rem_str, 's');
-	else
-		time_to_string_sec := jiec_concat(sign, dint_to_string(sec_int_raw), 's');
+		literal := jiec_concat(literal, 'ms');
 	end_if;
+	time_to_literal := literal;
 end
 {#elif _MITSUBISHI}
 	// Not supported: JiecLib does not support Mitsubishi (README.md).

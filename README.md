@@ -84,8 +84,9 @@ JiecLibは、<a href="https://www.graviness.com/iec_61131-3/">IEC 61131-3 ST言�
 
 * [Jiecc 9.4.0以降](https://www.graviness.com/iec_61131-3/jiecc.html#Header.Jiecc%E3%81%AE%E3%83%80%E3%82%A6%E3%83%B3%E3%83%AD%E3%83%BC%E3%83%89%E3%81%A8%E5%AE%9F%E8%A1%8C%E6%96%B9%E6%B3%95)
   * IEC 61131-3テキストをIEC 61131-10 XMLに変換するコマンドラインの無料ソフトウェアです。
-  * JiecLibのテスト（`test/`。JiecUnit v7.0.0を使います）の実行にも、Jiecc 9.4.0以降を使います。
+  * JiecLibのテスト（`test/`。JiecUnit v8.0.0を使います）の実行にも、Jiecc 9.4.0以降を使います。
   * Jiecc 9.4.0未満では、`{#error}`でコンパイルを止めます。
+  * Jiecc 9.4.0と9.6.0で、`python scripts/run_tests.py`のすべての検査が通ることを確認しています。
 * [Sysmac Studio](https://www.fa.omron.co.jp/products/family/3077/download/software.html)
   * 同梱のシミュレータでテスト可能です。必要に応じてPLC本体も入手してください。
 

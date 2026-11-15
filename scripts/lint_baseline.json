@@ -1416,7 +1416,6 @@
     "test/test_sys_conv.iec: test_bool_to_string",
     "test/test_sys_conv.iec: test_dint_to_string",
     "test/test_sys_conv.iec: test_lreal_to_string",
-    "test/test_sys_conv.iec: test_time_to_string_sec",
     "test/test_sys_conv.iec: test_udint_to_string",
     "test/vector/test_arithmetic.iec: test_vector_add",
     "test/vector/test_arithmetic.iec: test_vector_dot",

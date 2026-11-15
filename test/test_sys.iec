@@ -16,7 +16,7 @@ DEFINE_CONFIGURATION(
 		test_dint_to_string,
 		test_lreal_to_string,
 		test_bool_to_string,
-		test_time_to_string_sec,
+		test_time_to_literal,
 		test_jiec_concat
 	)
 )

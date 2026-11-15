@@ -4,9 +4,22 @@
 
 ## [Unreleased]
 
+### 互換性に影響する変更 / Breaking changes
+
+- サブモジュール `vendor/jiecunit` を JiecUnit v7.0.0 から v8.0.0（コミット e314106）に更新し、`src/sys.iec`・`src/sys_config.iec`・`src/sys_conv.iec` に JiecUnit v8.0.0 の `sys/` の変更を取り込みました。必要な Jiecc は 9.4.0 以降のままです。JiecLib の `src/` は JiecUnit の `sys/` より先にインクルードパスにあるので、JiecUnit v8.0.0 が使う関数とマクロも JiecLib の `sys` に要ります。
+  - `src/sys_conv.iec` の `time_to_string_sec`（秒の小数 `5405.25s` の形）を削除し、`time_to_literal`（IEC 61131-3 の時間リテラルの形 `T#1h30m5s250ms`）に置き換えました。`time_to_string_sec` を使っているコードは、`time_to_literal` に変え、出力の形の違いに合わせてください。
+  - `src/sys_conv.iec` に、TIME の和と差 `jiec_add_time`・`jiec_sub_time`（マクロ）、TIME を単位で割った商と余り `jiec_time_quotient`・`jiec_time_remainder` を追加しました。
+  - `src/sys.iec` の `Console_t` に、行バッファが一巡したことを示す `full` と、古い行を上書きしたことを示す `wrapped` を追加しました。`Console_t` の初期値を手で書いているコードは、この 2 つを加えてください。`src/sys.iec` に、標準の `find` を呼ぶ `jiec_find`（マクロ）と、文字列を ST のリテラルの形にする `jiec_quote` を追加しました。
+  - `src/sys_config.iec` の `STRING_MAX_SIZE`・`CONSOLE_MAX_ROWS`・`CONSOLE_MAX_COLS` を、`-D NAME=VALUE` で上書きできるようにしました。
+- `test/test_sys_conv.iec` のテスト `test_time_to_string_sec` を `test_time_to_literal` に改め、`time_to_literal` の出力を確かめるようにしました。
+
 ### 追加 / Added
 
 - 高速フーリエ変換（FFT）のライブラリ `src/fft/` を追加しました。複素数の FFT と逆変換（`Fft_forward`・`Fft_inverse`）、実数の信号の FFT と逆変換（`Fft_rfft`・`Fft_irfft`。片側の N/2 + 1 点）、スペクトルの振幅・パワー・位相（`Fft_amplitude`・`Fft_power`・`Fft_phase`）、窓関数（`Fft_window_rectangular`・`Fft_window_hann`・`Fft_window_hamming`・`Fft_window_blackman`・`Fft_window_flattop`）と窓の係数の平均（`Fft_window_gain`）です。点の数は 2 のべき乗で、定義と正規化は NumPy と同じです（順変換は 1 倍、逆変換は 1/N 倍）。どの関数も 1 回の呼び出しで終わります。仕様は README.md の「fft」の節にあります。テスト（`test/fft/test_transform.iec`・`test/fft/test_spectrum.iec`・`test/fft/test_window.iec`）は jier で実行でき、利用例 `samples/fft_vibration/` もあります。
+
+### その他 / Other
+
+- JiecUnit v8.0.0 と Jiecc 9.4.0・9.6.0 で、`python scripts/run_tests.py` のすべての検査が通ることを確認しました。README.md の「必要環境」に書きました。
 
 ## [5.0.0] - 2026-11-08
 
